@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudentExchangeTools</title>
+    <!-- CSS -->
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/bootstrap-custom.css">
+    <!--<link rel="stylesheet" type="text/css" href="js/datatables.min.css"/>-->
+    <link rel="stylesheet" type="text/css" href="css/main.css"/>
+    <link rel="stylesheet" type="text/css" href="css/animations.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <header style="display: none;">
+        <div class="container">
+            <div class="logo">
+                StudentExchangeTools
+            </div>
+            <a id="signout" href="#">Se déconnecter</a>
+            <nav>
+                <ul class="menu" role="professor" style="display: none;">
+                    <li><a href="/demandes-de-mobilite">Demandes de mobilité</a></li>
+                    <li><a href="/mobilites">Mobilités</a></li>
+                    <li><a href="/etudiants">Etudiants</a></li>
+                    <li><a href="/partenaires">Partenaires</a></li>
+                    <li><a href="/paiements">Paiements</a></li>
+                </ul>
+                <ul class="menu" role="student" style="display: none;">
+                    <li><a href="/demandes-de-mobilite">Mes demandes de mobilité</a></li>
+                    <li><a href="/mobilites">Mes mobilités</a></li>
+                    <li><a href="/partenaires">Partenaires</a></li>
+                    <li><a href="/mes-donnees-personnelles">Mes données personnelles</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="signin-view" class="card front" style="display: none;">
+            <h2>Bienvenue à bord</h2>
+            <div id="si-error-notification" class="notification notification-danger" style="display: none;">
+                Nom d'utilisateur et/ou mot de passe incorrect.
+            </div>
+            <div id="si-success-notification" class="notification notification-info" style="display: none;">
+                Votre compte a bien été créé. Vous pouvez désormais vous connecter.
+            </div>
+            <form id="form-signin">
+                <div class="form-group">
+                    <input type="text" id="fsi-field-username" class="form-control input" name="username" placeholder="Nom d'utilisateur">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="fsi-field-password" class="form-control input" name="password" placeholder="Mot de passe">
+                </div>
+                <button type="submit" class="btn btn-default btn-lg">Se connecter</button>
+            </form>
+            <div class="bottom">Vous n'avez pas encore de compte? <a id="signup-link" href="">Inscrivez-vous</a></div>
+        </div>
+
+        <div id="signup-view" class="card back" style="display: none;">
+            <h2>Inscription</h2>
+            <form>
+                <div class="form-group">
+                    <input type="text" id="fsu-field-last-name" class="form-control input" name="lastName" placeholder="Nom">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="fsu-field-first-name" class="form-control input" name="firstName" placeholder="Prénom">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="fsu-field-username" class="form-control input" name="username" placeholder="Nom d'utilisateur">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="fsu-field-password" class="form-control input" name="password" placeholder="Mot de passe">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="fsu-field-reenter-password" class="form-control input" name="reenterPassword" placeholder="Retapez le mot de passe">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="fsu-field-email" class="form-control input" name="email" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <select class="form-control input" id="fsu-field-option" name="option[code]">
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-default btn-lg">S'enregistrer</button>
+            </form>
+            <div class="bottom">Vous avez déjà un compte? <a id="signin-link" href="">Connectez-vous</a></div>
+        </div>
+    </div>
+
+    <div id="mobility-choices-view" class="container" style="display: none;">
+        <h2>Gestion des demandes de mobilité</h2>
+        <button id="create-mobility-choice" type="button" class="btn btn-primary">Créer une demande de mobilité</button>
+        <label for="fsu-field-filter">Afficher les demandes</label>
+        <select id="fsu-field-filter" name="filter">
+            <option value="active">Actives</option>
+            <option value="all">Toutes</option>
+            <option value="rejected">Rejetées</option>
+        </select>
+        <table id="mobility-choices-table" class="display"></table>
+        <a id="export-mobility-choices" class="btn export btn-primary">Exporter en csv</a>
+    </div>
+
+    <div id="create-mobility-choice-view" class="card back" style="display: none;">
+        <div class="overlay">
+            <div class="modal modal-sm">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Ajout de demande de mobilité
+                </div>
+                <div class="modal-content">
+                    <form>
+                        <div class="form-group" data-role="Professor" style="display: none;">
+                            <label for="fsu-field-user">Etudiant</label>
+                            <select class="form-control input" id="fsu-field-user" name="user[id]">
+                            </select>
+                        </div>
+                        <div>
+                            <div class="form-group" style="display: inline-block; width: 47%">
+                                <label for="fsu-field-programme">Programme</label>
+                                <select class="form-control input" id="fsu-field-programme" name="programme[id]">
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: inline-block; width: 48%; float: right">
+                                <label for="fsu-field-country">Pays</label>
+                                <select class="form-control input" id="fsu-field-country" name="country[countryCode]">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fsu-field-partner">Partenaire</label>
+                            <select class="form-control input" id="fsu-field-partner" name="partner[id]">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fsu-field-mobility-type">Type de mobilité</label>
+                            <select class="form-control input" id="fsu-field-mobility-type" name="mobilityType">
+                                <option value="SMS">Académique (SMS)</option>
+                                <option value="SMP">Stage (SMP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fsu-field-preference-order">Ordre de péférence</label>
+                            <input type="number" id="fsu-field-preference-order" class="form-control input" min="0" name="preferenceOrder">
+                        </div>
+                        <div>
+                            <label for="fsu-field-departure-date">Date de départ</label>
+                            <select class="form-control input" id="fsu-field-departure-date" name="departureDate">
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-block btn-lg btn-default">Soumettre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobilities-view" class="container" style="display: none;">
+        <h2>Gestion des mobilités</h2>
+        <table id="mobilities-table" class="display"></table>
+    </div>
+
+    <div id="reject-mobility-choice-view" class="card back" style="display: none;">
+        <div class="overlay">
+            <div class="modal modal-sm">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Refuser une demande de mobilité
+                </div>
+                <form id="select-denial-reason-form">
+                    <div class="modal-content">
+                        <div class="form-group">
+                            <label for="fsu-field-denial-reason">Raison d'annulation</label>
+                            <select class="form-control input" id="fsu-field-denial-reason" name="denialReason[id]">
+                            </select>
+                        </div>
+                        <a href="" id="switch-to-create">Introduire une nouvelle raison d'annulation</a>
+                    </div>
+                    <div class="modal-action">
+                        <button id="reject-mobility-choice" type="submit" class="btn btn-block btn-lg btn-danger">Refuser la demande</button>
+                    </div>
+                </form>
+                <form id="create-denial-reason-form" style="display: none">
+                    <div class="modal-content">
+                        <div class="form-group">
+                            <label for="fsu-field-reason">Raison d'annulation</label>
+                            <input type="text" id="fsu-field-reason" class="form-control input" name="denialReason[reason]">
+                        </div>
+                        <a href="" id="switch-to-select">Choisir parmi les raisons existantes</a>
+                    </div>
+                    <div class="modal-action">
+                        <button id="create-mobility-choice" type="submit" class="btn btn-block btn-lg btn-default">Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="cancel-mobility-choice-view" style="display: none">
+        <div class="overlay">
+            <div class="modal modal-sm">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Annuler une demande de mobilité
+                </div>
+                <form>
+                    <div class="modal-content">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="textarea-cancel-mobility-reason">Raison de l'annulation :</label>
+                                <textarea id="textarea-cancel-mobility-reason"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-action">
+                        <button type="submit" class="btn btn-block btn-lg btn-danger">Annuler la demande</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-partner-view" class="card back" style="display: none;">
+        <div class="overlay">
+            <div class="modal modal-sm">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Ajout de partenaire
+                </div>
+                <div class="modal-content">
+                    <form>
+                        <div>
+                            <div class="form-group">
+                                <label for="fsu-field-full-name">Nom complet</label>
+                                <input type="text" id="fsu-field-full-name" class="form-control input" name="fullName">
+                                <ul id="archived-matches" style="display:none"></ul>
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-legal-name">Nom légal</label>
+                                <input type="text" id="fsu-field-legal-name" class="form-control input" name="legalName">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-business-name">Nom d'affaires</label>
+                                <input type="text" id="fsu-field-business-name" class="form-control input" name="businessName">
+                            </div>
+                            <div class="form-group">
+                                <div>
+                                    <div style="display: inline-block; width: 50%">
+                                        <label for="fsu-field-option">Département IPL</label>
+                                        <select class="form-control input" id="fsu-field-option" name="option[code]">
+                                        </select>
+                                    </div>
+                                    <div style="display: inline-block; width: 45%; float: right">
+                                        <label for="fsu-field-partner-option">Département partenaire</label>
+                                        <input type="text" id="fsu-field-partner-option" class="form-control input" name="partnerOption">
+                                    </div>
+                                </div>
+                                <div class="form-group" id="div-partner-options"></div>
+                                <div>
+                                    <button type="button" id="fsu-field-add-partner-option" class="btn btn-default btn-lg"name="addPartnerOption">Ajouter option</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-organisation-type">Type d'organisation</label>
+                                <select class="form-control input" id="fsu-field-organisation-type" name="organisationType">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-employee-count">Nombre d'employés</label>
+                                <input type="number" id="fsu-field-employee-count" class="form-control input" name="employeeCount">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label for="fsu-field-street">Rue</label>
+                                <input type="text" id="fsu-field-street" class="form-control input" name="address[street]">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-number">Numéro</label>
+                                <input type="number" id="fsu-field-number" class="form-control input" name="address[number]">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-postal-code">Code postal</label>
+                                <input type="text" id="fsu-field-postal-code" class="form-control input" name="address[postalCode]">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-city">Ville</label>
+                                <input type="text" id="fsu-field-city" class="form-control input" name="address[city]">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-region">Région</label>
+                                <input type="text" id="fsu-field-region" class="form-control input" name="address[region]" placeholder="Optionnel">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-country">Pays</label>
+                                <select class="form-control input" id="fsu-field-country" name="address[country[countryCode]]">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-email">E-mail</label>
+                                <input type="email" id="fsu-field-email" class="form-control input" name="email" placeholder="E-mail">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-website">Site web</label>
+                                <input type="text" id="fsu-field-website" class="form-control input" name="website" placeholder="Optionnel">
+                            </div>
+                            <div class="form-group">
+                                <label for="fsu-field-phone-number">Téléphone</label>
+                                <input type="text" id="fsu-field-phone-number" class="form-control input" name="phoneNumber">
+                            </div>
+                            <input type="number" style="display:none" id="addressId" value="" name="address[id]">
+                            <input type="number" style="display:none" id="addressVersion" value="" name="address[version]">
+                            <input type="number" style="display:none" id="version" value="" name="version">
+                        </div>
+                        <div id="div-official" style="display: none">
+                            <label for="fsu-field-official">Partenaire officiel</label>
+                            <input type="checkbox" id="fsu-field-official" class="form-control input" name="official" >
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-default btn-lg">Terminer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editor-view" class="editor closed" style="display: none">
+        <div class="top-bar">
+            <div class="container">
+                <span class="editor-heading"></span>
+                <a class="close-editor" href="">Fermer</a>
+            </div>
+        </div>
+        <div class="nav-bar" style="display: none">
+            <ul class="container">
+                <li><a href="" class="active">Général</a></li>
+                <li><a href="">Données de l'étudiant</a></li>
+                <li><a href="">Données du partenaire</a></li>
+            </ul>
+        </div>
+
+        <div class="margin-2"></div>
+
+        <div id="mobility-details" class="container" style="display: none;">
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Informations générales</h3>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Type</span>
+                        <span class="content col-md-8" data-src="type"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Etudiant</span>
+                        <span class="content col-md-8" data-src="student"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Partenaire</span>
+                        <span class="content col-md-8" data-src="partner"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Pays</span>
+                        <span class="content col-md-8" data-src="country"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Programme</span>
+                        <span class="content col-md-8" data-src="programme"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Départ</span>
+                        <span class="content col-md-8" data-src="departure"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Etat de la mobilité</span>
+                        <span class="content col-md-8" data-src="mobilityState"></span>
+                    </div>
+                    <div class="row" style="display: none;">
+                        <span class="label col-md-4">Etat de la mobilité avant annulation</span>
+                        <span class="content col-md-8" data-src="stateBeforeCancellation"></span>
+                    </div>
+                    <div class="row" style="display: none;">
+                        <span class="label col-md-4">Professeur responsable</span>
+                        <span class="content col-md-8" data-src="professorInCharge"></span>
+                    </div>
+                </div>
+                <div id="mobility-cancellation" class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Annulation</h3>
+                    </div>
+                    <div class="row" style="display: none;">
+                        <div id="mobility-cancel-action">
+                            <textarea>
+
+                            </textarea>
+                            <button class="btn btn-danger">Annuler</button>
+                        </div>
+                        <div id="mobility-reject-action">
+                            <select>
+                                <option value="new">Nouvelle raison d'annulation</option>
+                            </select>
+                            <input text="" name="new-cancellation-reason">
+                            <button class="btn btn-danger">Annuler</button>
+                        </div>
+                        <div id="mobility-cancel-reason" display="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Documents au départ</h3>
+                        <a href="" class="export-mobility action" data-role="Professor">Exporter en CSV</a>
+                    </div>
+                    <ul id="departure-documents" class="checklist">
+                    </ul>
+                </div>
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Documents à l'arrivée</h3>
+                        <a href="" class="export-mobility action" data-role="Professor">Exporter en CSV</a>
+                    </div>
+                    <ul id="return-documents" class="checklist">
+                    </ul>
+                </div>
+            </div>
+            <div  class="row">
+                <div class="col-md-6" data-role="Professor">
+                    <div class="section-header">
+                        <h3>Encodage dans les logiciels externes</h3>
+                    </div>
+                    <ul id="software-encodings-list" class="checklist">
+                    </ul>
+                </div>
+                <div id="mobility-payments" class="col-md-6">
+                    <div class="section-header">
+                        <h3>Paiements</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <span class="notification notification-info col-md-12" style="display: none;">
+                                Les données bancaires de l'étudiant sont incomplètes.<br>
+                                Complétez-les maintenant pour pouvoir effectuer les paiements liés à la
+                                mobilité.
+                            </span>
+                        </div>
+                    </div>
+                    <div id="first-payment-status" class="row" style="display: none;">
+                        <span class="label col-md-5">Paiement au départ</span>
+                        <span class="content col-md-7"></span>
+                    </div>
+                    <div id="second-payment-status" class="row" style="display: none;">
+                        <span class="label col-md-5">Paiement à l'arrivée</span>
+                        <span class="content col-md-7"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="partner-view" class="container" style="display: none">
+            <div class="row">
+                <div id="partner-details" class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Informations générales</h3>
+                        <a href="" class="edit action" data-role="Professor" style="display: none">Editer</a>
+                    </div>
+                    <div class="section-content">
+                        <div class="row">
+                            <span class="label col-md-4">Nom légal</span>
+                            <span class="content col-md-8" data-src="legalName"></span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Nom d'affaires</span>
+                            <span class="content col-md-8" data-src="businessName"></span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Nom complet</span>
+                            <span class="content col-md-8" data-src="fullName"></span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Type d'organisation</span>
+                            <span class="content col-md-8" data-src="organisationType"></span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Nombre d'employés</span>
+                            <span class="content col-md-8" data-src="employeeCount"></span>
+                        </div>
+                    </div>
+                </div>
+                <div id="partner-actions" class="section col-md-6" data-role="Professor" style="display: none;">
+                    <div class="section-header">
+                        <h3>Archivage</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button id="archive-partner" data-role="Professor" class="btn btn-lg btn-danger" style="display: none;">Archiver le partenaire</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Adresse</h3>
+                        <a href="" class="edit action" data-role="Professor" style="display: none">Editer</a>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Rue</span>
+                        <span class="content col-md-8" data-src="address[street]"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Numéro</span>
+                        <span class="content col-md-8" data-src="address[number]"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Région</span>
+                        <span class="content col-md-8" data-src="address[region]"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Ville</span>
+                        <span class="content col-md-8" data-src="address[city]"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Code postal</span>
+                        <span class="content col-md-8" data-src="address[postalCode]"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Pays</span>
+                        <span class="content col-md-8" data-src="address[country][countryName]"></span>
+                    </div>
+                </div>
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Contact</h3>
+                        <a href="" class="edit action" data-role="Professor" style="display: none">Editer</a>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Téléphone</span>
+                        <span class="content col-md-8"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">E-mail</span>
+                        <span class="content col-md-8" data-src="email"></span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Site web</span>
+                        <span class="content col-md-8" data-src="website"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="student-details-view" class="container" style="display: none;">
+            <div>
+                <div>
+                    <h3>Informations générales</h3>
+                    <a href="" role="professor">Editer</a>
+                    <div>
+                        <span class="label">Monsieur</span>
+                        <span class="content" data="firstName"></span>
+                        <span class="content" data="lastName"></span>
+                    </div>
+                    <div>
+                        <span class="label">Sexe</span>
+                        <span class="content" data="gender"></span>
+                    </div>
+                    <div>
+                        <span class="label">Nationalité</span>
+                        <span class="content" data="nationality[name]"></span>
+                    </div>
+                    <div>
+                        <span class="label">Date de naissance</span>
+                        <span class="content" data="birthdate"></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <h3>Adresse</h3>
+                    <a href="" role="professor">Editer</a>
+                    <div>
+                        <span class="label">Rue</span>
+                        <span class="content" data="address[street]"></span>
+                        <span class="content" data="address[number]"></span>
+                    </div>
+                    <div>
+                        <span class="label">Ville</span>
+                        <span class="content" data="address[zipCode]"></span>
+                        <span class="content" data="address[city]"></span>
+                    </div>
+                    <div>
+                        <span class="label">Région</span>
+                        <span class="content" data="address[region]"></span>
+                    </div>
+                    <div>
+                        <span class="label">Pays</span>
+                        <span class="content" data="address[country][name]"></span>
+                    </div>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <a href="" role="professor">Editer</a>
+                    <div>
+                        <span class="label">Téléphone</span>
+                        <span class="content" data="phoneNumber"></span>
+                    </div>
+                    <div>
+                        <span class="label">E-mail</span>
+                        <span class="content" data="email"></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <h3>Données bancaires</h3>
+                    <a href="" role="professor">Editer</a>
+                    <div>
+                        <span class="label">N° de compte (IBAN)</span>
+                        <span class="content" data="iban"></span>
+                    </div>
+                    <div>
+                        <span class="label">Banque</span>
+                        <span class="content" data="bank"></span>
+                    </div>
+                    <div>
+                        <span class="label">Code BIC</span>
+                        <span class="content" data="bic"></span>
+                    </div>
+                </div>
+                <div>
+                    <h3>Données académiques</h3>
+                    <a href="" role="professor">Editer</a>
+                    <div>
+                        <span class="label">Année(s) réussie(s) dans l'enseignement supérieur</span>
+                        <span class="content" data="years"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="partners-view" class="container" style="display: none;">
+        <h2>Gestion des partenaires</h2>
+        <button id="create-partner" type="button" class="btn btn-primary" data-role="Professor" style="display: none;">Créer un partenaire</button>
+        <table id="partners-table" class="display"></table>
+    </div>
+
+    <div id="students-view" class="container" style="display: none;">
+        <h2>Gestion des étudiants</h2>
+        <table id="students-table" class="display"></table>
+    </div>
+
+    <div id="payments-view" class="container" style="display: none;">
+        <h2>Gestion des paiements</h2>
+        <table id="paiements-table" class="display"></table>
+    </div>
+
+    <div id="student-view" class="container" style="display: none;">
+        <h2>Mes demandes de mobilité</h2>
+        <button type="button" class="btn btn-default">Créer une demande de mobilité</button>
+        <table id="student-mobility-choices-table" class="display"></table>
+        <h2>Mes mobilités</h2>
+        <span class="notification notification-info col-md-12">
+            Pour continuer, vous devez <a id="encode-personal-details" href="#">remplir vos données personnelles</a>.
+        </span>
+        <table id="student-mobilities-table" class="display"></table>
+    </div>
+
+    <div id="student-personal-details-view" class="container" style="display: none;">
+        <h2>Mes données personnelles</h2>
+        <form>
+            <div class="row">
+                <div class="col-md-12 notification notification-info" style="display: none;">
+                    Les modifications ont bien été enregistrées.
+                </div>
+            </div>
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Informations générales</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="row">
+                            <span class="label col-md-4">Titre</span>
+                            <span class="content col-md-8">
+                                <select name="title">
+                                    <option value="M">Madame</option>
+                                    <option value="Mr">Monsieur</option>
+                                    <option value="Ms">Mademoiselle</option>
+
+                                </select>
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4" style="margin: 10px 0;">Nom</span>
+                            <span class="content col-md-8">
+                                <input class="input" type="text" name="lastName">
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Prénom</span>
+                            <span class="content col-md-8">
+                                <input class="input" type="text" name="firstName">
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Sexe</span>
+                            <span class="content col-md-8">
+                                <select name="gender">
+                                    <option value="M">Homme</option>
+                                    <option value="F">Femme</option>
+                                    <option value="O">Autre</option>
+                                </select>
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">
+                                Date de naissance
+                            </span>
+                            <span class="content col-md-8">
+                                <input class="input" type="text" name="birthdate" placeholder="JJ/MM/AAAA">
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="label col-md-4">Nationalité</span>
+                            <span class="content col-md-8">
+                                <select name="nationality[countryCode]"></select>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Adresse</h3>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Rue</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="address[street]">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Numéro</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="address[number]">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Région</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="address[region]" placeholder="Optionnel">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Ville</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="address[city]">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Code postal</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="address[postalCode]">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Pays</span>
+                        <span class="content col-md-8">
+                            <select name="address[country][countryCode]"></select>
+                        </span>
+                    </div>
+                </div>
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Contact</h3>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Téléphone</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="phoneNumber" placeholder="0032486372854">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">E-mail</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="email">
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Données bancaires</h3>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">N° de compte (IBAN)</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="iban">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Banque</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="bankName">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Code BIC</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="bic">
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Titulaire du compte</span>
+                        <span class="content col-md-8">
+                            <input type="text" name="cardHolder" placeholder="Optionnel">
+                        </span>
+                    </div>
+                </div>
+                <div class="section col-md-6">
+                    <div class="section-header">
+                        <h3>Données académiques</h3>
+                    </div>
+                    <div class="row">
+                        <span class="label col-md-4">Année(s) réussie(s) dans l’enseignement supérieur</span>
+                        <span class="content col-md-8">
+                            <input type="number" name="nbrPassedYears">
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row submission">
+                <div class="section col-md-12">
+                    <button class="btn btn-lg btn-default " disabled>Sauvegarder</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="error-notification" style="display: none">
+        <div class="overlay">
+            <div class="modal modal-md">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Erreur serveur
+                </div>
+                <div class="modal-content">
+                    Ouuups! Une erreur est survenue au niveau du serveur 💩. Veuillez réessayer plus tard.
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-block btn-danger">Aaaarrghh!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="partner" style="display: none">
+        <div class="overlay">
+            <div class="modal modal-lg">
+                <div class="close"></div>
+                <div class="top-bar">
+                    Titre de la fenêtre modale
+                </div>
+                <div class="modal-content">
+                    <div class="row">
+                        <div class="col-md-6">
+                            Première colonne de contenu :)
+                        </div>
+                        <div class="col-md-6">
+                            Deuxième colonne de contenu :$
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-default btn-lg">Sauvegarder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="js/jquery-1.12.3.min.js"></script>
+    <script src="js/jquery.dataTables.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pubsub.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

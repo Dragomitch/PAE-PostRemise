@@ -1,0 +1,620 @@
+{
+  "110": {
+    "errorName": "INVALID_INPUT_DATA",
+    "developerMessage": "Invalid input data",
+    "userMessage": null
+  },
+
+  "120": {
+    "errorName": "CONCURRENT_MODIFICATION",
+    "developerMessage": "Invalid input data",
+    "userMessage": null
+  },
+
+  "130": {
+    "errorName": "INVALID_PARAMETERS",
+    "developerMessage": "Invalid parameters",
+    "userMessage": null
+  },
+
+  "132": {
+    "errorName": "EXISTENCE_VIOLATION_USER_NULL",
+    "developerMessage": "The user cannot be null",
+    "userMessage": null
+  },
+
+  "133": {
+    "errorName": "EXISTENCE_VIOLATION_MOBILITY_CHOICE_NULL",
+    "developerMessage": "The mobility choice cannot be null",
+    "userMessage": null
+  },
+
+  "134": {
+    "errorName": "EXISTENCE_VIOLATION_DENIAL_REASON_NULL",
+    "developerMessage": "The mobility cannot be null",
+    "userMessage": null
+  },
+
+  "135": {
+    "errorName": "EXISTENCE_VIOLATION_MOBILITY_NULL",
+    "developerMessage": "The mobility cannot be null",
+    "userMessage": null
+  },
+
+  "136": {
+    "errorName": "EXISTENCE_VIOLATION_NOMINATED_STUDENT_NULL",
+    "developerMessage": "The nominated student cannot be null",
+    "userMessage": null
+  },
+
+  "137": {
+    "errorName": "EXISTENCE_VIOLATION_PARTNER_NULL",
+    "developerMessage": "The partner cannot be null",
+    "userMessage": null
+  },
+
+  "138": {
+    "errorName": "EXISTENCE_VIOLATION_ADDRESS_NULL",
+    "developerMessage": "The address cannot be null",
+    "userMessage": null
+  },
+
+  "139": {
+    "errorName": "EXISTENCE_VIOLATION_COUNTRY_NULL",
+    "developerMessage": "The country cannot be null",
+    "userMessage": null
+  },
+
+  "140": {
+    "errorName": "EXISTENCE_VIOLATION_PROGRAMME_NULL",
+    "developerMessage": "The programme cannot be null",
+    "userMessage": null
+  },
+
+  "200": {
+    "errorName": "EXISTENCE_VIOLATION_USER_ID",
+    "developerMessage": "Existence constraint violation: field user id does not exist",
+    "userMessage": null
+  },
+
+  "201": {
+    "errorName": "INVALID_FIRSTNAME",
+    "developerMessage": "Invalid String format for field firstName",
+    "userMessage": null
+  },
+
+  "202": {
+    "errorName": "INVALID_LASTNAME",
+    "developerMessage": "Invalid String for field lastName",
+    "userMessage": null
+  },
+
+  "203": {
+    "errorName": "INVALID_USERNAME",
+    "developerMessage": "Invalid String for field username",
+    "userMessage": null
+  },
+
+  "204": {
+    "errorName": "UNICITY_VIOLATION_USERNAME",
+    "developerMessage": "Unicity constraint violation: field username already exists",
+    "userMessage": null
+  },
+
+  "205": {
+    "errorName": "INVALID_PASSWORD",
+    "developerMessage": "Invalid String for field password",
+    "userMessage": null
+  },
+
+  "206": {
+    "errorName": "INVALID_EMAIL",
+    "developerMessage": "Invalid String format for field email",
+    "userMessage": null
+  },
+
+  "207": {
+    "errorName": "UNICITY_VIOLATION_EMAIL",
+    "developerMessage": "Unicity constraint violation: field email already exists",
+    "userMessage": null
+  },
+
+  "208": {
+    "errorName": "INVALID_OPTION",
+    "developerMessage": "Field option must be non-null",
+    "userMessage": null
+  },
+
+  "209": {
+    "errorName": "INVALID_OPTION_CODE",
+    "developerMessage": "Invalid String for field option.code",
+    "userMessage": null
+  },
+
+  "210": {
+    "errorName": "EXISTENCE_VIOLATION_OPTION",
+    "developerMessage": "Existence constraint violation: field option doesn't exist",
+    "userMessage": null
+  },
+
+  "211": {
+    "errorName": "FIRST_NAME_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: first name is longer than the maximum of 35 characters allowed",
+    "userMessage": null
+  },
+
+  "212": {
+  	"errorName": "LAST_NAME_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field last name cannot be longer than 35 characters",
+  	"userMessage": null
+  },
+
+  "213": {
+  	"errorName": "USERNAME_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field username cannot be longer than 20 characters",
+  	"userMessage": null
+  },
+
+  "214": {
+  	"errorName": "PASSWORD_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field password cannot be longer than 255 characters",
+  	"userMessage": null
+  },
+
+  "215": {
+  	"errorName": "EMAIL_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field email cannot be longer than 255 characters",
+  	"userMessage": null
+  },
+
+  "216": {
+  	"errorName": "INVALID_OPTION_CODE_LENGTH",
+  	"developerMessage": "Database constraint violation: the option code must be exactly 3 characters long",
+  	"userMessage": null
+  },
+
+  "300": {
+    "errorName": "EXISTENCE_VIOLATION_MOBILITY_CHOICE_ID",
+    "developerMessage": "Existence constraint violation: field mobilityChoice id does not exist",
+    "userMessage": null
+  },
+
+  "301": {
+    "errorName": "MOBILITY_CHOICE_ALREADY_CONFIRMED",
+    "developerMessage": "Business constraint violation: MobilityChoice cannot be cancelled: already confirmed",
+    "userMessage": null
+  },
+
+  "302": {
+    "errorName": "INVALID_PREFERENCE_ORDER",
+    "developerMessage": "Integrity constraint violation: Invalid Integer for field preferenceOrder",
+    "userMessage": null
+  },
+
+  "303": {
+    "errorName": "INVALID_PREFERENCE_ORDER_VALUE",
+    "developerMessage": "Business constraint violation: Invalid value for field preferenceOrder: it must be 1 or 2",
+    "userMessage": null
+  },
+
+  "304": {
+    "errorName": "INVALID_MOBILITY_TYPE",
+    "developerMessage": "Integrity constraint violation: invalid String format for field mobilityType",
+    "userMessage": null
+  },
+
+  "305": {
+    "errorName": "MAX_LENGTH_MOBILITY_TYPE_OVERFLOW",
+    "developerMessage": "Database constraint violation: the mobilityType value overflow the maximum of 50 chars allowed",
+    "userMessage": null
+  },
+
+  "306": {
+    "errorName": "INVALID_MOBILITY_TYPE_VALUE",
+    "developerMessage": "Business constraint violation: invalid value format for field mobilityType",
+    "userMessage": null
+  },
+
+  "307": {
+    "errorName": "INVALID_ACADEMIC_YEAR",
+    "developerMessage": "Integrity constraint violation: Invalid Integer for field academicyear",
+    "userMessage": null
+  },
+
+  "308": {
+    "errorName": "INVALID_TERM",
+    "developerMessage": "Integrity constraint violation: Invalid Integer for field term",
+    "userMessage": null
+  },
+
+  "309": {
+    "errorName": "INVALID_TERM_VALUE",
+    "developerMessage": "Business constraint violation: Invalid value for field term",
+    "userMessage": null
+  },
+
+  "314": {
+    "errorName": "MAX_LENGTH_COUNTRY_CODE_OVERFLOW",
+    "developerMessage": "Database constraint violation: the countryCode value overflow the maximum of 2 chars allowed",
+    "userMessage": null
+  },
+
+  "315": {
+    "errorName": "INVALID_PROGRAMME_NULL",
+    "developerMessage": "Integrity constraint violation: field programme must be non-null",
+    "userMessage": null
+  },
+
+  "316": {
+    "errorName": "INVALID_PROGRAMME_ID",
+    "developerMessage": "Integrity constraint violation: field id of a programme must be positive",
+    "userMessage": null
+  },
+
+  "317": {
+    "errorName": "INVALID_STATE_MOBILITY_CHOICE",
+    "developerMessage": "This mobilityChoice have been already cancelled or rejected by a professor",
+    "userMessage": null
+  },
+
+  "318": {
+    "errorName": "INVALID_DENIAL_REASON_NULL",
+    "developerMessage": "Integrity constraint violation: field denialReason must be non-null",
+    "userMessage": null
+  },
+
+  "319": {
+    "errorName": "MOBILITY_CHOICE_NOT_EXIST",
+    "developerMessage": "Existence constraint violation: this mobility choice does not exist",
+    "userMessage": null
+  },
+
+  "320" : {
+  	"errorName": "COUNTRY_CHANGE_NOT_ALLOWED",
+  	"developerMessage": "Integrity constraint violation: partner must be the country declared in the mobility choice",
+  	"userMessage": null
+  },
+  
+  "321": {
+    "errorName": "MOBILITY_CHOICE_ALREADY_CONFIRMED",
+    "developerMessage": "Business constraint violation: MobilityChoice cannot be confirmed: already confirmed",
+    "userMessage": null
+  },
+
+  "322" : {
+    "errorName": "INVALID_PROFESSOR_MOBILITY_CHOICE_CREATION",
+    "developerMessage": "Business constraint violation: a professor should'nt have a mobility choice",
+    "userMessage": null
+  },
+
+  "323" : {
+    "errorName": "INVALID_MOBILITY_CHOICE_FILTER",
+    "developerMessage": "Business constraint violation: the filter is not valid",
+    "userMessage": null
+  },
+
+  "324": {
+    "errorName": "CONFIRM_WITHOUT_PARTNER",
+    "developerMessage": "Business constraint violation: cannot confirm a mobility choice without a partner specified",
+    "userMessage": null
+  },
+
+  "400": {
+    "errorName": "EXISTENCE_VIOLATION_DENIAL_REASON_ID",
+    "developerMessage": "Existence constraint violation: field denialReason_id does not exist",
+    "userMessage": null
+  },
+
+  "401": {
+    "errorName": "INVALID_REASON",
+    "developerMessage": "Integrity constraint violation: Invalid String for field reason",
+    "userMessage": null
+  },
+
+  "402": {
+    "errorName": "MAX_LENGTH_REASON_OVERFLOW",
+    "developerMessage": "Database constraint violation: the reason value overflow the maximum of 300 chars allowed",
+    "userMessage": null
+  },
+
+  "501": {
+    "errorName": "INVALID_CANCELED_MOBILITY_STATE",
+    "developerMessage": "Operation cannot be completed: the mobility has been cancelled",
+    "userMessage": null
+  },
+
+  "502": {
+    "errorName": "INVALID_CLOSED_MOBILITY_STATE",
+    "developerMessage": "Operation cannot be completed: the mobility has been closed",
+    "userMessage": null
+  },
+
+  "503": {
+    "errorName": "ALL_DEPARTURE_DOCUMENTS_NOT_FILLED_IN",
+    "developerMessage": "Operation cannot be completed: all departure documents have not been filled in.",
+    "userMessage": null
+  },
+
+  "504": {
+    "errorName": "ALL_RETURN_DOCUMENTS_NOT_FILLED_IN",
+    "developerMessage": "Operation cannot be completed: all return documents have not been filled in.",
+    "userMessage": null
+  },
+
+  "505": {
+    "errorName": "EXISTENCE_VIOLATION_DOCUMENT",
+    "developerMessage": "Existence constraint violation: the document doesn't exist for this mobility.",
+    "userMessage": null
+  },
+
+  "506": {
+    "errorName": "INCOMPLETE_BANK_DETAILS",
+    "developerMessage": "Operation cannot be completed: the nominated student's bank details are not set.",
+    "userMessage": null
+  },
+
+  "507": {
+    "errorName": "ALL_DOCUMENTS_NOT_FILLED_IN",
+    "developerMessage": "Operation cannot be completed: all documents must be filled in.",
+    "userMessage": null
+  },
+
+  "601": {
+  	"errorName": "INVALID_TITLE",
+  	"developerMessage": "Integrity constraint violation: field title must be non-null",
+  	"userMessage": null
+  },
+
+  "602": {
+  	"errorName": "INVALID_TITLE_VALUE",
+  	"developerMessage": "Integrity constraint violation: field title must have one of the following values : 'Mr', 'M', 'Mrs' or 'Ms'",
+  	"userMessage": null
+  },
+
+  "603": {
+  	"errorName": "TITLE_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field title cannot be longer than 3 characters",
+  	"userMessage": null
+  },
+
+  "604": {
+  	"errorName": "INVALID_BIRTHDATE_NULL",
+  	"developerMessage": "Integrity constraint violation: field birthdate must have a non-null value",
+  	"userMessage": null
+  },
+
+  "605": {
+  	"errorName": "INVALID_BIRTHDATE",
+  	"developerMessage": "Integrity constraint violation: birthdate must be in the past",
+  	"userMessage": null
+  },
+
+  "606": {
+  	"errorName": "INVALID_NATIONALITY_NULL",
+  	"developerMessage": "Integrity constraint violation: field nationality must have a non-null value",
+  	"userMessage": null
+  },
+
+  "608": {
+  	"errorName": "INVALID_ADDRESS_NULL",
+  	"developerMessage": "Integrity constraint violation: field address must have a non-null value",
+  	"userMessage": null
+  },
+
+  "609": {
+  	"errorName": "PHONE_NUMBER_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field phone number cannot be longer than 15 characters",
+  	"userMessage": null
+  },
+
+  "610": {
+  	"errorName": "INVALID_GENDER",
+  	"developerMessage": "Integrity constraint violation: field gender must have a non-null value",
+  	"userMessage": null
+  },
+
+  "611": {
+  	"errorName": "INVALID_GENDER_VALUE",
+  	"developerMessage": "Integrity constraint violation: field gender must have one of the following values : 'M', 'F', or 'O'",
+  	"userMessage": null
+  },
+
+  "612": {
+  	"errorName": "INVALID_NUMBER_OF_PASSED_YEARS",
+  	"developerMessage": "Integrity constraint violation: field number of passed years must have a positive value",
+  	"userMessage": null
+  },
+
+  "613": {
+  	"errorName": "INVALID_IBAN",
+  	"developerMessage": "Integrity constraint violation: field iban must have a non-null value and respect the required format",
+  	"userMessage": null
+  },
+
+  "614": {
+  	"errorName": "CARD_HOLDER_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field card holder cannot be longer than 35 characters",
+  	"userMessage": null
+  },
+
+  "615": {
+  	"errorName": "INVALID_BANK_NAME",
+  	"developerMessage": "Integrity constraint violation: field bank name must have a non-null value",
+  	"userMessage": null
+  },
+
+  "616": {
+  	"errorName": "BANK_NAME_MAX_LENGTH_OVERFLOW",
+  	"developerMessage": "Database constraint violation: field bank name cannot be longer than 60 characters",
+  	"userMessage": null
+  },
+
+  "617": {
+  	"errorName": "INVALID_BIC",
+  	"developerMessage": "Integrity constraint violation: field bic must have a non-null value and respect the required format",
+  	"userMessage": null
+  },
+
+  "618": {
+    "errorName": "ALREADY_NOMINATED_STUDENT",
+    "developerMessage": "The student has already been nominated.",
+    "userMessage": null
+  },
+
+  "619": {
+    "errorName": "INVALID_PHONE_NUMBER",
+    "developerMessage": "Integrity constraint violation: field phone number must have a non-null value and respect the required format",
+    "userMessage": null
+  },
+
+  "700": {
+    "errorName": "EXISTENCE_VIOLATION_PARTNER_ID",
+    "developerMessage": "Existence constraint violation: field partner id does not exist",
+    "userMessage": null
+  },
+
+  "701": {
+    "errorName": "INVALID_LEGAL_NAME",
+    "developerMessage": "legalName must be a string",
+    "userMessage": null
+  },
+
+  "702": {
+    "errorName": "INVALID_BUSINESS_NAME",
+    "developerMessage": "businessName must be a string",
+    "userMessage": null
+  },
+
+  "703": {
+    "errorName": "INVALID_FULL_NAME",
+    "developerMessage": "fullName must be a string",
+    "userMessage": null
+  },
+
+  "704": {
+    "errorName": "INVALID_ORGANISATION_TYPE",
+    "developerMessage": "organisationType must be a string",
+    "userMessage": null
+  },
+
+  "705": {
+    "errorName": "INVALID_EMPLOYEE_COUNT",
+    "developerMessage": "employeeCount must be an integer",
+    "userMessage": null
+  },
+
+  "706": {
+    "errorName": "INVALID_EMAIL",
+    "developerMessage": "email must be a valid email string",
+    "userMessage": null
+  },
+
+  "707": {
+    "errorName": "INVALID_WEBSITE",
+    "developerMessage": "website must be a string",
+    "userMessage": null
+  },
+
+  "708": {
+    "errorName": "INVALID_PHONE_NUMBER",
+    "developerMessage": "phoneNumber must be a valid phoneNumber string",
+    "userMessage": null
+  },
+
+  "710": {
+    "errorName": "EXISTENCE_VIOLATION_ARCHIVING",
+    "developerMessage": "Existence violation : Cannot a archive a partner that has mobilityChoices",
+    "userMessage": null
+  },
+  
+    "711": {
+    "errorName": "PARTNER_NOT_ARCHIVED",
+    "developerMessage": "Business violation : Partner is not archived",
+    "userMessage": null
+  },
+
+  "800": {
+    "errorName": "EXISTENCE_VIOLATION_ADDRESS_ID",
+    "developerMessage": "Existence violation : field id does not exist",
+    "userMessage": null
+  },
+
+  "801": {
+    "errorName": "INVALID_STREET",
+    "developerMessage": "Integrity constraint violation: Invalid String for field street",
+    "userMessage": null
+  },
+
+  "802": {
+    "errorName": "INVALID_STREET_NUMBER",
+    "developerMessage": "Integrity constraint violation: Invalid Integer for field number",
+    "userMessage": null
+  },
+
+  "803": {
+    "errorName": "INVALID_CITY",
+    "developerMessage": "Integrity constraint violation: Invalid String for field city",
+    "userMessage": null
+  },
+
+  "804": {
+    "errorName": "INVALID_POSTAL_CODE",
+    "developerMessage": "Integrity constraint violation: Invalid String for field postalCode",
+    "userMessage": null
+  },
+
+  "805": {
+    "errorName": "INVALID_REGION",
+    "developerMessage": "Integrity constraint violation: Invalid String for field Region",
+    "userMessage": null
+  },
+
+  "806": {
+    "errorName": "STREET_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: field street cannot be longer than 60 characters",
+    "userMessage": null
+  },
+
+  "807": {
+    "errorName": "CITY_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: field city cannot be longer than 60 characters",
+    "userMessage": null
+  },
+
+  "808": {
+    "errorName": "POSTAL_CODE_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: field postal code cannot be longer than 10 characters",
+    "userMessage": null
+  },
+
+  "809": {
+    "errorName": "REGION_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: field region cannot be longer than 60 characters",
+    "userMessage": null
+  },
+
+  "810": {
+    "errorName": "STREET_NUMBER_MAX_LENGTH_OVERFLOW",
+    "developerMessage": "Database constraint violation: field street number cannot be longer than 10 characters",
+    "userMessage": null
+  },
+
+  "900": {
+    "errorName": "EXISTENCE_VIOLATION_COUNTRY_CODE_900",
+    "developerMessage": "Existence violation: country code does not exist",
+    "userMessage": null
+  },
+
+  "1000": {
+    "errorName": "EXISTENCE_VIOLATION_PROGRAMME_ID",
+    "developerMessage": "Existence violation: programme id does not exist",
+    "userMessage": null
+  },
+
+  "9000": {
+    "errorName": "TROLL_OVERFLOW_9000",
+    "developerMessage": "IT'S OVER 9000!!!!!!!!!!!!!!",
+    "userMessage": null
+  }
+
+}
