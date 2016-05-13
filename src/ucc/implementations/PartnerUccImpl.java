@@ -146,7 +146,7 @@ class PartnerUccImpl implements PartnerUcc {
       } else {
         option = user.getOption().getCode();
       }
-      map.put("data", partnerDao.findAll(filterToUse, value, "Student", option));
+      map.put("data", partnerDao.findAll(filterToUse, value, userRole, option));
       unitOfWork.commit();
       return map;
     } catch (Exception ex) {
