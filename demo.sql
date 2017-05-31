@@ -63,35 +63,35 @@ INSERT INTO student_exchange_tools.partner_options
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (3, 1, 'SMS', 2016, 1, 2, 'BE', NOW(), NULL, NULL, 2, 1);
+VALUES (3, 1, 'SMS', 2017, 1, 2, 'BE', NOW(), NULL, NULL, 2, 1);
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (3, 1, 'SMP', 2016, 2, 2, 'BE', NOW(), NULL, NULL, NULL, 1);
+VALUES (3, 1, 'SMP', 2017, 2, 2, 'BE', NOW(), NULL, NULL, NULL, 1);
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (3, 2, 'SMP', 2016, 2, 1, 'CH', NOW(), NULL, NULL, NULL, 1);
+VALUES (3, 2, 'SMP', 2017, 2, 1, 'CH', NOW(), NULL, NULL, NULL, 1);
 -- Namasse Pamousse
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (4, 1, 'SMS', 2016, 1, 1, 'BE', NOW(), NULL, NULL, 1, 1);
+VALUES (4, 1, 'SMS', 2017, 1, 1, 'BE', NOW(), NULL, NULL, 1, 1);
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (4, 2, 'SMS', 2016, 1, 2, 'BE', NOW(), NULL, NULL, 2, 1);
+VALUES (4, 2, 'SMS', 2017, 1, 2, 'BE', NOW(), NULL, NULL, 2, 1);
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (4, 3, 'SMP', 2016, 2, 1, 'GB', NOW(), NULL, NULL, NULL, 1);
+VALUES (4, 3, 'SMP', 2017, 2, 1, 'GB', NOW(), NULL, NULL, NULL, 1);
 -- Tonthe Tatilotetatou
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (5, 1, 'SMS', 2016, 1, 2, 'IE', NOW(), NULL, NULL, 2, 1);
+VALUES (5, 1, 'SMS', 2017, 1, 2, 'IE', NOW(), NULL, NULL, 2, 1);
 INSERT INTO student_exchange_tools.mobility_choices (user_id, preference_order, mobility_type, academic_year, term,
                                                      programme, country, submission_date, prof_denial_reason,
                                                      student_cancellation_reason, partner,version)
-VALUES (5, 1, 'SMP', 2016, 2, 1, NULL, NOW(), NULL, NULL, NULL, 1);
+VALUES (5, 1, 'SMP', 2017, 2, 1, NULL, NOW(), NULL, NULL, NULL, 1);
 COMMIT;
