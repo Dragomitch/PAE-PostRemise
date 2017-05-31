@@ -8,15 +8,16 @@ var Utils = (function() {
         $el.addClass(classAnimation + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
             $(this).removeClass(classAnimation + ' animated');
         });
-    };
+    }
 
     function serializeForm($form) {
-        var obj = {}
+        var obj = {};
         var array = $form.serializeArray();
         var pattern = /[a-z0-9_]+|(?=\[\])/gi; // This is magic. I found it on StackOverflow lol.
         for(var i = 0; i < array.length; i++) {
             var keys = (array[i].name).match(pattern); // Transform 'toto[tata][blublu]' into ['toto','tata','blublu']
             var curObj = obj;
+            var key;
             while((key = keys.shift()) !== undefined) {
                 if(keys.length === 0) {
                     curObj[key] = array[i].value;
@@ -42,6 +43,7 @@ var Utils = (function() {
             var keys = name.match(pattern);
             var curObj = obj;
             var undefinedProperty = false;
+            var key;
             while((key = keys.shift()) !== undefined) {
                 if(!curObj.hasOwnProperty(key)) {
                     undefinedProperty = true;

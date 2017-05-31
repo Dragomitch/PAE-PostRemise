@@ -2107,6 +2107,7 @@ var FunnyMode;
         // Public API
         return {
             render: render,
+            updateTable : updateTable,
             destroy: destroy
         }
 
@@ -2211,7 +2212,7 @@ var FunnyMode;
         var $el;
         var $elsProfessor;
         var $elDetails;
-        var $aEditDetails;
+        var $aEditAddressDetails;
         var $aEditAddress;
         var $aEditContactDetails;
         var $buttonArchivePartner;
@@ -2221,7 +2222,7 @@ var FunnyMode;
             $el = $("#partner-view");
             $elsProfessor = $el.find('[data-role=Professor]');
             $elDetails = $el.find('#partner-details');
-            $aEditDetails = $el.find('#partner-address-details a.edit');
+            $aEditAddressDetails = $el.find('#partner-address-details a.edit');//TODO Maybe use this one for the address
             $buttonArchivePartner = $el.find('#archive-partner');
             $closeButton = $('#editor-view a.close-editor');
         }
@@ -2238,6 +2239,7 @@ var FunnyMode;
             $elDetails.find('a.edit').off('click', editDetails);
             $buttonArchivePartner.off('click', toggleArchivatePartner);
             $closeButton.off('click', destroy);
+            $elDetails.find('.save.btn.btn-default').remove();
         }
 
         function render(partnerObj) {
@@ -2290,6 +2292,7 @@ var FunnyMode;
                 }
             };
             $elDetails.find('a.edit').hide();
+            //TODO Variable non html pour éviter 40 finds ?
             var content = $elDetails.find('.section-content').html();
             $elDetails.find('.section-content').replaceWith('<form class="section-content">' + content + '</form>');
             $el.find('[data-src=legalName]')
@@ -2304,9 +2307,14 @@ var FunnyMode;
             $el.find('[data-src=employeeCount]')
                 .html('<input type="text" class="input" name="employeeCount" value="'
                     + partner.employeeCount + '">');
-            $elDetails.find('.section-content').append('<button class="save btn btn-default">Sauvegarder</button>');
+            if($elDetails.find('.save.btn.btn-default').length === 0){
+            	$elDetails.find('.section-content').append('<button class="save btn btn-default">Sauvegarder</button>');
+            }
+            	
             $elDetails.find('.section-content').validate(validation);
             $elDetails.find('.section-content').on('submit', saveChanges);
+            //TODO Ajouter Editer adresse partenaires
+            //TODO Ajouter Editer informations de contact partenaires
         }
 
         function saveChanges(e) {
@@ -2380,6 +2388,7 @@ var FunnyMode;
                     partner.version = data.version;
                     partner.address.version = data.address.version;
                     updateView();
+                    PartnersView.updateTable();
                 },
                 error: function(data) {
                     var error = data.responseJSON;
@@ -2568,6 +2577,7 @@ var FunnyMode;
 
         function submitHandler(e) {
             e.preventDefault();
+            student.address={};
             var addressId = student.address.id;
             var addressVersion = student.address.version;
             var dataForm = Utils.serializeForm($form);
@@ -2599,6 +2609,7 @@ var FunnyMode;
                     student = app.getUser();
                 },
                 complete: function() {
+                    console.log("student version now is:");
                     console.log(student.version);
                     Utils.populateForm($form, student);
                     if(student.birthdate) {
@@ -2610,12 +2621,28 @@ var FunnyMode;
             });
         }
 
-        function sync() {
+        function syncBackup(){
+            console.log(JSON.stringify(student));
             $.ajax({
                 method: (isComplete) ? 'PUT' : 'POST',
                 url: app.API_URL + '/nominatedStudents/' + ((isComplete) ? app.getUser().id : ''),
                 data: 'data=' + JSON.stringify(student),
                 success: function(resp) {
+                    student.version = resp.version;
+                    isComplete = true;
+                    $el.find('.notification').show();
+                }
+            });
+        }
+
+        function sync() {
+            console.log(JSON.stringify(student));
+            $.ajax({
+                method: 'POST',
+                url: app.API_URL + '/nominatedStudents/',
+                data: 'data=' + JSON.stringify(student),
+                success: function(resp) {
+                    console.log("success");
                     student.version = resp.version;
                     isComplete = true;
                     $el.find('.notification').show();
