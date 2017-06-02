@@ -2212,7 +2212,8 @@ var FunnyMode;
         var $el;
         var $elsProfessor;
         var $elDetails;
-        var $aEditAddressDetails;
+        var $elEditAddressDetails;
+        var $elEditContactDetails;
         var $aEditAddress;
         var $aEditContactDetails;
         var $buttonArchivePartner;
@@ -2222,7 +2223,8 @@ var FunnyMode;
             $el = $("#partner-view");
             $elsProfessor = $el.find('[data-role=Professor]');
             $elDetails = $el.find('#partner-details');
-            $aEditAddressDetails = $el.find('#partner-address-details a.edit');//TODO Maybe use this one for the address
+            $elEditAddressDetails = $('#partner-address-details');
+            $elEditContactDetails = $('#partner-contact-details');
             $buttonArchivePartner = $el.find('#archive-partner');
             $closeButton = $('#editor-view a.close-editor');
         }
@@ -2230,6 +2232,9 @@ var FunnyMode;
         function bindAll() {
             PubSub.subscribe('destroy', destroy);
             $elDetails.find('a.edit').on('click', editDetails);
+            //$elEditAddressDetails.find('a.edit').on('click', editAddressDetails);//TODO Uncomment when Issue #3 Solved
+            $elEditAddressDetails.find('a.edit').on('click', replaceEditButton);
+            $elEditContactDetails.find('a.edit').on('click', editContactDetails);
             $buttonArchivePartner.on('click', toggleArchivatePartner);
             $closeButton.on('click', destroy);
         }
@@ -2237,9 +2242,15 @@ var FunnyMode;
         function unbindAll() {
             PubSub.unsubscribe('destroy', destroy);
             $elDetails.find('a.edit').off('click', editDetails);
+            //$elEditAddressDetails.find('a.edit').off('click', editAddressDetails);//TODO Uncomment when Issue #3 Solved
+            $elEditContactDetails.find('a.edit').off('click', editContactDetails);
             $buttonArchivePartner.off('click', toggleArchivatePartner);
             $closeButton.off('click', destroy);
             $elDetails.find('.save.btn.btn-default').remove();
+            $elEditAddressDetails.find('a.edit').html('Editer');
+            $elEditAddressDetails.find('.save.btn.btn-default').remove();
+            $elEditContactDetails.find('.save.btn.btn-default').remove();
+            
         }
 
         function render(partnerObj) {
@@ -2256,6 +2267,16 @@ var FunnyMode;
             updateView();
             bindAll();
             $el.show();
+        }
+        
+        //function getCountries(){
+        	//TODO CR : Get countries for display in partners address change a 
+        //}
+        
+        function replaceEditButton(e){
+        	e.preventDefault();
+        	var tt = $elEditAddressDetails.find('a.edit').html('Option non disponible, Issue #3');
+        	console.log(tt);
         }
 
         function editDetails(e) {
@@ -2292,19 +2313,18 @@ var FunnyMode;
                 }
             };
             $elDetails.find('a.edit').hide();
-            //TODO Variable non html pour éviter 40 finds ?
             var content = $elDetails.find('.section-content').html();
             $elDetails.find('.section-content').replaceWith('<form class="section-content">' + content + '</form>');
-            $el.find('[data-src=legalName]')
+            $elDetails.find('[data-src=legalName]')
                 .html('<input type="text" class="input" name="legalName" value="' + partner.legalName + '">');
-            $el.find('[data-src=businessName]')
+            $elDetails.find('[data-src=businessName]')
                 .html('<input type="text" class="input" name="businessName" value="' + partner.businessName + '">');
-            $el.find('[data-src=fullName]')
+            $elDetails.find('[data-src=fullName]')
                 .html('<input type="text" class="input" name="fullName" value="' + partner.fullName + '">');
-            $el.find('[data-src=organisationType]')
+            $elDetails.find('[data-src=organisationType]')
                 .html('<input type="text" class="input" name="organisationType" value="'
                     + partner.organisationType + '">');
-            $el.find('[data-src=employeeCount]')
+            $elDetails.find('[data-src=employeeCount]')
                 .html('<input type="text" class="input" name="employeeCount" value="'
                     + partner.employeeCount + '">');
             if($elDetails.find('.save.btn.btn-default').length === 0){
@@ -2313,16 +2333,119 @@ var FunnyMode;
             	
             $elDetails.find('.section-content').validate(validation);
             $elDetails.find('.section-content').on('submit', saveChanges);
-            //TODO Ajouter Editer adresse partenaires
-            //TODO Ajouter Editer informations de contact partenaires
+            
         }
-
+        
+        function editAddressDetails(e){
+        	//TODO Ajouter Editer adresse partenaires routes etc
+        	 e.preventDefault();
+             var validation = {
+                 rules: {
+                	 street: {
+                         required: true,
+                         maxlength: 60
+                     },
+                     number: {
+                         required: true,
+                         maxlength: 10
+                     },
+                     region: {
+                         required: false,
+                         maxlength: 60
+                     },
+                     city: {
+                         required: true,
+                         maxlength: 60
+                     },
+                     postalCode: {
+                         required: true,
+                         maxlength: 60
+                     },
+                     countryName: {
+                         required: true,
+                         maxlength: 60
+                     }
+                 },
+                 messages: {
+                	 street: "Le nom de rue ne peut être vide et ne doit pas excéder 60 caractères.",
+                	 number: "Le numéro de rue ne peut être vide et ne doit pas excéder 10 caractères.",
+                	 region: "La région, si spécifiée, ne doit pas excéder 60 caractères.",
+                	 city: "Le nom de la ville ne peut-être vide et ne doit pas excéder 60 caractères.",
+                	 postalCode: "Le code postal ne peut être vide et ne doit pas excéder 60 caractères.",
+                	 countryName: "TestThere,Should be a DropDownList"//TODO vérifier que ca fonctionne
+                 }
+             };
+             $elEditAddressDetails.find('a.edit').hide();
+             var content = $elEditAddressDetails.find('.section-content').html();
+             $elEditAddressDetails.find('.section-content').replaceWith('<form class="section-content">' + content + '</form>');
+             $elEditAddressDetails.find('[data-src="address[street]"]')
+                 .html('<input type="text" class="input" name="street" value="' + partner.address.street + '">');
+             $elEditAddressDetails.find('[data-src="address[number]"]')
+                 .html('<input type="text" class="input" name="number" value="' + partner.address.number + '">');
+             $elEditAddressDetails.find('[data-src="address[region]"]')
+                 .html('<input type="text" class="input" name="region" value="' + partner.address.region + '">');
+             $elEditAddressDetails.find('[data-src="address[city]"]')
+                 .html('<input type="text" class="input" name="city" value="' + partner.address.city + '">');
+             $elEditAddressDetails.find('[data-src="address[postalCode]"]')
+                 .html('<input type="text" class="input" name="postalCode" value="' + partner.address.postalCode + '">');
+             $elEditAddressDetails.find('[data-src="address[country][countryName]"]')
+             .html('<input type="text" class="input" name="countryName" value="' + partner.address.country.name + '">'); //Refer todo line 2364
+             
+             if(!$elEditAddressDetails.find('.save.btn.btn-default').length){
+            	 $elEditAddressDetails.find('.section-content').append('<button class="save btn btn-default">Sauvegarder</button>');
+             } //.section-content problem
+             	
+             $elEditAddressDetails.find('.section-content').validate(validation);
+             $elEditAddressDetails.find('.section-content').on('submit', saveChanges);
+        }
+        
+        function editContactDetails(e){
+        	 e.preventDefault();
+             var validation = {
+                 rules: {
+                	 phoneNumber: { //TODO Figure out why the phoneNumbers don't always display the '+' 
+                         required: true,
+                         maxlength: 15
+                     },
+                     email: {
+                         required: true,
+                         maxlength: 255
+                     },
+                     website: {
+                         required: true,
+                         maxlength: 255
+                     }
+                 },
+                 messages: {
+                	 phoneNumber: "Le numéro de téléphone ne peut être vide et ne doit pas excéder 15 caractères.",
+                	 email: "L'email ne peut être vide et ne doit pas excéder 255 caractères.",
+                	 website: "L'adresse du site web ne peut être vide et ne doit pas excéder 255 caractères."
+                 }
+             };
+             
+             $elEditContactDetails.find('a.edit').hide();
+             var content = $elEditContactDetails.find('.section-content').html();
+             $elEditContactDetails.find('.section-content').replaceWith('<form class="section-content">' + content + '</form>');
+             $elEditContactDetails.find('[data-src=phoneNumber]')
+                 .html('<input type="text" class="input" name="phoneNumber" value="' + partner.phoneNumber + '">');
+             $elEditContactDetails.find('[data-src=email]')
+                 .html('<input type="text" class="input" name="email" value="' + partner.email + '">');
+             $elEditContactDetails.find('[data-src=website]')
+                 .html('<input type="text" class="input" name="website" value="' + partner.website + '">');
+             if($elEditContactDetails.find('.save.btn.btn-default').length === 0){
+            	 $elEditContactDetails.find('.section-content').append('<button class="save btn btn-default">Sauvegarder</button>');
+             }
+             	
+             $elEditContactDetails.find('.section-content').validate(validation);
+             $elEditContactDetails.find('.section-content').on('submit', saveChanges);
+        }
+        
         function saveChanges(e) {
             e.preventDefault();
-            if($elDetails.find('.section-content').valid()) {
-                $el.find('button').remove();
+            if($elEditContactDetails.find('.section-content').valid()) {
+                $el.find('button.save').remove();
                 $el.find('a.edit').show();
-                var data = Utils.serializeForm($elDetails.find('.section-content'));
+                var data = Utils.serializeForm($elEditContactDetails.find('.section-content'));
                 $.extend(partner, data);
                 console.log(partner.version);
                 sync();
