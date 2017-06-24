@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Dragomitch/PAE-PostRemise.svg?branch=master)](https://travis-ci.org/Dragomitch/PAE-PostRemise)
+
 #Projet d'Application d'Entreprise de l'Institut Paul Lambin.
 Réalisé en 2ème année Informatique de Gestion, année scolaire 2015-2016.
 
