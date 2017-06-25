@@ -199,7 +199,7 @@
 
   <target name="build.modules" depends="init, clean, compile.module.pae-postremise" description="build all modules"/>
 
-  <target name="all" depends="build.modules, test" description="build all"/>
+  <target name="all" depends="build.modules" description="build all"/>
 
   <target name="test" depends="all">
     <junit printsummary="on" haltonfailure="yes" fork="true">
