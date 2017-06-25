@@ -2,5 +2,10 @@ language: java
 jdk:
   - oraclejdk8
 
-script: ant all
+script: ant test
+
+notifications:
+  slack:
+      on_success: change
+      on_failure: always
 
