@@ -202,6 +202,7 @@
   <target name="all" depends="build.modules" description="build all"/>
 
   <target name="test" depends="all">
+    <mkdir dir="${basedir}/logs"/>
     <junit printsummary="on" haltonfailure="yes" fork="true">
       <classpath>
         <path refid="classpath.test"/>
