@@ -206,6 +206,7 @@
     <junit printsummary="on" haltonfailure="yes" fork="true">
       <classpath>
         <path refid="classpath.test"/>
+        <path refid="library.lib.classpath"/>
         <pathelement location="${pae-postremise.testoutput.dir}"/>
         <pathelement location="${pae-postremise.output.dir}"/>
       </classpath>
