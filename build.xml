@@ -206,6 +206,7 @@
       <classpath>
         <path refid="classpath.test"/>
         <pathelement location="${pae-postremise.testoutput.dir}"/>
+        <pathelement location="${pae-postremise.output.dir}"/>
       </classpath>
       <formatter type="brief" usefile="false" />
       <batchtest>
