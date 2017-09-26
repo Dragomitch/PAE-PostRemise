@@ -12,6 +12,7 @@ import business.exceptions.BusinessException;
 import business.exceptions.ErrorFormat;
 import business.exceptions.RessourceNotFoundException;
 import main.annotations.Inject;
+import main.logging.LogManager;
 import persistence.AddressDao;
 import persistence.CountryDao;
 import persistence.NominatedStudentDao;
@@ -31,6 +32,7 @@ import ucc.UserUcc;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 @ApiCollection(name = "Nominated students", endpoint = "/nominatedStudents")
 public class NominatedStudentUccImpl implements NominatedStudentUcc {
@@ -42,6 +44,8 @@ public class NominatedStudentUccImpl implements NominatedStudentUcc {
   private UserDao userDao;
   private UserUcc userUcc;
   private UnitOfWork unitOfWork;
+
+  private static Logger logger = LogManager.getLogger(NominatedStudentUccImpl.class.getName());
 
   @Inject
   NominatedStudentUccImpl(NominatedStudentDao nominatedStudentDao, AddressDao addressDao,
@@ -83,6 +87,8 @@ public class NominatedStudentUccImpl implements NominatedStudentUcc {
       unitOfWork.commit();
       return nominatedStudent;
     } catch (Exception ex) {
+      logger.info("--------------------------    CATCH EXCEPTION POST NOMINATEDSTUDENTS"
+          + "--------------------------");
       unitOfWork.rollback();
       throw ex;
     }
