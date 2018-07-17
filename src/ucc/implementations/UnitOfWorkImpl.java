@@ -1,6 +1,11 @@
 package ucc.implementations;
 
 import business.dto.Entity;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 import main.annotations.Inject;
 import main.exceptions.FatalException;
 import main.logging.LogManager;
@@ -10,18 +15,15 @@ import persistence.DaoClass;
 import persistence.DenialReasonDao;
 import persistence.MobilityChoiceDao;
 import persistence.MobilityDao;
+import persistence.MobilityDocumentDao;
 import persistence.NominatedStudentDao;
+import persistence.OptionDao;
 import persistence.PartnerDao;
 import persistence.PartnerOptionDao;
+import persistence.PaymentDao;
 import persistence.ProgrammeDao;
 import persistence.UserDao;
 import ucc.UnitOfWork;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
 
 public class UnitOfWorkImpl implements UnitOfWork {
 
@@ -38,6 +40,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
   @Inject
   private UnitOfWorkImpl(AddressDao addressDao, DalServices dalServices,
       DenialReasonDao denialReason, MobilityChoiceDao mobilityChoiceDao, MobilityDao mobilityDao,
+      MobilityDocumentDao mobilityDocumentDao, OptionDao optionDao, PaymentDao paymentDao,
       NominatedStudentDao nominatedStudentDao, PartnerDao partnerDao,
       PartnerOptionDao partnerOptionDao, ProgrammeDao programmeDao, UserDao userDao) {
     this.dalServices = dalServices;
@@ -46,6 +49,9 @@ public class UnitOfWorkImpl implements UnitOfWork {
     daos.put(DenialReasonDao.class, denialReason);
     daos.put(MobilityChoiceDao.class, mobilityChoiceDao);
     daos.put(MobilityDao.class, mobilityDao);
+    daos.put(MobilityDocumentDao.class, mobilityDocumentDao);
+    daos.put(OptionDao.class, optionDao);
+    daos.put(PaymentDao.class, paymentDao);
     daos.put(NominatedStudentDao.class, nominatedStudentDao);
     daos.put(PartnerDao.class, partnerDao);
     daos.put(PartnerOptionDao.class, partnerOptionDao);
@@ -70,7 +76,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
     }
     if (semaphore == 0) {
       dalServices.openConnection();
-      logger.info("Opening connection");
+      logger.finer("Opening connection");
       dalServices.startTransaction();
     }
     transactionSemaphore.set(++semaphore);
@@ -103,10 +109,10 @@ public class UnitOfWorkImpl implements UnitOfWork {
       versionsCache.get().clear();
     }
     if (semaphore == 1) {
-      logger.info("Committing changes");
+      logger.finer("Committing changes");
       dalServices.commit();
       dalServices.closeConnection();
-      logger.info("Closing connection");
+      logger.finer("Closing connection");
     }
     transactionSemaphore.set(--semaphore);
   }
@@ -122,7 +128,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
       logger.info("Rolling back changes");
       dalServices.rollback();
       dalServices.closeConnection();
-      logger.info("Closing connection");
+      logger.finer("Closing connection");
     }
     transactionSemaphore.set(--semaphore);
   }
@@ -148,6 +154,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
           if (curMethod.getName().equals("update")) {
             method = curMethod;
             method.setAccessible(true);
+            logger.info(method.toString());
             break;
           }
         }
@@ -174,7 +181,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
 
   /**
    * Return the object id : [runtime-type]_[id].
-   * 
+   *
    * @param entity the entity
    * @return the object id as a String
    */

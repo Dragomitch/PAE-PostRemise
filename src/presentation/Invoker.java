@@ -1,6 +1,15 @@
 package presentation;
 
 import business.EntityFactory;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import main.DependencyManager;
 import main.exceptions.FatalException;
 import main.logging.LogManager;
@@ -13,17 +22,6 @@ import presentation.annotations.Session;
 import presentation.annotations.SessionParameter;
 import presentation.exceptions.InsufficientPermissionException;
 import presentation.exceptions.UnauthenticatedUserException;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 class Invoker {
 
@@ -40,7 +38,7 @@ class Invoker {
 
   /**
    * Invokes the method that handles the request for this route.
-   * 
+   *
    * @param req the HTTP request object that provides information about the request made
    * @param route the route
    * @param resp the HTTP response object that provides HTTP-specific functionality
@@ -61,7 +59,7 @@ class Invoker {
       method.setAccessible(true);
       invocationResult = method.invoke(instance, parameters);
       handleSessionAnnotation(method, invocationResult, req, resp);
-      logger.info("Method succesfully invoked");
+      logger.finer("Method succesfully invoked");
     } catch (InvocationTargetException ex) {
       // An exceptions has been thrown inside the method.
       throw ex.getCause();
@@ -73,7 +71,7 @@ class Invoker {
 
   /**
    * Maps all the parameter required for the method to be invoked..
-   * 
+   *
    * @param req the HTTP request object that provides information about the request made
    * @param path the path used to make the request
    * @param route the route that matches the path
@@ -126,7 +124,7 @@ class Invoker {
 
   /**
    * Checks if the requester is authenticated and has the required permissions.
-   * 
+   *
    * @param req the HTTP request object that provides information about the request made
    * @param method the method to be invoked
    * @return true if the requester has the required permissions, false otherwise
@@ -147,7 +145,7 @@ class Invoker {
     String[] requiredRoles = method.getDeclaredAnnotation(Role.class).value();
     for (String requiredRole : requiredRoles) {
       if (role.equals(requiredRole)) {
-        logger.info("Requester has right permissions");
+        logger.fine("Requester has right permissions");
         return true;
       }
     }

@@ -4,8 +4,10 @@ import static utils.DataValidationUtils.checkString;
 
 import business.User;
 import business.dto.UserDto;
+import java.util.logging.Logger;
 import main.annotations.Inject;
 import main.logging.LogManager;
+import org.mindrot.BCrypt;
 import persistence.DalServices;
 import persistence.UserDao;
 import presentation.annotations.ApiCollection;
@@ -17,10 +19,6 @@ import presentation.annotations.SessionParameter;
 import presentation.enums.HttpMethod;
 import presentation.exceptions.UnauthenticatedUserException;
 import ucc.SessionUcc;
-
-import org.mindrot.BCrypt;
-
-import java.util.logging.Logger;
 
 @ApiCollection(name = "Session", endpoint = "/session")
 class SessionUccImpl implements SessionUcc {
@@ -71,6 +69,7 @@ class SessionUccImpl implements SessionUcc {
   @Session(action = Session.DELETE)
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.DELETE)
-  public void signout() {}
+  public void signout() {//TODO Check if token validity issues doesn't come from there
+  }
 
 }

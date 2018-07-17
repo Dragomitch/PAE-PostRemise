@@ -11,8 +11,11 @@ import business.exceptions.RessourceNotFoundException;
 import main.ContextManager;
 import main.DependencyManager;
 import main.ErrorManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import persistence.AddressDao;
-import persistence.OptionDao;
 import persistence.PartnerDao;
 import persistence.PartnerOptionDao;
 import persistence.mocks.MockAddressDao;
@@ -20,12 +23,8 @@ import persistence.mocks.MockPartnerDao;
 import persistence.mocks.MockPartnerOptionDao;
 import presentation.exceptions.InsufficientPermissionException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 public class TestPartnerUcc {
+
   private EntityFactory entityFactory;
   private PartnerDao partnerDao;
   private PartnerUcc partnerUcc;
@@ -33,7 +32,6 @@ public class TestPartnerUcc {
   private PartnerDto partnerDto;
   private AddressDao addressDao;
   private PartnerOptionDao partnerOptionDao;
-  private OptionDao optionDao;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -50,7 +48,6 @@ public class TestPartnerUcc {
     addressDao = DependencyManager.getInstance(AddressDao.class);
     partnerDao = DependencyManager.getInstance(PartnerDao.class);
     partnerOptionDao = DependencyManager.getInstance(PartnerOptionDao.class);
-    optionDao = DependencyManager.getInstance(OptionDao.class);
     partnerUcc = DependencyManager.getInstance(PartnerUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     partnerDto = mockDtoFactory.getPartner();

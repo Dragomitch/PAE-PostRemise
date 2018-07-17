@@ -19,6 +19,11 @@ import business.dto.UserDto;
 import business.exceptions.BusinessException;
 import business.exceptions.ErrorFormat;
 import business.exceptions.RessourceNotFoundException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import main.annotations.Inject;
 import persistence.CountryDao;
 import persistence.DenialReasonDao;
@@ -26,7 +31,6 @@ import persistence.DocumentDao;
 import persistence.MobilityChoiceDao;
 import persistence.MobilityDao;
 import persistence.MobilityDocumentDao;
-import persistence.PartnerDao;
 import persistence.ProgrammeDao;
 import persistence.UserDao;
 import presentation.CsvStringBuilder;
@@ -42,13 +46,8 @@ import ucc.PartnerUcc;
 import ucc.SessionUcc;
 import ucc.UnitOfWork;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 class MobilityChoiceUccImpl implements MobilityChoiceUcc {
+
   private UserDao userDao;
   private MobilityChoiceDao mobilityChoiceDao;
   private MobilityDao mobilityDao;
@@ -59,14 +58,12 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   private CountryDao countryDao;
   private ProgrammeDao programmeDao;
   private PartnerUcc partnerUcc;
-  private PartnerDao partnerDao;
   private UnitOfWork unitOfWork;
 
   @Inject
-  public MobilityChoiceUccImpl(UserDao userDao, MobilityChoiceDao mobilityChoiceDao,
-      MobilityDao mobilityDao, DenialReasonDao denialReasonDao, DocumentDao documentDao,
-      MobilityDocumentDao mobilityDocumentDao, EntityFactory entityFactory, CountryDao countryDao,
-      ProgrammeDao programmeDao, PartnerDao partnerDao, PartnerUcc partnerUcc,
+  public MobilityChoiceUccImpl(UserDao userDao, MobilityChoiceDao mobilityChoiceDao, MobilityDao mobilityDao,
+      DenialReasonDao denialReasonDao, DocumentDao documentDao, MobilityDocumentDao mobilityDocumentDao,
+      EntityFactory entityFactory, CountryDao countryDao, ProgrammeDao programmeDao, PartnerUcc partnerUcc,
       UnitOfWork unitOfWork) {
     this.userDao = userDao;
     this.mobilityChoiceDao = mobilityChoiceDao;
@@ -78,7 +75,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     this.countryDao = countryDao;
     this.programmeDao = programmeDao;
     this.partnerUcc = partnerUcc;
-    this.partnerDao = partnerDao;
     this.unitOfWork = unitOfWork;
   }
 
@@ -86,8 +82,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.POST, template = "/mobilityChoice")
   public MobilityChoiceDto create(@HttpParameter("data") MobilityChoiceDto mobilityChoice,
-      @SessionParameter(SessionUcc.USER_ID) int userId,
-      @SessionParameter(SessionUcc.USER_ROLE) String userRole) {
+      @SessionParameter(SessionUcc.USER_ID) int userId, @SessionParameter(SessionUcc.USER_ROLE) String userRole) {
     try {
       unitOfWork.startTransaction();
       checkDataIntegrity(mobilityChoice);
@@ -115,11 +110,9 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.GET, template = "/mobilityChoices")
   public Map<String, Object> showAll(@SessionParameter(SessionUcc.USER_ID) int userId,
-      @SessionParameter(SessionUcc.USER_ROLE) String userRole,
-      @HttpParameter("filter") String filter) {
+      @SessionParameter(SessionUcc.USER_ROLE) String userRole, @HttpParameter("filter") String filter) {
     checkFilter(filter);
-    String filterToUse =
-        filter == null ? MobilityChoiceDao.FILTER_ACTIVE_MOBILITIES_CHOICES : filter;
+    String filterToUse = filter == null ? MobilityChoiceDao.FILTER_ACTIVE_MOBILITIES_CHOICES : filter;
     Map<String, Object> dataToReturn = new HashMap<String, Object>();
     List<MobilityChoiceDto> mobilityChoices;
     try {
@@ -145,22 +138,19 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.GET, template = "/mobilityChoices/count")
   public Map<String, Object> countAll(@SessionParameter(SessionUcc.USER_ID) int userId,
-      @SessionParameter(SessionUcc.USER_ROLE) String userRole,
-      @HttpParameter("filter") String filter) {
+      @SessionParameter(SessionUcc.USER_ROLE) String userRole, @HttpParameter("filter") String filter) {
     Map<String, Object> mobilityChoices = showAll(userId, userRole, filter);
-    List<MobilityChoiceDto> mobilityChoicesList =
-        (List<MobilityChoiceDto>) mobilityChoices.get("data");
+    List<MobilityChoiceDto> mobilityChoicesList = (List<MobilityChoiceDto>) mobilityChoices.get("data");
     mobilityChoices.put("count", mobilityChoicesList.size());
     mobilityChoices.remove("data");
     return mobilityChoices;
   }
 
-
   @Override
   @Role({UserDto.ROLE_STUDENT})
   @Route(method = HttpMethod.PUT, template = "/mobilityChoices/{id}/cancel")
-  public void cancel(@PathParameter("id") int mobilityChoiceId,
-      @SessionParameter("userId") int userId, @HttpParameter("reason") String reason) {
+  public void cancel(@PathParameter("id") int mobilityChoiceId, @SessionParameter("userId") int userId,
+      @HttpParameter("reason") String reason) {
     checkPositive(mobilityChoiceId);
     checkString(reason);
     try {
@@ -173,8 +163,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
         throw new InsufficientPermissionException(
             "User " + userId + " cannot cancel a mobility choice he does not own");
       }
-      if (mobilityChoice.getCancellationReason() != null
-          || mobilityChoice.getDenialReason() != null) {
+      if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       MobilityDto mobility = mobilityDao.findById(mobilityChoiceId);
@@ -202,9 +191,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityChoice == null) {
         throw new RessourceNotFoundException();
       }
-      if (mobilityChoice.getCancellationReason() != null
-          || (mobilityChoice.getDenialReason() != null
-              && mobilityChoice.getDenialReason().getReason() != null)) {
+      if (mobilityChoice.getCancellationReason() != null || (mobilityChoice.getDenialReason() != null
+          && mobilityChoice.getDenialReason().getReason() != null)) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       DenialReasonDto denialReason = denialReasonDao.findById(reason);
@@ -227,6 +215,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.PUT, template = "/mobilitychoices/{id}/confirm")
+  @SuppressWarnings("unused")
   public void confirm(@PathParameter("id") int id, @SessionParameter("userId") int userId) {
     checkPositive(id);
     try {
@@ -235,8 +224,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityChoice == null) {
         throw new RessourceNotFoundException();
       }
-      if (mobilityChoice.getCancellationReason() != null
-          || mobilityChoice.getDenialReason() != null) {
+      if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       if (mobilityDao.findById(id) != null) {
@@ -249,16 +237,16 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       mobility.setId(id);
       mobility.setState(Mobility.STATE_CREATED);
       mobility.setSubmissionDate(LocalDateTime.now());
+
       UserDto user = userDao.findById(userId);
       mobility.setProfessorInCharge(userDao.findById(userId));
       mobilityDao.create(mobility);
-      List<DocumentDto> documents =
-          documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
+      List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
       for (DocumentDto document : documents) {
         mobilityDocumentDao.create(document.getId(), id);
       }
-      List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(
-          mobilityChoice.getUser().getId(), userId, UserDto.ROLE_PROFESSOR);
+      List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
+          UserDto.ROLE_PROFESSOR);
       for (MobilityChoiceDto choice : mobilityChoices) {
         if (choice.getId() != mobilityChoice.getId()
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
@@ -276,9 +264,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.PUT, template = "/mobilitychoices/{id}/confirmWithNewPartner")
-  public void confirmWithNewPartner(@PathParameter("id") int id,
-      @HttpParameter("data") PartnerDto partner, @SessionParameter("userId") int userId,
-      @SessionParameter("userRole") String userRole) {
+  public void confirmWithNewPartner(@PathParameter("id") int id, @HttpParameter("data") PartnerDto partner,
+      @SessionParameter("userId") int userId, @SessionParameter("userRole") String userRole) {
     checkPositive(id);
     checkObject(partner);
     try {
@@ -287,8 +274,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityChoice == null) {
         throw new RessourceNotFoundException();
       }
-      if (mobilityChoice.getCancellationReason() != null
-          || mobilityChoice.getDenialReason() != null) {
+      if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobilityChoice.getUser().getId()) {
@@ -317,18 +303,15 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       mobilityChoice.setPartner(partner);
       mobilityChoiceDao.update(mobilityChoice);
       mobilityDao.create(mobility);
-      List<DocumentDto> documents =
-          documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
+      List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
       for (DocumentDto document : documents) {
         mobilityDocumentDao.create(document.getId(), id);
       }
-      List<MobilityChoiceDto> mobilityChoices =
-          getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, userRole);
+      List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, userRole);
       for (MobilityChoiceDto choice : mobilityChoices) {
         if (choice.getId() != mobilityChoice.getId()
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
-            && choice.getTerm() == mobilityChoice.getTerm()
-            && choice.getCancellationReason() == null
+            && choice.getTerm() == mobilityChoice.getTerm() && choice.getCancellationReason() == null
             && (choice.getDenialReason() == null || choice.getDenialReason().getReason() == null)) {
           reject(choice.getId(), 1);
         }
@@ -345,16 +328,14 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Role(UserDto.ROLE_PROFESSOR)
   @Route(method = HttpMethod.GET, template = "/mobilitychoices/export", contentType = "text/csv")
   public String exportAll(@SessionParameter(SessionUcc.USER_ID) int userId,
-      @SessionParameter(SessionUcc.USER_ROLE) String userRole,
-      @HttpParameter("filter") String filter) {
+      @SessionParameter(SessionUcc.USER_ROLE) String userRole, @HttpParameter("filter") String filter) {
     try {
       unitOfWork.startTransaction();
-      List<MobilityChoiceDto> mobilityChoices =
-          (List<MobilityChoiceDto>) showAll(userId, userRole, filter).get("data");
+      List<MobilityChoiceDto> mobilityChoices = (List<MobilityChoiceDto>) showAll(userId, userRole, filter)
+          .get("data");
       CsvStringBuilder csvStringBuilder = new CsvStringBuilder(';');
-      String[] headerCsv =
-          {"N° ordre candidature", "Nom", "Prénom", "Option", "N° ordre préférence",
-              "Programme de mobilité", "Type de mobilité", "Semestre de départ", "Partenaire"};
+      String[] headerCsv = {"N° ordre candidature", "Nom", "Prénom", "Option", "N° ordre préférence",
+          "Programme de mobilité", "Type de mobilité", "Semestre de départ", "Partenaire"};
       csvStringBuilder.writeLine(headerCsv);
       for (MobilityChoiceDto mobiChoice : mobilityChoices) {
         csvStringBuilder.writeLine(transformToStringTable(mobiChoice));
@@ -369,20 +350,18 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   /**
    * Returns the mobilityChoices for a specified userId
-   * 
+   *
    * @param userId the userId of the requester
    * @param onUserId the userId of the user we wants all the mobility choices.
    * @param userRole the UserRole of the requester
    * @return the list of mobility choices for the userId specified.
    */
-  private List<MobilityChoiceDto> getMobilityChoiceForUser(int userId, int onUserId,
-      String userRole) {
+  private List<MobilityChoiceDto> getMobilityChoiceForUser(int userId, int onUserId, String userRole) {
     checkPositive(onUserId);
     checkPositive(userId);
     checkString(userRole);
     if (userRole.equals(UserDto.ROLE_STUDENT) && onUserId != userId) {
-      throw new InsufficientPermissionException(
-          "Students can't check the mobilities for another user!");
+      throw new InsufficientPermissionException("Students can't check the mobilities for another user!");
     }
     List<MobilityChoiceDto> mobilityChoices = null;
     try {
@@ -400,9 +379,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   }
 
   /**
-   * Check if a filter for the mobility choices is correct or not. If a filter isn't correct it
-   * throw the appropriate business exception.
-   * 
+   * Check if a filter for the mobility choices is correct or not. If a filter isn't correct it throw the appropriate business exception.
+   *
    * @param filter the filter to test.
    */
   private void checkFilter(String filter) {
@@ -417,7 +395,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   /**
    * Construct a table of strings to represent the mobilityChoiceDto to serialize.
-   * 
+   *
    * @param mobilityChoice the mobility choice to serialize
    * @return a table of strings serializable.
    */
@@ -446,7 +424,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   /**
    * Verify the validity of the information received.
-   * 
+   *
    * @param mobilityChoice the MobilityChoiceDto we verify.
    */
   private void checkDataIntegrity(MobilityChoiceDto mobilityChoice) {
@@ -459,8 +437,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     } catch (BusinessException ex) {
       List<ErrorFormat> errors = ex.getError().getDetails();
       for (ErrorFormat oneError : errors) {
-        System.out
-            .println("error : " + oneError.getErrorCode() + " " + oneError.getDeveloperMessage());
+        System.out.println("error : " + oneError.getErrorCode() + " " + oneError.getDeveloperMessage());
         violations.add(oneError.getErrorCode());
       }
     }
@@ -470,8 +447,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     }
     if (isAValidObject(mobilityChoice.getCountry())
         && isAValidString(mobilityChoice.getCountry().getCountryCode())) {
-      if (mobilityChoice.getCountry().getCountryCode()
-          .length() > MobilityChoiceDao.MAX_LENGTH_COUNTRY) {
+      if (mobilityChoice.getCountry().getCountryCode().length() > MobilityChoiceDao.MAX_LENGTH_COUNTRY) {
         violations.add(ErrorFormat.MAX_LENGTH_COUNTRY_CODE_OVERFLOW_314);
       } else if (countryDao.findById(mobilityChoice.getCountry().getCountryCode()) == null) {
         violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_CODE_900);
@@ -481,8 +457,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
         && programmeDao.findById(mobilityChoice.getProgramme().getId()) == null) {
       violations.add(ErrorFormat.EXISTENCE_VIOLATION_PROGRAMME_ID_1000);
     }
-    if (isAValidObject(mobilityChoice.getUser())
-        && userDao.findById(mobilityChoice.getUser().getId()) == null) {
+    if (isAValidObject(mobilityChoice.getUser()) && userDao.findById(mobilityChoice.getUser().getId()) == null) {
       violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
     }
     if (violations.size() > 0) {

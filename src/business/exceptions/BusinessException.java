@@ -1,9 +1,8 @@
 package business.exceptions;
 
-import main.ErrorManager;
-
 import java.util.LinkedList;
 import java.util.List;
+import main.ErrorManager;
 
 /**
  * This exception may be thrown when an error occurs during a business related operation.
@@ -15,8 +14,22 @@ public class BusinessException extends RuntimeException {
   private int errorCode;
 
   /**
+   * Constructs a BusinessException with the specified cause and error.
+   *
+   * @param errorCode the error code
+   * @param violations the list of violations for that error.
+   * @param cause the cause (which is saved for later retrieval by the Throwable.getCause() method). (A null value is permitted, and indicates that the cause is
+   * nonexistent or unknown.)
+   */
+  public BusinessException(int errorCode, List<Integer> violations, Throwable cause) {
+    super(cause);
+    this.errorCode = errorCode;
+    this.violations = violations;
+  }
+
+  /**
    * Return the errorFormat object describing the error.
-   * 
+   *
    * @return an ErrorFormat with the violations details rightly inserted
    */
   public ErrorFormat getError() {
@@ -29,20 +42,6 @@ public class BusinessException extends RuntimeException {
       error.setDetails(errorsOccured);
     }
     return error;
-  }
-
-  /**
-   * Constructs a BusinessException with the specified cause and error.
-   * 
-   * @param errorCode the error code
-   * @param violations the list of violations for that error.
-   * @param cause the cause (which is saved for later retrieval by the Throwable.getCause() method).
-   *        (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
-   */
-  public BusinessException(int errorCode, List<Integer> violations, Throwable cause) {
-    super(cause);
-    this.errorCode = errorCode;
-    this.violations = violations;
   }
 
   public BusinessException(int errorCode, List<Integer> violations) {

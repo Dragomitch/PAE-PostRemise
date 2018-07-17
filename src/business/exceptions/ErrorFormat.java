@@ -20,6 +20,7 @@ public class ErrorFormat {
   public static final int EXISTENCE_VIOLATION_ADDRESS_NULL_138 = 138;
   public static final int EXISTENCE_VIOLATION_COUNTRY_NULL_139 = 139;
   public static final int EXISTENCE_VIOLATION_PROGRAMME_NULL_140 = 140;
+  public static final int EXISTENCE_VIOLATION_OPTION_NULL_141 = 141;
 
   public static final int EXISTENCE_VIOLATION_USER_ID_200 = 200;
   public static final int INVALID_FIRST_NAME_201 = 201;

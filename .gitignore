@@ -1,0 +1,29 @@
+#Building Files
+/bin/
+/out/
+out/
+
+#IntelliJ Project Files
+*.eml
+*.iml
+.idea/
+.project
+
+#Eclipse
+*.eclipse
+
+#====================================================
+#PROJECT FILES
+#Exlusions
+#====================================================
+.gitignore
+logs/*.log*
+Cahiers des charges/Cahier des charges FINAL.docx
+Cahiers des charges/Documents relatifs au projet/
+Cahiers des charges/Thumbs.db
+Cahiers des charges/WorkDocument Cahier des Charges/
+#====================================================
+#PROJECT FILES
+#Exceptions to exlusion rules
+#====================================================
+!logs/.gitkeep

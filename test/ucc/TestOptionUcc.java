@@ -9,27 +9,25 @@ import business.dto.OptionDto;
 import business.dto.PartnerDto;
 import business.dto.PartnerOptionDto;
 import business.dto.ProgrammeDto;
+import java.util.ArrayList;
+import java.util.List;
 import main.ContextManager;
 import main.DependencyManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import persistence.PartnerDao;
 import persistence.PartnerOptionDao;
 import persistence.mocks.MockPartnerDao;
 import persistence.mocks.MockPartnerOptionDao;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class TestOptionUcc {
+
   private EntityFactory entityFactory;
   private OptionUcc optionUcc;
   private PartnerDao partnerDao;
   private PartnerOptionDao partnerOptionDao;
-  private MockDtoFactory mockDtoFactory;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -45,7 +43,6 @@ public class TestOptionUcc {
     this.optionUcc = DependencyManager.getInstance(OptionUcc.class);
     this.partnerDao = DependencyManager.getInstance(PartnerDao.class);
     this.partnerOptionDao = DependencyManager.getInstance(PartnerOptionDao.class);
-    this.mockDtoFactory = new MockDtoFactory(entityFactory);
   }
 
   @After
@@ -105,7 +102,7 @@ public class TestOptionUcc {
 
   /**
    * Creates an instance of PartnerDto with correct data.
-   * 
+   *
    * @return a partner ready to be inserted.
    */
   private PartnerDto setUpCorrectPartner(EntityFactory entityFactory) {

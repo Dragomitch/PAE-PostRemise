@@ -1,13 +1,11 @@
 package presentation;
 
 import business.EntityFactory;
-import main.exceptions.FatalException;
-import main.logging.LogManager;
-
 import java.io.IOException;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletResponse;
+import main.exceptions.FatalException;
+import main.logging.LogManager;
 
 public class ResponseHandler {
 
@@ -21,12 +19,12 @@ public class ResponseHandler {
 
   /**
    * Serializes the output object {@code ob} and writes it in the Http Response.
-   * 
+   *
    * @param ob the output object to write
    * @param resp the HTTP response object that provides HTTP-specific functionality
    */
   protected void writeResponse(Object ob, String contentType, HttpServletResponse resp) {
-    logger.info("Writing response");
+    logger.finer("Writing response");
     String format;
     if (contentType.equals("text/csv")) {
       resp.setContentType("text/csv");

@@ -1,12 +1,12 @@
 package main.logging;
 
-import main.exceptions.FatalException;
-
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Filter;
 import java.util.logging.Logger;
+import main.exceptions.FatalException;
 
 public class LogManager {
 
@@ -22,6 +22,10 @@ public class LogManager {
     appLogger.addHandler(consoleHandler);
     FileHandler fileHandler;
     try {
+      File dir = new File("logs");
+      if (!dir.exists()) {
+        dir.mkdir();
+      }
       fileHandler = new FileHandler("logs/default.log", true);
     } catch (SecurityException ex) {
       throw new FatalException("Caller does not have LoggingPermission(\"control\")", ex);
@@ -33,7 +37,7 @@ public class LogManager {
 
   /**
    * Returns a class logger.
-   * 
+   *
    * @param className the name of the invoking class
    * @return the logger related to the class name
    */

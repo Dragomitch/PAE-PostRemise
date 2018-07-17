@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import business.dto.DenialReasonDto;
 import main.ContextManager;
 import main.DependencyManager;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,7 +13,6 @@ public class TestDenialReason {
 
   private static final int ID = 1;
   private static final String REASON = "Mon ours en peluche est mort";
-  private static final int VERSION = 1;
 
   private EntityFactory entityFactory;
   private DenialReasonDto denialReason;

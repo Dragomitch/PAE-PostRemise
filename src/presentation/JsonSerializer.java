@@ -2,9 +2,6 @@ package presentation;
 
 import business.EntityFactory;
 import business.exceptions.BusinessException;
-import main.TypeResolver;
-import main.annotations.Inject;
-
 import com.owlike.genson.Context;
 import com.owlike.genson.Converter;
 import com.owlike.genson.Genson;
@@ -14,11 +11,12 @@ import com.owlike.genson.convert.ChainedFactory;
 import com.owlike.genson.stream.JsonStreamException;
 import com.owlike.genson.stream.ObjectReader;
 import com.owlike.genson.stream.ObjectWriter;
-
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import main.TypeResolver;
+import main.annotations.Inject;
 
 public class JsonSerializer {
 
@@ -35,7 +33,7 @@ public class JsonSerializer {
 
   /**
    * Returns serialization MIME Type.
-   * 
+   *
    * @return MIME Type
    */
   public String getContentType() {
@@ -43,8 +41,7 @@ public class JsonSerializer {
   }
 
   /**
-   * Creates a GensonBuilder instance that will be in charge of object
-   * serialization/deserialization.
+   * Creates a GensonBuilder instance that will be in charge of object serialization/deserialization.
    */
   private void initializeGensonBuilder() {
     this.genson = new GensonBuilder().useIndentation(true).useRuntimeType(true).useMetadata(true)
@@ -56,7 +53,7 @@ public class JsonSerializer {
 
   /**
    * Serializes a POJO into a JSON string.
-   * 
+   *
    * @param obj the object to serialize
    * @return the serialized object as a JSON string
    */
@@ -64,10 +61,9 @@ public class JsonSerializer {
     return genson.serialize(obj);
   }
 
-
   /**
    * Deserializes a JSON String into an instance of toClass.
-   * 
+   *
    * @param str the string to deserialize
    * @param toClass type into which to deserialize
    * @return the deserialized object
@@ -123,7 +119,7 @@ public class JsonSerializer {
       Object entity = entityFactory.build(toClass);
       return genson.deserializeInto(str, entity);
     } catch (JsonStreamException | JsonBindingException ex) {
-      throw new IllegalArgumentException("Impossible to deserialize Json String", ex);
+      throw new IllegalArgumentException("Impossible to deserialize the following Json String :" + str, ex);
     }
   }
 
@@ -144,8 +140,7 @@ public class JsonSerializer {
 
     @Override
     public LocalDate deserialize(ObjectReader reader, Context ctx) throws Exception {
-      LocalDate parsedDate =
-          LocalDate.parse(reader.valueAsString(), DateTimeFormatter.ISO_LOCAL_DATE);
+      LocalDate parsedDate = LocalDate.parse(reader.valueAsString(), DateTimeFormatter.ISO_LOCAL_DATE);
       return parsedDate;
     }
 
@@ -160,8 +155,8 @@ public class JsonSerializer {
 
     @Override
     public LocalDateTime deserialize(ObjectReader reader, Context ctx) throws Exception {
-      LocalDateTime parsedDate =
-          LocalDateTime.parse(reader.valueAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+      LocalDateTime parsedDate = LocalDateTime.parse(reader.valueAsString(),
+          DateTimeFormatter.ISO_LOCAL_DATE_TIME);
       return parsedDate;
     }
 

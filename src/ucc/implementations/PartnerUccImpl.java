@@ -7,6 +7,7 @@ import static utils.DataValidationUtils.isAValidEmail;
 import static utils.DataValidationUtils.isAValidString;
 import static utils.DataValidationUtils.isPositive;
 
+import business.EntityFactory;
 import business.dto.MobilityChoiceDto;
 import business.dto.PartnerDto;
 import business.dto.PartnerOptionDto;
@@ -14,6 +15,10 @@ import business.dto.UserDto;
 import business.exceptions.BusinessException;
 import business.exceptions.ErrorFormat;
 import business.exceptions.RessourceNotFoundException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import main.annotations.Inject;
 import persistence.AddressDao;
 import persistence.DalServices;
@@ -34,11 +39,6 @@ import ucc.PartnerUcc;
 import ucc.SessionUcc;
 import ucc.UnitOfWork;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 class PartnerUccImpl implements PartnerUcc {
 
   private AddressDao addressDao;
@@ -50,11 +50,12 @@ class PartnerUccImpl implements PartnerUcc {
   private UserDao userDao;
   private DalServices dalServices;
   private UnitOfWork unitOfWork;
+  private EntityFactory entityFactory;
 
   @Inject
   public PartnerUccImpl(AddressDao addressDao, OptionDao optionDao, PartnerDao partnerDao,
-      PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao,
-      ProgrammeDao programmeDao, UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork) {
+      PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao, ProgrammeDao programmeDao,
+      UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork, EntityFactory entityFactory) {
     this.addressDao = addressDao;
     this.optionDao = optionDao;
     this.partnerDao = partnerDao;
@@ -64,21 +65,29 @@ class PartnerUccImpl implements PartnerUcc {
     this.dalServices = dalServices;
     this.mobilityChoiceDao = mobilityChoiceDao;
     this.unitOfWork = unitOfWork;
+    this.entityFactory = entityFactory;
   }
 
   @Override
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.POST, template = "/partners")
-  public PartnerDto create(@HttpParameter("data") PartnerDto partner,
-      @SessionParameter("userRole") String userRole) {
+  public PartnerDto create(@HttpParameter("data") PartnerDto partner, @SessionParameter("userRole") String userRole) {
     checkObject(partner);
     if ((userRole.equals(UserDto.ROLE_STUDENT)) && (partner.isOfficial() == true)) {
       throw new InsufficientPermissionException();
     }
     try {
       unitOfWork.startTransaction();
+			/*AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+			address = addressDao.create(partner.getAddress());
+			System.out.println("before creation : "+address);
+			*/ //TODO Check if this change is correct
       partner.setAddress(addressDao.create(partner.getAddress()));
+
+      //System.out.println("after Creation : "+address);
+
       checkDataIntegrity(partner);
+
       partner = partnerDao.create(partner);
 
       List<PartnerOptionDto> options = partner.getOptions();
@@ -111,9 +120,8 @@ class PartnerUccImpl implements PartnerUcc {
   }
 
   /**
-   * Check if a filter for the mobility choices is correct or not. If a filter isn't correct it
-   * throw the appropriate business exception.
-   * 
+   * Check if a filter for the mobility choices is correct or not. If a filter isn't correct it throw the appropriate business exception.
+   *
    * @param filter the filter to test.
    */
   private void checkFilter(String filter) {
@@ -126,14 +134,13 @@ class PartnerUccImpl implements PartnerUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
   @Route(method = HttpMethod.GET, template = "/partners")
-  public Map<String, Object> showAll(@HttpParameter("filter") String filter,
-      @HttpParameter("value") String value, @SessionParameter(SessionUcc.USER_ROLE) String userRole,
-      @SessionParameter(SessionUcc.USER_ID) int userId) {
+  public Map<String, Object> showAll(@HttpParameter("filter") String filter, @HttpParameter("value") String value,
+      @SessionParameter(SessionUcc.USER_ROLE) String userRole, @SessionParameter(SessionUcc.USER_ID) int userId) {
     checkFilter(filter);
     String filterToUse = filter;
     if (filter == null) {
       filterToUse = PartnerDao.FILTER_ALL_PARTNERS;
-    } else {
+    } else { // TODO check if this else is really doing something
       checkString(value);
     }
     try {
@@ -179,8 +186,7 @@ class PartnerUccImpl implements PartnerUcc {
       partner.setAddress(addressDao.update(partner.getAddress()));
       PartnerDto partnerDb = partnerDao.findById(partner.getId());
       partner.setVersion((partnerDb.getVersion()));
-      List<PartnerOptionDto> optionsDb =
-          partnerOptionDao.findAllOptionsByPartner(partnerDb.getId());
+      List<PartnerOptionDto> optionsDb = partnerOptionDao.findAllOptionsByPartner(partnerDb.getId());
       List<PartnerOptionDto> options = partner.getOptions();
 
       for (int i = 0; i < options.size(); i++) {
@@ -204,8 +210,7 @@ class PartnerUccImpl implements PartnerUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
   @Route(method = HttpMethod.POST, template = "/partners/{id}")
-  public void addOption(@PathParameter("id") int id,
-      @HttpParameter("data") PartnerOptionDto partnerOption) {
+  public void addOption(@PathParameter("id") int id, @HttpParameter("data") PartnerOptionDto partnerOption) {
     checkPositive(id);
     checkObject(partnerOption);
     checkString(partnerOption.getCode());
@@ -245,7 +250,7 @@ class PartnerUccImpl implements PartnerUcc {
       if (!partner.isArchived()) {
         throw new BusinessException(3);// "Partner is not archived");
       }
-      if (role.equals(UserDto.ROLE_STUDENT) && partner.isOfficial()) {
+      if (role.equals(UserDto.ROLE_STUDENT) && !partner.isOfficial()) {
         throw new InsufficientPermissionException();
       }
       partner.setArchived(false);
@@ -282,11 +287,14 @@ class PartnerUccImpl implements PartnerUcc {
     if (!isAValidEmail(partner.getEmail())) {
       violations.add(ErrorFormat.INVALID_EMAIL_706);
     }
-    if (!isAValidString(partner.getWebsite())) {
+    /*if (!isAValidString(partner.getWebsite())) {
       violations.add(ErrorFormat.INVALID_WEBSITE_707);
-    }
+    }*///TODO transform this validation to not be mandatory
     if (!isAValidString(partner.getPhoneNumber())) {
       violations.add(ErrorFormat.INVALID_PHONE_NUMBER_708);
+    }//TODO In the test Scenario there is a partner without phone number, is that the correct comportment ?
+    if (partner.getOptions().size() < 1) {
+      violations.add(ErrorFormat.EXISTENCE_VIOLATION_OPTION_NULL_141);
     }
     if (violations.size() != 0) {
       throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);

@@ -11,6 +11,8 @@ import business.dto.UserDto;
 import business.exceptions.BusinessException;
 import business.exceptions.ErrorFormat;
 import business.exceptions.RessourceNotFoundException;
+import java.util.LinkedList;
+import java.util.List;
 import main.annotations.Inject;
 import persistence.AddressDao;
 import persistence.CountryDao;
@@ -28,9 +30,6 @@ import ucc.AddressUcc;
 import ucc.NominatedStudentUcc;
 import ucc.UnitOfWork;
 import ucc.UserUcc;
-
-import java.util.LinkedList;
-import java.util.List;
 
 @ApiCollection(name = "Nominated students", endpoint = "/nominatedStudents")
 public class NominatedStudentUccImpl implements NominatedStudentUcc {
@@ -141,9 +140,12 @@ public class NominatedStudentUccImpl implements NominatedStudentUcc {
     try {
       unitOfWork.startTransaction();
       checkDataIntegrity(nominatedStudent);
-      if (nominatedStudentDao.findById(nominatedStudent.getId()) == null) {
+
+      NominatedStudentDto tempStud = nominatedStudentDao.findById(nominatedStudent.getId());
+      if (tempStud == null) {
         throw new RessourceNotFoundException();
       }
+      nominatedStudent.getAddress().setId(tempStud.getAddress().getId());
       nominatedStudent = nominatedStudentDao.update(nominatedStudent);
       nominatedStudent.setVersion(nominatedStudent.getVersion() - 1);
       userUcc.edit(nominatedStudent, userId, userRole);

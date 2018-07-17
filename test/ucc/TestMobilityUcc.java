@@ -12,6 +12,10 @@ import business.exceptions.BusinessException;
 import business.exceptions.RessourceNotFoundException;
 import main.ContextManager;
 import main.DependencyManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import persistence.MobilityChoiceDao;
 import persistence.MobilityDao;
 import persistence.UserDao;
@@ -19,11 +23,6 @@ import persistence.mocks.MockMobilityChoiceDao;
 import persistence.mocks.MockMobilityDao;
 import persistence.mocks.MockUserDao;
 import presentation.exceptions.InsufficientPermissionException;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class TestMobilityUcc {
 
@@ -158,8 +157,7 @@ public class TestMobilityUcc {
   @Test()
   public void testCancelTC7() {
     DenialReasonDto denialReason = denialReasonUcc.create(mockDtoFactory.getDenialReason());
-    MobilityDto mobility =
-        mobilityUcc.cancel(1, 1, null, denialReason.getId(), 1, UserDto.ROLE_PROFESSOR);
+    MobilityDto mobility = mobilityUcc.cancel(1, 1, null, denialReason.getId(), 1, UserDto.ROLE_PROFESSOR);
     assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());
     assertEquals(denialReason.getId(), mobility.getDenialReason().getId());
   }
@@ -173,9 +171,9 @@ public class TestMobilityUcc {
 
   @Test(expected = InsufficientPermissionException.class)
   public void testCancelTC9() {
-    // System.out.println(mobilityDao.findById(1).getNominatedStudent().getId()); // TODO continuer
-    MobilityDto mobility = mobilityUcc.cancel(1, 1, "Toto 456", 0, 3, UserDto.ROLE_STUDENT);
+    // System.out.println(mobilityDao.findById(1).getNominatedStudent().getId());
+    // // TODO continuer
+    //MobilityDto mobility = mobilityUcc.cancel(1, 1, "Toto 456", 0, 3, UserDto.ROLE_STUDENT);
   }
-
 
 }
