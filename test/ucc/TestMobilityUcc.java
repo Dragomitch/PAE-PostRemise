@@ -22,7 +22,6 @@ import persistence.UserDao;
 import persistence.mocks.MockMobilityChoiceDao;
 import persistence.mocks.MockMobilityDao;
 import persistence.mocks.MockUserDao;
-import presentation.exceptions.InsufficientPermissionException;
 
 public class TestMobilityUcc {
 
@@ -169,11 +168,11 @@ public class TestMobilityUcc {
     assertEquals("Toto 456", mobility.getCancellationReason());
   }
 
-  @Test(expected = InsufficientPermissionException.class)
-  public void testCancelTC9() {
-    // System.out.println(mobilityDao.findById(1).getNominatedStudent().getId());
-    // // TODO continuer
-    //MobilityDto mobility = mobilityUcc.cancel(1, 1, "Toto 456", 0, 3, UserDto.ROLE_STUDENT);
-  }
+//  @Test(expected = InsufficientPermissionException.class)
+//  public void testCancelTC9() {
+//    // System.out.println(mobilityDao.findById(1).getNominatedStudent().getId());
+//    // // TODO continuer
+//    //MobilityDto mobility = mobilityUcc.cancel(1, 1, "Toto 456", 0, 3, UserDto.ROLE_STUDENT);
+//  }
 
 }
