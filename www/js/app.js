@@ -1218,9 +1218,9 @@ var debugg = 1;
     var $el = $('#create-partner-view');
     var $form = $el.find('form');
     var $listArchivedMatches = $el.find('#archived-matches');
-    var $optionsSelect = $form.find('#fsu-field-option');
+    var $optionsSelect = $form.find('#fsu-field-option-partner');
     var $addOptionButton = $form.find('#fsu-field-add-partner-option');
-    var $countriesSelect = $form.find('#fsu-field-country');
+    var $countriesSelect = $form.find('#fsu-field-country-partner');
     var $organisationTypesSelect = $form.find('#fsu-field-organisation-type');
     var $fullNameInput = $form.find('#fsu-field-full-name');
     var $partnerOptionsDiv = $form.find('#div-partner-options');
@@ -2076,21 +2076,21 @@ var debugg = 1;
     // Cache DOM
     var $el = $('#partners-view');
     var $table = $el.find('table');
-    var $linkCreate = $el.find('#create-mobility');
     var $elsProfessor = $el.find('[data-role=Professor]');
+    var $createPartnerButton = $el.find('#create-partner');
 
     function bindAll() {
       PubSub.subscribe('destroy', destroy);
       PubSub.subscribe('updatePartners', updateTable);
       $table.on('click', 'tbody tr', showPartner);
-      $linkCreate.on('click', createPartner);
+      $createPartnerButton.on('click', createPartner)
     }
 
     function unbindAll() {
       PubSub.unsubscribe('destroy', destroy);
       PubSub.unsubscribe('updatePartners', updateTable);
       $table.off('click', 'tbody tr', showPartner);
-      $linkCreate.off('click', createPartner);
+      $createPartnerButton.off('click', createPartner);
     }
 
     function initializeTable() {
@@ -2144,7 +2144,7 @@ var debugg = 1;
 
     function createPartner(e) {
       e.preventDefault();
-      alert('create partner');
+      new CreatePartnerView().render();
     }
 
     function showPartner() {
