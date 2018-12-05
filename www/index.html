@@ -109,7 +109,7 @@
                     Ajout de demande de mobilité
                 </div>
                 <div class="modal-content">
-                    <form>
+                    <form id="create-mobility-form">
                         <div class="form-group" data-role="Professor" style="display: none;">
                             <label for="fsu-field-user">Etudiant</label>
                             <select class="form-control input" id="fsu-field-user" name="user[id]">
@@ -249,12 +249,12 @@
                                 <div>
                                     <div style="display: inline-block; width: 50%">
                                         <label for="fsu-field-option-partner">Département IPL</label>
-                                        <select class="form-control input" id="fsu-field-option-partner" name="option[code]">
+                                        <select class="form-control input" id="fsu-field-option-partner" name="options[code]">
                                         </select>
                                     </div>
                                     <div style="display: inline-block; width: 45%; float: right">
                                         <label for="fsu-field-partner-option">Département partenaire</label>
-                                        <input type="text" id="fsu-field-partner-option" class="form-control input" name="partnerOption">
+                                        <input type="text" id="fsu-field-partner-option" class="form-control input" name="options[departement]">
                                     </div>
                                 </div>
                                 <div class="form-group" id="div-partner-options"></div>

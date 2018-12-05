@@ -8,10 +8,7 @@ import static utils.DataValidationUtils.isAValidString;
 import static utils.DataValidationUtils.isPositive;
 
 import business.EntityFactory;
-import business.dto.MobilityChoiceDto;
-import business.dto.PartnerDto;
-import business.dto.PartnerOptionDto;
-import business.dto.UserDto;
+import business.dto.*;
 import business.exceptions.BusinessException;
 import business.exceptions.ErrorFormat;
 import business.exceptions.RessourceNotFoundException;
@@ -72,27 +69,17 @@ class PartnerUccImpl implements PartnerUcc {
   @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.POST, template = "/partners")
   public PartnerDto create(@HttpParameter("data") PartnerDto partner, @SessionParameter("userRole") String userRole) {
-    checkObject(partner);
     if ((userRole.equals(UserDto.ROLE_STUDENT)) && (partner.isOfficial() == true)) {
       throw new InsufficientPermissionException();
     }
     try {
       unitOfWork.startTransaction();
-			/*AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
-			address = addressDao.create(partner.getAddress());
-			System.out.println("before creation : "+address);
-			*/ //TODO Check if this change is correct
       partner.setAddress(addressDao.create(partner.getAddress()));
-
-      //System.out.println("after Creation : "+address);
-
       checkDataIntegrity(partner);
-
       partner = partnerDao.create(partner);
-
       List<PartnerOptionDto> options = partner.getOptions();
-      for (int i = 0; i < options.size(); i++) {
-        addOption(partner.getId(), options.get(i));
+      for (PartnerOptionDto partnerOption: options) {
+        addOption(partner.getId(), partnerOption);
       }
       partner.setProgramme(partner.getAddress().getCountry().getProgramme());
       unitOfWork.commit();

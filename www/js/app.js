@@ -1305,13 +1305,14 @@ var debugg = 1;
       }
       partnerOptions[partnerOptions.length] = {
         code: $optionsSelect.val(),
-        department: department.val()
+        departement: department.val()
       };
       $partnerOptionsDiv.append('<div style="display: inline-block; text-size: 8px; margin: 0.7%">'
           + '<span>' + $optionsSelect.val() + ' - ' + department.val()
           + '</span><button type="button" value="' + (partnerOptions.length - 1)
           + '" class="btn-default" style="margin: 1px">x</button></div>');
       department.val('');
+      console.log("partnerOptions= ", partnerOptions );
     }
 
     function removeOption(e) {
@@ -1404,7 +1405,7 @@ var debugg = 1;
     function navigate(e) {
       e.preventDefault();
       destroy();
-      Router.navigate('/demandes-de-mobilite');
+      Router.navigate('/partners');
     }
 
     function submitHandler(e) {
