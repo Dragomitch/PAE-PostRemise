@@ -1442,6 +1442,7 @@ var debugg = 1;
           data: {data: JSON.stringify(data)},
           success: function (response) {
             destroy();
+            PubSub.publish('updatePartners');
           },
           error: function (error) {
             if (error.status == 500) {
@@ -2141,6 +2142,7 @@ var debugg = 1;
 
     function updateTable() {
       table.ajax.reload();
+      PubSub.publish('destroyModalView');
     }
 
     function createPartner(e) {
