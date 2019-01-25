@@ -11,8 +11,8 @@
   <!-- Compiler options -->
 
   <path id="classpath.test">
-    <pathelement location="lib/junit-4.12.jar"/>
-    <pathelement location="lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="src/main/resources/libs/junit-4.12.jar"/>
+    <pathelement location="src/main/resources/libs/hamcrest-core-1.3.jar"/>
   </path>
 
   <property name="compiler.debug" value="on"/>
@@ -62,26 +62,26 @@
   <!-- Project Libraries -->
 
   <path id="library.lib.classpath">
-    <pathelement location="${basedir}/lib/BCrypt.jar"/>
-    <pathelement location="${basedir}/lib/commons-codec-1.4.jar"/>
-    <pathelement location="${basedir}/lib/commons-dbcp2-2.1.1.jar"/>
-    <pathelement location="${basedir}/lib/commons-logging-1.2.jar"/>
-    <pathelement location="${basedir}/lib/commons-pool2-2.4.2.jar"/>
-    <pathelement location="${basedir}/lib/genson-1.4.jar"/>
-    <pathelement location="${basedir}/lib/jackson-annotations-2.0.1.jar"/>
-    <pathelement location="${basedir}/lib/jackson-core-2.1.3.jar"/>
-    <pathelement location="${basedir}/lib/jackson-databind-2.0.1.jar"/>
-    <pathelement location="${basedir}/lib/jetty-http-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-io-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-security-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-server-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-servlet-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-util-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-webapp-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jetty-xml-9.3.2.v20150730.jar"/>
-    <pathelement location="${basedir}/lib/jwt.jar"/>
-    <pathelement location="${basedir}/lib/postgresql-9.3-1102.jdbc41.jar"/>
-    <pathelement location="${basedir}/lib/servlet-api-3.1.jar"/>
+    <pathelement location="/src/main/ressources/BCrypt.jar"/>
+    <pathelement location="/src/main/ressources/commons-codec-1.4.jar"/>
+    <pathelement location="/src/main/ressources/commons-dbcp2-2.1.1.jar"/>
+    <pathelement location="/src/main/ressources/commons-logging-1.2.jar"/>
+    <pathelement location="/src/main/ressources/commons-pool2-2.4.2.jar"/>
+    <pathelement location="/src/main/ressources/genson-1.4.jar"/>
+    <pathelement location="/src/main/ressources/jackson-annotations-2.0.1.jar"/>
+    <pathelement location="/src/main/ressources/jackson-core-2.1.3.jar"/>
+    <pathelement location="/src/main/ressources/jackson-databind-2.0.1.jar"/>
+    <pathelement location="/src/main/ressources/jetty-http-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-io-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-security-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-server-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-servlet-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-util-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-webapp-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jetty-xml-9.3.2.v20150730.jar"/>
+    <pathelement location="/src/main/ressources/jwt.jar"/>
+    <pathelement location="/src/main/ressources/postgresql-9.3-1102.jdbc41.jar"/>
+    <pathelement location="/src/main/ressources/servlet-api-3.1.jar"/>
   </path>
 
   <!-- Modules -->
@@ -114,16 +114,16 @@
   <path id="pae-postremise.module.classpath">
     <pathelement location="${pae-postremise.output.dir}"/>
     <path refid="library.lib.classpath"/>
-    <pathelement location="${basedir}/lib/hamcrest-core-1.3.jar"/>
-    <pathelement location="${basedir}/lib/junit-4.12.jar"/>
+    <pathelement location="/src/main/ressources/hamcrest-core-1.3.jar"/>
+    <pathelement location="/src/main/ressources/junit-4.12.jar"/>
   </path>
 
   <path id="pae-postremise.runtime.module.classpath">
     <pathelement location="${pae-postremise.testoutput.dir}"/>
     <pathelement location="${pae-postremise.output.dir}"/>
     <path refid="library.lib.classpath"/>
-    <pathelement location="${basedir}/lib/hamcrest-core-1.3.jar"/>
-    <pathelement location="${basedir}/lib/junit-4.12.jar"/>
+    <pathelement location="/src/main/ressources/hamcrest-core-1.3.jar"/>
+    <pathelement location="/src/main/ressources/junit-4.12.jar"/>
   </path>
 
 
