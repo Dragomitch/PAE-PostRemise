@@ -106,7 +106,7 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
         stmt.setInt(8, mobilityChoice.getDenialReason().getId());
       }
       stmt.setString(9, mobilityChoice.getCancellationReason());
-      if (mobilityChoice.getPartner() != null) {
+      if (mobilityChoice.getPartner() != null && mobilityChoice.getPartner().getId() != -1) {
         stmt.setInt(10, mobilityChoice.getPartner().getId());
       } else {
         stmt.setNull(10, java.sql.Types.INTEGER);

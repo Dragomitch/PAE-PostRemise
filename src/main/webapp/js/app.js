@@ -868,11 +868,11 @@ var debugg = 1;
       if ($form.valid()) {
         var data = Utils.serializeForm($form);
         if (data['partner'] === undefined || data['partner']['id']
-            == -1) {
+            === -1) {
           delete data['partner'];
         }
         if (data['country'] === undefined || data['country']['countryCode']
-            == -1) {
+            === -1) {
           delete data['country'];
         }
         var departure = data['departureDate'].split(' ');
