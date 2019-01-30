@@ -311,7 +311,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       for (MobilityChoiceDto choice : mobilityChoices) {
         if (choice.getId() != mobilityChoice.getId()
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
-            && choice.getTerm() == mobilityChoice.getTerm() && choice.getCancellationReason() == null
+            && choice.getTerm() == mobilityChoice.getTerm()
+            && choice.getCancellationReason() == null
             && (choice.getDenialReason() == null || choice.getDenialReason().getReason() == null)) {
           reject(choice.getId(), 1);
         }

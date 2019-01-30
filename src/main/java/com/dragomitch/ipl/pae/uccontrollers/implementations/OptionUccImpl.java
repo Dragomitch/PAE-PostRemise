@@ -35,7 +35,7 @@ class OptionUccImpl implements OptionUcc {
   @Override
   @Route(method = HttpMethod.GET, template = "/options")
   public List<OptionDto> showAll() {
-    dalServices.openConnection();
+    dalServices.openConnection();//TODO Use unit Of Work ?
     List<OptionDto> optionList = optionDao.findAll();
     dalServices.closeConnection();
     return optionList;

@@ -30,7 +30,7 @@ public class ProgrammeUccImpl implements ProgrammeUcc {
   @Route(method = HttpMethod.GET, template = "/programmes/{id}")
   public ProgrammeDto showOne(@PathParameter("id") int id) {
     DataValidationUtils.checkPositive(id);
-    dalServices.openConnection();
+    dalServices.openConnection();//TODO Improve with the unitOfWork
     ProgrammeDto programme = programmeDao.findById(id);
     dalServices.closeConnection();
     return programme;

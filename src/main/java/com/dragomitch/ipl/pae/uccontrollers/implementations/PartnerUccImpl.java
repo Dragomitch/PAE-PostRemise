@@ -143,7 +143,7 @@ class PartnerUccImpl implements PartnerUcc {
       } else {
         option = user.getOption().getCode();
       }
-      map.put("data", partnerDao.findAll(filterToUse, value, userRole, option));
+      map.put("data", partnerDao.findAll(filterToUse, value, userRole, option));//TODO Problem there ?
       unitOfWork.commit();
       return map;
     } catch (Exception ex) {
@@ -216,7 +216,7 @@ class PartnerUccImpl implements PartnerUcc {
   @Route(method = HttpMethod.GET, template = "/partners/partnersOptions/{id}")
   public List<PartnerOptionDto> findAllPartnerOption(@PathParameter("id") int partnerId) {
     checkPositive(partnerId);
-    dalServices.openConnection();
+    dalServices.openConnection();//TODO Use UnitOfWork ?
     if (partnerDao.findById(partnerId) == null) {
       dalServices.closeConnection();
       throw new RessourceNotFoundException();

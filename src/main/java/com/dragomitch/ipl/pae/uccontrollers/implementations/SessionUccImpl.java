@@ -41,7 +41,7 @@ class SessionUccImpl implements SessionUcc {
       @HttpParameter("password") String password) {
     checkString(username);
     checkString(password);
-    dalServices.openConnection();
+    dalServices.openConnection();//TODO Use Unit Of Work ?
     User user = (User) userDao.findBy(UserDao.COLUMN_USERNAME, username);
     if (user == null) {
       logger.info("User not found in database");
