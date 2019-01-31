@@ -2503,7 +2503,7 @@ var debugg = 1;
             maxlength: 255
           },
           website: {
-            required: true,
+            required: false,
             maxlength: 255
           }
         },
