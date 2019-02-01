@@ -2308,8 +2308,7 @@ var debugg = 1;
     function bindAll() {
       PubSub.subscribe('destroy', destroy);
       $elDetails.find('a.edit').on('click', editDetails);
-      //$elEditAddressDetails.find('a.edit').on('click', editAddressDetails);//TODO Uncomment when Issue #3 Solved
-      $elEditAddressDetails.find('a.edit').on('click', replaceEditButton);
+      $elEditAddressDetails.find('a.edit').on('click', editAddressDetails);
       $elEditContactDetails.find('a.edit').on('click', editContactDetails);
       $buttonArchivePartner.on('click', toggleArchivatePartner);
       $closeButton.on('click', destroy);
@@ -2318,8 +2317,7 @@ var debugg = 1;
     function unbindAll() {
       PubSub.unsubscribe('destroy', destroy);
       $elDetails.find('a.edit').off('click', editDetails);
-      //$elEditAddressDetails.find('a.edit').off('click', editAddressDetails);//TODO Uncomment when Issue #3 Solved
-      $elEditContactDetails.find('a.edit').off('click', editContactDetails);
+      $elEditAddressDetails.find('a.edit').off('click', editAddressDetails);
       $buttonArchivePartner.off('click', toggleArchivatePartner);
       $closeButton.off('click', destroy);
       $elDetails.find('.save.btn.btn-default').remove();
@@ -2348,12 +2346,6 @@ var debugg = 1;
     //function getCountries(){
     //TODO CR : Get countries for display in partners address change a
     //}
-
-    function replaceEditButton(e) {
-      e.preventDefault();
-      var tt = $elEditAddressDetails.find('a.edit').html(
-          'Option non disponible, Issue #3');
-    }
 
     function editDetails(e) {
       e.preventDefault();
@@ -2388,6 +2380,7 @@ var debugg = 1;
           employeeCount: "Le nombre d'employé est incorrect."
         }
       };
+
       $elDetails.find('a.edit').hide();
       var content = $elDetails.find('.section-content').html();
       $elDetails.find(
@@ -2414,12 +2407,10 @@ var debugg = 1;
       }
 
       $elDetails.find('.section-content').validate(validation);
-      $elDetails.find('.section-content').on('submit', saveChanges);
-
+      $elDetails.find('.section-content').on('submit', saveChangesEditDetails);
     }
 
     function editAddressDetails(e) {
-      //TODO Ajouter Editer adresse partenaires routes etc
       e.preventDefault();
       var validation = {
         rules: {
@@ -2484,10 +2475,10 @@ var debugg = 1;
       if (!$elEditAddressDetails.find('.save.btn.btn-default').length) {
         $elEditAddressDetails.find('.section-content').append(
             '<button class="save btn btn-default">Sauvegarder</button>');
-      } //.section-content problem
+      }
 
       $elEditAddressDetails.find('.section-content').validate(validation);
-      $elEditAddressDetails.find('.section-content').on('submit', saveChanges);
+      $elEditAddressDetails.find('.section-content').on('submit', saveChangesEditAddressDetails);
     }
 
     function editContactDetails(e) {
@@ -2534,10 +2525,10 @@ var debugg = 1;
       }
 
       $elEditContactDetails.find('.section-content').validate(validation);
-      $elEditContactDetails.find('.section-content').on('submit', saveChanges);
+      $elEditContactDetails.find('.section-content').on('submit', saveChangesEditContactDetails);
     }
 
-    function saveChanges(e) {
+    function saveChangesEditContactDetails(e) {
       e.preventDefault();
       if ($elEditContactDetails.find('.section-content').valid()) {
         $el.find('button.save').remove();
@@ -2545,6 +2536,30 @@ var debugg = 1;
         var data = Utils.serializeForm(
             $elEditContactDetails.find('.section-content'));
         $.extend(partner, data);
+        sync();
+      }
+    }
+
+    function saveChangesEditDetails(e) {
+      e.preventDefault();
+      if ($elDetails.find('.section-content').valid()) {
+        $el.find('button.save').remove();
+        $el.find('a.edit').show();
+        var data = Utils.serializeForm(
+            $elDetails.find('.section-content'));
+        $.extend(partner, data);
+        sync();
+      }
+    }
+
+    function saveChangesEditAddressDetails(e) {
+      e.preventDefault();
+      if ($elEditAddressDetails.find('.section-content').valid()) {
+        $el.find('button.save').remove();
+        $el.find('a.edit').show();
+        var data = Utils.serializeForm(
+            $elEditAddressDetails.find('.section-content'));
+        $.extend(partner.address, data);
         sync();
       }
     }

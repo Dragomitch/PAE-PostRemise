@@ -8,10 +8,7 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
-import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.business.dto.PartnerDto;
-import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.dto.*;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
@@ -173,8 +170,10 @@ class PartnerUccImpl implements PartnerUcc {
           throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_ARCHIVING_710);
         }
       }
-      partner.setAddress(addressDao.update(partner.getAddress()));
       PartnerDto partnerDb = partnerDao.findById(partner.getId());
+      AddressDto addressDb = partnerDb.getAddress();
+      partner.getAddress().setId(addressDb.getId());
+      partner.setAddress(addressDao.update(partner.getAddress()));
       partner.setVersion((partnerDb.getVersion()));
       List<PartnerOptionDto> optionsDb = partnerOptionDao.findAllOptionsByPartner(partnerDb.getId());
       List<PartnerOptionDto> options = partner.getOptions();
@@ -277,9 +276,6 @@ class PartnerUccImpl implements PartnerUcc {
     if (!isAValidEmail(partner.getEmail())) {
       violations.add(ErrorFormat.INVALID_EMAIL_706);
     }
-    /*if (!isAValidString(partner.getWebsite())) {
-      violations.add(ErrorFormat.INVALID_WEBSITE_707);
-    }*///TODO transform this validation to not be mandatory
     if (!isAValidString(partner.getPhoneNumber())) {
       violations.add(ErrorFormat.INVALID_PHONE_NUMBER_708);
     }//TODO In the test Scenario there is a partner without phone number, is that the correct comportment ?
