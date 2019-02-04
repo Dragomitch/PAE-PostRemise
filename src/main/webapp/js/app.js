@@ -1229,7 +1229,7 @@ var debugg = 1;
     // Bind events
     function bindAll() {
       $form.on('submit', submitHandler);
-      $listArchivedMatches.on('click', 'button', selectMatch)
+      $listArchivedMatches.on('click', 'li', selectMatch);
       $partnerOptionsDiv.on('click', 'button', removeOption);
       $addOptionButton.on('click', addOption);
       $fullNameInput.on('input', scanArchives);
@@ -1239,7 +1239,7 @@ var debugg = 1;
 
     function unbindAll() {
       $form.off('submit', submitHandler);
-      $listArchivedMatches.off('click', 'button', selectMatch);
+      $listArchivedMatches.off('click', 'li', selectMatch);
       $partnerOptionsDiv.off('click', 'button', removeOption);
       $addOptionButton.off('click', addOption);
       $fullNameInput.off('input', scanArchives);
@@ -1248,14 +1248,15 @@ var debugg = 1;
     }
 
     function selectMatch(e) {
-      e.preventDefault();
+      console.log("Inside selectMatch");
       restoringArchive = true;
-      partnerToRestore = archivedMatches[$(this).parent().attr('data-id')];
+      partnerToRestore = archivedMatches[$(this).attr('data-id')];
+      console.log(partnerToRestore);
       $optionsSelect.empty();
       loadOptions();
       $form.find('#fsu-field-partner-option').val('');
-      $listArchivedMatches.hide();
-      submitHandler(e);
+      $listArchivedMatches.hide();//TODO Fulfill the form with the data of the archive partner and change the button
+      submitHandler(e);//TODO Also, allow the user through a button to cancel the form at the bottom
     }
 
     function scanArchives(e) {
@@ -1272,9 +1273,7 @@ var debugg = 1;
           if (archivedMatches.length > 0) {
             for (var i = 0; i < archivedMatches.length; i++) {
               if (archivedMatches[i]['official'] || app.isProfessor()) {
-                $listArchivedMatches.append('<li data-id="' + i + '" >'
-                    + archivedMatches[i]['fullName']
-                    + '<button type="button" class="btn btn-default" width="250px">Confirmer</button></li>');
+                $listArchivedMatches.append('<li data-id="' + i + '" >' + 'Réhabiliter ' +archivedMatches[i]['fullName'] + ' ?' +'</li>');
               }
             }
             $listArchivedMatches.show();
