@@ -464,6 +464,7 @@ var debugg = 1;
         method: 'PUT',
         data: {data: JSON.stringify(partner)},
         success: function (resp) {
+          PubSub.publish('updateMobilityChoices');
         }
       });
     }
