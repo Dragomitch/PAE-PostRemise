@@ -1,0 +1,49 @@
+/* Signin + Signup */
+.card {
+  background: #FFFFFF;
+  border: 1px solid #DBE0E6;
+  box-shadow: 0px 2px 8px 0px rgba(31,44,62,0.05);
+  border-radius: 8px;
+  margin: 150px auto;
+  padding: 25px;
+  width: 600px;
+}
+
+.card h2 {
+  text-align: center;
+}
+
+.card label {
+  margin-bottom: 10px;
+}
+
+.card .input {
+  width: 100%;
+}
+
+.card .btn {
+  width: 100%;
+}
+
+.card .bottom {
+  border-top: solid 1px #DBE0E6;
+  color: #868686;
+  margin-top: 15px;
+  padding: 25px 0;
+  text-align: center;
+  width: 100%;
+}
+
+.editor .notification.notification-info {
+  background: none;
+  border: solid 1px #1991EB;
+  color: #1991EB;
+}
+
+.editor .notification a {
+  text-decoration: underline;
+}
+
+.editor .notification a:hover {
+  text-decoration: none;
+}

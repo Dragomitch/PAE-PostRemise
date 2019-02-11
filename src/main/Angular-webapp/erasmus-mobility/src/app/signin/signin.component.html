@@ -1,3 +1,46 @@
-<p>
-  signin works!
-</p>
+<div class="row card">
+  <div class="col-md-12">
+    <h2 class="text-center">Bienvenue à bord</h2>
+    <div *ngIf="notification !== undefined && notification !== null"
+         id="notification-message" class="notification notification-info"> {{ message }}</div>
+    <!-- Should be a validation -->
+    <form [formGroup]="signinForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md-12">
+            <label for="signin-username">Username</label>
+            <input type="text"
+                   id="signin-username"
+                   class="form-control"
+                   placeholder="Nom d'utilisateur"
+                   formControlName="username">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-12">
+              <label for="signin-password">Password</label>
+              <input id="signin-password"
+                     type="password"
+                     class="form-control"
+                     placeholder="Mot de passe"
+                     formControlName="password">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <button type="submit" class="btn btn-default btn-lg">Se connecter</button>
+          </div>
+        </div>
+      </div>
+
+    </form>
+    <div class="row">
+      <div class="col-md-12">
+        <p id="inscrivez-vous-message">Vous n'avez pas encore de compte? <a routerLink="/signup">Inscrivez-vous</a></p>
+      </div>
+    </div>
+  </div>
+</div>
