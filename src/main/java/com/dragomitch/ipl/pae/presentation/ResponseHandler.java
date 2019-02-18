@@ -38,6 +38,8 @@ public class ResponseHandler {
       format = jsonSerializer.serialize(ob);
     }
     resp.setCharacterEncoding("UTF-8");
+    resp.addHeader("access-control-allow-origin", "*");
+    //TODO Fine refine the domains to allow for security purposes
     try {
       resp.setContentLength(format.getBytes("UTF-8").length);
       resp.getOutputStream().write(format.getBytes("UTF-8"));
