@@ -1,11 +1,14 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import {BrowserModule} from '@angular/platform-browser';
+import {NgModule} from '@angular/core';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { SigninComponent } from './signin/signin.component';
-import { SignupComponent } from './signup/signup.component';
+import {AppRoutingModule} from './app-routing.module';
+import {AppComponent} from './app.component';
+import {SigninComponent} from './signin/signin.component';
+import {SignupComponent} from './signup/signup.component';
 import {ReactiveFormsModule} from "@angular/forms";
+import {HttpClientModule} from "@angular/common/http";
+import {OptionService} from "./services/option.service";
+import {HttpRequestsService} from "./services/http-requests.service";
 
 @NgModule({
   declarations: [
@@ -16,9 +19,10 @@ import {ReactiveFormsModule} from "@angular/forms";
   imports: [
     BrowserModule,
     AppRoutingModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [OptionService, HttpRequestsService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

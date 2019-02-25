@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 
 @Component({
@@ -7,21 +7,21 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
   styleUrls: ['./signin.component.scss']
 })
 export class SigninComponent implements OnInit {
+  signinPath = 'http://localhost:8080/session';//TODO Replace with environment managed variable
   signinForm: FormGroup;
   message: string;
   username: string;
   password: string;
   notification: string;
 
-
-
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit() {
     this.initForm();
   }
 
-  onSubmit(){
+  onSubmit() {
     console.log(this.signinForm);
     //TODO HTTP Request to the backend with the login informations
   }
