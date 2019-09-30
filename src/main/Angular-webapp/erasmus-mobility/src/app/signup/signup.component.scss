@@ -47,3 +47,25 @@
 .editor .notification a:hover {
   text-decoration: none;
 }
+
+.input {
+  margin-top: 7px;
+  margin-bottom: 7px;
+}
+
+.select {
+  height: 110%;
+}
+
+.option {
+  padding : 0px;
+  font-size: 7px;
+}
+
+.select-picker {
+  border: solid 1px #DBE0E6;
+  padding-bottom: 1em;
+  color: #868686;
+  width : 100%;
+  margin-bottom: 2em;
+}

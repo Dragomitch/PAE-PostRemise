@@ -264,7 +264,7 @@ input[type=search] {
     border: solid 1px #C7CFD8;
     color: #444444;
     outline: 0;
-    padding: 10px 15px;
+    padding: 0px 0px;
 }
 
 .input:focus {

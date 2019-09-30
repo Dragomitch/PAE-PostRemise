@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.presentation.enums;
 
 public enum HttpMethod {
-  GET("GET", 1), POST("POST", 2), PUT("PUT", 3), DELETE("DELETE", 4);
+  GET("GET", 1), POST("POST", 2), PUT("PUT", 3), DELETE("DELETE", 4), OPTIONS("OPTIONS", 5);
 
   private String name;
   private int weight;

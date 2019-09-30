@@ -4,6 +4,9 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.logging.Logger;
 import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -52,7 +55,7 @@ class SessionUccImpl implements SessionUcc {
       throw new UnauthenticatedUserException();
     }
     dalServices.closeConnection();
-    return user;
+    return user;//TODO Should Be tokenized
   }
 
   @Override
@@ -71,5 +74,4 @@ class SessionUccImpl implements SessionUcc {
   @Route(method = HttpMethod.DELETE)
   public void signout() {//TODO Check if token validity issues doesn't come from there
   }
-
 }

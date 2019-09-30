@@ -1,85 +1,89 @@
 import {Injectable} from '@angular/core';
 import {Option} from "../models/option.model";
+import {Observable, of, pipe, Subject} from "rxjs";
 import {HttpRequestsService} from "./http-requests.service";
-import {identity, observable, Observable, Observer, of, pipe, Subject} from "rxjs";
-import {flatMap, map} from "rxjs/operators";
+import {map, switchMap} from "rxjs/operators";
 
 @Injectable()
 export class OptionService {
-  private options: Option[] = [];
-  optionsChanged$ : Subject<Option[]>= new Subject<Option[]>();
-  selectedOption$ : Subject<number>= new Subject<number>();
-  selectedOptionIndex : number = -1;
+  private options: Option[] = [
+    new Option('BIN', 'Bachelier en informatique de gestion', 0),
+    new Option('BBM', 'Bachelier en biologie médicale', 0),
+    new Option('BCH', 'Bachelier en chimie', 0),
+    new Option('BDI', 'Bachelier en diététique', 0),
+    new Option('BIM', 'Bachelier en imagerie médicale', 0)];
+  //TODO Find how to retrieve an initial state from the server
+  public readonly options$: Observable<Option[]>;
+  private selectedOption: number;
+  optionsChanged$: Subject<Option[]> = new Subject<Option[]>();
+  selectedOption$: Subject<number> = new Subject<number>();
+  selectedOptionIndex: number = Option.EMPTY_STATE_INDEX;
 
-  constructor() {
-
-    this.selectedOption$.subscribe( (index : number) => {
+  constructor(private httpRequestsService: HttpRequestsService) {
+    this.selectedOption$.subscribe((index: number) => {
       this.selectedOptionIndex = index;
-      this.selectedOption$.next(index);
+      this.options = new Array(0);
     });
 
-    this.optionsChanged$.subscribe( (options: Option[]) => {
+    this.optionsChanged$.subscribe((options: Option[]) => {
       this.options = options;
-      this.selectedOptionIndex = 0;
     });
-    //TODO Find a way to create an observable from an asynchronous call
-    //Test02
-    //pipe()
-    //   this.httpRequests.getOptions().subscribe(
-    //     (options) => {
-    //       this.options_data = options.slice();
-    //       console.log("options data after assignement in option_service :", this.options_data);
-    //     });
-    //   console.log("Second check for options_data", this.options_data);
-    // }
-    //Test 01//
-    // getOptions(): Observable<Option[]> {
-    //   if(this.options$ === undefined || this.options$ === null) {
-    //     // this.httpRequests.getOptions().pipe() .subscribe(
-    //     //   (options) => {
-    //     //     this.options_data = options.slice();
-    //     //     console.log("options data after assignement in option_service :", this.options_data);
-    //     //   });
-    //     return this.options$ = of(this.options_data);
-    //   map( (op) => { return this.httpRequests.getOptions()})
 
+    this.options$ = of(this.options);
   }
 
-  // testCombinaison(): Observable<any> {
-  //   if (this.options_data === undefined || this.options_data === null) {
-  //     console.log("optionData is null");
-  //     this.httpRequests.getOptions().pipe(
-  //       map((options) => {
-  //         this.options_data = options;
-  //       }));
-  //   } else {
-  //     console.log("optionData not null");
-  //     return of(this.options_data);
-  //   }
-  //
-  // }
-
-  // this.options$ = new Observable(
-  //   (observer) => {
-  //     if (this.options$ === undefined || this.options$ === null) {
-  //       await this.httpRequests.getOptions().subscribe(
-  //         (options) => {
-  //           this.options_data = options.slice();
-  //           console.log("2)options data after inside assignement in option_service :", this.options_data);
-  //         });
-  //       observer.next(this.options_data);
-  //     }
-  //     return this.options$;
-  //   });
-
-  setOptions(options: Option[]) {
+  setOptions(options: Option[]) {// Is this necessary ? We will never use it in fact ?
     this.options = options;
     this.optionsChanged$.next(this.options);
   }
 
-  getOptions() : Option[] {
-    return this.options.slice();
+  getOptions(): Option[] {
+    return this.options;
   }
 
+  public getOptions$(): Observable<Option[]>{
+    return this.options$;
+  }
 
+  /*getOptions(): void {
+    let options;
+    if (this.options == null || this.options.length === 0) {
+      pipe(map(() => { return this.getHttpOptions();
+      }), map(() => options = this.options.slice()),
+        map((options) => {return options;}));
+    }
+  }*/
+
+  /*getHttpOptions(): Observable<Option[]> {
+    this.httpRequestsService.getOptions().subscribe((options: Option[]) => {
+      this.options = options;
+      this.selectedOption = Option.EMPTY_STATE_INDEX;
+      this.selectedOption$.next(Option.EMPTY_STATE_INDEX);
+      console.log("Fini Inside");
+      return options;
+    });
+
+    /*return this.httpRequestsService.getOptions().pipe(map(options => {
+      this.options = options;
+      this.selectedOption = Option.EMPTY_STATE_INDEX;
+      this.selectedOption$.next(Option.EMPTY_STATE_INDEX);
+      return
+    }));
+    pipe(switchMap(this.httpRequestsService.getOptions()));
+  };*/
+
+
+  getSelectedOption(): Subject<number> {
+    if (this.options.length === 0)
+      this.getOptions;
+    return this.selectedOption$;
+  }
+
+  getOption(index: number): Option {
+    if (this.options == null || this.options.length === 0) {
+      this.getOptions();
+    }
+    return this.options[index];
+
+  }
 }

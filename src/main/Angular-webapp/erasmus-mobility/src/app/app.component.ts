@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {OptionService} from "./services/option.service";
 
 @Component({
   selector: 'app-root',
@@ -8,10 +7,4 @@ import {OptionService} from "./services/option.service";
 })
 export class AppComponent {
   title = 'erasmus-mobility';
-
-  constructor(private optionService: OptionService) {
-
-  }
-
-
 }

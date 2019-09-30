@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2019-01-27T14:26:48</date>
+  <millis>1548595608172</millis>
+  <sequence>0</sequence>
+  <logger>com.dragomitch.ipl.pae.context.ContextManager</logger>
+  <level>INFO</level>
+  <class>com.dragomitch.ipl.pae.context.ContextManager</class>
+  <method>loadContext</method>
+  <thread>1</thread>
+  <message>Loading context: running in dev environment</message>
+</record>
+<record>
+  <date>2019-01-27T14:26:48</date>
+  <millis>1548595608212</millis>
+  <sequence>1</sequence>
+  <logger>com.dragomitch.ipl.pae.context.ContextManager</logger>
+  <level>INFO</level>
+  <class>com.dragomitch.ipl.pae.context.ContextManager</class>
+  <method>loadContext</method>
+  <thread>1</thread>
+  <message>errors.json</message>
+</record>
+<record>
+  <date>2019-01-27T14:26:48</date>
+  <millis>1548595608213</millis>
+  <sequence>2</sequence>
+  <logger>com.dragomitch.ipl.pae.context.ContextManager</logger>
+  <level>INFO</level>
+  <class>com.dragomitch.ipl.pae.context.ContextManager</class>
+  <method>loadContext</method>
+  <thread>1</thread>
+  <message>dev.properties</message>
+</record>
+<record>
+  <date>2019-01-27T14:26:48</date>
+  <millis>1548595608213</millis>
+  <sequence>3</sequence>
+  <logger>com.dragomitch.ipl.pae.context.ContextManager</logger>
+  <level>INFO</level>
+  <class>com.dragomitch.ipl.pae.context.ContextManager</class>
+  <method>loadContext</method>
+  <thread>1</thread>
+  <message>test.properties</message>
+</record>
+<record>
+  <date>2019-01-27T14:26:48</date>
+  <millis>1548595608213</millis>
+  <sequence>4</sequence>
+  <logger>com.dragomitch.ipl.pae.context.ContextManager</logger>
+  <level>INFO</level>
+  <class>com.dragomitch.ipl.pae.context.ContextManager</class>
+  <method>loadContext</method>
+  <thread>1</thread>
+  <message>logs</message>
+</record>
+</log>

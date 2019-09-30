@@ -1,20 +1,26 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Injectable, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {OptionService} from "../services/option.service";
+import {Option} from "../models/option.model";
+import {SessionService} from "../services/session.service";
+import {logger} from "codelyzer/util/logger";
 
 @Component({
   selector: 'app-signin',
   templateUrl: './signin.component.html',
   styleUrls: ['./signin.component.scss']
 })
+@Injectable()
 export class SigninComponent implements OnInit {
-  signinPath = 'http://localhost:8080/session';//TODO Replace with environment managed variable
   signinForm: FormGroup;
   message: string;
   username: string;
   password: string;
   notification: string;
+  options = Option;
 
-  constructor() {
+  constructor(private optionService: OptionService,
+              private sessionService: SessionService) {
   }
 
   ngOnInit() {
@@ -22,8 +28,8 @@ export class SigninComponent implements OnInit {
   }
 
   onSubmit() {
-    console.log(this.signinForm);
-    //TODO HTTP Request to the backend with the login informations
+    let form: Object = this.signinForm.getRawValue();
+    this.sessionService.getSession(form['username'], form['password']);
   }
 
   initForm() {

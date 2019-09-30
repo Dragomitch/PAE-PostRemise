@@ -1,29 +1,17 @@
 <div id="signup-view" class="card">
   <h2>Inscription</h2>
   <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-    <!--<div class="form-group">-->
       <input formControlName="lastName" type="text" id="lastName" class="form-control input" name="lastName" placeholder="Nom">
-    <!--</div>-->
-    <!--<div class="form-group">-->
       <input formControlName="firstName" type="text" id="firstName" class="form-control input" name="firstName" placeholder="Prénom">
-    <!--</div>-->
-    <!--<div class="form-group">-->
       <input formControlName="username" type="text" id="username" class="form-control input" name="username" placeholder="Nom d'utilisateur">
-    <!--</div>-->
-    <!--<div class="form-group">-->
       <input formControlName="password" type="password" id="password" class="form-control input" name="password" placeholder="Mot de passe">
-    <!--</div>-->
-    <!--<div class="form-group">-->
       <input formControlName="reenterPassword" type="password" id="reenterPassword" class="form-control input" name="reenterPassword" placeholder="Retapez le mot de passe">
-    <!--</div>-->
-    <!--<div class="form-group">-->
       <input formControlName="email" type="email" id="email" class="form-control input" name="email" placeholder="Email">
-    <!--</div>-->
-    <div>
-      <select class="form-control input" id="optionList" name="optionList">
-        <option name="selectedOption" formControlName="selectedOption" [value]="selectedOption.code | async">{{selectedOption.name | async}}</option>
-      </select>
-    </div>
+      <div>
+        <select formControlName="selectedOption" type="text" class="form-control input select" id="optionList" name="optionList" [value]="options" (ngModelChange)="onOptionSelected($event)">
+          <option *ngFor="let aOption of options" class="form-control input">{{aOption.name}}</option>
+        </select>
+      </div>
     <button type="submit" class="btn btn-default btn-lg">S'enregistrer</button>
   </form>
   <div class="bottom">Vous avez déjà un compte? <a routerLink="/signin">Connectez-vous</a></div>

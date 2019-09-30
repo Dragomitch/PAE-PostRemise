@@ -47,6 +47,8 @@ var debugg = 1;
         url: API_URL + '/session',
         success: function (resp) {
           setUser(resp);
+          console.log("RESP FROM GetSession = ");
+          console.log(resp);
           Router.navigate(currentPath);
           if (debugg == 1) {
             $('.logo').html($('.logo').html() + ' - User: '
@@ -148,7 +150,7 @@ var debugg = 1;
     function destroy() {
       $el.hide();
       unbindAll();
-      cleanForm()
+      cleanForm();
       $alert.hide();
       $successNotification.hide();
     }
@@ -3082,7 +3084,7 @@ var debugg = 1;
     } else {
       Router.navigate('/connexion', true);
     }
-  })
+  });
 
   Router.add('/connexion', function () {
     if (app.isStudent() || app.isProfessor()) {

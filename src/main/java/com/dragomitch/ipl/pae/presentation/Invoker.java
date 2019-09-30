@@ -1,12 +1,12 @@
 package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+
+import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,6 +54,28 @@ class Invoker {
     Method method = route.getImplMethod();
     Object instance = route.getImplInstance();
     Object[] parameters = mapMethodArguments(req, path, route);
+    //check if the params were correctly deserialized
+    if(Arrays.stream(parameters).anyMatch( param -> param == null)){
+      /*
+       * Custom deserialization when the params are'nt correctly deserialized.
+       * Specially made to deserialize parameters on the form :
+       * {""username"":""namasse"",""passsword"":""123456""}
+       */
+      Set<String> params= req.getParameterMap().keySet();
+      if(params.stream().anyMatch(value -> value. contains("{\""))){//We hit an object not deserialized
+        if(params.size() == 1){
+          String paramsString = (String) params.toArray()[0]; // {"username":"namasse","passsword":"123456"}
+            String[] paramsSplitted = paramsString.substring(1, paramsString.length() -1).split(",");
+            String[] resultDeserialization = new String[paramsSplitted.length];
+            for (int i= 0; i< paramsSplitted.length; i++) {// strings looks like : "username":"namasse"
+              String param = paramsSplitted[i];
+              resultDeserialization[i] = param.split(":")[1];
+              resultDeserialization[i] = resultDeserialization[i].substring(1, resultDeserialization[i].length()-1);
+            }
+            parameters = resultDeserialization;
+        }
+      }
+    }
     Object invocationResult = null;
     try {
       method.setAccessible(true);
@@ -70,7 +92,7 @@ class Invoker {
   }
 
   /**
-   * Maps all the parameter required for the method to be invoked..
+   * Maps all the parameter required for the method to be invoked.
    *
    * @param req the HTTP request object that provides information about the request made
    * @param path the path used to make the request
@@ -92,6 +114,7 @@ class Invoker {
       } else if (parameters[i].isAnnotationPresent(HttpParameter.class)) {
         // Parameter defined in http parameters
         parameter = parameters[i].getAnnotation(HttpParameter.class).value();
+        Map<String, String[]> params=  req.getParameterMap();
         strValue = req.getParameter(parameter);
       } else if (parameters[i].isAnnotationPresent(HttpHeader.class)) {
         // Parameter defined in http headers

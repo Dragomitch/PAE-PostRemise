@@ -1,12 +1,12 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormArray, FormControl, FormGroup, Validators} from "@angular/forms";
+import {Component, Injectable, OnInit} from '@angular/core';
+import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {OptionService} from "../services/option.service";
 import {Option} from "../models/option.model";
-import {HttpRequestsService} from "../services/http-requests.service";
-import {map} from "rxjs/operators";
-import {pipe} from "rxjs";
-import {flatMap} from "tslint/lib/utils";
+import {Observable, of, pipe} from "rxjs";
+import {tap} from "rxjs/operators";
+import {SessionService} from "../services/session.service";
 
+@Injectable()
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
@@ -15,94 +15,57 @@ import {flatMap} from "tslint/lib/utils";
 export class SignupComponent implements OnInit {
   signupForm: FormGroup;
   options: Option[];
-  selectedOption: Option;
-  optionIndex: number = -1;
+  options$ : Observable<Option[]>;
+  selectedOption: Option;//TODO Necessary ?
+  selectedOptionIndex: number = 0;
 
-  constructor(private optionService: OptionService) {
-    // this.optionService.testCombinaison().pipe(
-    //   map(() => {return this.initForm();}));
-    this.optionService.optionsChanged$.subscribe(
-      (options: Option[]) => {
-        this.options = options;
-      }
-    );
+  constructor(private optionService: OptionService,
+              private sessionService: SessionService) {
 
-    this.optionService.selectedOption$.subscribe(
-      (index: number) => {
-        this.optionIndex = index;
-        this.selectedOption = this.options[index];
-      }
-    );
+    optionService.optionsChanged$.subscribe((options) => {
+      console.debug("Lets react to the change of the option list");
+    });
+
+    optionService.selectedOption$.subscribe( (index: number) => {
+      this.selectedOptionIndex = index;
+      console.debug("Reacted to selectedOptionIndex changes");
+    });
+
+    this.options$ = optionService.options$;
   }
 
-  async ngOnInit() {
-    console.log("coucou Form");
+  ngOnInit() {
+    this.options = this.optionService.getOptions();
     this.initForm();
+  }
 
-    // pipe(map( () => {this.optionService.optionsChanged$.subscribe( (options : Option[]) => {
-    //  this.options = options;
-    // })}),
-    // map(() => this.initForm()));
-    flatMap( () => {
-      this.optionService.optionsChanged$.subscribe(
-        (options : Option[]) => {
-
-        }
-      )
-    });
-    pipe(flatMap( this.optionService.optionsChanged$.subscribe(
-      (options: Option[]) => {
-        this.options = options;
-        return this.optionService.optionsChanged$;
-      })),
-      map(() => this.initForm()));
-
-    // this.optionService.getOptions().subscribe(
-    //   (options) => {
-    //     console.log("signup component = ", options);
-    //     this.options = options;
-    //     this.selectedOption = options.slice(0,1)[0];
-    //   },
-    // () => {},
-    // () => {
-    //   console.log("signup Component options=", this.options);
-    // }
-    // );
-    // this.optionService.getOptions().subscribe((options) => {
-    //     console.log(options);
-    //     this.options = options;
-    //   },
-    //   (err) => {
-    //     console.log("error: ", err)
-    //   }, () => {
-    //     console.log("signupOptions = ", this.options);
-    //   });
-
-
-    // this.optionService.testCombinaison().pipe((lol) => {this.initForm()})subscribe( options => {
-    //   map(this.options = options, );
-    // });
-    // console.log(this.optionService.testCombinaison());
-
+  onOptionSelected(value: string) {
+          this.options.forEach( (option, index)=> {
+            if(option.name == value) {// TODO Check how to find index of array member faster
+              this.selectedOptionIndex = index;
+            }
+          });
+    console.log(this.selectedOptionIndex);
   }
 
   onSubmit() {
     console.log(this.signupForm);
+    if(this.signupForm.valid){
+
+    }
   }
 
   initForm() {
-    let lastName = 'dsfs';
-    let firstName = ' ';
+    let lastName = '';
+    let firstName = '';
     let username = '';
     let password = '';
     let reenterPassword = '';
     let email = '';
-    let optionList = this.options;
-    // console.log(this.options);
-    // console.log("Option length = ",this.options.length);
-    let selectedOption = this.selectedOption;
+    let selectedOption = '';
 
-    //TODO Create a password (strenght) validator
+    //TODO Create a password (strength) validator
+    //TODO Create return form validator that displays errors
     this.signupForm = new FormGroup({
       'firstName': new FormControl(firstName, Validators.required),
       'lastName': new FormControl(lastName, Validators.required),
@@ -111,7 +74,7 @@ export class SignupComponent implements OnInit {
       'reenterPassword': new FormControl(reenterPassword,
         [Validators.required, Validators.minLength(8)]),
       'email': new FormControl(email, Validators.required),
-      'selectedOption': new FormControl(this.selectedOption, Validators.required),
+      'selectedOption': new FormControl(selectedOption, Validators.required)
     });
   }
 
