@@ -23,7 +23,7 @@ public class ResponseHandler {
    * @param ob the output object to write
    * @param resp the HTTP response object that provides HTTP-specific functionality
    */
-  protected void writeResponse(Object ob, String contentType, HttpServletResponse resp) {
+  protected void writeResponse(Object ob, String contentType, HttpServletResponse resp, Object additionalValues) {
     logger.finer("Writing response");
     String format;
     if (contentType.equals("text/csv")) {
@@ -36,6 +36,9 @@ public class ResponseHandler {
     } else {
       resp.setContentType(jsonSerializer.getContentType());
       format = jsonSerializer.serialize(ob);
+      if(additionalValues != null){
+        format = format.substring(0, format.length()-1).concat((String) additionalValues + "}");//TODO Continue
+      }
     }
     resp.setCharacterEncoding("UTF-8");
     //resp.addHeader("Access-Control-Allow-Origin", "*");

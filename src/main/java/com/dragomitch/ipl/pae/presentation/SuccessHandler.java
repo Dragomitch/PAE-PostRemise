@@ -25,10 +25,10 @@ class SuccessHandler extends ResponseHandler {
    * @param contentType the MIME Type of the response
    * @param resp the HTTP response object that provides HTTP-specific functionality
    */
-  public void handleSuccess(Object ob, String contentType, HttpServletResponse resp) {
+  public void handleSuccess(Object ob, String contentType, HttpServletResponse resp, Object additionalValues ) {
     logger.finer("Handling success");
     if (ob != null) {
-      writeResponse(ob, contentType, resp);
+      writeResponse(ob, contentType, resp, additionalValues);
     }
     resp.setStatus(HttpStatus.OK_200);
   }

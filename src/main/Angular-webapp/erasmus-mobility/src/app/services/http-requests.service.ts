@@ -3,6 +3,7 @@ import {environment} from "../../environments/environment.dev";
 import {Option} from "../models/option.model";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Observable} from "rxjs";
+import {tap} from "rxjs/operators";
 
 @Injectable()
 export class  HttpRequestsService {
@@ -17,8 +18,12 @@ export class  HttpRequestsService {
   }
 
   public signin(username: string, password: string): Observable<any> {
-    return this.httpClient.post(environment.api_url + 'session', {username: username, passsword: password }, {headers: this.ourHeaders}) ;
+    return this.httpClient.post(environment.api_url + 'session', {username: username, passsword: password },
+      {headers: this.ourHeaders}) ;
+    //.pipe(tap( res => localStorage.setItem('access_token', res['access_token'])))
+    //TODO also store the expiration time when this is also send
   }
+
 
   public getMobilityChoices(){
     return this.httpClient.get(environment.api_url + 'mobilityChoices', {headers: this.ourHeaders})//TODO We have to pass the token from the session, Lets check howtoDo
@@ -27,7 +32,6 @@ export class  HttpRequestsService {
   public signup(form: any){
 
   }
-
 
 
 

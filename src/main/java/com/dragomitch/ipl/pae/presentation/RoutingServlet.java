@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -85,7 +86,22 @@ public class RoutingServlet extends HttpServlet {
       Route route = routeResolver.findRoute(HttpMethod.valueOf(req.getMethod()), req.getPathInfo());
       // Invoking the Ucc method related to the route
       Object invocationResult = invoker.invoke(req, route, resp);
-      successHandler.handleSuccess(invocationResult, route.getContentType(), resp);
+      String additionalValues = "";
+      if( req.getPathInfo().equals("/session")){
+        //TODO Modify the place where we set the JSESSIONID to not send to the line the headers should solve the problem
+
+        additionalValues = ",\"access_token\":\"";
+        String cookie = "";
+
+        for (String tempCookie: resp.getHeaders("Set-Cookie")) {
+          if(tempCookie.startsWith("session=")){
+            cookie = tempCookie.replace("session=", "");
+            cookie = cookie.substring(0, cookie.indexOf(';')) + "\"";
+          }
+        }
+        additionalValues += cookie;
+      }
+      successHandler.handleSuccess(invocationResult, route.getContentType(), resp, additionalValues);
     } catch (Throwable ex) {
       exceptionHandler.handleException(ex, resp);
     }

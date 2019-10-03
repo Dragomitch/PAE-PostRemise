@@ -72,7 +72,7 @@ public class ExceptionHandler extends ResponseHandler {
     exception.printStackTrace();
     resp.setStatus(httpStatusCode);
     if (error != null) {
-      writeResponse(error, "json/application", resp);
+      writeResponse(error, "json/application", resp, null);
     }
 
   }

@@ -29,7 +29,7 @@ export class SigninComponent implements OnInit {
 
   onSubmit() {
     let form: Object = this.signinForm.getRawValue();
-    this.sessionService.getSession(form['username'], form['password']);
+    this.sessionService.login(form['username'], form['password']);
   }
 
   initForm() {
