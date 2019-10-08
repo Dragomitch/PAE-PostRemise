@@ -32,14 +32,10 @@ export class SigninComponent implements OnInit {
     let form: Object = this.signinForm.getRawValue();
     this.sessionService.login(form['username'], form['password']).subscribe(
       res => {
-        console.log("res = ");
+        console.log("res = "+this.sessionService.userData.role);
         console.log(res);
       }
     );
-/*
-    if(SessionService.userData.role === "Student"){
-      console.log(this.sessionService.temp_getMobilities());
-    }*/
   }
 
   initForm() {

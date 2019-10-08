@@ -1,15 +1,3 @@
-//
-//  {lastName: "Nom", firstName: "Prenom", username: "User2", password: "pass1", reenterPassword: "pass1", …}
-// email: "email2@email.com"
-// firstName: "Prenom"
-// lastName: "Nom"
-// option:
-// code: "BIN"
-// __proto__: Object
-// password: "pass1"
-// reenterPassword: "pass1"
-// username: "User2"
-
 import {Option} from "./option.model";
 
 export class User {
@@ -19,6 +7,8 @@ export class User {
   public option: Option;
   public version: number;
   public role: string;
+  public static ROLE_STUDENT = "Student";
+  public static ROLE_PROFESSOR = "Professor";
 
   constructor(email: string,
               firstname: string,
