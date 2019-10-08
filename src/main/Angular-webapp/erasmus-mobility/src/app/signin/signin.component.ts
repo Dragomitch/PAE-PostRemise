@@ -4,6 +4,7 @@ import {OptionService} from "../services/option.service";
 import {Option} from "../models/option.model";
 import {SessionService} from "../services/session.service";
 import {logger} from "codelyzer/util/logger";
+import {pipe} from "rxjs";
 
 @Component({
   selector: 'app-signin',
@@ -29,7 +30,16 @@ export class SigninComponent implements OnInit {
 
   onSubmit() {
     let form: Object = this.signinForm.getRawValue();
-    this.sessionService.login(form['username'], form['password']);
+    this.sessionService.login(form['username'], form['password']).subscribe(
+      res => {
+        console.log("res = ");
+        console.log(res);
+      }
+    );
+/*
+    if(SessionService.userData.role === "Student"){
+      console.log(this.sessionService.temp_getMobilities());
+    }*/
   }
 
   initForm() {
@@ -41,6 +51,8 @@ export class SigninComponent implements OnInit {
       'password': new FormControl(password, [Validators.required, Validators.minLength(8)])
     });
   }
+
+
 
   //TODO Handle Notification Messages after a sign-up and after a failed sign-in
   //TODO Create a Validator for a correct secured password

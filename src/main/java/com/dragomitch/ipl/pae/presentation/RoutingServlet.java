@@ -38,6 +38,7 @@ public class RoutingServlet extends HttpServlet {
   private final transient Invoker invoker = new Invoker();
   private final transient SuccessHandler successHandler;
   private final transient ExceptionHandler exceptionHandler;
+  private final transient String contentTypeOptions = "application/json";
 
   private Set<Object> useCaseControllers;
 
@@ -81,6 +82,10 @@ public class RoutingServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    if(HttpMethod.valueOf(req.getMethod()).equals(HttpMethod.OPTIONS)){
+
+      successHandler.handleSuccess("", contentTypeOptions, resp, null);
+    }
     try {
       // Looking for the right route
       Route route = routeResolver.findRoute(HttpMethod.valueOf(req.getMethod()), req.getPathInfo());

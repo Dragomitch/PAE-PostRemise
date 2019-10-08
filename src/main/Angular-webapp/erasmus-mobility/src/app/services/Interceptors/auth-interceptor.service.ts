@@ -10,28 +10,26 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>,
             next: HttpHandler): Observable<HttpEvent<any>> {
 
-    const accessToken = localStorage.getItem("access_token");
+    const accessToken = localStorage.getItem("session");
+    console.log("access token ="+accessToken);
     if (accessToken && ! this.isExcludedRoute(req.url)) {
-      // const cloned = req.clone({
-      //   headers: req.headers.set("Authorization",
-      //     "Bearer " + idToken)
-      // });
-
       console.log("Request intercepted");
       console.log(req.url);
       const cloned = req.clone({
-        headers: req.headers.set("session", accessToken)
+        headers: req.headers.set("Session", accessToken)
       });
 
       return next.handle(cloned);
     }
     else {
+      console.log("Not intercepted route:"+req.url);
       return next.handle(req);
     }
   }
 
   public isExcludedRoute(pathToCheck: string): boolean{
     let res : number = this.excludedRoutes.indexOf(pathToCheck);
+    console.log("route Excluded");
     return res != -1;
   }
 }

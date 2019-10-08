@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.Instant;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -92,9 +93,21 @@ public class SessionManager {
             }
           }
         }
+      } else if(req.getHeaders(COOKIE_NAME).hasMoreElements()){
+        String sessionToken = req.getHeaders(COOKIE_NAME).nextElement();
+        Map<String, Object> cookieBySessionAttributes= decodeSession(sessionToken);
+        setSessionAttributes(cookieBySessionAttributes, req.getSession());
+        value = cookieBySessionAttributes.get(attribute);
+
       }
     }
     return value;
+  }
+
+  private Map<String, Object> decodeSession(String session){
+    Map<String, Object> sessionObject;
+    sessionObject = decodeToken(session);
+    return sessionObject;
   }
 
   /**

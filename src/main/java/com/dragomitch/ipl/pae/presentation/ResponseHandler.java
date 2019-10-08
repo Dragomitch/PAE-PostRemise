@@ -26,6 +26,10 @@ public class ResponseHandler {
   protected void writeResponse(Object ob, String contentType, HttpServletResponse resp, Object additionalValues) {
     logger.finer("Writing response");
     String format;
+    resp.setCharacterEncoding("UTF-8");
+    resp.addHeader("Access-Control-Allow-Origin", "*");
+    resp.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    resp.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, session");
     if (contentType.equals("text/csv")) {
       resp.setContentType("text/csv");
       try {
@@ -40,8 +44,7 @@ public class ResponseHandler {
         format = format.substring(0, format.length()-1).concat((String) additionalValues + "}");//TODO Continue
       }
     }
-    resp.setCharacterEncoding("UTF-8");
-    //resp.addHeader("Access-Control-Allow-Origin", "*");
+
     //TODO Fine refine the domains to allow for security purposes
     try {
       resp.setContentLength(format.getBytes("UTF-8").length);
