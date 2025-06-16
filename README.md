@@ -86,3 +86,6 @@ The following environment variables can be used to configure the database connec
 | `DB_PASSWORD` | Database password | `yoursecurepassword` |
 
 These values map to the properties defined in `dev.properties`.
+
+## Upgrade tasks
+See [UPGRADE_TASKS.md](UPGRADE_TASKS.md) for pending migration tasks.
