@@ -2,10 +2,10 @@ package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.dragomitch.ipl.pae.logging.LogManager;
-import org.eclipse.jetty.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 
 /**
  * Success handler used when a request has been successfully processed.
@@ -30,7 +30,7 @@ class SuccessHandler extends ResponseHandler {
     if (ob != null) {
       writeResponse(ob, contentType, resp);
     }
-    resp.setStatus(HttpStatus.OK_200);
+    resp.setStatus(HttpStatus.OK.value());
   }
 
 }

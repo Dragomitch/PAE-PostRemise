@@ -1,6 +1,7 @@
 package java.business;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.EntityFactory;
@@ -9,9 +10,9 @@ import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestAddress {
 
@@ -28,7 +29,7 @@ public class TestAddress {
   private CountryDto countryDto;
   private static final String COUNTRY_CODE = "BE";
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -36,7 +37,7 @@ public class TestAddress {
   /**
    * Creates a new Address instance.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     this.address = (Address) entityFactory.build(Address.class);
@@ -97,53 +98,53 @@ public class TestAddress {
     address.checkDataIntegrity();
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC2() {
     setUpCorrectAddress();
     address.setStreet(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC3() {
     setUpCorrectAddress();
     address.setNumber(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC4() {
     setUpCorrectAddress();
     address.setCity(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC5() {
     setUpCorrectAddress();
     address.setPostalCode(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC6() {
     setUpCorrectAddress();
     address.setRegion(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC7() {
     setUpCorrectAddress();
     address.setCountry(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC8() {
     setUpCorrectAddress();
     address.getCountry().setCountryCode(null);
-    address.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
   }
 
   private void setUpCorrectAddress() {
