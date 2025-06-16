@@ -181,7 +181,9 @@ class NominatedStudentImpl extends UserImpl implements NominatedStudent {
     if (!isAValidObject(address)) {
       violations.add(ErrorFormat.INVALID_ADDRESS_NUL_608);
     }
-    if (phoneNumber.length() > NominatedStudentDao.PHONE_NUMBER_MAX_LENGTH) {
+    if (!isAValidString(phoneNumber)) {
+      violations.add(ErrorFormat.INVALID_PHONE_NUMBER_619);
+    } else if (phoneNumber.length() > NominatedStudentDao.PHONE_NUMBER_MAX_LENGTH) {
       violations.add(ErrorFormat.PHONE_NUMBER_MAX_LENGTH_OVERFLOW_609);
     }
     if (!isAValidString(gender)) {
