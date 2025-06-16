@@ -3,7 +3,7 @@ package com.dragomitch.ipl.pae.presentation;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import java.io.IOException;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 

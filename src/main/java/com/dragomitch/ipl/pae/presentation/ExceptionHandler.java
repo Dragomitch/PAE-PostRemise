@@ -10,13 +10,13 @@ import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionExce
 import com.dragomitch.ipl.pae.presentation.exceptions.RouteNotFoundException;
 import com.dragomitch.ipl.pae.presentation.exceptions.UnauthenticatedUserException;
 
-import org.eclipse.jetty.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 
 import java.util.ConcurrentModificationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Exception handler used to add custom behaviour depending on the exception thrown.
@@ -39,29 +39,31 @@ public class ExceptionHandler extends ResponseHandler {
   public void handleException(Throwable exception, HttpServletResponse resp) {
     int httpStatusCode;
     ErrorFormat error = null;
-    if (exception instanceof RouteNotFoundException
-        || exception instanceof RessourceNotFoundException) {
-      httpStatusCode = HttpStatus.NOT_FOUND_404;
-    } else if (exception instanceof UnauthenticatedUserException) {
-      httpStatusCode = HttpStatus.UNAUTHORIZED_401;
-    } else if (exception instanceof InsufficientPermissionException) {
-      httpStatusCode = HttpStatus.FORBIDDEN_403;
-    } else if (exception instanceof IllegalArgumentException) {
-      httpStatusCode = HttpStatus.BAD_REQUEST_400;
-    } else if (exception instanceof ConcurrentModificationException) {
-      error = new ErrorFormat(ErrorFormat.CONCURRENT_MODIFICATION_120);
-      httpStatusCode = HttpStatus.BAD_REQUEST_400;
-    } else if (exception instanceof BusinessException) {
-      error = ((BusinessException) exception).getError();
-      httpStatusCode = HttpStatus.BAD_REQUEST_400;
-    } else if (exception instanceof FatalException) {
-      logger.log(Level.SEVERE, "FatalException", exception);
-      httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
-    } else {
-      httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
+    switch (exception) {
+      case RouteNotFoundException e, RessourceNotFoundException e ->
+          httpStatusCode = HttpStatus.NOT_FOUND.value();
+      case UnauthenticatedUserException e ->
+          httpStatusCode = HttpStatus.UNAUTHORIZED.value();
+      case InsufficientPermissionException e ->
+          httpStatusCode = HttpStatus.FORBIDDEN.value();
+      case IllegalArgumentException e ->
+          httpStatusCode = HttpStatus.BAD_REQUEST.value();
+      case ConcurrentModificationException e -> {
+          error = new ErrorFormat(ErrorFormat.CONCURRENT_MODIFICATION_120);
+          httpStatusCode = HttpStatus.BAD_REQUEST.value();
+        }
+      case BusinessException e -> {
+          error = e.getError();
+          httpStatusCode = HttpStatus.BAD_REQUEST.value();
+        }
+      case FatalException e -> {
+          logger.log(Level.SEVERE, "FatalException", e);
+          httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        }
+      default -> httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
     logger.info("Handling " + exception.getClass().getSimpleName() + ": " + httpStatusCode + " "
-        + HttpStatus.getMessage(httpStatusCode));
+        + HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
     if (exception.getMessage() != null) {
       logger.info("Message: " + exception.getMessage());
     }
