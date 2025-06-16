@@ -1,8 +1,7 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
 import java.util.ArrayList;
@@ -11,18 +10,17 @@ import java.util.List;
 public class MockProgrammeDao implements ProgrammeDao {
 
   private List<ProgrammeDto> programmes;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    */
-  @Inject
-  public MockProgrammeDao(EntityFactory entityFactory) {
+  public MockProgrammeDao(DtoFactory dtoFactory) {
     programmes = new ArrayList<ProgrammeDto>();
-    this.entityFactory = entityFactory;
-    ProgrammeDto programme1 = (ProgrammeDto) this.entityFactory.build(ProgrammeDto.class);
+    this.dtoFactory = dtoFactory;
+    ProgrammeDto programme1 = (ProgrammeDto) this.dtoFactory.create(ProgrammeDto.class);
     programme1.setId(1);
     programme1.setProgrammeName("Erasmus+");
     programme1.setExternalSoftName("Mobility Tool");

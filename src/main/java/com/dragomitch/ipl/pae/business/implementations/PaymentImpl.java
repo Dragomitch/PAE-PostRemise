@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import com.dragomitch.ipl.pae.business.Payment;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
@@ -15,6 +18,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @DaoClass(PaymentDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PaymentImpl implements Payment, Serializable {
 
   private static final long serialVersionUID = 1L;

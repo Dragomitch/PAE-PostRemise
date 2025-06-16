@@ -7,7 +7,7 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidEmail;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.*;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -25,6 +24,7 @@ import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
+import org.springframework.stereotype.Service;
 import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.Role;
@@ -36,7 +36,8 @@ import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
-class PartnerUccImpl implements PartnerUcc {
+@Service
+public class PartnerUccImpl implements PartnerUcc {
 
   private AddressDao addressDao;
   private OptionDao optionDao;
@@ -47,12 +48,12 @@ class PartnerUccImpl implements PartnerUcc {
   private UserDao userDao;
   private DalServices dalServices;
   private UnitOfWork unitOfWork;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
 
-  @Inject
+  
   public PartnerUccImpl(AddressDao addressDao, OptionDao optionDao, PartnerDao partnerDao,
       PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao, ProgrammeDao programmeDao,
-      UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork, EntityFactory entityFactory) {
+      UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork, DtoFactory dtoFactory) {
     this.addressDao = addressDao;
     this.optionDao = optionDao;
     this.partnerDao = partnerDao;
@@ -62,7 +63,7 @@ class PartnerUccImpl implements PartnerUcc {
     this.dalServices = dalServices;
     this.mobilityChoiceDao = mobilityChoiceDao;
     this.unitOfWork = unitOfWork;
-    this.entityFactory = entityFactory;
+    this.dtoFactory = dtoFactory;
   }
 
   @Override

@@ -1,9 +1,7 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
@@ -17,7 +15,7 @@ import java.util.List;
 @Repository
 class DenialReasonDaoImpl implements DenialReasonDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SQL_INSERT =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "(reason) VALUES (?) RETURNING reason_id";
@@ -28,12 +26,12 @@ class DenialReasonDaoImpl implements DenialReasonDao {
   private static final String SQL_UPDATE = "UPDATE " + SCHEMA_NAME + "." + TABLE_NAME + " SET "
       + COLUMN_REASON + " = ? WHERE " + COLUMN_ID + " = ?";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
-  @Inject
-  public DenialReasonDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public DenialReasonDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -96,7 +94,7 @@ class DenialReasonDaoImpl implements DenialReasonDao {
   }
 
   private DenialReasonDto populateDto(ResultSet set) throws SQLException {
-    DenialReasonDto reason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    DenialReasonDto reason = (DenialReasonDto) dtoFactory.create(DenialReasonDto.class);
     reason.setId(set.getInt(1));
     reason.setReason(set.getString(2));
     return reason;

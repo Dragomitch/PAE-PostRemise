@@ -1,6 +1,5 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,7 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.dragomitch.ipl.pae.context.DependencyManager;
+import org.springframework.stereotype.Component;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
@@ -23,17 +22,17 @@ import com.dragomitch.ipl.pae.presentation.annotations.Role;
 import com.dragomitch.ipl.pae.presentation.annotations.Session;
 import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
 
+@Component
 class Invoker {
 
   private static Logger logger = LogManager.getLogger(Invoker.class.getName());
 
-  private JsonSerializer serializer;
-  private SessionManager sessionManager;
+  private final JsonSerializer serializer;
+  private final SessionManager sessionManager;
 
-  public Invoker() {
-    // TODO : Supprimer utilisation dependency manager
-    this.serializer = new JsonSerializer(DependencyManager.getInstance(EntityFactory.class));
-    this.sessionManager = DependencyManager.getInstance(SessionManager.class);
+  public Invoker(JsonSerializer serializer, SessionManager sessionManager) {
+    this.serializer = serializer;
+    this.sessionManager = sessionManager;
   }
 
   /**

@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.Document;
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 
 import java.util.ArrayList;
@@ -12,16 +11,15 @@ import java.util.List;
 
 public class MockDocumentDao implements DocumentDao {
   private List<DocumentDto> documents;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
 
   /**
    * Sole constructor.
    * 
-   * @param entityFactory a factory for objects
+   * @param dtoFactory a factory for objects
    */
-  @Inject
-  public MockDocumentDao(EntityFactory entityFactory) {
-    this.entityFactory = entityFactory;
+  public MockDocumentDao(DtoFactory dtoFactory) {
+    this.dtoFactory = dtoFactory;
     documents = new ArrayList<DocumentDto>();
     DocumentDto documentDepart1 =
         buildDocument(1, Document.DEPARTURE_DOCUMENT, "Document depart 1");
@@ -78,7 +76,7 @@ public class MockDocumentDao implements DocumentDao {
   }
 
   private DocumentDto buildDocument(int id, char category, String name) {
-    DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+    DocumentDto document = (DocumentDto) dtoFactory.create(DocumentDto.class);
     document.setId(id);
     document.setCategory(category);
     document.setName(name);
@@ -87,7 +85,7 @@ public class MockDocumentDao implements DocumentDao {
   }
 
   private ProgrammeDto buildProgramme(int id, String programmeName, String softName) {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) dtoFactory.create(ProgrammeDto.class);
     programme.setId(1);
     programme.setProgrammeName(programmeName);
     programme.setExternalSoftName(softName);

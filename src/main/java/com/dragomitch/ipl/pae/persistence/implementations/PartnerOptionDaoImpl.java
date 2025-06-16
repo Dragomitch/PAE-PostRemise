@@ -1,10 +1,8 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -18,7 +16,7 @@ import java.util.List;
 @Repository
 class PartnerOptionDaoImpl implements PartnerOptionDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
 
   private static final String SQL_INSERT =
@@ -29,19 +27,18 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
       "SELECT po." + COLUMN_OPTION_CODE + ", po." + COLUMN_PARTNER_ID + ", po." + COLUMN_DEPARTEMENT
           + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " po";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
-  public PartnerOptionDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  public PartnerOptionDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -100,7 +97,7 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
    * @return an optionDto
    */
   private PartnerOptionDto populatePartnerOptionDto(ResultSet rs) throws SQLException {
-    PartnerOptionDto partnerOption = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+    PartnerOptionDto partnerOption = (PartnerOptionDto) dtoFactory.create(PartnerOptionDto.class);
     partnerOption.setCode(rs.getString(1));
     partnerOption.setDepartement(rs.getString(3));
     return partnerOption;
@@ -113,7 +110,7 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
    * @return a partnerDto
    */
   private PartnerDto populatePartnerDto(ResultSet rs) throws SQLException {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    PartnerDto partner = (PartnerDto) dtoFactory.create(PartnerDto.class);
     partner.setId(rs.getInt(2));
     return partner;
   }

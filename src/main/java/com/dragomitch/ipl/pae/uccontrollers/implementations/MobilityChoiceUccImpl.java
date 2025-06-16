@@ -7,7 +7,7 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -44,9 +43,12 @@ import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionExce
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
+import org.springframework.stereotype.Service;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
-class MobilityChoiceUccImpl implements MobilityChoiceUcc {
+@Service
+@Service
+public class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   private UserDao userDao;
   private MobilityChoiceDao mobilityChoiceDao;
@@ -54,16 +56,16 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   private DenialReasonDao denialReasonDao;
   private DocumentDao documentDao;
   private MobilityDocumentDao mobilityDocumentDao;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
   private CountryDao countryDao;
   private ProgrammeDao programmeDao;
   private PartnerUcc partnerUcc;
   private UnitOfWork unitOfWork;
 
-  @Inject
+  
   public MobilityChoiceUccImpl(UserDao userDao, MobilityChoiceDao mobilityChoiceDao, MobilityDao mobilityDao,
       DenialReasonDao denialReasonDao, DocumentDao documentDao, MobilityDocumentDao mobilityDocumentDao,
-      EntityFactory entityFactory, CountryDao countryDao, ProgrammeDao programmeDao, PartnerUcc partnerUcc,
+      DtoFactory dtoFactory, CountryDao countryDao, ProgrammeDao programmeDao, PartnerUcc partnerUcc,
       UnitOfWork unitOfWork) {
     this.userDao = userDao;
     this.mobilityChoiceDao = mobilityChoiceDao;
@@ -71,7 +73,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     this.denialReasonDao = denialReasonDao;
     this.documentDao = documentDao;
     this.mobilityDocumentDao = mobilityDocumentDao;
-    this.entityFactory = entityFactory;
+    this.dtoFactory = dtoFactory;
     this.countryDao = countryDao;
     this.programmeDao = programmeDao;
     this.partnerUcc = partnerUcc;
@@ -233,7 +235,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (!isAValidObject(mobilityChoice.getPartner())) {
         throw new BusinessException(ErrorFormat.CONFIRM_WITHOUT_PARTNER_324);
       }
-      MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+      MobilityDto mobility = (MobilityDto) dtoFactory.create(MobilityDto.class);
       mobility.setId(id);
       mobility.setState(Mobility.STATE_CREATED);
       mobility.setSubmissionDate(LocalDateTime.now());
@@ -296,7 +298,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       } else {
         partner = partnerUcc.restore(partner.getId(), userRole);
       }
-      MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+      MobilityDto mobility = (MobilityDto) dtoFactory.create(MobilityDto.class);
       mobility.setId(id);
       mobility.setState(Mobility.STATE_CREATED);
       mobility.setSubmissionDate(LocalDateTime.now());

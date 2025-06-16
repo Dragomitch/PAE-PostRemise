@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
 
@@ -20,6 +23,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @DaoClass(MobilityDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable {
 
   private static final long serialVersionUID = -4899380265085074048L;

@@ -13,7 +13,6 @@ import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
@@ -30,8 +29,10 @@ import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
+import org.springframework.stereotype.Service;
 
 @ApiCollection(name = "Nominated students", endpoint = "/nominatedStudents")
+@Service
 public class NominatedStudentUccImpl implements NominatedStudentUcc {
 
   private NominatedStudentDao nominatedStudentDao;
@@ -42,7 +43,7 @@ public class NominatedStudentUccImpl implements NominatedStudentUcc {
   private UserUcc userUcc;
   private UnitOfWork unitOfWork;
 
-  @Inject
+  
   NominatedStudentUccImpl(NominatedStudentDao nominatedStudentDao, AddressDao addressDao,
       AddressUcc addressUcc, CountryDao countryDao, UserDao userDao, UserUcc userUcc,
       UnitOfWork unitOfWork) {

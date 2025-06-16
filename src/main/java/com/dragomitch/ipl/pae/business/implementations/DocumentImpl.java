@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
@@ -8,6 +11,8 @@ import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import java.io.Serializable;
 
 @DaoClass(DocumentDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class DocumentImpl implements Document, Serializable {
 
   private static final long serialVersionUID = 1614430064652187814L;

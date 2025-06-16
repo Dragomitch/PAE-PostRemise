@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidBic;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidIban;
@@ -22,6 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 @DaoClass(NominatedStudentDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class NominatedStudentImpl extends UserImpl implements NominatedStudent {
   private static final long serialVersionUID = 1L;
 

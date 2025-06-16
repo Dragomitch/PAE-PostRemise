@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
@@ -15,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 @DaoClass(AddressDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class AddressImpl implements Address, Serializable {
 
   private static final long serialVersionUID = 1L;

@@ -1,13 +1,11 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
@@ -27,7 +25,7 @@ import java.util.List;
 @Repository
 class PartnerDaoImpl implements PartnerDao {
 
-  private static final String SCHEMA = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA = "student_exchange_tools";
 
   private static final String SQL_INSERT = "INSERT INTO " + SCHEMA + "." + TABLE_NAME + " ("
       + COLUMN_LEGAL_NAME + ", " + COLUMN_BUSINESS_NAME + ", " + COLUMN_FULL_NAME + ", "
@@ -59,12 +57,12 @@ class PartnerDaoImpl implements PartnerDao {
       + COLUMN_VERSION + " = ? RETURNING p." + COLUMN_VERSION;
 
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
-  @Inject
-  public PartnerDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public PartnerDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -189,16 +187,16 @@ class PartnerDaoImpl implements PartnerDao {
    * @return a partnerDto
    */
   private PartnerDto populatePartnerDto(ResultSet rs) throws SQLException {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    PartnerDto partner = (PartnerDto) dtoFactory.create(PartnerDto.class);
     partner.setId(rs.getInt(1));
     partner.setLegalName(rs.getString(2));
     partner.setBusinessName(rs.getString(3));
     partner.setFullName(rs.getString(4));
     partner.setOrganisationType(rs.getString(5));
     partner.setEmployeeCount(rs.getInt(6));
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    AddressDto address = (AddressDto) dtoFactory.create(AddressDto.class);
     address.setId(rs.getInt(7));
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(16));
     country.setName(rs.getString(17));
     address.setCountry(country);
@@ -209,7 +207,7 @@ class PartnerDaoImpl implements PartnerDao {
     partner.setStatus(rs.getBoolean(11));
     partner.setArchived(rs.getBoolean(12));
     partner.setVersion(rs.getInt(13));
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) dtoFactory.create(ProgrammeDto.class);
     programme.setId(rs.getInt(14));
     programme.setProgrammeName(rs.getString(15));
     partner.setProgramme(programme);

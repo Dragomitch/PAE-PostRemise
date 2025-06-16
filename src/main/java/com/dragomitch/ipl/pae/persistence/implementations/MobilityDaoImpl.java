@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
@@ -9,8 +9,6 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -30,10 +28,10 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public @Repository
-class MobilityDaoImpl implements MobilityDao {
+@Repository
+public class MobilityDaoImpl implements MobilityDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String INSERT =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "(" + COLUMN_ID + ", "
@@ -74,18 +72,18 @@ class MobilityDaoImpl implements MobilityDao {
       + COLUMN_PROFESSOR_IN_CHARGE + ", version) = (?,?,?,?,?,?,?,?,?,?, version + 1) " + "WHERE "
       + COLUMN_ID + " = ? AND version = ? RETURNING version";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalServices backend services
    */
-  @Inject
-  public MobilityDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
-    this.entityFactory = entityFactory;
+  
+  public MobilityDaoImpl(DtoFactory dtoFactory, DalBackendServices dalServices) {
+    this.dtoFactory = dtoFactory;
     this.dalServices = dalServices;
   }
 
@@ -212,7 +210,7 @@ class MobilityDaoImpl implements MobilityDao {
   }
 
   private MobilityDto populateMobilityDto(ResultSet rs) throws SQLException {
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+    MobilityDto mobility = (MobilityDto) dtoFactory.create(MobilityDto.class);
     mobility.setId(rs.getInt(1));
     mobility.setMobilityType(rs.getString(2));
     mobility.setAcademicYear(rs.getInt(3)); // TODO Gestion années académiques
@@ -233,36 +231,36 @@ class MobilityDaoImpl implements MobilityDao {
     if (rs.wasNull()) {
       mobility.setDenialReason(null);
     } else {
-      DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+      DenialReasonDto denialReason = (DenialReasonDto) dtoFactory.create(DenialReasonDto.class);
       denialReason.setId(denialReasonId);
       denialReason.setReason(rs.getString(14));
       mobility.setDenialReason(denialReason);
     }
     int professorInChargeId = rs.getInt(15);
     if (!rs.wasNull()) {
-      UserDto professor = (UserDto) entityFactory.build(UserDto.class);
+      UserDto professor = (UserDto) dtoFactory.create(UserDto.class);
       professor.setId(professorInChargeId);
       mobility.setProfessorInCharge(professor);
     }
     mobility.setVersion(rs.getInt(16));
     NominatedStudentDto nominatedStudent =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+        (NominatedStudentDto) dtoFactory.create(NominatedStudentDto.class);
     nominatedStudent.setId(rs.getInt(17));
     nominatedStudent.setFirstName(rs.getString(18));
     nominatedStudent.setLastName(rs.getString(19));
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto option = (OptionDto) dtoFactory.create(OptionDto.class);
     option.setCode(rs.getString(20));
     nominatedStudent.setOption(option);
     mobility.setNominatedStudent(nominatedStudent);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    PartnerDto partner = (PartnerDto) dtoFactory.create(PartnerDto.class);
     partner.setId(rs.getInt(21));
     partner.setFullName(rs.getString(22));
     mobility.setPartner(partner);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(23));
     country.setName(rs.getString(24));
     mobility.setCountry(country);
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) dtoFactory.create(ProgrammeDto.class);
     programme.setId(rs.getInt(25));
     programme.setProgrammeName(rs.getString(26));
     mobility.setProgramme(programme);

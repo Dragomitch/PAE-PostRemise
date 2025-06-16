@@ -18,10 +18,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SessionManager {
 
   /**
@@ -31,12 +32,10 @@ public class SessionManager {
 
   private static Logger logger = LogManager.getLogger(SessionManager.class.getName());
 
-  private final String jwtSecret;
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
 
   public SessionManager(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
-    this.jwtSecret = ContextManager.getProperty("secret_key");
     this.jwtEncoder = jwtEncoder;
     this.jwtDecoder = jwtDecoder;
   }

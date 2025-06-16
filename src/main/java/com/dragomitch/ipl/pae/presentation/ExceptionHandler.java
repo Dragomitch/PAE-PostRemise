@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import org.springframework.stereotype.Component;
+import com.dragomitch.ipl.pae.presentation.JsonSerializer;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
@@ -20,12 +21,13 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Exception handler used to add custom behaviour depending on the exception thrown.
  */
+@Component
 public class ExceptionHandler extends ResponseHandler {
 
   private static Logger logger = LogManager.getLogger(ExceptionHandler.class.getName());
 
-  public ExceptionHandler(EntityFactory entityFactory) {
-    super(entityFactory);
+  public ExceptionHandler(JsonSerializer jsonSerializer) {
+    super(jsonSerializer);
   }
 
   /**

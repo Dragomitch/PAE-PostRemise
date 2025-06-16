@@ -1,34 +1,33 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+@Component
 class DalServicesImpl implements DalServices, DalBackendServices {
 
-  private HikariDataSource connectionPool;
+  private final HikariDataSource connectionPool;
   private ThreadLocal<Connection> threadMap;
   private ThreadLocal<Integer> semaphore;
 
-  private final String dbHost = ContextManager.getProperty(ContextManager.DB_HOST);
-  private final String dbPort = ContextManager.getProperty(ContextManager.DB_PORT);
-  private final String dbDatabase = ContextManager.getProperty(ContextManager.DB_NAME);
-  private final String dbUser = ContextManager.getProperty(ContextManager.DB_USERNAME);
-  private final String dbPassword = ContextManager.getProperty(ContextManager.DB_PASSWORD);
-  private final String drivers = ContextManager.getProperty(ContextManager.DB_DRIVER_CLASS);
-
-  public DalServicesImpl() {
-    threadMap = new ThreadLocal<Connection>();
-    semaphore = new ThreadLocal<Integer>();
+  public DalServicesImpl(@Value("${host}") String dbHost,
+                         @Value("${port}") String dbPort,
+                         @Value("${database}") String dbDatabase,
+                         @Value("${username}") String dbUser,
+                         @Value("${password}") String dbPassword,
+                         @Value("${driver_class}") String drivers) {
+    threadMap = new ThreadLocal<>();
+    semaphore = new ThreadLocal<>();
     connectionPool = new HikariDataSource();
-    String url =
-        "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbDatabase + "?autoReconnect=true";
+    String url = "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbDatabase + "?autoReconnect=true";
     connectionPool.setJdbcUrl(url);
     connectionPool.setUsername(dbUser);
     connectionPool.setPassword(dbPassword);

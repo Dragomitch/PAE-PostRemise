@@ -1,10 +1,8 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
@@ -21,7 +19,7 @@ import java.util.List;
 @Repository
 class UserDaoImpl implements UserDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String CREATE_QUERY = "INSERT INTO " + SCHEMA_NAME + "." + UserDao.TABLE_NAME
       + "(" + UserDao.COLUMN_USERNAME + ", " + UserDao.COLUMN_LAST_NAME + ", "
@@ -51,18 +49,18 @@ class UserDaoImpl implements UserDao {
 
   private static final String IS_EMPTY_QUERY = "SELECT 1 FROM student_exchange_tools.users";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
-  public UserDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public UserDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -186,7 +184,7 @@ class UserDaoImpl implements UserDao {
   }
 
   private UserDto populateUserDto(ResultSet rs) throws SQLException {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    UserDto user = (UserDto) dtoFactory.create(UserDto.class);
     user.setId(rs.getInt(1));
     user.setLastName(rs.getString(2));
     user.setFirstName(rs.getString(3));
@@ -196,7 +194,7 @@ class UserDaoImpl implements UserDao {
     user.setRegistrationDate(rs.getTimestamp(7).toLocalDateTime());
     user.setRole(rs.getString(8));
     user.setVersion(rs.getInt(9));
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto option = (OptionDto) dtoFactory.create(OptionDto.class);
     option.setCode(rs.getString(10));
     option.setName(rs.getString(11));
     user.setOption(option);

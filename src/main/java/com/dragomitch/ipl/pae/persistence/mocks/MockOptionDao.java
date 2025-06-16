@@ -1,8 +1,7 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 
 import java.util.ArrayList;
@@ -17,24 +16,23 @@ public class MockOptionDao implements OptionDao {
   /**
    * Sole constructor.
    * 
-   * @param entityFactory builds objects
+   * @param dtoFactory builds objects
    */
-  @Inject
-  public MockOptionDao(EntityFactory entityFactory) {
+  public MockOptionDao(DtoFactory dtoFactory) {
     options = new HashMap<String, OptionDto>();
-    OptionDto optionBin = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto optionBin = (OptionDto) dtoFactory.create(OptionDto.class);
     optionBin.setCode("BIN");
     optionBin.setName("Bachelier en informatique de gestion");
-    OptionDto optionBbm = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto optionBbm = (OptionDto) dtoFactory.create(OptionDto.class);
     optionBbm.setCode("BBM");
     optionBbm.setName("Bachelier en biologie médicale");
-    OptionDto optionBch = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto optionBch = (OptionDto) dtoFactory.create(OptionDto.class);
     optionBch.setCode("BCH");
     optionBch.setName("Bachelier en chimie");
-    OptionDto optionBdi = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto optionBdi = (OptionDto) dtoFactory.create(OptionDto.class);
     optionBdi.setCode("BDI");
     optionBdi.setName("Bachelier en diététique");
-    OptionDto optionBim = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto optionBim = (OptionDto) dtoFactory.create(OptionDto.class);
     optionBim.setCode("BIM");
     optionBim.setName("Bachelier en imagerie médicale");
     options.put("BIN", optionBin);
