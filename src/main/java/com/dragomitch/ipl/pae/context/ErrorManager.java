@@ -3,10 +3,10 @@ package com.dragomitch.ipl.pae.context;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 
-import com.owlike.genson.Context;
-import com.owlike.genson.GenericType;
-import com.owlike.genson.Genson;
-import com.owlike.genson.GensonBuilder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,12 +27,15 @@ public class ErrorManager {
    * Load the correctly the class.
    */
   public static void load() {
-    Genson genson =
-        new GensonBuilder().useConstructorWithArguments(false).useMethods(true).create();
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     try {
-      String contentFile = new String(Files.readAllBytes(Paths.get(ContextManager.getCurrentAbsolutePath() + FILE_NAME)), "UTF-8");
-      ErrorManager.errors =
-          genson.deserialize(contentFile, new GenericType<Map<Integer, ErrorFormat>>() {});
+      String contentFile = new String(
+          Files.readAllBytes(Paths.get(ContextManager.getCurrentAbsolutePath() + FILE_NAME)),
+          "UTF-8");
+      ErrorManager.errors = mapper.readValue(contentFile,
+          new TypeReference<Map<Integer, ErrorFormat>>() {});
     } catch (IOException ex) {
       throw new FatalException("I/O Error while reading properties file: " + FILE_NAME, ex);
     }

@@ -4,11 +4,11 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.presentation.annotations.ApiCollection;
@@ -27,11 +27,13 @@ class SessionUccImpl implements SessionUcc {
 
   private UserDao userDao;
   private DalServices dalServices;
+  private PasswordEncoder passwordEncoder;
 
   @Inject
-  public SessionUccImpl(UserDao userDao, DalServices dalServices) {
+  public SessionUccImpl(UserDao userDao, DalServices dalServices, PasswordEncoder passwordEncoder) {
     this.userDao = userDao;
     this.dalServices = dalServices;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @Override
@@ -47,7 +49,7 @@ class SessionUccImpl implements SessionUcc {
       logger.info("User not found in database");
       throw new UnauthenticatedUserException();
     }
-    if (!BCrypt.checkpw(password, user.getPassword())) {
+    if (!passwordEncoder.matches(password, user.getPassword())) {
       logger.info("Wrong password");
       throw new UnauthenticatedUserException();
     }

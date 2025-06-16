@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -76,7 +76,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
     }
     if (semaphore == 0) {
       dalServices.openConnection();
-      logger.finer("Opening connection");
+      logger.debug("Opening connection");
       dalServices.startTransaction();
     }
     transactionSemaphore.set(++semaphore);
@@ -109,10 +109,10 @@ public class UnitOfWorkImpl implements UnitOfWork {
       versionsCache.get().clear();
     }
     if (semaphore == 1) {
-      logger.finer("Committing changes");
+      logger.debug("Committing changes");
       dalServices.commit();
       dalServices.closeConnection();
-      logger.finer("Closing connection");
+      logger.debug("Closing connection");
     }
     transactionSemaphore.set(--semaphore);
   }
@@ -128,7 +128,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
       logger.info("Rolling back changes");
       dalServices.rollback();
       dalServices.closeConnection();
-      logger.finer("Closing connection");
+      logger.debug("Closing connection");
     }
     transactionSemaphore.set(--semaphore);
   }

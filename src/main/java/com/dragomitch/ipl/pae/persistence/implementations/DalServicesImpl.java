@@ -4,7 +4,7 @@ import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 
-import org.apache.commons.dbcp2.BasicDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 class DalServicesImpl implements DalServices, DalBackendServices {
 
-  private BasicDataSource connectionPool;
+  private HikariDataSource connectionPool;
   private ThreadLocal<Connection> threadMap;
   private ThreadLocal<Integer> semaphore;
 
@@ -26,10 +26,10 @@ class DalServicesImpl implements DalServices, DalBackendServices {
   public DalServicesImpl() {
     threadMap = new ThreadLocal<Connection>();
     semaphore = new ThreadLocal<Integer>();
-    connectionPool = new BasicDataSource();
+    connectionPool = new HikariDataSource();
     String url =
         "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbDatabase + "?autoReconnect=true";
-    connectionPool.setUrl(url);
+    connectionPool.setJdbcUrl(url);
     connectionPool.setUsername(dbUser);
     connectionPool.setPassword(dbPassword);
     connectionPool.setDriverClassName(drivers);

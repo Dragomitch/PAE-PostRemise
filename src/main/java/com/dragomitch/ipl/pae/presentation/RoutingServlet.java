@@ -19,8 +19,7 @@ import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -52,7 +51,7 @@ public class RoutingServlet extends HttpServlet {
       PaymentUcc paymentUcc, ProgrammeUcc programmeUcc, CountryUcc countryUcc,
       EntityFactory entityFactory) {
     super();
-    logger.log(Level.INFO, "Initializing Servlet");
+    logger.info("Initializing Servlet");
     this.successHandler = new SuccessHandler(entityFactory);
     this.exceptionHandler = new ExceptionHandler(entityFactory);
     this.useCaseControllers = new HashSet<Object>();
@@ -68,7 +67,7 @@ public class RoutingServlet extends HttpServlet {
     this.useCaseControllers.add(programmeUcc);
     this.useCaseControllers.add(countryUcc);
     routeResolver.initializeRoutes(useCaseControllers);
-    logger.log(Level.INFO, "Servlet sucessfully initialized");
+    logger.info("Servlet sucessfully initialized");
   }
 
   /*

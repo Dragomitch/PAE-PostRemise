@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import jakarta.servlet.http.HttpServletResponse;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -24,7 +24,7 @@ public class ResponseHandler {
    * @param resp the HTTP response object that provides HTTP-specific functionality
    */
   protected void writeResponse(Object ob, String contentType, HttpServletResponse resp) {
-    logger.finer("Writing response");
+    logger.debug("Writing response");
     String format;
     if (contentType.equals("text/csv")) {
       resp.setContentType("text/csv");

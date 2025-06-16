@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.dragomitch.ipl.pae.context.DependencyManager;
@@ -33,7 +33,7 @@ class Invoker {
   public Invoker() {
     // TODO : Supprimer utilisation dependency manager
     this.serializer = new JsonSerializer(DependencyManager.getInstance(EntityFactory.class));
-    this.sessionManager = new SessionManager();
+    this.sessionManager = DependencyManager.getInstance(SessionManager.class);
   }
 
   /**
