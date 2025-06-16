@@ -62,3 +62,27 @@ mvn -B verify
 ```
 The resulting JAR can be found under `target/`.
 
+
+## Running with Docker Compose
+A `docker-compose.yml` file is provided to build and run both the Spring Boot backend and the Angular frontend.
+
+To start everything:
+
+```bash
+docker compose up
+```
+
+The backend container exposes port `8080` while the frontend is served on port `4200`.
+
+### Configuration
+The following environment variables can be used to configure the database connection for the backend:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_HOST` | Database host | `localhost` |
+| `DB_PORT` | Database port | `5432` |
+| `DB_NAME` | Database name | `testdb` |
+| `DB_USERNAME` | Database user | `pguser01` |
+| `DB_PASSWORD` | Database password | `yoursecurepassword` |
+
+These values map to the properties defined in `dev.properties`.
