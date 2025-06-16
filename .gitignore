@@ -28,3 +28,7 @@ Cahiers des charges/WorkDocument Cahier des Charges/
 #Exceptions to exlusion rules
 #====================================================
 !logs/.gitkeep
+
+# Angular build artifacts
+frontend/public/favicon.ico
+
