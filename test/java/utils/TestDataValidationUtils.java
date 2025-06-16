@@ -144,6 +144,30 @@ public class TestDataValidationUtils {
   }
 
   @Test
+  public void testIsAValidPhoneNumberTC1() {
+    String phoneNumber = null;
+    assertFalse(DataValidationUtils.isAValidPhoneNumber(phoneNumber));
+  }
+
+  @Test
+  public void testIsAValidPhoneNumberTC2() {
+    String phoneNumber = "";
+    assertFalse(DataValidationUtils.isAValidPhoneNumber(phoneNumber));
+  }
+
+  @Test
+  public void testIsAValidPhoneNumberTC3() {
+    String phoneNumber = "0472/12.34.56";
+    assertTrue(DataValidationUtils.isAValidPhoneNumber(phoneNumber));
+  }
+
+  @Test
+  public void testIsAValidPhoneNumberTC4() {
+    String phoneNumber = "0472 12 34 56";
+    assertFalse(DataValidationUtils.isAValidPhoneNumber(phoneNumber));
+  }
+
+  @Test
   public void testIsAValidObjectTC1() {
     Object object = null;
     assertFalse(DataValidationUtils.isAValidObject(object));
