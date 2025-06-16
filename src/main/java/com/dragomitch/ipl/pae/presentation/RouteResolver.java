@@ -9,8 +9,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 class RouteResolver {
   private Logger logger = LogManager.getLogger(this.getClass().getName());
@@ -24,7 +23,7 @@ class RouteResolver {
    *        be initialized
    */
   void initializeRoutes(Set<Object> useCaseControllers) {
-    logger.log(Level.INFO, "Initializing routes");
+    logger.info("Initializing routes");
     this.routes = new TreeSet<Route>();
     for (Object ucc : useCaseControllers) {
       String endpoint = "";
@@ -42,7 +41,7 @@ class RouteResolver {
         }
       }
     }
-    logger.log(Level.INFO, routes.size() + " routes sucessfully initialized: \n" + dumpRoutes());
+      logger.info(routes.size() + " routes sucessfully initialized: \n" + dumpRoutes());
   }
 
   /**
@@ -54,17 +53,17 @@ class RouteResolver {
    * @throws RouteNotFoundException if no route matching the request has been found
    */
   Route findRoute(HttpMethod httpMethod, String path) {
-    logger.log(Level.INFO, "Looking for the route matching: " + httpMethod + " " + path);
+    logger.info("Looking for the route matching: " + httpMethod + " " + path);
     for (Route route : routes) {
       if (route.getHttpMethod() != httpMethod) {
         continue;
       }
       if (route.getPathTemplate().matches(path)) {
-        logger.log(Level.INFO, "Route found: " + route);
+        logger.info("Route found: " + route);
         return route;
       }
     }
-    logger.log(Level.INFO, "No route matching path found");
+    logger.info("No route matching path found");
     throw new RouteNotFoundException();
   }
 

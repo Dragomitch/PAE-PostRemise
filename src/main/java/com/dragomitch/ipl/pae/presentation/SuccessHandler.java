@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -26,7 +26,7 @@ class SuccessHandler extends ResponseHandler {
    * @param resp the HTTP response object that provides HTTP-specific functionality
    */
   public void handleSuccess(Object ob, String contentType, HttpServletResponse resp) {
-    logger.finer("Handling success");
+    logger.debug("Handling success");
     if (ob != null) {
       writeResponse(ob, contentType, resp);
     }

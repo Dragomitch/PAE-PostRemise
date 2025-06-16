@@ -13,8 +13,7 @@ import com.dragomitch.ipl.pae.presentation.exceptions.UnauthenticatedUserExcepti
 import org.springframework.http.HttpStatus;
 
 import java.util.ConcurrentModificationException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -57,7 +56,7 @@ public class ExceptionHandler extends ResponseHandler {
           httpStatusCode = HttpStatus.BAD_REQUEST.value();
         }
       case FatalException e -> {
-          logger.log(Level.SEVERE, "FatalException", e);
+          logger.error("FatalException", e);
           httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
       default -> httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
@@ -68,7 +67,7 @@ public class ExceptionHandler extends ResponseHandler {
       logger.info("Message: " + exception.getMessage());
     }
     if (exception.getCause() != null) {
-      logger.log(Level.INFO, "Cause: ", exception.getCause());
+      logger.info("Cause: {}", exception.getCause());
     }
     // TODO Supprimer cela avant la remise
     exception.printStackTrace();

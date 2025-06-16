@@ -27,7 +27,7 @@ import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,14 +43,16 @@ public class UserUccImpl implements UserUcc {
   private OptionDao optionDao;
   private NominatedStudentDao nominatedStudentDao;
   private UnitOfWork unitOfWork;
+  private PasswordEncoder passwordEncoder;
 
   @Autowired
   public UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
-      UnitOfWork unitOfWork) {
+      UnitOfWork unitOfWork, PasswordEncoder passwordEncoder) {
     this.userDao = userDao;
     this.optionDao = optionDao;
     this.nominatedStudentDao = nominatedStudentDao;
     this.unitOfWork = unitOfWork;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @Override
@@ -62,7 +64,7 @@ public class UserUccImpl implements UserUcc {
       checkDataIntegrity(user);
       user.setRegistrationDate(LocalDateTime.now());
       // encrypt password
-      user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+      user.setPassword(passwordEncoder.encode(user.getPassword()));
       // first user is automatically considered a professor
       if (userDao.isEmpty()) {
         user.setRole(User.ROLE_PROFESSOR);

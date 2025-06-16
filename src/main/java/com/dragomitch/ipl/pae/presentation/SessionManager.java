@@ -1,19 +1,17 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.auth0.jwt.JWTSigner;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.JWTVerifyException;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.time.Instant;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +19,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
@@ -35,9 +32,13 @@ public class SessionManager {
   private static Logger logger = LogManager.getLogger(SessionManager.class.getName());
 
   private final String jwtSecret;
+  private final JwtEncoder jwtEncoder;
+  private final JwtDecoder jwtDecoder;
 
-  public SessionManager() {
-    jwtSecret = ContextManager.getProperty("secret_key");
+  public SessionManager(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+    this.jwtSecret = ContextManager.getProperty("secret_key");
+    this.jwtEncoder = jwtEncoder;
+    this.jwtDecoder = jwtDecoder;
   }
 
   /**
@@ -162,9 +163,11 @@ public class SessionManager {
     if (claims == null) {
       return "";
     }
-    // Adding a timestamp to make the token unique each time it is generated with the same values
     claims.put("timestamp", Instant.now());
-    return new JWTSigner(jwtSecret).sign(claims);
+    JwtClaimsSet.Builder builder = JwtClaimsSet.builder();
+    claims.forEach(builder::claim);
+    JwtClaimsSet claimSet = builder.build();
+    return jwtEncoder.encode(JwtEncoderParameters.from(claimSet)).getTokenValue();
   }
 
   /**
@@ -176,22 +179,10 @@ public class SessionManager {
   private Map<String, Object> decodeToken(String token) {
     if (token != null) {
       try {
-        Map<String, Object> decodedPayload = new JWTVerifier(jwtSecret).verify(token);
-        return decodedPayload;
-      } catch (SignatureException ex) {
-        logger.log(Level.INFO, "JWT: Invalid signature", ex);
-        return null;
-      } catch (IllegalStateException ex) {
-        logger.log(Level.INFO, "JWT: Invalid token", ex);
-        return null;
-      } catch (InvalidKeyException ex) {
-        throw new FatalException("Invalid key.", ex);
-      } catch (NoSuchAlgorithmException ex) {
-        throw new FatalException("Invalid algorithm.", ex);
-      } catch (IOException ex) {
-        throw new FatalException("Impossible to read file.", ex);
-      } catch (JWTVerifyException ex) {
-        logger.log(Level.INFO, "JWT: Invalid token", ex);
+        Jwt decoded = jwtDecoder.decode(token);
+        return decoded.getClaims();
+      } catch (JwtException ex) {
+        logger.info("JWT: Invalid token", ex);
         return null;
       }
     }

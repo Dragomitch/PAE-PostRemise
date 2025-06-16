@@ -1,0 +1,61 @@
+name: Run Upgrade Tasks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  replace_genson_with_jackson:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_01_replace_genson_with_jackson.md
+
+  replace_jwt_library:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_02_replace_jwt_library.md
+
+  update_logging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_03_update_logging.md
+
+  remove_heroku_plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_04_remove_heroku_plugin.md
+
+  replace_jbcrypt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_05_replace_jbcrypt.md
+
+  replace_dbcp2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_06_replace_dbcp2.md
+
+  remove_commons_pool2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_07_remove_commons_pool2.md
+
+  replace_hamcrest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Display task instructions
+        run: cat .github/tasks/task_08_replace_hamcrest.md

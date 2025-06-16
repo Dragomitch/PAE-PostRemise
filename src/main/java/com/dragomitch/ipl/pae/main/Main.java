@@ -6,8 +6,7 @@ import com.dragomitch.ipl.pae.context.ErrorManager;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 public class Main {
 
@@ -30,7 +29,7 @@ public class Main {
       ErrorManager.load();
       Application.main(args);
     } catch (FatalException ex) {
-      logger.log(Level.SEVERE, "Impossible to start basic configuration", ex);
+      logger.error("Impossible to start basic configuration", ex);
     }
   }
 
