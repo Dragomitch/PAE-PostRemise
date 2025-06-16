@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.business.Option;
 import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 
-import com.owlike.genson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 

@@ -9,7 +9,7 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 
-import com.owlike.genson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

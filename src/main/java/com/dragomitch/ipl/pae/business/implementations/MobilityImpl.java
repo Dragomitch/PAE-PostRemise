@@ -13,7 +13,7 @@ import com.dragomitch.ipl.pae.exceptions.FatalException; //TODO Check where we u
 import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 
-import com.owlike.genson.annotation.JsonDateFormat;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -36,7 +36,7 @@ class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable 
   private NominatedStudentDto nominatedStudent;
 
   @Override
-  @JsonDateFormat("yyyy-MM-dd HH:mm:ss")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   public LocalDateTime getSubmissionDate() {
     return submissionDate;
   }

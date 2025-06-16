@@ -15,7 +15,7 @@ import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 
-import com.owlike.genson.annotation.JsonDateFormat;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;
 import java.util.LinkedList;
@@ -48,7 +48,7 @@ class NominatedStudentImpl extends UserImpl implements NominatedStudent {
   }
 
   @Override
-  @JsonDateFormat("yyyy-MM-dd")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   public LocalDate getBirthdate() {
     return birthdate;
   }
