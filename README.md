@@ -1,6 +1,6 @@
 # Erasmus Mobility Management
 
-[![Build Status](https://travis-ci.org/Dragomitch/PAE-PostRemise.svg?branch=master)](https://travis-ci.org/Dragomitch/PAE-PostRemise)
+[![Build Status](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/maven.yml)
 
 This repository contains a web application for managing Erasmus mobilities. It was created as a second-year project at the Institut Paul Lambin during the 2015–2016 academic year.
 
@@ -43,7 +43,6 @@ to compile the sources, run the tests and assemble the final JAR.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 
-
 ## Frontend
 The Angular client lives in the `frontend/` directory. To build it locally:
 
@@ -54,3 +53,12 @@ ng build
 ```
 
 The compiled files will appear in `frontend/dist/`.
+
+## Building with Maven
+Run the standard Maven lifecycle to compile the sources, execute the tests and package the application:
+
+```bash
+mvn -B verify
+```
+The resulting JAR can be found under `target/`.
+

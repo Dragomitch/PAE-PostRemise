@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.annotations.Inject;
+import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -15,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ConcurrentModificationException;
 
+@Repository
 class AddressDaoImpl implements AddressDao {
 
   private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);

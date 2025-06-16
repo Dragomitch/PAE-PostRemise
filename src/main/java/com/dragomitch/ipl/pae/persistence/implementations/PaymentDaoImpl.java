@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.annotations.Inject;
+import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 
@@ -17,7 +18,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PaymentDaoImpl implements PaymentDao {
+public @Repository
+class PaymentDaoImpl implements PaymentDao {
 
   private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
 

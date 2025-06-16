@@ -20,6 +20,8 @@ import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.Role;
 import com.dragomitch.ipl.pae.presentation.annotations.Route;
 import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
@@ -33,15 +35,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Service
 @ApiCollection(name = "Users", endpoint = "/users")
-class UserUccImpl implements UserUcc {
+public class UserUccImpl implements UserUcc {
 
   private UserDao userDao;
   private OptionDao optionDao;
   private NominatedStudentDao nominatedStudentDao;
   private UnitOfWork unitOfWork;
 
-  @Inject
+  @Autowired
   public UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
       UnitOfWork unitOfWork) {
     this.userDao = userDao;

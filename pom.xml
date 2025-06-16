@@ -177,6 +177,17 @@
             <version>1.6.2</version>
             <!--<scope>test</scope>-->
         </dependency>
+        <!-- Spring Boot dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.7.18</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>2.7.18</version>
+        </dependency>
 
     </dependencies>
     <build>
@@ -227,6 +238,12 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Spring Boot Maven plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.7.18</version>
             </plugin>
         </plugins>
     </build>

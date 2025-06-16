@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.annotations.Inject;
+import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
@@ -14,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 class MobilityDocumentDaoImpl implements MobilityDocumentDao {
 
   private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);

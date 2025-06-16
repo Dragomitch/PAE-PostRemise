@@ -11,6 +11,7 @@ import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.annotations.Inject;
+import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
@@ -29,7 +30,8 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class MobilityDaoImpl implements MobilityDao {
+public @Repository
+class MobilityDaoImpl implements MobilityDao {
 
   private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
 
