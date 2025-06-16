@@ -189,7 +189,7 @@ public final class DataValidationUtils {
    */
   public static void checkPositiveOrZero(int number) {
     if (!isPositiveOrZero(number)) {
-      throw new IllegalArgumentException("Argument must be positive.");
+      throw new IllegalArgumentException("Argument must be positive or zero.");
     }
   }
 
