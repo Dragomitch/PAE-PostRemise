@@ -29,6 +29,15 @@ This repository contains a web application for managing Erasmus mobilities. It w
 4. Review the SQL scripts under `SQLRessources` to understand the schema.
 5. Run the JUnit tests under `test/java` as examples of typical workflows.
 
+## Building
+The project uses Maven for dependency management and builds. Execute:
+
+```bash
+mvn package
+```
+
+to compile the sources, run the tests and assemble the final JAR.
+
 ## Suggestions for further learning
 - Dive into the custom annotation-based routing and dependency injection system.
 - See how tests use the mock DAOs to isolate business logic.
