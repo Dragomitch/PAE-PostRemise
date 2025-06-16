@@ -79,7 +79,7 @@ public class ErrorFormat {
   public static final int INVALID_BIRTHDATE_NULL_604 = 604;
   public static final int INVALID_BIRTHDATE_605 = 605;
   public static final int INVALID_NATIONALITY_NULL_606 = 606;
-  public static final int INVALID_ADDRESS_NUL_608 = 608;
+  public static final int INVALID_ADDRESS_NULL_608 = 608;
   public static final int PHONE_NUMBER_MAX_LENGTH_OVERFLOW_609 = 609;
   public static final int INVALID_GENDER_610 = 610;
   public static final int INVALID_GENDER_VALUE_611 = 611;

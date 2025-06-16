@@ -179,7 +179,7 @@ class NominatedStudentImpl extends UserImpl implements NominatedStudent {
       violations.add(ErrorFormat.MAX_LENGTH_COUNTRY_CODE_OVERFLOW_314);
     }
     if (!isAValidObject(address)) {
-      violations.add(ErrorFormat.INVALID_ADDRESS_NUL_608);
+      violations.add(ErrorFormat.INVALID_ADDRESS_NULL_608);
     }
     if (phoneNumber.length() > NominatedStudentDao.PHONE_NUMBER_MAX_LENGTH) {
       violations.add(ErrorFormat.PHONE_NUMBER_MAX_LENGTH_OVERFLOW_609);
