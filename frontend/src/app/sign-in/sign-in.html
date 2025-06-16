@@ -1,0 +1,16 @@
+<div class="card">
+  <h2>Bienvenue à bord</h2>
+  <div class="notification notification-danger" *ngIf="error">
+    Nom d'utilisateur et/ou mot de passe incorrect.
+  </div>
+  <form (ngSubmit)="submit()">
+    <div class="form-group">
+      <input type="text" class="form-control input" name="username" [(ngModel)]="username" placeholder="Nom d'utilisateur">
+    </div>
+    <div class="form-group">
+      <input type="password" class="form-control input" name="password" [(ngModel)]="password" placeholder="Mot de passe">
+    </div>
+    <button type="submit" class="btn btn-default btn-lg">Se connecter</button>
+  </form>
+  <div class="bottom">Vous n'avez pas encore de compte? <a routerLink="/signup">Inscrivez-vous</a></div>
+</div>

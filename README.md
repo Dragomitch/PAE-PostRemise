@@ -43,3 +43,14 @@ to compile the sources, run the tests and assemble the final JAR.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 
+
+## Frontend
+The Angular client lives in the `frontend/` directory. To build it locally:
+
+```bash
+cd frontend
+npm install
+ng build
+```
+
+The compiled files will appear in `frontend/dist/`.

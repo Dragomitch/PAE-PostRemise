@@ -1,0 +1,25 @@
+<div class="card">
+  <h2>Inscription</h2>
+  <form (ngSubmit)="submit()">
+    <div class="form-group">
+      <input type="text" class="form-control input" name="lastName" [(ngModel)]="form.lastName" placeholder="Nom">
+    </div>
+    <div class="form-group">
+      <input type="text" class="form-control input" name="firstName" [(ngModel)]="form.firstName" placeholder="Prénom">
+    </div>
+    <div class="form-group">
+      <input type="text" class="form-control input" name="username" [(ngModel)]="form.username" placeholder="Nom d'utilisateur">
+    </div>
+    <div class="form-group">
+      <input type="password" class="form-control input" name="password" [(ngModel)]="form.password" placeholder="Mot de passe">
+    </div>
+    <div class="form-group">
+      <input type="password" class="form-control input" name="reenterPassword" [(ngModel)]="form.reenterPassword" placeholder="Retapez le mot de passe">
+    </div>
+    <div class="form-group">
+      <input type="email" class="form-control input" name="email" [(ngModel)]="form.email" placeholder="Email">
+    </div>
+    <button type="submit" class="btn btn-default btn-lg">S'enregistrer</button>
+  </form>
+  <div class="bottom">Vous avez déjà un compte? <a routerLink="/signin">Connectez-vous</a></div>
+</div>
