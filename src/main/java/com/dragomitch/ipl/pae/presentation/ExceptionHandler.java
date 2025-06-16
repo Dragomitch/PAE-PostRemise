@@ -39,7 +39,9 @@ public class ExceptionHandler extends ResponseHandler {
     int httpStatusCode;
     ErrorFormat error = null;
     switch (exception) {
-      case RouteNotFoundException e, RessourceNotFoundException e ->
+      case RouteNotFoundException e ->
+          httpStatusCode = HttpStatus.NOT_FOUND.value();
+      case RessourceNotFoundException e ->
           httpStatusCode = HttpStatus.NOT_FOUND.value();
       case UnauthenticatedUserException e ->
           httpStatusCode = HttpStatus.UNAUTHORIZED.value();

@@ -59,7 +59,7 @@ class Invoker {
       method.setAccessible(true);
       invocationResult = method.invoke(instance, parameters);
       handleSessionAnnotation(method, invocationResult, req, resp);
-      logger.finer("Method succesfully invoked");
+      logger.debug("Method succesfully invoked");
     } catch (InvocationTargetException ex) {
       // An exceptions has been thrown inside the method.
       throw ex.getCause();
@@ -145,7 +145,7 @@ class Invoker {
     String[] requiredRoles = method.getDeclaredAnnotation(Role.class).value();
     for (String requiredRole : requiredRoles) {
       if (role.equals(requiredRole)) {
-        logger.fine("Requester has right permissions");
+        logger.debug("Requester has right permissions");
         return true;
       }
     }
