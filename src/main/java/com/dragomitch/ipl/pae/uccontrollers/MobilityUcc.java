@@ -32,24 +32,27 @@ public interface MobilityUcc {
 
   /**
    * Confirm the encoding in Pro Eco software.
-   * 
+   *
    * @param id the mobility to be updated
+   * @param version the current version of the mobility to update
    * @throws RessourceNotFoundException if the mobility does not exist
    */
   void confirmProEcoEncoding(int id, int version);
 
   /**
    * Confirm the encoding in Second software.
-   * 
+   *
    * @param id the mobility to be updated
+   * @param version the current version of the mobility to update
    * @throws RessourceNotFoundException if the mobility does not exist
    */
   void confirmSecondSoftwareEncoding(int id, int version);
 
   /**
    * Confirm a payment.
-   * 
+   *
    * @param id the mobility to update
+   * @param version the current version of the mobility to update
    * @return the updated mobility
    * @throws RessourceNotFoundException if the mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
