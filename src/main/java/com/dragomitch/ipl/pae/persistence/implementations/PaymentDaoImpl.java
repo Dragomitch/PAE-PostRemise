@@ -1,13 +1,11 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
@@ -18,10 +16,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public @Repository
-class PaymentDaoImpl implements PaymentDao {
+@Repository
+public class PaymentDaoImpl implements PaymentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SQL_SELECT = "SELECT mc." + COLUMN_MOBILITY_CHOICE_ID + ", mc."
       + COLUMN_USER_ID + ", u." + COLUMN_FIRST_NAME + ", u." + COLUMN_LAST_NAME + ", mc."
@@ -53,18 +51,18 @@ class PaymentDaoImpl implements PaymentDao {
       + " = pa." + COLUMN_PARTNER_ID + " AND m." + COLUMN_SECOND_PAYMENT_REQUEST_DATE
       + " IS NOT NULL";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser.
+   * @param dtoFactory an on-demand object dispenser.
    * @param dalBackendServices backend services.
    */
-  @Inject
-  public PaymentDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public PaymentDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -84,9 +82,9 @@ class PaymentDaoImpl implements PaymentDao {
   }
 
   private PaymentDto populateDto(ResultSet rs) throws SQLException {
-    PaymentDto payment = (PaymentDto) entityFactory.build(PaymentDto.class);
+    PaymentDto payment = (PaymentDto) dtoFactory.create(PaymentDto.class);
     payment.setMobilityChoiceId(rs.getInt(1));
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    UserDto user = (UserDto) dtoFactory.create(UserDto.class);
     user.setId(rs.getInt(2));
     user.setFirstName(rs.getString(3));
     user.setLastName(rs.getString(4));
@@ -94,15 +92,15 @@ class PaymentDaoImpl implements PaymentDao {
     payment.setMobilityType(rs.getString(5));
     payment.setAcademicYear(rs.getString(6));
     payment.setTerm(rs.getInt(7));
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) dtoFactory.create(ProgrammeDto.class);
     programme.setId(rs.getInt(8));
     programme.setProgrammeName(rs.getString(9));
     payment.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(10));
     country.setName(rs.getString(11));
     payment.setCountry(country);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    PartnerDto partner = (PartnerDto) dtoFactory.create(PartnerDto.class);
     partner.setId(rs.getInt(12));
     partner.setFullName(rs.getString(13));
     payment.setPartner(partner);

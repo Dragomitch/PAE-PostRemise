@@ -5,7 +5,6 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import org.slf4j.Logger;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,9 +18,11 @@ import com.dragomitch.ipl.pae.presentation.annotations.Session;
 import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.presentation.exceptions.UnauthenticatedUserException;
+import org.springframework.stereotype.Service;
 
 @ApiCollection(name = "Session", endpoint = "/session")
-class SessionUccImpl implements SessionUcc {
+@Service
+public class SessionUccImpl implements SessionUcc {
 
   private static Logger logger = LogManager.getLogger(SessionUccImpl.class.getName());
 
@@ -29,7 +30,7 @@ class SessionUccImpl implements SessionUcc {
   private DalServices dalServices;
   private PasswordEncoder passwordEncoder;
 
-  @Inject
+  
   public SessionUccImpl(UserDao userDao, DalServices dalServices, PasswordEncoder passwordEncoder) {
     this.userDao = userDao;
     this.dalServices = dalServices;

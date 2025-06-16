@@ -1,12 +1,10 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -25,7 +23,7 @@ import java.util.List;
 @Repository
 class NominatedStudentDaoImpl implements NominatedStudentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SQL_INSERT = "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "("
       + COLUMN_ID + ", " + COLUMN_TITLE + ", " + COLUMN_BIRTHDATE + ", " + COLUMN_NATIONALITY + ", "
@@ -54,18 +52,18 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
       + UserDao.COLUMN_OPTION + " = o." + OptionDao.COLUMN_CODE + " AND u." + UserDao.COLUMN_ID
       + " = ns." + COLUMN_ID + " AND ns." + COLUMN_NATIONALITY + " = c." + CountryDao.COLUMN_CODE;
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
-  public NominatedStudentDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
-    this.entityFactory = entityFactory;
+  
+  public NominatedStudentDaoImpl(DtoFactory dtoFactory, DalBackendServices dalServices) {
+    this.dtoFactory = dtoFactory;
     this.dalServices = dalServices;
   }
 
@@ -155,7 +153,7 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
 
   private NominatedStudentDto populateStudentDto(ResultSet rs) throws SQLException {
     NominatedStudentDto nominatedStudent =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+        (NominatedStudentDto) dtoFactory.create(NominatedStudentDto.class);
     nominatedStudent.setId(rs.getInt(1));
     nominatedStudent.setLastName(rs.getString(2));
     nominatedStudent.setFirstName(rs.getString(3));
@@ -164,13 +162,13 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
     nominatedStudent.setEmail(rs.getString(6));
     nominatedStudent.setRegistrationDate(rs.getTimestamp(7).toLocalDateTime());
     nominatedStudent.setRole(rs.getString(8));
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto option = (OptionDto) dtoFactory.create(OptionDto.class);
     option.setCode(rs.getString(9));
     option.setName(rs.getString(10));
     nominatedStudent.setOption(option);
     nominatedStudent.setTitle(rs.getString(11));
     nominatedStudent.setBirthdate(rs.getTimestamp(12).toLocalDateTime().toLocalDate());
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(13));
     country.setName(rs.getString(14));
     nominatedStudent.setNationality(country);
@@ -185,7 +183,7 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
     nominatedStudent.setCardHolder(cardHolder);
     nominatedStudent.setBankName(rs.getString(20));
     nominatedStudent.setBic(rs.getString(21));
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    AddressDto address = (AddressDto) dtoFactory.create(AddressDto.class);
     address.setId(rs.getInt(22));
     nominatedStudent.setAddress(address);
     nominatedStudent.setVersion(rs.getInt(23));

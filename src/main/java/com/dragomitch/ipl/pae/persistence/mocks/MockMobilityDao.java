@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 
@@ -16,12 +15,11 @@ import java.util.Set;
 public class MockMobilityDao implements MobilityDao {
 
   private MobilityChoiceDao mobilityChoiceDao;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
   private Set<MobilityDto> mobilities = new HashSet<MobilityDto>();
 
-  @Inject
-  public MockMobilityDao(EntityFactory entityFactory, MobilityChoiceDao mobilityChoiceDao) {
-    this.entityFactory = entityFactory;
+  public MockMobilityDao(DtoFactory dtoFactory, MobilityChoiceDao mobilityChoiceDao) {
+    this.dtoFactory = dtoFactory;
     this.mobilityChoiceDao = mobilityChoiceDao;
   }
 
@@ -46,7 +44,7 @@ public class MockMobilityDao implements MobilityDao {
     for (MobilityDto curMobility : this.mobilities) {
       if (curMobility.getId() == id) {
         MobilityChoiceDto mobilityChoice = mobilityChoiceDao.findById(id);
-        NominatedStudent student = (NominatedStudent) entityFactory.build(NominatedStudent.class);
+        NominatedStudent student = (NominatedStudent) dtoFactory.create(NominatedStudent.class);
         student.setId(mobilityChoice.getUser().getId());
         curMobility.setNominatedStudent(student);
         return curMobility;

@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
@@ -11,15 +10,17 @@ import com.dragomitch.ipl.pae.presentation.annotations.Route;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.uccontrollers.ProgrammeUcc;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class ProgrammeUccImpl implements ProgrammeUcc {
 
   private ProgrammeDao programmeDao;
   private DalServices dalServices;
 
-  @Inject
+  
   public ProgrammeUccImpl(ProgrammeDao programmeDao, DalServices dalServices) {
     this.programmeDao = programmeDao;
     this.dalServices = dalServices;

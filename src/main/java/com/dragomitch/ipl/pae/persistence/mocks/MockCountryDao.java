@@ -1,9 +1,8 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 
 import java.util.ArrayList;
@@ -14,26 +13,25 @@ import java.util.Map;
 public class MockCountryDao implements CountryDao {
 
   private Map<String, CountryDto> countries;
-  private EntityFactory entityFactory;
+  private DtoFactory dtoFactory;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    */
-  @Inject
-  public MockCountryDao(EntityFactory entityFactory) {
+  public MockCountryDao(DtoFactory dtoFactory) {
     countries = new HashMap<String, CountryDto>();
-    this.entityFactory = entityFactory;
-    CountryDto country1 = (CountryDto) this.entityFactory.build(CountryDto.class);
+    this.dtoFactory = dtoFactory;
+    CountryDto country1 = (CountryDto) this.dtoFactory.create(CountryDto.class);
     country1.setCountryCode("GB");
     country1.setName("Angleterre");
-    ProgrammeDto programme = (ProgrammeDto) this.entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) this.dtoFactory.create(ProgrammeDto.class);
     programme.setId(1);
     programme.setProgrammeName("Erasmus+");
     country1.setProgramme(programme);
     countries.put(country1.getCountryCode(), country1);
-    CountryDto country2 = (CountryDto) this.entityFactory.build(CountryDto.class);
+    CountryDto country2 = (CountryDto) this.dtoFactory.create(CountryDto.class);
     country2.setCountryCode("IE");
     country2.setName("Ireland");
     country2.setProgramme(programme);

@@ -10,7 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;

@@ -1,8 +1,7 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.logging.LogManager;
+import org.springframework.stereotype.Component;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.uccontrollers.CountryUcc;
 import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
@@ -26,6 +25,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Component
 public class RoutingServlet extends HttpServlet {
 
   private static final long serialVersionUID = 650341630398081136L;
@@ -33,7 +33,7 @@ public class RoutingServlet extends HttpServlet {
   private static Logger logger = LogManager.getLogger(RoutingServlet.class.getName());
 
   private final transient RouteResolver routeResolver = new RouteResolver();
-  private final transient Invoker invoker = new Invoker();
+  private final transient Invoker invoker;
   private final transient SuccessHandler successHandler;
   private final transient ExceptionHandler exceptionHandler;
 
@@ -44,16 +44,16 @@ public class RoutingServlet extends HttpServlet {
    * 
    * @param userUcc use case controller for user
    */
-  @Inject
   public RoutingServlet(DenialReasonUcc denialReasonUcc, MobilityUcc mobilityUcc,
       MobilityChoiceUcc mobilityChoiceUcc, NominatedStudentUcc nominatedStudentUcc,
       OptionUcc optionUcc, PartnerUcc partnerUcc, SessionUcc sessionUcc, UserUcc userUcc,
       PaymentUcc paymentUcc, ProgrammeUcc programmeUcc, CountryUcc countryUcc,
-      EntityFactory entityFactory) {
+      SuccessHandler successHandler, ExceptionHandler exceptionHandler, Invoker invoker) {
     super();
     logger.info("Initializing Servlet");
-    this.successHandler = new SuccessHandler(entityFactory);
-    this.exceptionHandler = new ExceptionHandler(entityFactory);
+    this.invoker = invoker;
+    this.successHandler = successHandler;
+    this.exceptionHandler = exceptionHandler;
     this.useCaseControllers = new HashSet<Object>();
     this.useCaseControllers.add(denialReasonUcc);
     this.useCaseControllers.add(mobilityUcc);

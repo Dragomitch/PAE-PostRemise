@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidEmail;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
@@ -19,6 +22,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 @DaoClass(UserDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class UserImpl implements User, Serializable {
 
   private static final long serialVersionUID = 1L;

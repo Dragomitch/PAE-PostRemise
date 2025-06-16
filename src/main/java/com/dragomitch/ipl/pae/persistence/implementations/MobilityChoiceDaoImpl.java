@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
@@ -10,8 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -35,10 +33,10 @@ import java.util.List;
 @Repository
 class MobilityChoiceDaoImpl implements MobilityChoiceDao {
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SQL_SELECT = "SELECT mc." + COLUMN_ID + ", mc." + COLUMN_USER_ID
       + ", u." + UserDao.COLUMN_LAST_NAME + ", u." + UserDao.COLUMN_FIRST_NAME + ", op."
@@ -79,12 +77,12 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
   /**
    * Sole constructor for explicit invocations.
    * 
-   * @param entityFactory an on-demand object dispenser.
+   * @param dtoFactory an on-demand object dispenser.
    * @param dalBackendServices backend services.
    */
-  @Inject
-  public MobilityChoiceDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public MobilityChoiceDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -286,14 +284,14 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
    */
   private MobilityChoiceDto populateMobilityChoice(ResultSet rs) throws SQLException {
     MobilityChoiceDto mobilityChoice =
-        (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+        (MobilityChoiceDto) dtoFactory.create(MobilityChoiceDto.class);
+    UserDto user = (UserDto) dtoFactory.create(UserDto.class);
 
     mobilityChoice.setId(rs.getInt(1));
     user.setId(rs.getInt(2));
     user.setLastName(rs.getString(3));
     user.setFirstName(rs.getString(4));
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    OptionDto option = (OptionDto) dtoFactory.create(OptionDto.class);
     option.setCode(rs.getString(5));
     option.setName(rs.getString(6));
     user.setOption(option);
@@ -302,16 +300,16 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     mobilityChoice.setMobilityType(rs.getString(8));
     mobilityChoice.setAcademicYear(rs.getInt(9));
     mobilityChoice.setTerm(rs.getInt(10));
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    ProgrammeDto programme = (ProgrammeDto) dtoFactory.create(ProgrammeDto.class);
     programme.setId(rs.getInt(11));
     programme.setProgrammeName(rs.getString(12));
     mobilityChoice.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(13));
     mobilityChoice.setCountry(country);
     mobilityChoice.setSubmissionDate(rs.getTimestamp(14).toLocalDateTime());
     if (rs.getInt(15) > 0) {
-      DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+      DenialReasonDto denialReason = (DenialReasonDto) dtoFactory.create(DenialReasonDto.class);
       denialReason.setId(rs.getInt(15));
       mobilityChoice.setDenialReason(denialReason);
     } else {
@@ -319,7 +317,7 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     }
     mobilityChoice.setCancellationReason(rs.getString(16));
     if (rs.getInt(17) > 0) {
-      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      PartnerDto partner = (PartnerDto) dtoFactory.create(PartnerDto.class);
       partner.setId(rs.getInt(17));
       partner.setFullName(rs.getString(18));
       mobilityChoice.setPartner(partner);

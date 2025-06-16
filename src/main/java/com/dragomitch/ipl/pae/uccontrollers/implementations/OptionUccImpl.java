@@ -6,7 +6,6 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -15,16 +14,18 @@ import com.dragomitch.ipl.pae.presentation.annotations.Role;
 import com.dragomitch.ipl.pae.presentation.annotations.Route;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.uccontrollers.OptionUcc;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-class OptionUccImpl implements OptionUcc {
+@Service
+public class OptionUccImpl implements OptionUcc {
 
   private final OptionDao optionDao;
   private final PartnerOptionDao partnerOptionDao;
   private final DalServices dalServices;
 
-  @Inject
+  
   public OptionUccImpl(OptionDao optionDao, PartnerOptionDao partnerOptionDao,
       DalServices dalServices) {
     this.optionDao = optionDao;

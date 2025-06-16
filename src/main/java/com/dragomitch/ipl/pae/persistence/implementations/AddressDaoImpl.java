@@ -1,10 +1,8 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
@@ -19,7 +17,7 @@ import java.util.ConcurrentModificationException;
 @Repository
 class AddressDaoImpl implements AddressDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SQL_SELECT = "SELECT a." + COLUMN_ID + ", a." + COLUMN_STREET + ", a."
       + COLUMN_NUMBER + ", a." + COLUMN_COUNTRY + ", c." + CountryDao.COLUMN_NAME + ", a."
@@ -37,18 +35,18 @@ class AddressDaoImpl implements AddressDao {
       + COLUMN_POSTAL_CODE + ", " + COLUMN_REGION + ", version ) = (?,?,?,?,?,?,version+1) "
       + "WHERE a." + COLUMN_ID + " = ? AND a.version= ? RETURNING a.version";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser.
+   * @param dtoFactory an on-demand object dispenser.
    * @param dalBackendServices backend services.
    */
-  @Inject
-  public AddressDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+  
+  public AddressDaoImpl(DtoFactory dtoFactory, DalBackendServices dalBackendServices) {
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -107,11 +105,11 @@ class AddressDaoImpl implements AddressDao {
    * @return address an instance of AddressDto built based on a row of data
    */
   private AddressDto populateAddressDto(ResultSet rs) throws SQLException {
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    AddressDto address = (AddressDto) dtoFactory.create(AddressDto.class);
     address.setId(rs.getInt(1));
     address.setStreet(rs.getString(2));
     address.setNumber(rs.getString(3));
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    CountryDto country = (CountryDto) dtoFactory.create(CountryDto.class);
     country.setCountryCode(rs.getString(4));
     country.setName(rs.getString(5));
     address.setCountry(country);

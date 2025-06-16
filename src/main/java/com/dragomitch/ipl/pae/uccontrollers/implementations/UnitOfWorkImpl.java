@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
@@ -24,7 +23,9 @@ import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
+import org.springframework.stereotype.Service;
 
+@Service
 public class UnitOfWorkImpl implements UnitOfWork {
 
   private static Logger logger = LogManager.getLogger(UnitOfWork.class.getName());
@@ -37,7 +38,7 @@ public class UnitOfWorkImpl implements UnitOfWork {
   // Stores the initial version of all entities to update
   private ThreadLocal<Map<String, Integer>> versionsCache;
 
-  @Inject
+  
   private UnitOfWorkImpl(AddressDao addressDao, DalServices dalServices,
       DenialReasonDao denialReason, MobilityChoiceDao mobilityChoiceDao, MobilityDao mobilityDao,
       MobilityDocumentDao mobilityDocumentDao, OptionDao optionDao, PaymentDao paymentDao,

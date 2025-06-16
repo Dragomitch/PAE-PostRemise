@@ -1,9 +1,7 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -17,24 +15,24 @@ import java.util.List;
 @Repository
 class DocumentDaoImpl implements DocumentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String SELECT_PROGRAMME_DOCUMENTS =
       "SELECT document_id, name, category, programme_id FROM " + SCHEMA_NAME + "." + TABLE_NAME
           + " WHERE programme_id = ?";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
-  public DocumentDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
-    this.entityFactory = entityFactory;
+  
+  public DocumentDaoImpl(DtoFactory dtoFactory, DalBackendServices dalServices) {
+    this.dtoFactory = dtoFactory;
     this.dalServices = dalServices;
   }
 
@@ -55,7 +53,7 @@ class DocumentDaoImpl implements DocumentDao {
   }
 
   private DocumentDto populateDocumentDto(ResultSet rs) throws SQLException {
-    DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+    DocumentDto document = (DocumentDto) dtoFactory.create(DocumentDto.class);
     document.setId(rs.getInt(1));
     document.setName(rs.getString(2));
     document.setCategory(rs.getString(3).charAt(0));

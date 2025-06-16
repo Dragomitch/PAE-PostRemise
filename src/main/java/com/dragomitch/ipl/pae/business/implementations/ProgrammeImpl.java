@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 
@@ -11,6 +14,8 @@ import com.owlike.genson.annotation.JsonIgnore;
 import java.io.Serializable;
 
 @DaoClass(ProgrammeDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ProgrammeImpl implements Programme, Serializable {
 
   private static final long serialVersionUID = 1L;

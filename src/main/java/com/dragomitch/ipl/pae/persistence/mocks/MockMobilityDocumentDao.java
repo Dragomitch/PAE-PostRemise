@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
@@ -13,7 +12,6 @@ public class MockMobilityDocumentDao implements MobilityDocumentDao {
   private List<MobilityDocument> mobilityDocuments;
   private DocumentDao documentDao;
 
-  @Inject
   public MockMobilityDocumentDao(DocumentDao documentDao) {
     mobilityDocuments = new ArrayList<MobilityDocument>();
     this.documentDao = documentDao;

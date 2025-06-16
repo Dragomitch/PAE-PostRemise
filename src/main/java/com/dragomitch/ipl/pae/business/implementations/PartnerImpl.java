@@ -1,4 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import com.dragomitch.ipl.pae.business.Partner;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
@@ -11,6 +14,8 @@ import java.io.Serializable;
 import java.util.List;
 
 @DaoClass(PartnerDao.class)
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PartnerImpl implements Partner, Serializable {
 
   private static final long serialVersionUID = 1L;

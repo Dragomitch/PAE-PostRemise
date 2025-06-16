@@ -1,9 +1,7 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.DtoFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -18,7 +16,7 @@ import java.util.List;
 @Repository
 class MobilityDocumentDaoImpl implements MobilityDocumentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = "student_exchange_tools";
 
   private static final String INSERT_QUERY =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + " (" + COLUMN_DOCUMENT_ID + ", "
@@ -34,19 +32,19 @@ class MobilityDocumentDaoImpl implements MobilityDocumentDao {
       + " " + "SET (" + COLUMN_IS_FILLED_IN + ", version) = (?, version+1) WHERE "
       + COLUMN_DOCUMENT_ID + " = ? AND " + COLUMN_MOBILITY_ID + " = ?";
 
-  private final EntityFactory entityFactory;
+  private final DtoFactory dtoFactory;
   private final DalBackendServices dalBackendServices;
 
   /**
    * Sole constructor for explicit invocation.
    * 
-   * @param entityFactory an on-demand object dispenser
+   * @param dtoFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
-  public MobilityDocumentDaoImpl(EntityFactory entityFactory,
+  
+  public MobilityDocumentDaoImpl(DtoFactory dtoFactory,
       DalBackendServices dalBackendServices) {
-    this.entityFactory = entityFactory;
+    this.dtoFactory = dtoFactory;
     this.dalBackendServices = dalBackendServices;
   }
 
@@ -91,7 +89,7 @@ class MobilityDocumentDaoImpl implements MobilityDocumentDao {
   }
 
   private DocumentDto populateDocumentDto(ResultSet rs) throws SQLException {
-    DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+    DocumentDto document = (DocumentDto) dtoFactory.create(DocumentDto.class);
     document.setId(rs.getInt(1));
     document.setName(rs.getString(2));
     document.setCategory(rs.getString(3).charAt(0));

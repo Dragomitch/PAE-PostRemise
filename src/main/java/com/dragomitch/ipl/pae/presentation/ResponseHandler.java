@@ -1,20 +1,22 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import org.springframework.stereotype.Component;
 import java.io.IOException;
 import org.slf4j.Logger;
+import com.dragomitch.ipl.pae.presentation.JsonSerializer;
 import jakarta.servlet.http.HttpServletResponse;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 
+@Component
 public class ResponseHandler {
 
   private static Logger logger = LogManager.getLogger(ResponseHandler.class.getName());
 
-  protected JsonSerializer jsonSerializer;
+  protected final JsonSerializer jsonSerializer;
 
-  public ResponseHandler(EntityFactory entityFactory) {
-    this.jsonSerializer = new JsonSerializer(entityFactory);
+  public ResponseHandler(JsonSerializer jsonSerializer) {
+    this.jsonSerializer = jsonSerializer;
   }
 
   /**
