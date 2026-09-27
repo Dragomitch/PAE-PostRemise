@@ -1,7 +1,8 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
@@ -12,10 +13,10 @@ import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
@@ -37,7 +38,7 @@ public class TestMobilityUcc {
   private DenialReasonUcc denialReasonUcc;
   private UserUcc userUcc;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -45,7 +46,7 @@ public class TestMobilityUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     mobilityUcc = DependencyManager.getInstance(MobilityUcc.class);
@@ -70,7 +71,7 @@ public class TestMobilityUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockMobilityDao) mobilityDao).empty();
     MobilityChoiceDao mobilityChoiceDao = DependencyManager.getInstance(MobilityChoiceDao.class);
@@ -79,16 +80,20 @@ public class TestMobilityUcc {
     ((MockUserDao) userDao).empty();
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testConfirmProEcoEncodingTC1() {
-    mobilityUcc.confirmProEcoEncoding(-1, 1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.confirmProEcoEncoding(-1, 1);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmProEcoEncodingTC2() {
-    MobilityDto mobility = mobilityDao.findById(1);
-    mobility.setState(MobilityDto.STATE_CANCELLED);
-    mobilityUcc.confirmProEcoEncoding(1, 1);
+    assertThrows(BusinessException.class, () -> {
+      MobilityDto mobility = mobilityDao.findById(1);
+      mobility.setState(MobilityDto.STATE_CANCELLED);
+      mobilityUcc.confirmProEcoEncoding(1, 1);
+    });
   }
 
   @Test
@@ -98,21 +103,27 @@ public class TestMobilityUcc {
     assertTrue(mobility.isEncodedInProEco());
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testConfirmProEcoEncodingTC4() {
-    mobilityUcc.confirmProEcoEncoding(99, 1);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      mobilityUcc.confirmProEcoEncoding(99, 1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testConfirmSecondSoftwareEncodingTC1() {
-    mobilityUcc.confirmSecondSoftwareEncoding(0, 1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.confirmSecondSoftwareEncoding(0, 1);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmSecondSoftwareEncodingTC2() {
-    MobilityDto mobility = mobilityDao.findById(1);
-    mobility.setState(MobilityDto.STATE_CANCELLED);
-    mobilityUcc.confirmSecondSoftwareEncoding(1, 1);
+    assertThrows(BusinessException.class, () -> {
+      MobilityDto mobility = mobilityDao.findById(1);
+      mobility.setState(MobilityDto.STATE_CANCELLED);
+      mobilityUcc.confirmSecondSoftwareEncoding(1, 1);
+    });
   }
 
   @Test
@@ -122,42 +133,56 @@ public class TestMobilityUcc {
     assertTrue(mobility.isEncodedInSecondSoftware());
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testConfirmSecondSoftwareEncodingTC4() {
-    mobilityUcc.confirmSecondSoftwareEncoding(99, 1);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      mobilityUcc.confirmSecondSoftwareEncoding(99, 1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC1() {
-    mobilityUcc.cancel(-1, 1, null, 1, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.cancel(-1, 1, null, 1, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC2() {
-    mobilityUcc.cancel(1, 1, null, -1, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.cancel(1, 1, null, -1, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC3() {
-    mobilityUcc.cancel(1, 1, null, 1, 1, UserDto.ROLE_STUDENT);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.cancel(1, 1, null, 1, 1, UserDto.ROLE_STUDENT);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC4() {
-    mobilityUcc.cancel(1, 1, null, 1, -1, UserDto.ROLE_PROFESSOR);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.cancel(1, 1, null, 1, -1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC5() {
-    mobilityUcc.cancel(1, 1, null, 1, 1, null);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityUcc.cancel(1, 1, null, 1, 1, null);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCancelTC6() {
-    mobilityUcc.cancel(1, 1, null, 99, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityUcc.cancel(1, 1, null, 99, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test()
+  @Test
   public void testCancelTC7() {
     DenialReasonDto denialReason = denialReasonUcc.create(mockDtoFactory.getDenialReason());
     MobilityDto mobility = mobilityUcc.cancel(1, 1, null, denialReason.getId(), 1, UserDto.ROLE_PROFESSOR);
@@ -165,7 +190,7 @@ public class TestMobilityUcc {
     assertEquals(denialReason.getId(), mobility.getDenialReason().getId());
   }
 
-  @Test()
+  @Test
   public void testCancelTC8() {
     MobilityDto mobility = mobilityUcc.cancel(1, 1, "Toto 456", 0, 1, UserDto.ROLE_STUDENT);
     assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());

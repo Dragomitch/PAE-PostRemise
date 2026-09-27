@@ -1,6 +1,7 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
@@ -29,10 +30,10 @@ import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
 import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
 import java.util.Map;
@@ -58,7 +59,7 @@ public class TestMobilityChoiceUcc {
   // private ProgrammeDao programmeDao;
   private static final String CANCELLATION_REASON = "testing purposes, of course";
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -66,7 +67,7 @@ public class TestMobilityChoiceUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     this.entityFactory = DependencyManager.getInstance(EntityFactory.class);
     this.mockDtoFactory = new MockDtoFactory(entityFactory);
@@ -96,7 +97,7 @@ public class TestMobilityChoiceUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockMobilityChoiceDao) mobilityChoiceDao).empty();
     ((MockMobilityDao) mobilityDao).empty();
@@ -112,40 +113,52 @@ public class TestMobilityChoiceUcc {
   }
 
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC2() {
-    mobilityChoice.setMobilityType("4444");
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setMobilityType("4444");
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC3() {
-    mobilityChoice.setMobilityType(null);
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setMobilityType(null);
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC5() {
-    mobilityChoice.setCountry(null);
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setCountry(null);
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC6() {
-    mobilityChoice.getCountry().setCountryCode(null);
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.getCountry().setCountryCode(null);
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC7() {
-    mobilityChoice.getCountry().setCountryCode("555");
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.getCountry().setCountryCode("555");
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC8() {
-    mobilityChoice.getCountry().setCountryCode("LOL");
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.getCountry().setCountryCode("LOL");
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
   @Test
@@ -154,28 +167,36 @@ public class TestMobilityChoiceUcc {
     mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC10() {
-    mobilityChoice.setProgramme(null);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setProgramme(null);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC11() {
-    mobilityChoice.getProgramme().setId(2);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.getProgramme().setId(2);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC12() {
-    mobilityChoice.setUser(null);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(null);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntregrityTC13() {
-    mobilityChoice.getUser().setId(2);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.getUser().setId(2);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    });
   }
 
   @Test
@@ -183,56 +204,70 @@ public class TestMobilityChoiceUcc {
     mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC2() {
-    mobilityChoiceUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC3() {
-    mobilityChoiceUcc.create(null, 1, UserDto.ROLE_STUDENT);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.create(null, 1, UserDto.ROLE_STUDENT);
+    });
   }
 
-  @Test(expected = InsufficientPermissionException.class)
+  @Test
   public void testCreateTC4() {
-    mobilityChoice.setUser(userStud);
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_STUDENT);
+    assertThrows(InsufficientPermissionException.class, () -> {
+      mobilityChoice.setUser(userStud);
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_STUDENT);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC5() {
-    mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC6() {
-    userProf.setId(5);
-    mobilityChoice.setUser(userProf);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      userProf.setId(5);
+      mobilityChoice.setUser(userProf);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    });
   }
 
   @Test
   public void testCreateTC7() {
     mobilityChoice.setUser(userProf);
     mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    assertEquals("The user is not the one expected", userProf, mobilityChoice.getUser());
+    assertEquals(userProf, mobilityChoice.getUser(), "The user is not the one expected");
   }
 
   @Test
   public void testCreateTC8() {
     mobilityChoice.setUser(userProf);
     MobilityChoiceDto choice = mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    assertEquals("The mobility choice is not the one expected", choice, mobilityChoice);
+    assertEquals(choice, mobilityChoice, "The mobility choice is not the one expected");
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testShowAllTC1() {
-    mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "");
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "");
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testShowAllTC2() {
-    mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "LolAdibouLol");
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "LolAdibouLol");
+    });
   }
 
   @Test
@@ -314,31 +349,41 @@ public class TestMobilityChoiceUcc {
     assertEquals(2, data.get("count"));
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testGetMobilityChoiceForUserTC1() {
-    mobilityChoice.setUser(userStud);
-    mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_STUDENT);
-    mobilityChoiceUcc.countAll(6, UserDto.ROLE_STUDENT, null);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userStud);
+      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_STUDENT);
+      mobilityChoiceUcc.countAll(6, UserDto.ROLE_STUDENT, null);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC1() {
-    mobilityChoiceUcc.cancel(-1, userStud.getId(), CANCELLATION_REASON);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.cancel(-1, userStud.getId(), CANCELLATION_REASON);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC2() {
-    mobilityChoiceUcc.cancel(0, userStud.getId(), CANCELLATION_REASON);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.cancel(0, userStud.getId(), CANCELLATION_REASON);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC3() {
-    mobilityChoiceUcc.cancel(1, userStud.getId(), null);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.cancel(1, userStud.getId(), null);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCancelTC4() {
-    mobilityChoiceUcc.cancel(1, userStud.getId(), "");
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.cancel(1, userStud.getId(), "");
+    });
   }
 
   // TODO
@@ -347,32 +392,40 @@ public class TestMobilityChoiceUcc {
    * mobilityChoiceUcc.cancel(5, userStud.getId(), CANCELLATION_REASON); }
    */
 
-  @Test(expected = InsufficientPermissionException.class)
+  @Test
   public void testCancelTC6() {
-    mobilityChoice.setUser(userProf);
-    mobilityChoiceUcc.cancel(mobilityChoice.getId(), userStud.getId(), CANCELLATION_REASON);
+    assertThrows(InsufficientPermissionException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      mobilityChoiceUcc.cancel(mobilityChoice.getId(), userStud.getId(), CANCELLATION_REASON);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCancelTC7() {
-    mobilityChoice.setUser(userProf);
-    mobilityChoice.setCancellationReason(CANCELLATION_REASON);
-    mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      mobilityChoice.setCancellationReason(CANCELLATION_REASON);
+      mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCancelTC8() {
-    mobilityChoice.setUser(userProf);
-    mobilityChoice.setDenialReason(denialReason);
-    mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      mobilityChoice.setDenialReason(denialReason);
+      mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCancelTC9() {
-    mobilityChoice.setUser(userProf);
-    MobilityDto mobility = mockDtoFactory.getMobility();
-    mobilityDao.create(mobility);
-    mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      MobilityDto mobility = mockDtoFactory.getMobility();
+      mobilityDao.create(mobility);
+      mobilityChoiceUcc.cancel(mobilityChoice.getId(), userProf.getId(), CANCELLATION_REASON);
+    });
   }
 
   @Test
@@ -383,14 +436,18 @@ public class TestMobilityChoiceUcc {
     assertEquals(2, mobilityChoice.getVersion());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testRejectTC1() {
-    mobilityChoiceUcc.reject(0, denialReason.getId());
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.reject(0, denialReason.getId());
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testRejectTC2() {
-    mobilityChoiceUcc.reject(mobilityChoice.getId(), 0);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.reject(mobilityChoice.getId(), 0);
+    });
   }
 
   // TODO
@@ -399,27 +456,35 @@ public class TestMobilityChoiceUcc {
    * mobilityChoiceUcc.reject(3, denialReason.getId()); }
    */
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testRejectTC4() {
-    mobilityChoice.setDenialReason(denialReason);
-    mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setDenialReason(denialReason);
+      mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testRejectTC5() {
-    mobilityChoice.setCancellationReason(CANCELLATION_REASON);
-    mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setCancellationReason(CANCELLATION_REASON);
+      mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testRejectTC6() {
-    mobilityChoiceUcc.reject(mobilityChoice.getId(), 5);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.reject(mobilityChoice.getId(), 5);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testRejectTC7() {
-    mobilityDao.create(mockDtoFactory.getMobility());
-    mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityDao.create(mockDtoFactory.getMobility());
+      mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId());
+    });
   }
 
   @Test
@@ -428,9 +493,11 @@ public class TestMobilityChoiceUcc {
     assertEquals(2, mobilityChoice.getVersion());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testConfirmTC1() {
-    mobilityChoiceUcc.confirm(0, userStud.getId());
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.confirm(0, userStud.getId());
+    });
   }
 
   // TODO
@@ -439,29 +506,37 @@ public class TestMobilityChoiceUcc {
    * mobilityChoiceUcc.confirm(5, userStud.getId()); }
    */
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmTC3() {
-    mobilityChoiceUcc.confirm(mobilityChoice.getId(), 5);
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoiceUcc.confirm(mobilityChoice.getId(), 5);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmTC4() {
-    mobilityChoice.setDenialReason(denialReason);
-    mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setDenialReason(denialReason);
+      mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmTC5() {
-    mobilityChoice.setCancellationReason(CANCELLATION_REASON);
-    mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setCancellationReason(CANCELLATION_REASON);
+      mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmTC6() {
-    mobilityChoice.setUser(userProf);
-    MobilityDto mobility = mockDtoFactory.getMobility();
-    mobilityDao.create(mobility);
-    mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      MobilityDto mobility = mockDtoFactory.getMobility();
+      mobilityDao.create(mobility);
+      mobilityChoiceUcc.confirm(mobilityChoice.getId(), userStud.getId());
+    });
   }
 
   @Test
@@ -471,9 +546,8 @@ public class TestMobilityChoiceUcc {
     mobilityChoiceDao.create(secondaryMobilityChoice);
     mobilityChoice.setUser(userStud);
     mobilityChoiceUcc.confirm(mobilityChoice.getId(), userProf.getId());
-    assertEquals("It should exist 1 mobility", 1, mobilityDao.findAll().size());
-    assertEquals("It should exist 6 documents for that mobility", 8,
-        mobilityDocumentDao.findAllByMobility(mobilityChoice.getId()).size());
+    assertEquals(1, mobilityDao.findAll().size(), "It should exist 1 mobility");
+    assertEquals(8, mobilityDocumentDao.findAllByMobility(mobilityChoice.getId()).size(), "It should exist 6 documents for that mobility");
     int countNotRejected = 0;
     for (MobilityChoiceDto mobilityChoice : mobilityChoiceDao
         .findByUser(mobilityChoice.getUser().getId())) {
@@ -481,13 +555,14 @@ public class TestMobilityChoiceUcc {
         countNotRejected++;
       }
     }
-    assertEquals("It should remain only 1 mobilityChoice not rejected for that user", 1,
-        countNotRejected);
+    assertEquals(1, countNotRejected, "It should remain only 1 mobilityChoice not rejected for that user");
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testConfirmWithNewPartnerTC1() {
-    mobilityChoiceUcc.confirmWithNewPartner(0, partner, userProf.getId(), userProf.getRole());
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobilityChoiceUcc.confirmWithNewPartner(0, partner, userProf.getId(), userProf.getRole());
+    });
   }
 
   // TODO
@@ -496,58 +571,72 @@ public class TestMobilityChoiceUcc {
    * mobilityChoiceUcc.confirmWithNewPartner(5, partner, userProf.getId(), userProf.getRole()); }
    */
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC3() {
-    mobilityChoice.setDenialReason(denialReason);
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setDenialReason(denialReason);
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC4() {
-    mobilityChoice.setCancellationReason(CANCELLATION_REASON);
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setCancellationReason(CANCELLATION_REASON);
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
-  @Test(expected = InsufficientPermissionException.class)
+  @Test
   public void testConfirmWithNewPartnerTC5() {
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userStud.getId(),
-        userStud.getRole());
+    assertThrows(InsufficientPermissionException.class, () -> {
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userStud.getId(),
+          userStud.getRole());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC6() {
-    partner.setStatus(true);// official
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      partner.setStatus(true);// official
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC7() {
-    mobilityChoice.setUser(userProf);
-    MobilityDto mobility = mockDtoFactory.getMobility();
-    mobilityDao.create(mobility);
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      mobilityChoice.setUser(userProf);
+      MobilityDto mobility = mockDtoFactory.getMobility();
+      mobilityDao.create(mobility);
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC8() {
-    partner.setStatus(false);
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      partner.setStatus(false);
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testConfirmWithNewPartnerTC9() {
-    partner.setStatus(false);
-    mobilityChoice.setCountry(country);
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
-    programme.setId(3);
-    mobilityChoice.setProgramme(programme);
-    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
-        userProf.getRole());
+    assertThrows(BusinessException.class, () -> {
+      partner.setStatus(false);
+      mobilityChoice.setCountry(country);
+      ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+      programme.setId(3);
+      mobilityChoice.setProgramme(programme);
+      mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
+          userProf.getRole());
+    });
   }
 
 }

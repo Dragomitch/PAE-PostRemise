@@ -1,6 +1,7 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
@@ -12,10 +13,10 @@ import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
 public class TestUserUcc {
@@ -28,7 +29,7 @@ public class TestUserUcc {
   private UserDto stud;
 
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -36,7 +37,7 @@ public class TestUserUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     userDao = DependencyManager.getInstance(UserDao.class);
@@ -49,7 +50,7 @@ public class TestUserUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockUserDao) userDao).empty();
   }
@@ -61,11 +62,13 @@ public class TestUserUcc {
     assertEquals(prof.getId(), (userDao.findById(prof.getId())).getId());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCreateTC2() {
-    userUcc.signup(null);
-    prof.setId(1);
-    assertEquals(prof.getId(), (userDao.findById(prof.getId())).getId());
+    assertThrows(IllegalArgumentException.class, () -> {
+      userUcc.signup(null);
+      prof.setId(1);
+      assertEquals(prof.getId(), (userDao.findById(prof.getId())).getId());
+    });
   }
 
   @Test
@@ -75,32 +78,40 @@ public class TestUserUcc {
     assertEquals(2, (userDao.findAll().size()));
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC4() {
-    OptionDto option = mockDtoFactory.getOption();
-    option.setCode("Wrong Code Man");
-    stud.setOption(option);
-    userUcc.signup(stud);
+    assertThrows(BusinessException.class, () -> {
+      OptionDto option = mockDtoFactory.getOption();
+      option.setCode("Wrong Code Man");
+      stud.setOption(option);
+      userUcc.signup(stud);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC5() {
-    userUcc.signup(stud);
-    userUcc.signup(prof);
+    assertThrows(BusinessException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.signup(prof);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC6() {
-    userUcc.signup(stud);
-    prof.setUsername("chikiBriki");
-    userUcc.signup(prof);
+    assertThrows(BusinessException.class, () -> {
+      userUcc.signup(stud);
+      prof.setUsername("chikiBriki");
+      userUcc.signup(prof);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC7() {
-    userUcc.signup(stud);
-    prof.setEmail("MamyFaitDesBlagues@joke.be");
-    userUcc.signup(prof);
+    assertThrows(BusinessException.class, () -> {
+      userUcc.signup(stud);
+      prof.setEmail("MamyFaitDesBlagues@joke.be");
+      userUcc.signup(prof);
+    });
   }
 
   @Test
@@ -119,49 +130,63 @@ public class TestUserUcc {
     assertEquals(UserDto.ROLE_PROFESSOR, stud.getRole());
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testPromoteToProfessorTC2() {
-    userUcc.signup(stud);
-    userUcc.promoteToProfessor(69);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.promoteToProfessor(69);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPromoteToProfessorTC3() {
-    userUcc.signup(stud);
-    userUcc.promoteToProfessor(-1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.promoteToProfessor(-1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testEditTC1() {
-    userUcc.signup(stud);
-    userUcc.edit(null, 1, UserDto.ROLE_STUDENT);
+    assertThrows(IllegalArgumentException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.edit(null, 1, UserDto.ROLE_STUDENT);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testEditTC2() {
-    userUcc.signup(stud);
-    userUcc.edit(stud, -1, UserDto.ROLE_STUDENT);
+    assertThrows(IllegalArgumentException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.edit(stud, -1, UserDto.ROLE_STUDENT);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testEditTC3() {
-    userUcc.signup(stud);
-    userUcc.edit(stud, -1, "");
+    assertThrows(IllegalArgumentException.class, () -> {
+      userUcc.signup(stud);
+      userUcc.edit(stud, -1, "");
+    });
   }
 
   // Edit d'un User avec des données déjà existantes dans un autre User
-  @Test(expected = BusinessException.class)
+  @Test
   public void testEditTC4() {
-    userUcc.signup(prof);
-    userUcc.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(BusinessException.class, () -> {
+      userUcc.signup(prof);
+      userUcc.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testEditTC5() {
-    userUcc.signup(prof);
-    prof.setUsername("chikiBriki");
-    prof.setEmail("MamyFaitDesBlagues@joke.be");
-    userUcc.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      userUcc.signup(prof);
+      prof.setUsername("chikiBriki");
+      prof.setEmail("MamyFaitDesBlagues@joke.be");
+      userUcc.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
 

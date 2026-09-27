@@ -1,16 +1,16 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class TestDocument {
 
@@ -22,7 +22,7 @@ public class TestDocument {
   private EntityFactory entityFactory;
   private DocumentDto document;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -30,7 +30,7 @@ public class TestDocument {
   /**
    * Creates a new Document instance.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     this.document = (DocumentDto) entityFactory.build(DocumentDto.class);

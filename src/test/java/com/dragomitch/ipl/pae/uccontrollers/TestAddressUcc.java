@@ -1,6 +1,7 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
@@ -11,10 +12,10 @@ import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 
 public class TestAddressUcc {
@@ -25,7 +26,7 @@ public class TestAddressUcc {
   private MockDtoFactory mockDtoFactory;
   private AddressDto address;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -33,7 +34,7 @@ public class TestAddressUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     addressDao = DependencyManager.getInstance(AddressDao.class);
@@ -45,7 +46,7 @@ public class TestAddressUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockAddressDao) addressDao).empty();
   }
@@ -57,44 +58,58 @@ public class TestAddressUcc {
     assertEquals(address.getId(), (addressDao.findById(address.getId())).getId());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCreateTC2() {
-    addressUcc.create(null);
+    assertThrows(IllegalArgumentException.class, () -> {
+      addressUcc.create(null);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC3() {
-    address.setNumber("The Number of the beast");
-    addressUcc.create(address);
+    assertThrows(BusinessException.class, () -> {
+      address.setNumber("The Number of the beast");
+      addressUcc.create(address);
+    });
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testCreateTC4() {
-    address.getCountry().setCountryCode("ZZ");
-    addressUcc.create(address);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      address.getCountry().setCountryCode("ZZ");
+      addressUcc.create(address);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testEditTC1() {
-    addressUcc.edit(null);
+    assertThrows(IllegalArgumentException.class, () -> {
+      addressUcc.edit(null);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testEditTC2() {
-    address.setNumber("V for Vendetta");
-    addressUcc.edit(address);
+    assertThrows(BusinessException.class, () -> {
+      address.setNumber("V for Vendetta");
+      addressUcc.edit(address);
+    });
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testEditTC3() {
-    address.getCountry().setCountryCode("ZZ");
-    addressUcc.edit(address);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      address.getCountry().setCountryCode("ZZ");
+      addressUcc.edit(address);
+    });
   }
 
-  @Test(expected = RessourceNotFoundException.class)
+  @Test
   public void testEditTC4() {
-    address.setId(69);
-    addressUcc.edit(address);
+    assertThrows(RessourceNotFoundException.class, () -> {
+      address.setId(69);
+      addressUcc.edit(address);
+    });
   }
 
   @Test

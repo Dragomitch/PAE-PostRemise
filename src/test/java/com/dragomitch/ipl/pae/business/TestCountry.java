@@ -1,4 +1,4 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

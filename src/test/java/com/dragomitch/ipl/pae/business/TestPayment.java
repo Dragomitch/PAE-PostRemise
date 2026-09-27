@@ -1,6 +1,6 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
@@ -12,9 +12,9 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -31,7 +31,7 @@ public class TestPayment {
   private EntityFactory entityFactory;
   private PaymentDto payment;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -39,7 +39,7 @@ public class TestPayment {
   /**
    * Creates a new Payment instance.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     this.payment = (PaymentDto) entityFactory.build(PaymentDto.class);

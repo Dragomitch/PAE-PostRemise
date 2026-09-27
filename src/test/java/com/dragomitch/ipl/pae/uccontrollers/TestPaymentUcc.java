@@ -1,6 +1,7 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
@@ -11,10 +12,10 @@ import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPaymentDao;
 import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.PaymentUcc;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class TestPaymentUcc {
   private PaymentDto payment2;
 
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -37,7 +38,7 @@ public class TestPaymentUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     paymentDao = DependencyManager.getInstance(PaymentDao.class);
@@ -52,7 +53,7 @@ public class TestPaymentUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockPaymentDao) paymentDao).empty();
   }
@@ -65,10 +66,12 @@ public class TestPaymentUcc {
   }
 
   @SuppressWarnings("unchecked")
-  @Test(expected = InsufficientPermissionException.class)
+  @Test
   public void testShowAllTC2() {
-    Object payments = paymentUcc.showAll(UserDto.ROLE_STUDENT).get("data");
-    assertEquals(2, ((ArrayList<PaymentDto>) payments).size());
+    assertThrows(InsufficientPermissionException.class, () -> {
+      Object payments = paymentUcc.showAll(UserDto.ROLE_STUDENT).get("data");
+      assertEquals(2, ((ArrayList<PaymentDto>) payments).size());
+    });
   }
 
 

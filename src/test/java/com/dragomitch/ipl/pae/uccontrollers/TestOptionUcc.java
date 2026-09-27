@@ -1,6 +1,6 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
@@ -30,7 +30,7 @@ public class TestOptionUcc {
   private PartnerDao partnerDao;
   private PartnerOptionDao partnerOptionDao;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -38,7 +38,7 @@ public class TestOptionUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     this.entityFactory = DependencyManager.getInstance(EntityFactory.class);
     this.optionUcc = DependencyManager.getInstance(OptionUcc.class);
@@ -46,7 +46,7 @@ public class TestOptionUcc {
     this.partnerOptionDao = DependencyManager.getInstance(PartnerOptionDao.class);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockPartnerDao) partnerDao).empty();
     ((MockPartnerOptionDao) partnerOptionDao).empty();

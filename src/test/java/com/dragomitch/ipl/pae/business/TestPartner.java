@@ -1,7 +1,7 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Partner;
@@ -11,9 +11,9 @@ import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public class TestPartner {
   private EntityFactory entityFactory;
   private Partner partner;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -44,7 +44,7 @@ public class TestPartner {
    * Creates a new Partner instance and populates its "address","options" and "programme"
    * attributes.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     partner = (Partner) entityFactory.build(Partner.class);

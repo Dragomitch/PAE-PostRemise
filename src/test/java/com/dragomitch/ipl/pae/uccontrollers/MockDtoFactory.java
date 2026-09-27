@@ -1,4 +1,4 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.EntityFactory;

@@ -1,9 +1,10 @@
-package java.utils;
+package com.dragomitch.ipl.pae.utils;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
 import java.lang.reflect.Constructor;
@@ -215,16 +216,20 @@ public class TestDataValidationUtils {
     assertTrue(DataValidationUtils.isPositiveOrZero(number));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckStringTC1() {
-    String str = null;
-    DataValidationUtils.checkString(str);
+    assertThrows(IllegalArgumentException.class, () -> {
+      String str = null;
+      DataValidationUtils.checkString(str);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckStringTC2() {
-    String str = "";
-    DataValidationUtils.checkString(str);
+    assertThrows(IllegalArgumentException.class, () -> {
+      String str = "";
+      DataValidationUtils.checkString(str);
+    });
   }
 
   @Test
@@ -233,10 +238,12 @@ public class TestDataValidationUtils {
     DataValidationUtils.checkString(str);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckObjectTC1() {
-    Object object = null;
-    DataValidationUtils.checkObject(object);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Object object = null;
+      DataValidationUtils.checkObject(object);
+    });
   }
 
   @Test
@@ -245,16 +252,20 @@ public class TestDataValidationUtils {
     DataValidationUtils.checkObject(object);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckPositiveTC1() {
-    int number = -1;
-    DataValidationUtils.checkPositive(number);
+    assertThrows(IllegalArgumentException.class, () -> {
+      int number = -1;
+      DataValidationUtils.checkPositive(number);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckPositiveTC2() {
-    int number = 0;
-    DataValidationUtils.checkPositive(number);
+    assertThrows(IllegalArgumentException.class, () -> {
+      int number = 0;
+      DataValidationUtils.checkPositive(number);
+    });
   }
 
   @Test
@@ -263,10 +274,12 @@ public class TestDataValidationUtils {
     DataValidationUtils.checkPositive(number);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCheckPositiveOrZeroTC1() {
-    int number = -1;
-    DataValidationUtils.checkPositiveOrZero(number);
+    assertThrows(IllegalArgumentException.class, () -> {
+      int number = -1;
+      DataValidationUtils.checkPositiveOrZero(number);
+    });
   }
 
   @Test
@@ -289,12 +302,14 @@ public class TestDataValidationUtils {
     }
   }
 
-  @Test(expected = InvocationTargetException.class)
+  @Test
   public void testInstantiationTC2() throws NoSuchMethodException, IllegalAccessException,
       InstantiationException, InvocationTargetException {
-    Constructor<?> constructor = DataValidationUtils.class.getDeclaredConstructor();
-    constructor.setAccessible(true);
-    constructor.newInstance();
+    assertThrows(InvocationTargetException.class, () -> {
+      Constructor<?> constructor = DataValidationUtils.class.getDeclaredConstructor();
+      constructor.setAccessible(true);
+      constructor.newInstance();
+    });
   }
 
 }

@@ -1,6 +1,7 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.User;
@@ -10,9 +11,9 @@ import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +22,7 @@ public class TestUser {
   private static final String USERNAME = "username";
   public static final String LAST_NAME = "Last Name";
   private static final String FIRST_NAME = "First Name";
-  private static final String EMAIL = "email@docom";
+  private static final String EMAIL = "email@do.com";
   private static final String PASSWORD = "password";
   private static final String OPTION_CODE = "BIN";
   private static final String ROLE = "student";
@@ -38,7 +39,7 @@ public class TestUser {
   /**
    * Loads the necessary resources for the execution of tests.
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -46,7 +47,7 @@ public class TestUser {
   /**
    * Creates a new User instance.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     user = setUpCorrectUser();
@@ -108,112 +109,148 @@ public class TestUser {
     assertEquals(REGISTRATION_DATE, user.getRegistrationDate());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC1() {
-    user.setUsername(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setUsername(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC2() {
-    user.setUsername("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setUsername("");
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC3() {
-    user.setUsername(LONG_STRING_21);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setUsername(LONG_STRING_21);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC4() {
-    user.setLastName(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setLastName(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC5() {
-    user.setLastName("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setLastName("");
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC6() {
-    user.setLastName(LONG_STRING_36);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setLastName(LONG_STRING_36);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC7() {
-    user.setFirstName(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setFirstName(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC8() {
-    user.setFirstName("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setFirstName("");
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC9() {
-    user.setFirstName(LONG_STRING_36);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setFirstName(LONG_STRING_36);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC10() {
-    user.setPassword(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setPassword(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC11() {
-    user.setPassword("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setPassword("");
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC12() {
-    user.setPassword(LONG_STRING_256);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setPassword(LONG_STRING_256);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC13() {
-    user.setEmail(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setEmail(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC14() {
-    user.setEmail("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setEmail("");
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC15() {
-    user.setEmail(LONG_STRING_256);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setEmail(LONG_STRING_256);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC16() {
-    user.setOption(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.setOption(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC17() {
-    user.getOption().setCode(null);
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.getOption().setCode(null);
+      user.checkDataIntegrity();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckDataIntegrityTC18() {
-    user.getOption().setCode("");
-    user.checkDataIntegrity();
+    assertThrows(BusinessException.class, () -> {
+      user.getOption().setCode("");
+      user.checkDataIntegrity();
+    });
   }
 
   @Test

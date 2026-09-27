@@ -1,11 +1,11 @@
-package java.business;
+package com.dragomitch.ipl.pae.business;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,9 +18,10 @@ import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestMobility {
 
@@ -32,7 +33,7 @@ public class TestMobility {
   private EntityFactory entityFactory;
   private Mobility mobility;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -40,7 +41,7 @@ public class TestMobility {
   /**
    * Creates a new Mobility instance and populates its "documents" attribute.
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     entityFactory = (EntityFactory) DependencyManager.getInstance(EntityFactory.class);
     mobility = (Mobility) entityFactory.build(Mobility.class);
@@ -122,20 +123,26 @@ public class TestMobility {
     assertEquals(student, mobility.getNominatedStudent());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testFillInDocumentTC1() {
-    mobility.fillInDocument(0);
+    assertThrows(IllegalArgumentException.class, () -> {
+      mobility.fillInDocument(0);
+    });
   }
 
-  @Test(expected = FatalException.class)
+  @Test
   public void testFillInDocumentTC2() {
-    mobility.setDocuments(null);
-    mobility.fillInDocument(1);
+    assertThrows(FatalException.class, () -> {
+      mobility.setDocuments(null);
+      mobility.fillInDocument(1);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testFillInDocumentTC3() {
-    mobility.fillInDocument(99);
+    assertThrows(BusinessException.class, () -> {
+      mobility.fillInDocument(99);
+    });
   }
 
   @Test
@@ -183,9 +190,11 @@ public class TestMobility {
     assertTrue(mobility.allReturnDocumentsFilledIn());
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckAllDocumentsFilledInTC1() {
-    mobility.checkAllDocumentsFilledIn();
+    assertThrows(BusinessException.class, () -> {
+      mobility.checkAllDocumentsFilledIn();
+    });
   }
 
   @Test
@@ -195,9 +204,11 @@ public class TestMobility {
     mobility.checkAllDocumentsFilledIn();
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckAllDepartureDocumentsFilledInTC1() {
-    mobility.checkAllDepartureDocumentsFilledIn();
+    assertThrows(BusinessException.class, () -> {
+      mobility.checkAllDepartureDocumentsFilledIn();
+    });
   }
 
   @Test
@@ -206,9 +217,11 @@ public class TestMobility {
     mobility.checkAllDepartureDocumentsFilledIn();
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckAllReturnDocumentsFilledInTC1() {
-    mobility.checkAllReturnDocumentsFilledIn();
+    assertThrows(BusinessException.class, () -> {
+      mobility.checkAllReturnDocumentsFilledIn();
+    });
   }
 
   @Test
@@ -224,15 +237,19 @@ public class TestMobility {
   }
 
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckCancelledOrClosedTC2() {
-    mobility.setState(Mobility.STATE_CANCELLED);
-    mobility.checkNotCancelledAndNotClosed();
+    assertThrows(BusinessException.class, () -> {
+      mobility.setState(Mobility.STATE_CANCELLED);
+      mobility.checkNotCancelledAndNotClosed();
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCheckCancelledOrClosedTC3() {
-    mobility.setState(Mobility.STATE_CLOSED);
-    mobility.checkNotCancelledAndNotClosed();
+    assertThrows(BusinessException.class, () -> {
+      mobility.setState(Mobility.STATE_CLOSED);
+      mobility.checkNotCancelledAndNotClosed();
+    });
   }
 }

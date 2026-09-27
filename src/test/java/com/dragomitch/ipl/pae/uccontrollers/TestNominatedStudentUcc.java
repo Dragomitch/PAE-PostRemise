@@ -1,6 +1,7 @@
-package java.ucc;
+package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
@@ -12,10 +13,10 @@ import com.dragomitch.ipl.pae.context.ErrorManager;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockNominatedStudentDao;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
 
 public class TestNominatedStudentUcc {
@@ -26,7 +27,7 @@ public class TestNominatedStudentUcc {
   private MockDtoFactory mockDtoFactory;
   private NominatedStudentDto nominatedStud;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ContextManager.loadContext(ContextManager.ENV_TEST);
   }
@@ -34,7 +35,7 @@ public class TestNominatedStudentUcc {
   /**
    * Sets up the environment before every test.
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     entityFactory = DependencyManager.getInstance(EntityFactory.class);
     nominatedStudentDao = DependencyManager.getInstance(NominatedStudentDao.class);
@@ -47,20 +48,24 @@ public class TestNominatedStudentUcc {
   /**
    * Cleans up the 'database'.
    */
-  @After
+  @AfterEach
   public void cleanUp() {
     ((MockNominatedStudentDao) nominatedStudentDao).empty();
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCreateTC1() {
-    nominatedStudentUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
+    assertThrows(IllegalArgumentException.class, () -> {
+      nominatedStudentUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
+    });
   }
 
-  @Test(expected = BusinessException.class)
+  @Test
   public void testCreateTC2() {
-    nominatedStudentDao.create(nominatedStud);
-    nominatedStudentUcc.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
-    assertEquals(1, nominatedStudentDao.findAll().size());
+    assertThrows(BusinessException.class, () -> {
+      nominatedStudentDao.create(nominatedStud);
+      nominatedStudentUcc.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
+      assertEquals(1, nominatedStudentDao.findAll().size());
+    });
   }
 }
