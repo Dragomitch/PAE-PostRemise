@@ -45,6 +45,7 @@ public class UserUccImpl implements UserUcc {
   private UnitOfWork unitOfWork;
   private PasswordEncoder passwordEncoder;
 
+  @Inject
   @Autowired
   public UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
       UnitOfWork unitOfWork, PasswordEncoder passwordEncoder) {

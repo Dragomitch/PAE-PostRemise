@@ -9,13 +9,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.Map;
 
 public class ErrorManager {
-
-  private static final String FILE_NAME = ContextManager.getProperty(ContextManager.ENV_ERRORS);
 
   private static Map<Integer, ErrorFormat> errors;
 
@@ -30,14 +27,11 @@ public class ErrorManager {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    try {
-      String contentFile = new String(
-          Files.readAllBytes(Paths.get(ContextManager.getCurrentAbsolutePath() + FILE_NAME)),
-          "UTF-8");
-      ErrorManager.errors = mapper.readValue(contentFile,
-          new TypeReference<Map<Integer, ErrorFormat>>() {});
+    String fileName = ContextManager.getProperty(ContextManager.ENV_ERRORS);
+    try (InputStream in = ContextManager.openResource(fileName)) {
+      ErrorManager.errors = mapper.readValue(in, new TypeReference<Map<Integer, ErrorFormat>>() {});
     } catch (IOException ex) {
-      throw new FatalException("I/O Error while reading properties file: " + FILE_NAME, ex);
+      throw new FatalException("I/O Error while reading error file: " + fileName, ex);
     }
   }
 

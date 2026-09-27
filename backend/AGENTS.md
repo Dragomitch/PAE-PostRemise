@@ -23,7 +23,7 @@ List the main technologies and tools used in the project:
 - **Database**: PostgreSQL
 - **Build Tool**: Maven
 - **Deployment**: Docker/Docker Compose
-- **Testing**: JUnit 4 with Spring Boot Test
+- **Testing**: JUnit 5 (Jupiter) with Mockito and Spring Boot Test
 
 ## Project Structure
 
@@ -35,7 +35,9 @@ src/
 │   ├── java/
 │   ├── resources/
 │   └── webapp/
-└── test/java/
+└── test/
+    ├── java/       # mirrors the main package structure
+    └── resources/  # test.properties (legacy context wired to the mock DAOs)
 pom.xml
 ```
 
@@ -107,7 +109,7 @@ Persistence is handled with Spring Data JPA repositories found under `persistenc
 
 ### Unit Testing
 
-- Testing framework: JUnit 4
+- Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
 - Test coverage requirements: aim for 80%
 - Test file organization: mirror package structure under `src/test/java`
 
