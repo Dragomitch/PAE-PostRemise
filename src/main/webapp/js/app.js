@@ -52,10 +52,41 @@ var debugg = 1;
     }
 
     function init() {
-      // API responses depend on the authenticated user: never let the browser
-      // serve a GET from its cache (e.g. the previous user's data or session).
-      $.ajaxSetup({cache: false});
+      $.ajaxSetup({
+        // API responses depend on the authenticated user: never let the browser
+        // serve a GET from its cache (e.g. the previous user's data or session).
+        cache: false,
+        // CSRF protection: every state-changing request must echo the
+        // XSRF-TOKEN cookie issued by the server in the X-XSRF-TOKEN header.
+        beforeSend: function (xhr, settings) {
+          if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+            var token = readCookie('XSRF-TOKEN');
+            if (token !== undefined) {
+              xhr.setRequestHeader('X-XSRF-TOKEN', token);
+            }
+          }
+        }
+      });
       getSession();
+    }
+
+    function readCookie(name) {
+      var cookies = document.cookie ? document.cookie.split('; ') : [];
+      for (var i = 0; i < cookies.length; i++) {
+        var separator = cookies[i].indexOf('=');
+        if (cookies[i].substring(0, separator) === name) {
+          return decodeURIComponent(cookies[i].substring(separator + 1));
+        }
+      }
+      return undefined;
+    }
+
+    // Options of a $.ajax call sending `data` as a JSON request body.
+    function jsonBody(data) {
+      return {
+        contentType: 'application/json',
+        data: JSON.stringify(data)
+      };
     }
 
     function isStudent() {
@@ -82,6 +113,7 @@ var debugg = 1;
 
     return {
       API_URL: API_URL,
+      jsonBody: jsonBody,
       start: init,
       getAppName: getAppName,
       getUser: getUser,
@@ -134,10 +166,9 @@ var debugg = 1;
 
     function submitHandler(e) {
       e.preventDefault();
-      $.ajax({
+      $.ajax($.extend({
         url: app.API_URL + '/session',
         method: 'POST',
-        data: Utils.serializeForm($form),
         async: false,
         success: function (data) {
           app.setUser(data);
@@ -153,7 +184,7 @@ var debugg = 1;
           $alert.show();
           Utils.animate($el, 'wobble');
         }
-      });
+      }, app.jsonBody(Utils.serializeForm($form))));
     }
 
     function render() {
@@ -258,10 +289,9 @@ var debugg = 1;
         return;
       }
       var data = Utils.serializeForm($form);
-      $.ajax({
+      $.ajax($.extend({
         url: app.API_URL + '/users',
         method: 'POST',
-        data: {data: JSON.stringify(data)},
         success: function () {
           PubSub.publish('signup');
           Router.navigate('/connexion');
@@ -290,7 +320,7 @@ var debugg = 1;
             PubSub.publish('serverError');
           }
         }
-      });
+      }, app.jsonBody(data)));
     }
 
     function loadOptions() {
@@ -484,15 +514,14 @@ var debugg = 1;
     function confirmWithPartner(mChoiceId, partner) {
       console.log(partner);
       console.log(JSON.stringify(partner));
-      $.ajax({
+      $.ajax($.extend({
         url: app.API_URL + '/mobilityChoices/' + mChoiceId
         + '/confirmWithNewPartner',
         method: 'PUT',
-        data: {data: JSON.stringify(partner)},
         success: function (resp) {
           PubSub.publish('updateMobilityChoices');
         }
-      });
+      }, app.jsonBody(partner)));
     }
 
     function cancel(e) {
@@ -793,19 +822,16 @@ var debugg = 1;
       e.preventDefault();
       $form.validate({debug: true});
       var data = Utils.serializeForm($form);
-      $.ajax({
-        url: app.API_URL + '/denialreasons/',
+      $.ajax($.extend({
+        url: app.API_URL + '/denialReasons',
         method: 'POST',
-        data: {
-          reason: JSON.stringify(data['denialReason'])
-        },
         success: function () {
           switchToSelect(e);
         },
         error: function () {
           Utils.animate($el, 'wobble');
         }
-      });
+      }, app.jsonBody(data['denialReason'])));
     }
 
     // Form validation
@@ -937,10 +963,9 @@ var debugg = 1;
         if (!app.isProfessor()) {
           data.user = app.getUser();
         }
-        $.ajax({
+        $.ajax($.extend({
           url: app.API_URL + '/mobilityChoice',
           method: 'POST',
-          data: {data: JSON.stringify(data)},
           success: function () {
             destroy();
             PubSub.publish('updateMobilityChoices');
@@ -948,7 +973,7 @@ var debugg = 1;
           error: function (e) {
             Utils.animate($el, 'wobble');
           }
-        });
+        }, app.jsonBody(data)));
       } else {
         Utils.animate($el, 'wobble');
       }
@@ -1111,14 +1136,12 @@ var debugg = 1;
     function submitHandler(e) {
       e.preventDefault();
       $form.validate();
-      var data = JSON.stringify($form.find('textarea').val());
+      var reason = $form.find('textarea').val();
 
       $.ajax({
-        url: app.API_URL + '/mobilityChoices/' + mChoiceId + '/cancel',
+        url: app.API_URL + '/mobilityChoices/' + mChoiceId + '/cancel?'
+        + $.param({reason: reason}),
         method: 'PUT',
-        data: {
-          "reason": data
-        },
         success: function () {
           destroy();
           PubSub.publish('updateMobilityChoices');
@@ -1196,11 +1219,9 @@ var debugg = 1;
       e.preventDefault();
       var data = Utils.serializeForm($form);
       $.ajax({
-        url: app.API_URL + '/mobilityChoices/' + mChoiceId + '/reject',
+        url: app.API_URL + '/mobilityChoices/' + mChoiceId + '/reject?'
+        + $.param({reason: data['denialReason']['id']}),
         method: 'PUT',
-        data: {
-          "reason": data['denialReason']['id']
-        },
         success: function () {
           PubSub.publish('updateMobilityChoices');
         },
@@ -1518,10 +1539,9 @@ var debugg = 1;
         destroy();
         PubSub.publish('updateMobilityChoices');
       } else {
-        $.ajax({
+        $.ajax($.extend({
           url: url,
           method: method,
-          data: {data: JSON.stringify(data)},
           success: function (response) {
             destroy();
             PubSub.publish('updatePartners');
@@ -1531,7 +1551,7 @@ var debugg = 1;
               PubSub.publish('serverError');
             }
           }
-        });
+        }, app.jsonBody(data)));
       }
     }
 
@@ -2704,10 +2724,9 @@ var debugg = 1;
     }
 
     function sync() {
-      $.ajax({
+      $.ajax($.extend({
         method: 'PUT',
         url: app.API_URL + '/partners/' + partner.id,
-        data: 'data=' + JSON.stringify(partner),
         success: function (data) {
           partner.version = data.version;
           partner.address.version = data.address.version;
@@ -2723,7 +2742,7 @@ var debugg = 1;
         500: function () {
           PubSub.publish('serverError');
         }
-      });
+      }, app.jsonBody(partner)));
     }
 
     return {
@@ -2942,30 +2961,28 @@ var debugg = 1;
     }
 
     function syncUpdate() {
-      $.ajax({
+      $.ajax($.extend({
         method: (isComplete) ? 'PUT' : 'POST',
-        url: app.API_URL + '/nominatedStudents/' + ((isComplete)
-            ? app.getUser().id : ''),
-        data: 'data=' + JSON.stringify(student),
+        url: app.API_URL + '/nominatedStudents' + ((isComplete)
+            ? '/' + app.getUser().id : ''),
         success: function (resp) {
           student.version = resp.version;
           isComplete = true;
           $el.find('.notification').show();
         }
-      });
+      }, app.jsonBody(student)));
     }
 
     function sync() { //TODO Remove if students can become nominated without problems
-      $.ajax({
+      $.ajax($.extend({
         method: 'POST',
-        url: app.API_URL + '/nominatedStudents/',
-        data: 'data=' + JSON.stringify(student),
+        url: app.API_URL + '/nominatedStudents',
         success: function (resp) {
           student.version = resp.version;
           isComplete = true;
           $el.find('.notification').show();
         }
-      });
+      }, app.jsonBody(student)));
     }
 
     function render() {
