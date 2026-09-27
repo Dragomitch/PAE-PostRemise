@@ -396,7 +396,6 @@ var debugg = 1;
 
     // Private attributes
     var title = 'Demandes de mobilité';
-    var filter;
     var table;
 
     // Cache DOM
@@ -487,19 +486,38 @@ var debugg = 1;
 
     function reloadTable(e) {
       e.preventDefault();
-      table.destroy();
-      initializeTable();
+      // The filter is read when each request is built (see addFilterParam),
+      // so reloading the data is enough: no need to re-initialise the table.
+      if (table) {
+        table.ajax.reload();
+      } else {
+        initializeTable();
+      }
+    }
+
+    function addFilterParam(data) {
+      data.filter = $filtersSelect.val();
+    }
+
+    function destroyTable() {
+      if ($.fn.dataTable.isDataTable($table)) {
+        $table.DataTable().destroy();
+      }
+      // destroy() leaves the generated <thead> and <tbody> rows in the table.
+      // Remove them, otherwise the next initialisation reuses the old header
+      // and rows, which breaks as soon as the column set differs.
+      $table.empty();
+      table = undefined;
     }
 
     function initializeTable() {
+      destroyTable();
       if (app.isProfessor()) {
         table = $table.DataTable({
           serverSide: false,
           ajax: {
             url: app.API_URL + '/mobilityChoices',
-            data: {
-              filter: $filtersSelect.val()
-            }
+            data: addFilterParam
           },
           autoWidth: false,
           bLengthChange: false,
@@ -587,9 +605,7 @@ var debugg = 1;
           serverSide: false,
           ajax: {
             url: app.API_URL + '/mobilityChoices',
-            data: {
-              filter: $filtersSelect.val()
-            }
+            data: addFilterParam
           },
           autoWidth: false,
           bLengthChange: false,
