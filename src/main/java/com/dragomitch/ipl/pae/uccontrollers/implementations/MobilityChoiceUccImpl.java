@@ -296,9 +296,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     entries[5] = mobilityChoice.getProgramme().getProgrammeName();
     entries[6] = mobilityChoice.getMobilityType();
     entries[7] = mobilityChoice.getTerm() + "";
-    if (mobilityChoice.getPartner() != null) {
-      entries[8] = mobilityChoice.getPartner().getFullName();
-    }
+    PartnerDto partner = mobilityChoice.getPartner();
+    entries[8] = partner == null ? "" : partner.getFullName();
     return entries;
   }
 

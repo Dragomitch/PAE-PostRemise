@@ -719,6 +719,19 @@ class MobilityChoiceUccImplTest {
     }
 
     @Test
+    void aChoiceWithoutPartnerHasAnEmptyPartnerColumn() {
+      MobilityChoiceDto withoutPartner = storedChoice(CHOICE_ID, 2016, 1);
+      withoutPartner.setPartner(null);
+      when(mobilityChoiceDao.findAll(MobilityChoiceDao.FILTER_ACTIVE_MOBILITIES_CHOICES))
+          .thenReturn(List.of(withoutPartner));
+
+      String csv = mobilityChoiceUcc.exportAll(PROFESSOR_ID, UserDto.ROLE_PROFESSOR, null);
+
+      assertThat(csv.lines().skip(1)).containsExactly(
+          "11;TheReaper;Jack;Bachelier en informatique de gestion;1;Erasmus+;SMS;1;;");
+    }
+
+    @Test
     void withoutChoicesOnlyTheHeaderIsExported() {
       givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
       when(mobilityChoiceDao.findByUser(STUDENT_ID)).thenReturn(List.of());
