@@ -23,6 +23,7 @@ List the main technologies and tools used in the project:
 - **Database**: PostgreSQL
 - **Build Tool**: Maven
 - **Deployment**: Docker/Docker Compose
+- **Persistence**: Spring Data JDBC repositories and `JdbcClient` on PostgreSQL (schema in `SQLRessources/init.sql`)
 - **Testing**: JUnit 5 (Jupiter) with Mockito and Spring Boot Test
 
 ## Project Structure
@@ -109,7 +110,56 @@ Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1
 
 ### Feature Module 2
 
-Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with error 120) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
+Persistence (`persistence`) is being migrated from hand-written JDBC to **Spring Data JDBC**. The use cases only see the DAO interfaces (`persistence/*Dao`), whose signatures and behaviour do not change; the `*IT` tests describe that behaviour and must keep passing unchanged.
+
+**Why Spring Data JDBC rather than JPA.** The schema is hand-written SQL (`SQLRessources/init.sql`) and the DAOs return detached DTOs built by `EntityFactory`. Spring Data JDBC maps such a schema as it is (explicit `@Table`/`@Column`, no DDL generation), runs one SQL statement per call, and has no persistence context, lazy loading, dirty checking or flush timing. It runs on the same `DataSource` and `DataSourceTransactionManager` as the remaining SQL, so a use case can mix both in one transaction. JPA would need a `JpaTransactionManager` for everything and bring proxies that fail outside the session and entity-graph tuning, for no gain: the DTOs are copied anyway.
+
+Target architecture:
+
+```
+persistence/
+├── XxxDao.java                  # contract used by the use cases (unchanged)
+├── implementations/XxxDaoImpl   # @Repository adapter: repository or JdbcClient -> DTO
+│   └── DataAccess               # wraps every DAO call: transaction required, exception contract
+└── jdbc/
+    ├── JdbcPersistenceConfig    # AbstractJdbcConfiguration + @EnableJdbcRepositories, PostgreSQL dialect
+    ├── entity/XxxEntity         # immutable records: @Table(schema = SCHEMA, name), @Id, @Column, @Version,
+    │                            #   other aggregates referenced by id (AggregateReference)
+    └── repository/XxxRepository # ListCrudRepository + derived queries, @Query/@Modifying for the rest
+```
+
+- **Transactions**: repositories and `JdbcClient` run on the `NamedParameterJdbcTemplate`, i.e. on the connection that `DataSourceUtils` binds to the Spring transaction opened by `@Transactional` on the use case. `DataAccess.call` rejects a DAO call outside a transaction (`IllegalStateException`). `SharedTransactionIT` checks that Spring Data and `JdbcClient` run in the same PostgreSQL transaction, see each other's uncommitted rows, and that the rollback undoes both.
+- **Exceptions**: `DataAccess.call` keeps the DAO contract. `OptimisticLockingFailureException` becomes `ConcurrentModificationException` (error 120). Any other `DataAccessException`, and Spring Data's `DbActionExecutionException`, becomes `FatalException`.
+- **Optimistic locking**: tables with a `version` column map it to a primitive `@Version int version`. Spring Data inserts 1 and updates with `WHERE id = ? AND version = ?`, incrementing it. Adapters call `JdbcAggregateOperations.insert`/`update` explicitly rather than `save`, which guesses from the version, and copy the new version back into the DTO. Read-only reference tables (countries, documents) do not map their unused version column.
+- **Mapping**: entity <-> DTO mapping lives in the adapter (`toDto`/`toEntity`, a few lines). Names of referenced aggregates are read from that aggregate's repository instead of a join (the option name of a user, the country name of an address, the programme of a country): one extra query, or one `findAll` for a list.
+- **Configuration**: `JdbcPersistenceConfig` replaces Spring Boot's Spring Data JDBC auto-configuration. The application and `DaoItConfig` (the IT context, which has no Boot auto-configuration) therefore use the same setup. The dialect is declared, so the application starts without a database.
+
+| DAO | Implementation | Notes |
+|---|---|---|
+| Option, Programme, Country, Document | Spring Data repositories | read-only reference data; derived queries (`findAllByOrderByNameAsc`, `findByProgramme(AggregateReference)`) |
+| DenialReason | Spring Data repository | no version: update is a `@Modifying @Query` that ignores an unknown id (legacy) |
+| Address, User | Spring Data repositories + `JdbcAggregateOperations` | `@Version`; the user registration date is `@InsertOnlyProperty`; `promoteToProfessor` is a `@Modifying @Query` that leaves the version alone (legacy); `findBy(column, value)` resolves the column through the mapping instead of concatenating it into the SQL |
+| Payment | `JdbcClient` | read model (UNION over mobilities), not an aggregate |
+| MobilityChoice, Mobility, MobilityDocument, NominatedStudent, Partner, PartnerOption | `JdbcClient` + `RowMapper` | SQL kept (text blocks, explicit joins); `UPDATE ... WHERE version = ? RETURNING version` |
+
+**Migrating the next DAO (checklist)**
+
+1. Read its `*IT` (the contract, including the legacy behaviours it pins) and its table in `init.sql`.
+2. Add `persistence/jdbc/entity/XxxEntity`: a record with `@Table(schema = JdbcPersistenceConfig.SCHEMA, name = ...)` and `@Id`. Add `@Column` for names that are not the snake_case of the property, a primitive `@Version int version` if the table has a version column, `AggregateReference` for foreign keys to other aggregates, and `@InsertOnlyProperty` for columns the old UPDATE did not write.
+3. Add `persistence/jdbc/repository/XxxRepository extends ListCrudRepository<XxxEntity, Id>`. Prefer derived queries. Use `@Query` (schema spelled out) for joins and projections, and `@Modifying @Query` for partial updates that must not touch the version.
+4. Rewrite `XxxDaoImpl` as an adapter: inject the repository through the constructor, plus `JdbcAggregateOperations` for version-checked writes. Wrap **every** method body in `DataAccess.call`/`run`, map with small `toDto`/`toEntity` methods, and use `DataAccess.reference(id)` for nullable references.
+5. Run `mvn verify`. The DAO's `*IT`, `DaoErrorHandlingIT` (a `FatalException` from every method) and `SharedTransactionIT` must pass **unchanged**. Add repository-level tests to `JdbcRepositoriesIT` for new `@Query`/derived methods and `@Version` behaviour. The JaCoCo rule (0.98 lines/branches) covers `persistence.implementations` and `persistence.jdbc*`.
+6. If a legacy behaviour must change, change the IT in the same commit, with a comment explaining why.
+
+**What remains (on `JdbcClient`) and the plan for each**
+
+- **Partner + PartnerOption**: one aggregate. `PartnerEntity` has a `@Version` and an `AggregateReference` to the address. It owns a `@MappedCollection(idColumn = "partner_id", keyColumn = "option_code") Map<String, PartnerOptionEntity>`, which handles the composite key of `partner_options`. Caveat: Spring Data rewrites the collection on every save and bumps the partner version, so `PartnerOptionDao.create` would increment the partner version. Decide that with the use-case owner, or keep that insert on `JdbcClient`. The filtered list (joins to address/country/programme, and the legacy rule that a partner without an option is invisible) becomes a `@Query` returning a `PartnerView` record.
+- **MobilityDocument**: composite key (document_id, mobility_id) with its own version. It can become a `@MappedCollection(idColumn = "mobility_id")` of the Mobility aggregate. The cleaner option is an entity with an embedded composite `@Id`, supported by Spring Data Relational 3.5 (Spring Boot 3.5) according to its release notes (check before relying on it): migrate it after that upgrade.
+- **NominatedStudent**: shares its primary key with `users` (an assigned id, not generated): an entity with `@Id Integer userId`, written with `JdbcAggregateOperations.insert`. Its legacy create stores the DTO's version but returns 1, which conflicts with `@Version`: keep a `@Modifying @Query` insert, or change the contract. Reads join users/options/countries: a `@Query` into a `NominatedStudentView` record.
+- **Mobility**: the primary key is `mobility_choice_id` (assigned), with a `@Version` and optional references to the denial reason and the professor (nullable `AggregateReference`s). Reads join six tables: a `@Query` into a `MobilityView` record, and `findByUser` as a second `@Query`.
+- **MobilityChoice**: generated id and `@Version`. The database sets `submission_date` (`NOW()`) on insert, but update writes it. It needs a custom insert (`@Modifying @Query ... RETURNING`), or the date set in Java (a behaviour change). The filters ("active" and "passed" compare with the current year, "not yet a mobility") become `@Query` methods that take the year as a parameter, which also makes them testable without the clock.
+
+Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`). The `*IT` tests run the real DAOs, repositories and `JdbcClient` against an embedded PostgreSQL (`DaoItConfig`, with the rolled-back transactions of `AbstractDaoIT`).
 
 ## Testing Strategy
 
@@ -171,7 +221,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 ### Data Security
 
 - Validate all input data
-- Use prepared statements to avoid SQL injection
+- Bind parameters (Spring Data, `JdbcClient`) to avoid SQL injection; never concatenate input into SQL
 - Sanitize user-facing output
 
 ### Authentication & Authorization
