@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ElementKind;
 import jakarta.validation.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import org.springframework.context.MessageSourceResolvable;
@@ -30,11 +31,15 @@ public record FieldViolation(String field, String code, String message) {
 
   private static final String UNKNOWN_CODE = "Invalid";
 
+  /** Deterministic order of the errors (Bean Validation reports them in no particular order). */
+  private static final Comparator<FieldViolation> BY_FIELD =
+      Comparator.comparing(FieldViolation::field).thenComparing(FieldViolation::code);
+
   /**
    * The violations of a request body or of a model attribute ({@code MethodArgumentNotValidException}).
    *
    * @param errors the binding and validation errors
-   * @return one violation per error, in the order of the errors
+   * @return one violation per error, sorted by field
    */
   static List<FieldViolation> of(Errors errors) {
     List<FieldViolation> violations = new ArrayList<>();
@@ -43,6 +48,7 @@ public record FieldViolation(String field, String code, String message) {
           ? fieldError.getField() : error.getObjectName();
       violations.add(new FieldViolation(field, codeOf(error), error.getDefaultMessage()));
     }
+    violations.sort(BY_FIELD);
     return violations;
   }
 
@@ -52,7 +58,7 @@ public record FieldViolation(String field, String code, String message) {
    * {@code @RequestParam} parameters, or on a request body validated together with them.
    *
    * @param ex the exception
-   * @return one violation per error
+   * @return one violation per error, sorted by field
    */
   static List<FieldViolation> of(HandlerMethodValidationException ex) {
     List<FieldViolation> violations = new ArrayList<>();
@@ -66,6 +72,7 @@ public record FieldViolation(String field, String code, String message) {
         violations.add(new FieldViolation(parameter, codeOf(error), error.getDefaultMessage()));
       }
     }
+    violations.sort(BY_FIELD);
     return violations;
   }
 
@@ -85,7 +92,7 @@ public record FieldViolation(String field, String code, String message) {
           violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
           violation.getMessage()));
     }
-    result.sort((a, b) -> a.field().compareTo(b.field()));
+    result.sort(BY_FIELD);
     return result;
   }
 
