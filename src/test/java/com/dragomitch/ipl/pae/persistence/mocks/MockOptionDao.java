@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class MockOptionDao implements OptionDao {
    * 
    * @param entityFactory builds objects
    */
-  @Inject
   public MockOptionDao(EntityFactory entityFactory) {
     options = new HashMap<String, OptionDto>();
     OptionDto optionBin = (OptionDto) entityFactory.build(OptionDto.class);

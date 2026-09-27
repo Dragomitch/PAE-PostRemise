@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ public class MockCountryDao implements CountryDao {
    * 
    * @param entityFactory an on-demand object dispenser
    */
-  @Inject
   public MockCountryDao(EntityFactory entityFactory) {
     countries = new HashMap<String, CountryDto>();
     this.entityFactory = entityFactory;

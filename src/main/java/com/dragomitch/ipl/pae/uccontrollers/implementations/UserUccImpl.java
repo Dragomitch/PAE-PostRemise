@@ -10,7 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
@@ -45,7 +44,6 @@ public class UserUccImpl implements UserUcc {
   private UnitOfWork unitOfWork;
   private PasswordEncoder passwordEncoder;
 
-  @Inject
   @Autowired
   public UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
       UnitOfWork unitOfWork, PasswordEncoder passwordEncoder) {

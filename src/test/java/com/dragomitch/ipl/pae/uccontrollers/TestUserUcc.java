@@ -8,18 +8,23 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestUserUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private UserDao userDao;
@@ -29,19 +34,14 @@ public class TestUserUcc {
   private UserDto stud;
 
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    userDao = DependencyManager.getInstance(UserDao.class);
-    userUcc = DependencyManager.getInstance(UserUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    userDao = context.getBean(UserDao.class);
+    userUcc = context.getBean(UserUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     prof = mockDtoFactory.getUser(UserDto.ROLE_PROFESSOR);
     stud = mockDtoFactory.getUser(UserDto.ROLE_STUDENT);

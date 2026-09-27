@@ -10,7 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
@@ -22,13 +21,14 @@ import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 class DenialReasonUccImpl implements DenialReasonUcc {
 
   private DenialReasonDao denialReasonDao;
   private UnitOfWork unitOfWork;
 
-  @Inject
   DenialReasonUccImpl(DenialReasonDao denialReasonDao, UnitOfWork unitOfWork) {
     this.denialReasonDao = denialReasonDao;
     this.unitOfWork = unitOfWork;

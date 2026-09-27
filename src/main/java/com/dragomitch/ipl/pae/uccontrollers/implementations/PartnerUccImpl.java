@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -35,7 +34,9 @@ import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionExce
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
+import org.springframework.stereotype.Service;
 
+@Service
 class PartnerUccImpl implements PartnerUcc {
 
   private AddressDao addressDao;
@@ -49,7 +50,6 @@ class PartnerUccImpl implements PartnerUcc {
   private UnitOfWork unitOfWork;
   private EntityFactory entityFactory;
 
-  @Inject
   public PartnerUccImpl(AddressDao addressDao, OptionDao optionDao, PartnerDao partnerDao,
       PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao, ProgrammeDao programmeDao,
       UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork, EntityFactory entityFactory) {

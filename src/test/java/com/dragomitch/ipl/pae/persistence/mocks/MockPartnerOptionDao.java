@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
@@ -18,7 +17,6 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
    * Sole constructor.
    * 
    */
-  @Inject
   public MockPartnerOptionDao(PartnerDao partnerDao) {
     partnerOptions = new ArrayList<PartnerOption>();
     this.partnerDao = partnerDao;

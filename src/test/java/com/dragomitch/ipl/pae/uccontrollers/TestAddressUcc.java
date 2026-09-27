@@ -7,18 +7,23 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestAddressUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private AddressDao addressDao;
@@ -26,19 +31,14 @@ public class TestAddressUcc {
   private MockDtoFactory mockDtoFactory;
   private AddressDto address;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    addressDao = DependencyManager.getInstance(AddressDao.class);
-    addressUcc = DependencyManager.getInstance(AddressUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    addressDao = context.getBean(AddressDao.class);
+    addressUcc = context.getBean(AddressUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     address = mockDtoFactory.getAddress();
   }

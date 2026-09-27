@@ -3,8 +3,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -18,7 +16,7 @@ import java.util.List;
 
 @Repository
 class CountryDaoImpl implements CountryDao {
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
   private static final String SQL_SELECT = "SELECT c." + COLUMN_CODE + ", c." + COLUMN_NAME + ", p."
       + ProgrammeDao.COLUMN_ID + ", p." + ProgrammeDao.COLUMN_NAME + ", p."
       + ProgrammeDao.COLUMN_EXTERNAL_SOFTWARE_NAME + " FROM " + SCHEMA_NAME + "." + TABLE_NAME
@@ -34,7 +32,6 @@ class CountryDaoImpl implements CountryDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public CountryDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

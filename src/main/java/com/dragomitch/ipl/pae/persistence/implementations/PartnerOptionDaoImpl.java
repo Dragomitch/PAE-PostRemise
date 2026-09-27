@@ -3,8 +3,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -18,7 +16,7 @@ import java.util.List;
 @Repository
 class PartnerOptionDaoImpl implements PartnerOptionDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
 
   private static final String SQL_INSERT =
@@ -39,7 +37,6 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public PartnerOptionDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;
