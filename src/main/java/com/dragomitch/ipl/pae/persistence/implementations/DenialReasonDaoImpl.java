@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
@@ -17,7 +15,7 @@ import java.util.List;
 @Repository
 class DenialReasonDaoImpl implements DenialReasonDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SQL_INSERT =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "(reason) VALUES (?) RETURNING reason_id";
@@ -31,7 +29,6 @@ class DenialReasonDaoImpl implements DenialReasonDao {
   private final EntityFactory entityFactory;
   private final DalBackendServices dalBackendServices;
 
-  @Inject
   public DenialReasonDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -17,7 +15,7 @@ import java.util.List;
 @Repository
 class DocumentDaoImpl implements DocumentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SELECT_PROGRAMME_DOCUMENTS =
       "SELECT document_id, name, category, programme_id FROM " + SCHEMA_NAME + "." + TABLE_NAME
@@ -32,7 +30,6 @@ class DocumentDaoImpl implements DocumentDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public DocumentDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
     this.entityFactory = entityFactory;
     this.dalServices = dalServices;

@@ -3,8 +3,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
@@ -19,7 +17,7 @@ import java.util.ConcurrentModificationException;
 @Repository
 class AddressDaoImpl implements AddressDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SQL_SELECT = "SELECT a." + COLUMN_ID + ", a." + COLUMN_STREET + ", a."
       + COLUMN_NUMBER + ", a." + COLUMN_COUNTRY + ", c." + CountryDao.COLUMN_NAME + ", a."
@@ -46,7 +44,6 @@ class AddressDaoImpl implements AddressDao {
    * @param entityFactory an on-demand object dispenser.
    * @param dalBackendServices backend services.
    */
-  @Inject
   public AddressDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

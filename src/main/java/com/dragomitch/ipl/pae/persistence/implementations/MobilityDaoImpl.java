@@ -9,8 +9,6 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -33,7 +31,7 @@ import java.util.List;
 public @Repository
 class MobilityDaoImpl implements MobilityDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String INSERT =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "(" + COLUMN_ID + ", "
@@ -83,7 +81,6 @@ class MobilityDaoImpl implements MobilityDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalServices backend services
    */
-  @Inject
   public MobilityDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
     this.entityFactory = entityFactory;
     this.dalServices = dalServices;

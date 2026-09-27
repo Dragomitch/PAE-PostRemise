@@ -11,23 +11,23 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestMobilityChoice {
+
+  @Autowired
+  private ApplicationContext context;
   private EntityFactory entityFactory;
   private MobilityChoice correctMobilityChoice;
-
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
 
   /**
    * Set up an object for tests.
@@ -36,7 +36,7 @@ public class TestMobilityChoice {
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = context.getBean(EntityFactory.class);
     correctMobilityChoice = (MobilityChoice) entityFactory.build(MobilityChoice.class);
     correctMobilityChoice.setId(2);
     correctMobilityChoice.setPreferenceOrder(2);

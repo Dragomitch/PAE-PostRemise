@@ -5,8 +5,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -25,7 +23,7 @@ import java.util.List;
 @Repository
 class NominatedStudentDaoImpl implements NominatedStudentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SQL_INSERT = "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "("
       + COLUMN_ID + ", " + COLUMN_TITLE + ", " + COLUMN_BIRTHDATE + ", " + COLUMN_NATIONALITY + ", "
@@ -63,7 +61,6 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public NominatedStudentDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
     this.entityFactory = entityFactory;
     this.dalServices = dalServices;

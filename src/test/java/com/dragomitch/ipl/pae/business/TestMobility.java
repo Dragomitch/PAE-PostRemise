@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -14,16 +13,22 @@ import java.util.List;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestMobility {
+
+  @Autowired
+  private ApplicationContext context;
 
   private static final LocalDateTime SUBMISSION_DATE = LocalDateTime.now();
   private static final String STATE = Mobility.STATE_CREATED;
@@ -33,17 +38,12 @@ public class TestMobility {
   private EntityFactory entityFactory;
   private Mobility mobility;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Creates a new Mobility instance and populates its "documents" attribute.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = (EntityFactory) DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = (EntityFactory) context.getBean(EntityFactory.class);
     mobility = (Mobility) entityFactory.build(Mobility.class);
     // Populates documents
     List<DocumentDto> documents = new ArrayList<DocumentDto>();

@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.business.exceptions;
 
 import java.util.LinkedList;
 import java.util.List;
-import com.dragomitch.ipl.pae.context.ErrorManager;
 
 /**
  * This exception may be thrown when an error occurs during a business related operation.

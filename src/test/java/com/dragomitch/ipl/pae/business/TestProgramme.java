@@ -4,14 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestProgramme {
+
+  @Autowired
+  private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String PROGRAMMENAME = "Erasmus+";
@@ -21,17 +26,12 @@ public class TestProgramme {
   private EntityFactory entityFactory;
   private ProgrammeDto programme;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Creates a new Programme instance.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = context.getBean(EntityFactory.class);
     this.programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
   }
 
