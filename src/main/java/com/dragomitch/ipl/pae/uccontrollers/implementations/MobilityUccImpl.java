@@ -253,22 +253,7 @@ class MobilityUccImpl implements MobilityUcc {
     csvStringBuilder.write(mobilityData);
     List<DocumentDto> documents = mobility.getDocuments();
     for (DocumentDto document : documents) {
-      char category = document.getCategory();
-      if (filter.equals(DEPARTURE_DOCUMENTS_FILTER) && filter.charAt(0) == category) {
-        documentsInMobility.put(document.getName(),
-            document.isFilledIn() ? "Rempli" : "Non-rempli");
-      } else if (filter.equals(DEPARTURE_FILLED_DOCUMENTS_FILTER) && filter.charAt(0) == category
-          && document.isFilledIn()) {
-        documentsInMobility.put(document.getName(),
-            document.isFilledIn() ? "Rempli" : "Non-rempli");
-      } else if (filter.equals(RETURN_DOCUMENTS_FILTER) && filter.charAt(0) == category) {
-        documentsInMobility.put(document.getName(),
-            document.isFilledIn() ? "Rempli" : "Non-rempli");
-      } else if (filter.equals(RETURN_FILLED_DOCUMENTS_FILTER) && filter.charAt(0) == category
-          && document.isFilledIn()) {
-        documentsInMobility.put(document.getName(),
-            document.isFilledIn() ? "Rempli" : "Non-rempli");
-      } else {
+      if (isExported(document, filter)) {
         documentsInMobility.put(document.getName(),
             document.isFilledIn() ? "Rempli" : "Non-rempli");
       }
@@ -282,6 +267,20 @@ class MobilityUccImpl implements MobilityUcc {
       }
     }
     return csvStringBuilder.close();
+  }
+
+  /**
+   * Tells whether the export keeps a document: the documents of the category of the filter (D or
+   * R), only the filled-in ones for DF and RF, every document without a filter.
+   */
+  private static boolean isExported(DocumentDto document, String filter) {
+    return switch (filter) {
+      case DEPARTURE_DOCUMENTS_FILTER, RETURN_DOCUMENTS_FILTER ->
+          document.getCategory() == filter.charAt(0);
+      case DEPARTURE_FILLED_DOCUMENTS_FILTER, RETURN_FILLED_DOCUMENTS_FILTER ->
+          document.getCategory() == filter.charAt(0) && document.isFilledIn();
+      default -> true;
+    };
   }
 
   /**

@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -763,6 +764,21 @@ class MobilityUccImplTest {
       // the language test proofs are not required by Erabel: empty columns
       assertThat(csv).isEqualTo(HEADER + "Rempli;Non-rempli;Rempli;Non-rempli;;Rempli;"
           + "Non-rempli;Non-rempli;;");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(delimiter = '|', value = {
+        "D  | Rempli;Non-rempli;Rempli;Non-rempli;;;;;;",
+        "DF | Rempli;;Rempli;;;;;;;",
+        "R  | ;;;;;Rempli;Non-rempli;Non-rempli;;",
+        "RF | ;;;;;Rempli;;;;"})
+    void theFilterKeepsTheDocumentsOfItsCategoryAndOptionallyOnlyTheFilledInOnes(String filter,
+        String documentColumns) {
+      givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      when(mobilityDocumentDao.findAllByMobility(MOBILITY_ID)).thenReturn(erabelDocuments());
+
+      assertThat(mobilityUcc.exportDocuments(MOBILITY_ID, filter))
+          .isEqualTo(HEADER + documentColumns);
     }
 
     @Test
