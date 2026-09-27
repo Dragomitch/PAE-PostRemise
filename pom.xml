@@ -85,6 +85,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+        <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
         <!-- Real PostgreSQL (no Docker) for the DAO integration tests -->
         <dependency>
             <groupId>io.zonky.test</groupId>

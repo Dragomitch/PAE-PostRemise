@@ -1,8 +1,5 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
@@ -12,18 +9,18 @@ import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.utils.CsvStringBuilder;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
-import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityUcc;
+import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.ProgrammeUcc;
+import com.dragomitch.ipl.pae.utils.CsvStringBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -32,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -68,8 +66,6 @@ class MobilityUccImpl implements MobilityUcc {
   @Override
   @Transactional(readOnly = true)
   public List<MobilityDto> showAll(int userId, String userRole) {
-    checkPositive(userId);
-    checkString(userRole);
     List<MobilityDto> mobilities;
     if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
       // Lists all mobilities
@@ -84,8 +80,6 @@ class MobilityUccImpl implements MobilityUcc {
   @Override
   @Transactional(readOnly = true)
   public MobilityDto showOne(int id, String role, int user) {
-    checkString(role);
-    checkPositive(user);
     Mobility mobility = getMobility(id);
     if (role.equals(UserDto.ROLE_STUDENT) && user != mobility.getNominatedStudent().getId()) {
       throw new InsufficientPermissionException();
@@ -120,7 +114,6 @@ class MobilityUccImpl implements MobilityUcc {
    * @param version the current version of the mobility to update
    */
   private void confirmSoftwareEncoding(int id, int software, int version) {
-    checkPositive(software);
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
@@ -143,7 +136,6 @@ class MobilityUccImpl implements MobilityUcc {
   @Override
   public MobilityDto confirmPayment(int id,
       int version) {
-    checkPositive(id);
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
@@ -152,7 +144,7 @@ class MobilityUccImpl implements MobilityUcc {
     NominatedStudent nominatedStudent;
     if ((nominatedStudent = (NominatedStudent) nominatedStudentDao
         .findById(mobility.getNominatedStudent().getId())) == null) {
-      throw new BusinessException(ErrorFormat.INCOMPLETE_BANK_DETAILS_506);
+      throw new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS);
     }
     nominatedStudent.checkBankDetails();
     if (mobility.getFirstPaymentRequestDate() == null) {
@@ -162,7 +154,7 @@ class MobilityUccImpl implements MobilityUcc {
       mobility.setSecondPaymentRequestDate(LocalDateTime.now());
       mobility.setState(Mobility.STATE_CLOSED);
     } else {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110);
+      throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
     }
     mobilityDao.update(mobility);
     return mobility;
@@ -170,7 +162,6 @@ class MobilityUccImpl implements MobilityUcc {
 
   @Override
   public MobilityDto confirmDocument(int id, int document, int version) {
-    checkPositive(document);
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
@@ -199,8 +190,6 @@ class MobilityUccImpl implements MobilityUcc {
   @Override
   public MobilityDto cancel(int id, int version, String cancellationReason, int denialReasonId,
       int userId, String userRole) {
-    checkString(userRole);
-    checkPositive(userId);
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
@@ -218,14 +207,18 @@ class MobilityUccImpl implements MobilityUcc {
     // The mobility can be cancelled
     String stateBeforeCancellation = mobility.getState();
     if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
-      checkPositive(denialReasonId);
+      if (denialReasonId <= 0) {
+        throw new BusinessException(ErrorCode.DENIAL_REASON_REQUIRED);
+      }
       DenialReason denialReason = (DenialReason) denialReasonDao.findById(denialReasonId);
       if (denialReason == null) {
-        throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_DENIAL_REASON_ID_400);
+        throw new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, denialReasonId);
       }
       mobility.setDenialReason(denialReason);
     } else {
-      checkString(cancellationReason);
+      if (!StringUtils.hasText(cancellationReason)) {
+        throw new BusinessException(ErrorCode.CANCELLATION_REASON_REQUIRED);
+      }
       mobility.setCancellationReason(cancellationReason);
     }
     // Updating the state and the state before cancellation
@@ -237,7 +230,6 @@ class MobilityUccImpl implements MobilityUcc {
   @Override
   @Transactional(readOnly = true)
   public String exportDocuments(int mobilityId, String filter) {
-    checkFilter(filter);
     filter = filter == null ? "" : filter;
     Mobility mobility = getMobility(mobilityId);
     mobility.setDocuments(mobilityDocumentDao.findAllByMobility(mobility.getId()));
@@ -308,31 +300,15 @@ class MobilityUccImpl implements MobilityUcc {
   }
 
   /**
-   * Check if a filter for the document filter is correct or not. If a filter isn't correct it throw
-   * the appropriate business exception.
-   * 
-   * @param filter the filter to test.
-   */
-  private void checkFilter(String filter) {
-    if (filter != null && !filter.equals(DEPARTURE_DOCUMENTS_FILTER)
-        && !filter.equals(DEPARTURE_FILLED_DOCUMENTS_FILTER)
-        && !filter.equals(RETURN_DOCUMENTS_FILTER)
-        && !filter.equals(RETURN_FILLED_DOCUMENTS_FILTER)) {
-      throw new BusinessException(ErrorFormat.INVALID_DOCUMENT_FILTER_508);
-    }
-  }
-
-  /**
    * Retrieve a mobility with the id passed in parameter.
    * 
    * @param mobilityId the id of the mobility we want to retrieve
    * @return a Mobility for the id passed in parameter.
    */
   private Mobility getMobility(int mobilityId) {
-    checkPositive(mobilityId);
     Mobility mobility = null;
     if ((mobility = (Mobility) mobilityDao.findById(mobilityId)) == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     return mobility;
   }

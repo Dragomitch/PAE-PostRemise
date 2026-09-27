@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.web;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.uccontrollers.ProgrammeUcc;
 
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,7 @@ public class ProgrammeController {
   }
 
   @GetMapping("/{id}")
-  public ProgrammeDto showOne(@PathVariable int id) {
+  public ProgrammeDto showOne(@PathVariable @Positive int id) {
     return programmeUcc.showOne(id);
   }
 }

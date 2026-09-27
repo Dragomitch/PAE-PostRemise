@@ -2,9 +2,18 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.business.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.business.validation.ValidationGroups.OnCreate;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.groups.Default;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface PartnerUcc {
 
   /**
@@ -14,7 +23,8 @@ public interface PartnerUcc {
    * @param userRole : the role of the user who wants to create a new partner
    * @return the partnerDto that has just been created
    */
-  PartnerDto create(PartnerDto partner, String userRole);
+  @Validated({Default.class, OnCreate.class})
+  PartnerDto create(@NotNull @Valid PartnerDto partner, @NotBlank String userRole);
 
   /**
    * Find a partnerDto existing in the database.
@@ -22,7 +32,7 @@ public interface PartnerUcc {
    * @param id : the id of the partner we want to find
    * @return the partnerDto found in the database
    */
-  PartnerDto showOne(int id);
+  PartnerDto showOne(@Positive int id);
 
   /**
    * Find all PartnerDao.
@@ -33,7 +43,8 @@ public interface PartnerUcc {
    * @param userRole : the role of the user who wants to edit a partner.
    * @return a list of all the partnerDto found in the database
    */
-  List<PartnerDto> showAll(String filter, String value, String userRole, int userId);
+  List<PartnerDto> showAll(@NotNull @Valid PartnerSearch search, @NotBlank String userRole,
+      @Positive int userId);
 
   /**
    * Edit a partner.
@@ -43,9 +54,10 @@ public interface PartnerUcc {
    * @param userRole : the role of the user who wants to edit a partner.
    * @return the partnerDto that has just been edited.
    */
-  PartnerDto edit(int id, PartnerDto partner, String userRole);
+  PartnerDto edit(@Positive int id, @NotNull @Valid PartnerDto partner,
+      @NotBlank String userRole);
 
-  PartnerDto restore(int id, String role);
+  PartnerDto restore(@Positive int id, @NotBlank String role);
 
   /**
    * Add an option to a partner.
@@ -53,7 +65,7 @@ public interface PartnerUcc {
    * @param id : the id of the partner for which we want to add an option.
    * @param partnerOption : the partnerOption of the we want to add.
    */
-  void addOption(int id, PartnerOptionDto partnerOption);
+  void addOption(@Positive int id, @NotNull @Valid PartnerOptionDto partnerOption);
 
   /**
    * Find all options for a partner.
@@ -61,6 +73,6 @@ public interface PartnerUcc {
    * @param partnerId : the id of the partnerDto for which we want to find options
    * @return a list of options corresponding to a partner
    */
-  List<PartnerOptionDto> findAllPartnerOption(int partnerId);
+  List<PartnerOptionDto> findAllPartnerOption(@Positive int partnerId);
 
 }

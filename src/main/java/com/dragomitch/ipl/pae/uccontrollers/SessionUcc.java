@@ -2,6 +2,11 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import org.springframework.validation.annotation.Validated;
+
+@Validated
 public interface SessionUcc {
 
   /**
@@ -10,10 +15,10 @@ public interface SessionUcc {
    * @param username the username
    * @param password the user password
    * @return the authenticated user
-   * @throws com.dragomitch.ipl.pae.business.exceptions.UnauthenticatedUserException if the
+   * @throws com.dragomitch.ipl.pae.business.exceptions.InvalidCredentialsException if the
    *         credentials are wrong
    */
-  UserDto signin(String username, String password);
+  UserDto signin(@NotBlank String username, @NotBlank String password);
 
   /**
    * Return the authenticated user.
@@ -21,6 +26,6 @@ public interface SessionUcc {
    * @param id the authenticated user
    * @return the authenticated user
    */
-  UserDto showAuthenticatedUser(int id);
+  UserDto showAuthenticatedUser(@Positive int id);
 
 }

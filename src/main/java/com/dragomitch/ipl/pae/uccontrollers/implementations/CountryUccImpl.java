@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.uccontrollers.CountryUcc;
-import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ class CountryUccImpl implements CountryUcc {
 
   @Override
   public CountryDto showOne(String countryCode) {
-    DataValidationUtils.checkString(countryCode);
     return countryDao.findById(countryCode);
   }
 

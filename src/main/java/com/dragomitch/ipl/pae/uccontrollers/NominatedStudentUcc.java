@@ -2,8 +2,14 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface NominatedStudentUcc {
 
   /**
@@ -14,7 +20,8 @@ public interface NominatedStudentUcc {
    * @param userRole the role of the currently signed in user
    * @return the newly created nominated user
    */
-  NominatedStudentDto create(NominatedStudentDto nominatedStudent, int userId, String userRole);
+  NominatedStudentDto create(@NotNull @Valid NominatedStudentDto nominatedStudent,
+      @Positive int userId, @NotBlank String userRole);
 
   /**
    * Returns the nominated student bearing the given id.
@@ -24,7 +31,7 @@ public interface NominatedStudentUcc {
    * @param role the role of the currently signed in user
    * @return the student if one was found, null otherwise
    */
-  NominatedStudentDto showOne(int id, int userId, String role);
+  NominatedStudentDto showOne(@Positive int id, @Positive int userId, @NotBlank String role);
 
   /**
    * Returns a list containing all of the nominated students in the database.
@@ -41,6 +48,7 @@ public interface NominatedStudentUcc {
    * @param userRole the role of the currently signed in user
    * @return the nominated student with updated information
    */
-  NominatedStudentDto edit(NominatedStudentDto nominatedStudent, int userId, String userRole);
+  NominatedStudentDto edit(@NotNull @Valid NominatedStudentDto nominatedStudent,
+      @Positive int userId, @NotBlank String userRole);
 
 }

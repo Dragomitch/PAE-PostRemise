@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.uccontrollers.ProgrammeUcc;
-import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ class ProgrammeUccImpl implements ProgrammeUcc {
 
   @Override
   public ProgrammeDto showOne(int id) {
-    DataValidationUtils.checkPositive(id);
     return programmeDao.findById(id);
   }
 

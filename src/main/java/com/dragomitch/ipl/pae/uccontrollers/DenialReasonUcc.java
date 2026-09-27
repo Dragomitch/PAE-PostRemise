@@ -1,9 +1,14 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import java.util.List;
-
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import java.util.List;
+import org.springframework.validation.annotation.Validated;
+
+@Validated
 public interface DenialReasonUcc {
 
   /**
@@ -12,7 +17,7 @@ public interface DenialReasonUcc {
    * @param denialReason the denial reason to be created
    * @return the newly created denial reason
    */
-  DenialReasonDto create(DenialReasonDto denialReason);
+  DenialReasonDto create(@NotNull @Valid DenialReasonDto denialReason);
 
   /**
    * Return a list of all stored denial reason.
@@ -28,5 +33,5 @@ public interface DenialReasonUcc {
    * @param denialReason the denial reason with updated information
    * @return the updated denial reason
    */
-  DenialReasonDto edit(int id, DenialReasonDto denialReason);
+  DenialReasonDto edit(@Positive int id, @NotNull @Valid DenialReasonDto denialReason);
 }

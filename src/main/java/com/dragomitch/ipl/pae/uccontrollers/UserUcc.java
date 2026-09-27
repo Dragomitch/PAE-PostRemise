@@ -1,9 +1,17 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.validation.ValidationGroups.OnCreate;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.groups.Default;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface UserUcc {
 
 
@@ -19,14 +27,15 @@ public interface UserUcc {
    * 
    * @param user the user to create
    */
-  UserDto signup(UserDto user);
+  @Validated({Default.class, OnCreate.class})
+  UserDto signup(@NotNull @Valid UserDto user);
 
   /**
    * Changes the role of the user to professor.
    * 
    * @param userId the id of the user to promote
    */
-  void promoteToProfessor(int userId);
+  void promoteToProfessor(@Positive int userId);
 
   /**
    * Updates the user's information. Note: This method should not be called explicitly.
@@ -36,6 +45,6 @@ public interface UserUcc {
    * @param role the role of the currently signed in user
    * @return the updated UserDto container.
    */
-  UserDto edit(UserDto user, int userId, String role);
+  UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotBlank String role);
 
 }

@@ -1,7 +1,5 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.Programme;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -59,13 +57,5 @@ public class ProgrammeImpl implements Programme, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    if (id < 0) {
-      throw new IllegalArgumentException();
-    }
-    checkString(programName);
-    checkString(externalSoftName);
-  }
 
 }

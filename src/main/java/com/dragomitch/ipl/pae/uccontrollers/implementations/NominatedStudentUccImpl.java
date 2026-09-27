@@ -1,29 +1,30 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositiveOrZero;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-
-import com.dragomitch.ipl.pae.business.NominatedStudent;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import java.util.LinkedList;
-import java.util.List;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
+
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+/**
+ * Personal data of the nominated students. Their format is checked by the constraints of
+ * {@link NominatedStudentDto}; this class checks the rules that need the database or the
+ * requester.
+ */
 @Service
 @Transactional
 class NominatedStudentUccImpl implements NominatedStudentUcc {
@@ -48,20 +49,20 @@ class NominatedStudentUccImpl implements NominatedStudentUcc {
   @Override
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent, int userId,
       String userRole) {
-    checkObject(nominatedStudent);
     if (userRole.equals(UserDto.ROLE_STUDENT) && userId != nominatedStudent.getId()) {
       throw new InsufficientPermissionException();
     }
-    checkDataIntegrity(nominatedStudent);
+    checkCountriesExist(nominatedStudent);
     UserDto user;
     if ((user = userDao.findById(nominatedStudent.getId())) == null) {
       // user doesn't exist
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
+      throw new BusinessException(ErrorCode.UNKNOWN_USER, nominatedStudent.getId());
     }
     if (nominatedStudentDao.findById(nominatedStudent.getId()) != null) {
       // student already exists
-      throw new BusinessException(ErrorFormat.ALREADY_NOMINATED_STUDENT_618);
+      throw new BusinessException(ErrorCode.ALREADY_NOMINATED);
     }
+    defaultCardHolder(nominatedStudent);
     nominatedStudent.setVersion(user.getVersion());
     nominatedStudent.setAddress(addressDao.create(nominatedStudent.getAddress()));
     return nominatedStudentDao.create(nominatedStudent);
@@ -70,13 +71,12 @@ class NominatedStudentUccImpl implements NominatedStudentUcc {
   @Override
   @Transactional(readOnly = true)
   public NominatedStudentDto showOne(int id, int userId, String role) {
-    checkPositiveOrZero(id);
     if (!role.equals(UserDto.ROLE_PROFESSOR) && id != userId) {
       throw new InsufficientPermissionException();
     }
     NominatedStudentDto nominatedStudent;
     if ((nominatedStudent = nominatedStudentDao.findById(id)) == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     AddressDto address = addressDao.findById(nominatedStudent.getAddress().getId());
     nominatedStudent.setAddress(address);
@@ -92,16 +92,15 @@ class NominatedStudentUccImpl implements NominatedStudentUcc {
   @Override
   public NominatedStudentDto edit(NominatedStudentDto nominatedStudent, int userId,
       String userRole) {
-    checkObject(nominatedStudent);
     if (userRole.equals(UserDto.ROLE_STUDENT) && userId != ((UserDto) nominatedStudent).getId()) {
       throw new InsufficientPermissionException();
     }
-    checkDataIntegrity(nominatedStudent);
-
+    checkCountriesExist(nominatedStudent);
     NominatedStudentDto tempStud = nominatedStudentDao.findById(nominatedStudent.getId());
     if (tempStud == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
+    defaultCardHolder(nominatedStudent);
     nominatedStudent.getAddress().setId(tempStud.getAddress().getId());
     nominatedStudent = nominatedStudentDao.update(nominatedStudent);
     nominatedStudent.setVersion(nominatedStudent.getVersion() - 1);
@@ -111,22 +110,22 @@ class NominatedStudentUccImpl implements NominatedStudentUcc {
     return nominatedStudent;
   }
 
-  private void checkDataIntegrity(NominatedStudentDto nominatedStudent) {
-    List<Integer> violations = new LinkedList<Integer>();
-    try {
-      ((NominatedStudent) nominatedStudent).checkDataIntegrity();
-    } catch (BusinessException ex) {
-      List<ErrorFormat> errors = ex.getError().getDetails();
-      for (ErrorFormat oneError : errors) {
-        violations.add(oneError.getErrorCode());
+  /** The nationality and the country of the address must exist. */
+  private void checkCountriesExist(NominatedStudentDto nominatedStudent) {
+    for (String countryCode : List.of(nominatedStudent.getNationality().getCountryCode(),
+        nominatedStudent.getAddress().getCountry().getCountryCode())) {
+      if (countryDao.findById(countryCode) == null) {
+        throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY, countryCode);
       }
     }
-    if (isAValidObject(nominatedStudent.getNationality())
-        && countryDao.findById(nominatedStudent.getNationality().getCountryCode()) == null) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_CODE_900);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
+  }
+
+  /** The bank account belongs to the student himself when no card holder is given. */
+  private static void defaultCardHolder(NominatedStudentDto nominatedStudent) {
+    if (!StringUtils.hasText(nominatedStudent.getCardHolder())) {
+      String holder = nominatedStudent.getFirstName() + " " + nominatedStudent.getLastName();
+      nominatedStudent.setCardHolder(holder.length() > NominatedStudentDto.CARD_HOLDER_MAX_LENGTH
+          ? holder.substring(0, NominatedStudentDto.CARD_HOLDER_MAX_LENGTH) : holder);
     }
   }
 }

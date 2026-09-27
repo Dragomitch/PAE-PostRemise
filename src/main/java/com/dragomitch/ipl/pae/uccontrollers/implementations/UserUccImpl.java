@@ -1,29 +1,28 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
-import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * User accounts. The format of the data is checked by the constraints of {@link UserDto} (method
+ * validation of {@link UserUcc}); this class checks the rules that need the database: unique
+ * username and email, existing option.
+ */
 @Service
 @Transactional
 class UserUccImpl implements UserUcc {
@@ -43,8 +42,7 @@ class UserUccImpl implements UserUcc {
 
   @Override
   public UserDto signup(UserDto user) {
-    checkObject(user);
-    checkDataIntegrity(user);
+    checkBusinessRules(user);
     user.setRegistrationDate(LocalDateTime.now());
     // encrypt password
     user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -65,10 +63,9 @@ class UserUccImpl implements UserUcc {
 
   @Override
   public void promoteToProfessor(int id) {
-    DataValidationUtils.checkPositiveOrZero(id);
     UserDto user;
     if ((user = userDao.findById(id)) == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
       user.setRole(UserDto.ROLE_PROFESSOR);
@@ -80,16 +77,13 @@ class UserUccImpl implements UserUcc {
 
   @Override
   public UserDto edit(UserDto user, int userId, String userRole) {
-    checkObject(user);
-    checkPositive(userId);
-    checkString(userRole);
     if (userRole.equals(UserDto.ROLE_STUDENT) && user.getId() != userId) {
-      throw new InsufficientPermissionException("A student can only edit his own account");
+      throw new InsufficientPermissionException();
     }
-    checkDataIntegrity(user);
+    checkBusinessRules(user);
     UserDto existingUser = userDao.findById(user.getId());
     if (existingUser == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     user.setPassword(existingUser.getPassword());
     user.setRegistrationDate(existingUser.getRegistrationDate());
@@ -102,31 +96,21 @@ class UserUccImpl implements UserUcc {
     return user;
   }
 
-  private void checkDataIntegrity(UserDto user) {
-    List<Integer> violations = new LinkedList<Integer>();
-    try {
-      ((User) user).checkDataIntegrity();
-    } catch (BusinessException ex) {
-      List<ErrorFormat> errors = ex.getError().getDetails();
-      for (ErrorFormat oneError : errors) {
-        violations.add(oneError.getErrorCode());
-      }
-    }
+  /**
+   * The rules the constraints cannot check: the username and the email address are not used by
+   * another account, the option exists.
+   */
+  private void checkBusinessRules(UserDto user) {
     UserDto existingUser = userDao.findBy(UserDao.COLUMN_USERNAME, user.getUsername());
     if (existingUser != null && existingUser.getId() != user.getId()) {
-      violations.add(ErrorFormat.UNICITY_VIOLATION_USERNAME_204);
+      throw new BusinessException(ErrorCode.USERNAME_TAKEN, user.getUsername());
     }
     existingUser = userDao.findBy(UserDao.COLUMN_EMAIL, user.getEmail());
     if (existingUser != null && existingUser.getId() != user.getId()) {
-      violations.add(ErrorFormat.UNICITY_VIOLATION_EMAIL_207);
+      throw new BusinessException(ErrorCode.EMAIL_TAKEN, user.getEmail());
     }
-    if (user.getOption().getCode().length() != OptionDao.OPTION_CODE_LENGTH) {
-      violations.add(ErrorFormat.INVALID_OPTION_CODE_LENGTH_216);
-    } else if (optionDao.findByCode(user.getOption().getCode()) == null) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_OPTION_210);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
+    if (optionDao.findByCode(user.getOption().getCode()) == null) {
+      throw new BusinessException(ErrorCode.UNKNOWN_OPTION, user.getOption().getCode());
     }
   }
 }
