@@ -7,7 +7,7 @@ import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockPartnerDao implements PartnerDao {
+public class MockPartnerDao implements PartnerDao, ResettableMock {
   private List<PartnerDto> partners;
 
   public MockPartnerDao() {
@@ -102,6 +102,7 @@ public class MockPartnerDao implements PartnerDao {
     return partner;
   }
 
+  @Override
   public void empty() {
     partners = new ArrayList<PartnerDto>();
   }

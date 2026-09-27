@@ -122,7 +122,9 @@ class PartnerDaoImpl implements PartnerDao {
       if (!filter.equals(FILTER_ALL_PARTNERS)) {
         if (filter.equals(FILTER_COUNTRY)) {
           stmt.setString(1, value);
-          stmt.setString(2, option);
+          if (userRole.equals(UserDto.ROLE_STUDENT)) {
+            stmt.setString(2, option);
+          }
         } else {
           stmt.setString(1, "%" + value.toLowerCase() + "%");
         }

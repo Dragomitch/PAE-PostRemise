@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.persistence.UserDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockUserDao implements UserDao {
+public class MockUserDao implements UserDao, ResettableMock {
 
   private List<UserDto> users;
 
@@ -71,6 +71,7 @@ public class MockUserDao implements UserDao {
     return users.isEmpty();
   }
 
+  @Override
   public void empty() {
     users = new ArrayList<UserDto>();
   }

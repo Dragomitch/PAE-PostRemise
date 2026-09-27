@@ -7,7 +7,7 @@ import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockMobilityDocumentDao implements MobilityDocumentDao {
+public class MockMobilityDocumentDao implements MobilityDocumentDao, ResettableMock {
 
   private List<MobilityDocument> mobilityDocuments;
   private DocumentDao documentDao;
@@ -49,6 +49,7 @@ public class MockMobilityDocumentDao implements MobilityDocumentDao {
     }
   }
 
+  @Override
   public void empty() {
     mobilityDocuments = new ArrayList<MobilityDocument>();
   }

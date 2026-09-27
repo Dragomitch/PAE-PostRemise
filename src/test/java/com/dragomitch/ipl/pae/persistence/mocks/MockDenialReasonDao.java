@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockDenialReasonDao implements DenialReasonDao {
+public class MockDenialReasonDao implements DenialReasonDao, ResettableMock {
   private List<DenialReasonDto> denialReasons;
 
   public MockDenialReasonDao() {
@@ -40,6 +40,7 @@ public class MockDenialReasonDao implements DenialReasonDao {
     return denialReasonDto;
   }
 
+  @Override
   public void empty() {
     denialReasons = new ArrayList<DenialReasonDto>();
   }

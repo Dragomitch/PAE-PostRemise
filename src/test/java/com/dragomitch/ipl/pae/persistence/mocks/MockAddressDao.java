@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.persistence.AddressDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockAddressDao implements AddressDao {
+public class MockAddressDao implements AddressDao, ResettableMock {
 
   private List<AddressDto> addresses;
 
@@ -36,6 +36,7 @@ public class MockAddressDao implements AddressDao {
     return address;
   }
 
+  @Override
   public void empty() {
     addresses = new ArrayList<AddressDto>();
   }

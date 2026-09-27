@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockPaymentDao implements PaymentDao {
+public class MockPaymentDao implements PaymentDao, ResettableMock {
 
   private List<PaymentDto> payments;
 
@@ -23,6 +23,7 @@ public class MockPaymentDao implements PaymentDao {
     payments.add(payment);
   }
 
+  @Override
   public void empty() {
     payments = new ArrayList<PaymentDto>();
   }

@@ -6,7 +6,7 @@ import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockNominatedStudentDao implements NominatedStudentDao {
+public class MockNominatedStudentDao implements NominatedStudentDao, ResettableMock {
 
   private List<NominatedStudentDto> nominatedStudents;
 
@@ -41,6 +41,7 @@ public class MockNominatedStudentDao implements NominatedStudentDao {
     return nominatedStudent;
   }
 
+  @Override
   public void empty() {
     nominatedStudents = new ArrayList<NominatedStudentDto>();
   }

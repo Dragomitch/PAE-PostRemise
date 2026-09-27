@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockMobilityChoiceDao implements MobilityChoiceDao {
+public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock {
 
   private List<MobilityChoiceDto> mobilityChoices;
 
@@ -41,6 +41,7 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
     mobilityChoice.setVersion(mobilityChoice.getVersion() + 1);
   }
 
+  @Override
   public void empty() {
     mobilityChoices = new ArrayList<MobilityChoiceDto>();
   }

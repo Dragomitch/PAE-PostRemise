@@ -8,7 +8,7 @@ import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockPartnerOptionDao implements PartnerOptionDao {
+public class MockPartnerOptionDao implements PartnerOptionDao, ResettableMock {
 
   private List<PartnerOption> partnerOptions;
   private PartnerDao partnerDao;
@@ -50,6 +50,7 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
     return options;
   }
 
+  @Override
   public void empty() {
     partnerOptions = new ArrayList<PartnerOption>();
   }
