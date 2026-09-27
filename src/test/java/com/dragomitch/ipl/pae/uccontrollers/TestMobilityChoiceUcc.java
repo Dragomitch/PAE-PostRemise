@@ -669,6 +669,8 @@ public class TestMobilityChoiceUcc {
   public void testConfirmWithNewPartnerWithoutOptionIsRejected() {
     PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0: a partner to create
     newPartner.setStatus(false);
+    // in the country of the choice (IE)
+    newPartner.getAddress().setCountry(mobilityChoice.getCountry());
     newPartner.setOptions(new ArrayList<PartnerOptionDto>());
     // the partner is created by PartnerUcc.create, whose validation requires an option
     assertEquals(List.of("create.partner.options:NotEmpty"),
@@ -682,6 +684,8 @@ public class TestMobilityChoiceUcc {
   public void testConfirmWithNewPartnerWithOption() {
     PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option
     newPartner.setStatus(false);
+    // in the country of the choice (IE)
+    newPartner.getAddress().setCountry(mobilityChoice.getCountry());
     mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
         userProf.getRole());
     assertNotNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must be confirmed");

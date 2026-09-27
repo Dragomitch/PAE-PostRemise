@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
+import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
@@ -200,11 +201,14 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     if (mobilityDao.findById(id) != null) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
-    mobilityChoice.setCountry(partner.getAddress().getCountry());
-    if (!mobilityChoice.getCountry().getCountryCode()
-        .equals(partner.getAddress().getCountry().getCountryCode())) {
+    // the partner must be in the country of the choice, if the student chose one
+    CountryDto partnerCountry = partner.getAddress().getCountry();
+    CountryDto choiceCountry = mobilityChoice.getCountry();
+    if (choiceCountry != null && choiceCountry.getCountryCode() != null
+        && !choiceCountry.getCountryCode().equals(partnerCountry.getCountryCode())) {
       throw new BusinessException(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
     }
+    mobilityChoice.setCountry(partnerCountry);
     if (partner.getId() <= 0) {
       partner = partnerUcc.create(partner, userRole);
     } else {

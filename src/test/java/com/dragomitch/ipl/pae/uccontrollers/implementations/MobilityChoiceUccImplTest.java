@@ -569,6 +569,40 @@ class MobilityChoiceUccImplTest {
     }
 
     @Test
+    void thePartnerMustBeInTheCountryOfTheChoice() {
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      PartnerDto inGreatBritain = partner(0, false);
+      inGreatBritain.getAddress().getCountry().setCountryCode("GB");
+
+      assertThatBusinessException(() -> mobilityChoiceUcc.confirmWithNewPartner(CHOICE_ID,
+          inGreatBritain, PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
+      assertThat(choice.getCountry().getCountryCode()).isEqualTo("IE");
+      verifyNoInteractions(partnerUcc);
+      verify(mobilityChoiceDao, never()).update(any());
+      verify(mobilityDao, never()).create(any());
+    }
+
+    @Test
+    void aChoiceWithoutCountryTakesTheCountryOfThePartner() {
+      // as MobilityChoiceDao reads a choice without country: a country without code
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      choice.getCountry().setCountryCode(null);
+      PartnerDto inGreatBritain = partner(0, false);
+      inGreatBritain.getAddress().getCountry().setCountryCode("GB");
+      when(partnerUcc.create(inGreatBritain, UserDto.ROLE_PROFESSOR)).thenReturn(inGreatBritain);
+      givenProgrammeDocuments();
+      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      when(mobilityChoiceDao.findByUser(STUDENT_ID)).thenReturn(List.of(choice));
+
+      mobilityChoiceUcc.confirmWithNewPartner(CHOICE_ID, inGreatBritain, PROFESSOR_ID,
+          UserDto.ROLE_PROFESSOR);
+
+      assertThat(choice.getCountry().getCountryCode()).isEqualTo("GB");
+      verify(mobilityChoiceDao).update(choice);
+    }
+
+    @Test
     void aStudentCannotConfirmTheChoiceOfAnotherStudent() {
       givenChoice(CHOICE_ID, 2016, 1);
 
