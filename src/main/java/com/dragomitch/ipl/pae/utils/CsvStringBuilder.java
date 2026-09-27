@@ -24,7 +24,7 @@ public class CsvStringBuilder {
   public void write(String[] words) {
     for (String word : words) {
       csvContent.append(word);
-      csvContent.append(';');
+      csvContent.append(separator);
     }
   }
 
@@ -35,7 +35,7 @@ public class CsvStringBuilder {
    */
   public void write(String word) {
     csvContent.append(word);
-    csvContent.append(';');
+    csvContent.append(separator);
   }
 
   /**
