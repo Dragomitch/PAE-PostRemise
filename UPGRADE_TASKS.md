@@ -15,8 +15,9 @@ This document tracks the migration of the project from standalone libraries to S
 | 9 | Replace the custom `DependencyManager`/`ContextManager` with Spring dependency injection | Done. |
 | 10 | Replace the custom web framework (`RoutingServlet`, `@Route`/`@Role` annotations, `Invoker`, `JsonSerializer`, `SessionManager`) with Spring MVC `@RestController`s and Spring Security | Done. Stateless JWT cookie resolved by the OAuth2 resource server, `@PreAuthorize` role checks, CSRF cookie for the SPAs, JSON request bodies. |
 | 11 | Replace the `UnitOfWork` and `DalServices` transaction handling with Spring `@Transactional` | Done. DAOs use the transaction-bound connection (`DataSourceUtils`). |
+| 12 | Render the API errors as RFC 9457 problem details with i18n | Done. Spring `ProblemDetail` / `ErrorResponse` (`ApiExceptionHandler` extends `ResponseEntityExceptionHandler`), `ErrorCode` catalogue, messages in French and English (`i18n/messages*.properties`, `Accept-Language`). `errors.json`, `ErrorFormat` and `ErrorManager` are removed. |
+| 13 | Replace the hand-written checks with Bean Validation | Done. Constraints on the DTO interfaces, on the request parameters and on the `@Validated` use cases; `checkDataIntegrity` and the `DataValidationUtils` checks are removed (`DataValidationUtils.isAValidString` remains for a JDBC DAO). |
 
 ## Possible next steps
-- Render the API errors as RFC 9457 `ProblemDetail` (with i18n messages) in `ApiExceptionHandler`, the single place that formats every error, 401/403 included.
-- Validate the request bodies with Bean Validation (`@Valid`) instead of the hand-written `checkDataIntegrity` methods.
-- Replace the hand-written JDBC DAOs with Spring Data; the DAO integration tests (`*IT`) describe the behaviour to keep.
+- Replace the hand-written JDBC DAOs with Spring Data; the DAO integration tests (`*IT`) describe the behaviour to keep. `ApiExceptionHandler` already maps Spring Data's `OptimisticLockingFailureException`, `DataIntegrityViolationException` and `EmptyResultDataAccessException`; delete `DataValidationUtils` once no DAO uses it.
+- Translate the legacy web UI (`src/main/webapp`): only the messages coming from the API are localized today.

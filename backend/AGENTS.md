@@ -89,8 +89,8 @@ mvn spring-boot:run
 
 Requests flow through three layers, all Spring beans:
 
-1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind the request (JSON `@RequestBody`, `@PathVariable`, `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only.
-2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
+1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind and validate the request (JSON `@Valid @RequestBody`, constrained `@PathVariable` / `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only, as RFC 9457 problems.
+2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Their interfaces are `@Validated` and declare the constraints of the parameters. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
 3. **DAOs** (`persistence`): see below.
 
 ```java
@@ -109,7 +109,16 @@ Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1
 
 ### Feature Module 2
 
-Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with error 120) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
+Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with the 409 `CONCURRENT_MODIFICATION` problem) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
+
+### Errors, validation and messages
+
+- **Errors** are RFC 9457 problems (`application/problem+json`) rendered by `web/ApiExceptionHandler` (a `ResponseEntityExceptionHandler`, the only place that formats errors; Spring Boot's own handler is disabled with `spring.mvc.problemdetails.enabled=false`). Members: `type` (`urn:pae:problem:<code>`), localized `title`/`detail`, `status`, `instance`, `code` (always, an `ErrorCode` name), `timestamp`, `errors` for `VALIDATION_FAILED`, `errorId` for 5xx (never any exception text). The full contract and the code table are in the README.
+- **Business errors**: `throw new BusinessException(ErrorCode.X, args...)` (an `ErrorResponseException`). Adding a code: enum constant with its status (400 validation, 404 unknown URL resource, 409 state conflict, 422 business rule), then `problem.X.title` / `problem.X.detail` in **both** `i18n/messages.properties` (French, fallback) and `i18n/messages_en.properties`. Use `’`, not `'`, in messages taking arguments.
+- **Persistence exceptions** are mapped by the handler, never caught in the use cases: `java.util.ConcurrentModificationException` and Spring Data's `OptimisticLockingFailureException` -> 409 `CONCURRENT_MODIFICATION`, `DataIntegrityViolationException` -> 409 `DATA_CONFLICT`, `EmptyResultDataAccessException` -> 404.
+- **Validation**: constraints on the getters of the DTO interfaces (`business/dto`), custom ones in `business/validation`, groups `Default` / `OnCreate` / `Reference` (`ValidationGroups`). Controllers: `@Valid` bodies, constraints on path/query parameters (no class-level `@Validated`: Spring MVC 6.1 method validation). Use cases: `@Validated` interfaces with parameter constraints (declared on the interface only). Only rules needing the database or the state stay as code in the use cases.
+- **i18n**: `MessageSource` basename `i18n/messages`, `fallback-to-system-locale=false`; Bean Validation messages resolve from it (`{key}` templates). Locale from `Accept-Language` (fr, en; default fr) via `AcceptLanguageLocaleResolver`, also applied by `ExceptionResolverSecurityHandler` to the 401/403 of the filters.
+- **Tests**: `ProblemDetailsTest` (full problem bodies in fr/en), `MessageBundlesTest` (every key in both languages, every `ErrorCode` translated, every constraint message key translated), `MethodValidationTest` (use cases validated outside the web layer), `Violations` helper for the constraint tests.
 
 ## Testing Strategy
 
@@ -170,7 +179,8 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Data Security
 
-- Validate all input data
+- Validate all input data with Bean Validation constraints (DTOs, request parameters, use-case methods)
+- Never put exception messages, SQL or stack traces in an error response: 5xx problems only carry an `errorId`
 - Use prepared statements to avoid SQL injection
 - Sanitize user-facing output
 
@@ -179,7 +189,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 - Spring Security manages authentication (stateless JWT in the `session` cookie, OAuth2 resource server)
 - `@PreAuthorize` role checks on every controller method (`ROLE_PROFESSOR`, `ROLE_STUDENT`)
 - CSRF protection with the `XSRF-TOKEN` cookie / `X-XSRF-TOKEN` header
-- 401 and 403 are rendered by `ApiExceptionHandler`, like every other API error
+- 401 and 403 are rendered by `ApiExceptionHandler`, like every other API error (`UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `ACCESS_DENIED` problems)
 
 ## Monitoring and Logging
 
