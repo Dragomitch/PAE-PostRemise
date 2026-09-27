@@ -1,6 +1,6 @@
 # Erasmus Mobility Management
 
-[![Build Status](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/maven.yml)
+[![CI](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Dragomitch/PAE-PostRemise/actions/workflows/ci.yml)
 
 This repository contains a web application for managing Erasmus mobilities. It was created as a second-year project at the Institut Paul Lambin during the 2015–2016 academic year.
 
@@ -88,6 +88,20 @@ The backend reads the following environment variables:
 | `JWT_SECRET` | Secret signing the session cookie, 32+ bytes | random per start (dev only) |
 
 They are resolved in `src/main/resources/application.properties`. Always set `JWT_SECRET` outside local development, otherwise every restart logs everyone out.
+
+## Continuous integration
+`.github/workflows/ci.yml` runs on every pull request and on `master`:
+
+| Job | What it checks |
+|---|---|
+| Backend | `mvn verify`: compile, JUnit 5 tests, JaCoCo coverage |
+| Frontend | `npm ci`, production build, Karma tests (headless Chrome) with coverage |
+| Workflow lint | `actionlint` on the workflows |
+| Docker | `docker compose config`, backend and frontend image builds |
+| Test report | publishes a **Test results** check (failures annotated on the diff), a job summary and a sticky PR comment with test counts and coverage |
+| CI passed | single gate job to mark as *required* in branch protection |
+
+Reproduce locally with `mvn verify` and `cd frontend && npm run test:ci`.
 
 ## Upgrade tasks
 See [UPGRADE_TASKS.md](UPGRADE_TASKS.md) for the Spring migration status.
