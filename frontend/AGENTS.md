@@ -109,6 +109,10 @@ Angular's `HttpClient` XSRF support handles it: `app.config.ts` declares
 spelled out on purpose). Angular only adds the header to **relative, mutating** requests
 (POST/PUT/PATCH/DELETE), which is one more reason to keep API URLs relative. Never add
 `withNoXsrfProtection()`.
+The app is served by nginx, so a fresh browser has no `XSRF-TOKEN` cookie until an API response
+sets it: `core/csrf-bootstrap.ts` (an app initializer) makes one GET to the public
+`/api/1.0/options` when the cookie is missing, otherwise the first sign-in/sign-up POST would be
+rejected with 403. It never blocks start-up.
 
 ## Core Feature Implementation
 

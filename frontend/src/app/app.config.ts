@@ -1,9 +1,15 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
 import { acceptLanguageInterceptor } from './core/accept-language.interceptor';
+import { initCsrfToken } from './core/csrf-bootstrap';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,5 +23,7 @@ export const appConfig: ApplicationConfig = {
       // requests carry the header.
       withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }),
     ),
+    // Obtain the XSRF-TOKEN cookie before the first form can be submitted.
+    provideAppInitializer(() => initCsrfToken()),
   ],
 };

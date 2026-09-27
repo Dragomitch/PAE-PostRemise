@@ -1,7 +1,7 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ApiService } from './api.service';
 import { appConfig } from './app.config';
@@ -25,6 +25,7 @@ describe('ApiService', () => {
   describe('requests', () => {
     let service: ApiService;
     let http: HttpTestingController;
+    let bootstrapRequests: TestRequest[] = [];
 
     beforeEach(() => {
       TestBed.configureTestingModule({
@@ -32,6 +33,14 @@ describe('ApiService', () => {
       });
       service = TestBed.inject(ApiService);
       http = TestBed.inject(HttpTestingController);
+      // the app initializer fetches the XSRF-TOKEN cookie once (see core/csrf-bootstrap.ts)
+      bootstrapRequests = http.match('/api/1.0/options');
+      bootstrapRequests.forEach((req) => req.flush([]));
+    });
+
+    it('fetches the XSRF-TOKEN cookie at start-up, before any form is submitted', () => {
+      expect(bootstrapRequests.length).withContext('one GET at start-up').toBe(1);
+      expect(bootstrapRequests[0].request.method).toBe('GET');
     });
 
     afterEach(() => http.verify());
