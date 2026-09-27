@@ -26,12 +26,15 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <!-- Filled in by jacoco:prepare-agent; declared empty so @{argLine} always resolves -->
         <argLine></argLine>
+        <!-- JaCoCo regression gates on the merged unit + integration coverage (jacoco:check in
+             verify). Set just below the level reached when they were introduced (lines 78.4%,
+             branches 67.8%; JDBC DAOs 98.5% / 98.1%). Raise them as coverage grows; do not lower
+             them to get a change merged. Nothing is excluded from the analysis. -->
+        <jacoco.minimum.line>0.78</jacoco.minimum.line>
+        <jacoco.minimum.branch>0.67</jacoco.minimum.branch>
+        <jacoco.minimum.persistence.line>0.98</jacoco.minimum.persistence.line>
+        <jacoco.minimum.persistence.branch>0.98</jacoco.minimum.persistence.branch>
         <!-- Fixed locale/time zone for every forked test JVM (unit and integration) -->
-        <!-- JaCoCo regression gates (see the check execution below) -->
-        <jacoco.minimum.line>0.00</jacoco.minimum.line>
-        <jacoco.minimum.branch>0.00</jacoco.minimum.branch>
-        <jacoco.minimum.persistence.line>0.00</jacoco.minimum.persistence.line>
-        <jacoco.minimum.persistence.branch>0.00</jacoco.minimum.persistence.branch>
         <test.jvm.args>-Duser.timezone=UTC -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</test.jvm.args>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -160,9 +163,9 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <!-- Regression gate on the merged unit + integration coverage.
-                                 Thresholds sit just below the level reached when they were set:
-                                 raise them when coverage improves, never lower them to merge. -->
+                            <!-- Thresholds: jacoco.minimum.* properties above. The second rule
+                                 guards the JDBC DAOs (covered by the *IT tests) while they are
+                                 migrated; move it to the new repositories' package then. -->
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
