@@ -107,6 +107,7 @@ public class ErrorFormat {
   public static final int INVALID_PARTNER_FILTER_709 = 709;
   public static final int EXISTENCE_VIOLATION_ARCHIVING_710 = 710;
   public static final int PARTNER_NOT_ARCHIVED_711 = 711;
+  public static final int PARTNER_OPTION_REQUIRED_712 = 712;
 
 
   public static final int EXISTENCE_VIOLATION_ADDRESS_ID_800 = 800;

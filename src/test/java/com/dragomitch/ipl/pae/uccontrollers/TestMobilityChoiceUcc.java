@@ -2,6 +2,9 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
@@ -9,9 +12,11 @@ import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
+import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -32,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
+import java.util.ArrayList;
 import java.util.Map;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -635,6 +641,31 @@ public class TestMobilityChoiceUcc {
       mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), partner, userProf.getId(),
           userProf.getRole());
     });
+  }
+
+  @Test
+  public void testConfirmWithNewPartnerWithoutOptionIsRejected() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0: a partner to create
+    newPartner.setStatus(false);
+    newPartner.setOptions(new ArrayList<PartnerOptionDto>());
+    BusinessException ex = assertThrows(BusinessException.class,
+        () -> mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner,
+            userProf.getId(), userProf.getRole()));
+    boolean optionRequired = false;
+    for (ErrorFormat detail : ex.getError().getDetails()) {
+      optionRequired |= detail.getErrorCode() == ErrorFormat.PARTNER_OPTION_REQUIRED_712;
+    }
+    assertTrue(optionRequired, "The partner must be rejected because it has no option");
+    assertNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must stay unconfirmed");
+  }
+
+  @Test
+  public void testConfirmWithNewPartnerWithOption() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option
+    newPartner.setStatus(false);
+    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
+        userProf.getRole());
+    assertNotNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must be confirmed");
   }
 
 }
