@@ -27,11 +27,12 @@
         <!-- Filled in by jacoco:prepare-agent; declared empty so @{argLine} always resolves -->
         <argLine></argLine>
         <!-- JaCoCo regression gates on the merged unit + integration coverage (jacoco:check in
-             verify). Set just below the level reached when they were introduced (lines 78.4%,
-             branches 67.8%; JDBC DAOs 98.5% / 98.1%). Raise them as coverage grows; do not lower
-             them to get a change merged. Nothing is excluded from the analysis. -->
-        <jacoco.minimum.line>0.78</jacoco.minimum.line>
-        <jacoco.minimum.branch>0.67</jacoco.minimum.branch>
+             verify). Set just below the level reached (lines 89.1%, branches 69.3% after the
+             problem details / Bean Validation change, which removed the hand-written checks; JDBC
+             DAOs 98.5% / 98.1%). Raise them as coverage grows; do not lower them to get a change
+             merged. Nothing is excluded from the analysis. -->
+        <jacoco.minimum.line>0.88</jacoco.minimum.line>
+        <jacoco.minimum.branch>0.69</jacoco.minimum.branch>
         <jacoco.minimum.persistence.line>0.98</jacoco.minimum.persistence.line>
         <jacoco.minimum.persistence.branch>0.98</jacoco.minimum.persistence.branch>
         <!-- Fixed locale/time zone for every forked test JVM (unit and integration) -->
