@@ -93,9 +93,11 @@ class CsrfCookieFlowTest {
         .andReturn().getResponse().getCookie("session");
     assertNotNull(session);
 
+    // authenticated requests keep the CSRF cookie as it is (neither renewed nor expired)
     mockMvc.perform(get(ApiPaths.BASE + "/session").cookie(xsrf, session))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(2));
+        .andExpect(jsonPath("$.id").value(2))
+        .andExpect(cookie().doesNotExist(XSRF_COOKIE));
 
     // the session cookie alone does not allow a state change: this is what a CSRF attack sends
     mockMvc.perform(delete(ApiPaths.BASE + "/session").cookie(xsrf, session))

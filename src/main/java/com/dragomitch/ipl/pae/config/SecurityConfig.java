@@ -47,6 +47,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
@@ -155,6 +156,12 @@ public class SecurityConfig {
         .csrf(csrf -> csrf
             .csrfTokenRepository(csrfTokenRepository)
             .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+            // The default CsrfAuthenticationStrategy renews the token whenever the session
+            // management filter sees an authentication that is not stored in a session, which,
+            // with stateless JWT authentication, means on every authenticated request: the
+            // XSRF-TOKEN cookie would be expired after each call. The token is per browser, and
+            // sign-in happens in a controller, so there is nothing to renew.
+            .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
             .withObjectPostProcessor(requireCsrfUnlessAuthorizationHeader()))
         .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
         .authorizeHttpRequests(auth -> auth
