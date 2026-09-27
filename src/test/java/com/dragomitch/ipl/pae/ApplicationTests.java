@@ -3,11 +3,19 @@ package com.dragomitch.ipl.pae;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -20,6 +28,9 @@ class ApplicationTests {
 
   @Autowired
   private TestRestTemplate rest;
+
+  @LocalServerPort
+  private int port;
 
   @Test
   void unknownApiRouteIsAnsweredByTheRoutingServlet() {
@@ -54,5 +65,26 @@ class ApplicationTests {
 
     assertEquals(HttpStatus.NOT_FOUND,
         rest.getForEntity("/js/doesNotExist.js", String.class).getStatusCode());
+  }
+
+  @Test
+  void angularDevServerMayCallTheLegacyApi() throws Exception {
+    // java.net.http is used because HttpURLConnection (TestRestTemplate) drops the Origin header
+    HttpClient client = HttpClient.newHttpClient();
+    URI session = URI.create("http://localhost:" + port + "/api/1.0/session");
+
+    HttpResponse<String> preflight = client.send(HttpRequest.newBuilder(session)
+        .method("OPTIONS", BodyPublishers.noBody())
+        .header("Origin", "http://localhost:4200")
+        .header("Access-Control-Request-Method", "POST")
+        .build(), BodyHandlers.ofString());
+    assertEquals(200, preflight.statusCode());
+    assertEquals("http://localhost:4200",
+        preflight.headers().firstValue("Access-Control-Allow-Origin").orElse(null));
+
+    HttpResponse<String> rejected = client.send(HttpRequest.newBuilder(session)
+        .header("Origin", "http://evil.example.com")
+        .build(), BodyHandlers.ofString());
+    assertEquals(403, rejected.statusCode());
   }
 }
