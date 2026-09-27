@@ -15,8 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.business.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 
 import java.util.List;
@@ -55,8 +56,7 @@ class PartnerControllerTest {
 
     mockMvc.perform(post(ApiPaths.BASE + "/partners").with(csrf()).with(TestUsers.student())
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"fullName\":\"ACME\",\"official\":false,\"employeeCount\":\"12\","
-                + "\"options\":[{\"code\":\"BIN\",\"departement\":\"IT\"}]}"))
+            .content(TestBodies.PARTNER))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(8));
 
@@ -68,7 +68,8 @@ class PartnerControllerTest {
 
   @Test
   void showAllPassesTheFilterAndIsWrappedInData() throws Exception {
-    when(partnerUcc.showAll("country", "FR", UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
+    when(partnerUcc.showAll(new PartnerSearch("country", "FR"), UserDto.ROLE_STUDENT,
+        TestUsers.STUDENT_ID))
         .thenReturn(List.of(partner(1), partner(2)));
 
     mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=country&value=FR")
@@ -79,11 +80,11 @@ class PartnerControllerTest {
 
   @Test
   void anUnknownPartnerIs404() throws Exception {
-    when(partnerUcc.showOne(99)).thenThrow(new RessourceNotFoundException());
+    when(partnerUcc.showOne(99)).thenThrow(new ResourceNotFoundException());
 
     mockMvc.perform(get(ApiPaths.BASE + "/partners/99").with(TestUsers.student()))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.errorCode").value(104));
+        .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
   }
 
   @Test
@@ -91,7 +92,8 @@ class PartnerControllerTest {
     when(partnerUcc.edit(eq(3), any(), eq(UserDto.ROLE_PROFESSOR))).thenReturn(partner(3));
 
     mockMvc.perform(put(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.professor())
-            .contentType(MediaType.APPLICATION_JSON).content("{\"archived\":true,\"version\":2}"))
+            .contentType(MediaType.APPLICATION_JSON).content(TestBodies.PARTNER.replace("\"official\":false",
+                "\"official\":false,\"archived\":true,\"version\":2")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.fullName").value("ACME"));
   }

@@ -1,12 +1,13 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
@@ -16,7 +17,8 @@ import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -30,16 +32,14 @@ import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityDocumentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
+import jakarta.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
-
-import java.util.ArrayList;
-import java.util.List;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -119,50 +119,55 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testCheckDataIntregrityTC2() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.setMobilityType("4444");
-      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.mobilityType:Pattern"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.setMobilityType("4444");
+          mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC3() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.setMobilityType(null);
-      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.mobilityType:NotBlank"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.setMobilityType(null);
+          mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC5() {
-    assertThrows(BusinessException.class, () -> {
+    assertEquals(ErrorCode.PROFESSOR_CANNOT_APPLY, Violations.errorCodeOf(() -> {
       mobilityChoice.setCountry(null);
       mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    }));
   }
 
   @Test
   public void testCheckDataIntregrityTC6() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.getCountry().setCountryCode(null);
-      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.country.countryCode:NotBlank"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.getCountry().setCountryCode(null);
+          mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC7() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.getCountry().setCountryCode("555");
-      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.country.countryCode:Size"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.getCountry().setCountryCode("555");
+          mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC8() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.getCountry().setCountryCode("LOL");
-      mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.country.countryCode:Size"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.getCountry().setCountryCode("LOL");
+          mobilityChoiceUcc.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
@@ -173,34 +178,52 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testCheckDataIntregrityTC10() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.setProgramme(null);
-      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.programme:NotNull"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.setProgramme(null);
+          mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC11() {
-    assertThrows(BusinessException.class, () -> {
+    assertEquals(ErrorCode.UNKNOWN_PROGRAMME, Violations.errorCodeOf(() -> {
       mobilityChoice.getProgramme().setId(2);
       mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    });
+    }));
   }
 
   @Test
   public void testCheckDataIntregrityTC12() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoice.setUser(null);
-      mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice.user:NotNull"),
+        Violations.thrownBy(() -> {
+          mobilityChoice.setUser(null);
+          mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCheckDataIntregrityTC13() {
-    assertThrows(BusinessException.class, () -> {
+    assertEquals(ErrorCode.PROFESSOR_CANNOT_APPLY, Violations.errorCodeOf(() -> {
       mobilityChoice.getUser().setId(2);
       mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
-    });
+    }));
+  }
+
+  @Test
+  public void testCreateForAnUnknownUser() {
+    mobilityChoice.getUser().setId(99);
+    assertEquals(ErrorCode.UNKNOWN_USER,
+        Violations.errorCodeOf(() -> mobilityChoiceUcc.create(mobilityChoice, 2,
+            UserDto.ROLE_PROFESSOR)));
+  }
+
+  @Test
+  public void testCreateInAnUnknownCountry() {
+    mobilityChoice.getCountry().setCountryCode("ZZ");
+    assertEquals(ErrorCode.UNKNOWN_COUNTRY,
+        Violations.errorCodeOf(() -> mobilityChoiceUcc.create(mobilityChoice, 2,
+            UserDto.ROLE_PROFESSOR)));
   }
 
   @Test
@@ -210,16 +233,18 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testCreateTC2() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoiceUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertEquals(List.of("create.mobilityChoice:NotNull"),
+        Violations.thrownBy(() -> {
+          mobilityChoiceUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
+        }));
   }
 
   @Test
   public void testCreateTC3() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoiceUcc.create(null, 1, UserDto.ROLE_STUDENT);
-    });
+    assertEquals(List.of("create.mobilityChoice:NotNull"),
+        Violations.thrownBy(() -> {
+          mobilityChoiceUcc.create(null, 1, UserDto.ROLE_STUDENT);
+        }));
   }
 
   @Test
@@ -262,16 +287,18 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testShowAllTC1() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "");
-    });
+    assertEquals(List.of("showAll.filter:Pattern"),
+        Violations.thrownBy(() -> {
+          mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "");
+        }));
   }
 
   @Test
   public void testShowAllTC2() {
-    assertThrows(BusinessException.class, () -> {
-      mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "LolAdibouLol");
-    });
+    assertEquals(List.of("showAll.filter:Pattern"),
+        Violations.thrownBy(() -> {
+          mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, "LolAdibouLol");
+        }));
   }
 
   @Test
@@ -359,28 +386,28 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testCancelTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.cancel(-1, userStud.getId(), CANCELLATION_REASON);
     });
   }
 
   @Test
   public void testCancelTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.cancel(0, userStud.getId(), CANCELLATION_REASON);
     });
   }
 
   @Test
   public void testCancelTC3() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.cancel(1, userStud.getId(), null);
     });
   }
 
   @Test
   public void testCancelTC4() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.cancel(1, userStud.getId(), "");
     });
   }
@@ -437,14 +464,14 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testRejectTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.reject(0, denialReason.getId());
     });
   }
 
   @Test
   public void testRejectTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.reject(mobilityChoice.getId(), 0);
     });
   }
@@ -494,7 +521,7 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testConfirmTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.confirm(0, userStud.getId());
     });
   }
@@ -559,7 +586,7 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testConfirmWithNewPartnerTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityChoiceUcc.confirmWithNewPartner(0, partner, userProf.getId(), userProf.getRole());
     });
   }
@@ -643,14 +670,11 @@ public class TestMobilityChoiceUcc {
     PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0: a partner to create
     newPartner.setStatus(false);
     newPartner.setOptions(new ArrayList<PartnerOptionDto>());
-    BusinessException ex = assertThrows(BusinessException.class,
-        () -> mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner,
-            userProf.getId(), userProf.getRole()));
-    boolean optionRequired = false;
-    for (ErrorFormat detail : ex.getError().getDetails()) {
-      optionRequired |= detail.getErrorCode() == ErrorFormat.PARTNER_OPTION_REQUIRED_712;
-    }
-    assertTrue(optionRequired, "The partner must be rejected because it has no option");
+    // the partner is created by PartnerUcc.create, whose validation requires an option
+    assertEquals(List.of("create.partner.options:NotEmpty"),
+        Violations.thrownBy(() -> mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(),
+            newPartner, userProf.getId(), userProf.getRole())),
+        "The partner must be rejected because it has no option");
     assertNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must stay unconfirmed");
   }
 

@@ -1,19 +1,19 @@
 package com.dragomitch.ipl.pae.business;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.dragomitch.ipl.pae.business.dto.OptionDto;
 
 import java.time.LocalDate;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -30,7 +30,7 @@ public class TestNominatedStudent {
   private static final String PHONE_NUMBER = "+32493";
   private static final String GENDER = "M";
   private static final int NBR_PASSED_YEARS = 2;
-  private static final String IBAN = "BE92732143130176";
+  private static final String IBAN = "BE68539007547034";
   private static final String CARD_HOLDER = "Card holder";
   private static final String BANK_NAME = "KBC";
   private static final String BIC = "KREDBEBB";
@@ -124,316 +124,259 @@ public class TestNominatedStudent {
 
   @Test
   public void testCheckDataIntegrityTC1() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setTitle(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setTitle(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC2() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setTitle("");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setTitle("");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC3() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setTitle("Ntfs");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setTitle("Ntfs");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC4() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setTitle("Msr");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setTitle("Msr");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC5() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBirthdate(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBirthdate(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC6() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBirthdate(LocalDate.now().plusDays(1));
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBirthdate(LocalDate.now().plusDays(1));
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC7() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setNationality(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setNationality(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC8() {
-    assertThrows(BusinessException.class, () -> {
-      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-      nominatedStudent.setNationality(country);
-      nominatedStudent.checkDataIntegrity();
-    });
+    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    nominatedStudent.setNationality(country);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC9() {
-    assertThrows(BusinessException.class, () -> {
-      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-      country.setCountryCode("1");
-      nominatedStudent.setNationality(country);
-      nominatedStudent.checkDataIntegrity();
-    });
+    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    country.setCountryCode("1");
+    nominatedStudent.setNationality(country);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC10() {
-    assertThrows(BusinessException.class, () -> {
-      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-      country.setCountryCode("123");
-      nominatedStudent.setNationality(country);
-      nominatedStudent.checkDataIntegrity();
-    });
+    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    country.setCountryCode("123");
+    nominatedStudent.setNationality(country);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC11() {
-    assertThrows(BusinessException.class, () -> {
-      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-      country.setCountryCode("1");
-      nominatedStudent.setNationality(country);
-      nominatedStudent.checkDataIntegrity();
-    });
+    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    country.setCountryCode("1");
+    nominatedStudent.setNationality(country);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC12() {
-    assertThrows(BusinessException.class, () -> {
-      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-      country.setCountryCode("123");
-      nominatedStudent.setNationality(country);
-      nominatedStudent.checkDataIntegrity();
-    });
+    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    country.setCountryCode("123");
+    nominatedStudent.setNationality(country);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC13() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setAddress(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setAddress(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC14() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setGender(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setGender(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC15() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setGender("");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setGender("");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC16() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setGender("D");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setGender("D");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC17() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setNbrPassedYears(-1);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setNbrPassedYears(-1);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC18() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setNbrPassedYears(0);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setNbrPassedYears(0);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC19() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setGender("D");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setGender("D");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC20() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setIban(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setIban(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC21() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setIban("");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setIban("");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC22() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setIban("B92732143130176");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setIban("B92732143130176");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC23() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setIban("88927321431301768");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setIban("88927321431301768");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC24() {
+    // the card holder is optional: NominatedStudentUcc then uses the name of the student
     nominatedStudent.setCardHolder(null);
-    nominatedStudent.checkDataIntegrity();
-    assertEquals(nominatedStudent.getFirstName() + " " + nominatedStudent.getLastName(),
-        nominatedStudent.getCardHolder());
+    assertEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC25() {
     nominatedStudent.setCardHolder("");
-    nominatedStudent.checkDataIntegrity();
-    assertEquals(nominatedStudent.getFirstName() + " " + nominatedStudent.getLastName(),
-        nominatedStudent.getCardHolder());
+    assertEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC26() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setCardHolder(LONG_STRING_36);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setCardHolder(LONG_STRING_36);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC27() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBankName(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBankName(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC28() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBankName("");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBankName("");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC29() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBankName(LONG_STRING_61);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBankName(LONG_STRING_61);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC30() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic(null);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic(null);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC31() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic("");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic("");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC32() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic(LONG_STRING_13);
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic(LONG_STRING_13);
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC33() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic("KRIBEBEBB");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic("KRIBEBEBB");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC34() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic("KREDBEB");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic("KREDBEB");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC35() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic("KRIBEBEBBKRE");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic("KRIBEBEBBKRE");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC36() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudent.setBic("KREDB8BB");
-      nominatedStudent.checkDataIntegrity();
-    });
+    nominatedStudent.setBic("KREDB8BB");
+    assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC37() {
-    nominatedStudent.checkDataIntegrity();
+    assertEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   private NominatedStudent setUpCorrectNominatedStudent() {
     NominatedStudent nominatedStudent =
         (NominatedStudent) entityFactory.build(NominatedStudent.class);
     nominatedStudent.setLastName(TestUser.LAST_NAME);
+    nominatedStudent.setFirstName("First Name");
+    nominatedStudent.setUsername("username");
+    nominatedStudent.setEmail("email@do.com");
+    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    option.setCode("BIN");
+    nominatedStudent.setOption(option);
     nominatedStudent.setTitle(TITLE);
     nominatedStudent.setBirthdate(BIRTHDATE);
     CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
     country.setCountryCode(COUNTRY_CODE);
     nominatedStudent.setNationality(country);
     AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    address.setStreet("Rue de la Loi");
+    address.setNumber("16");
+    address.setCity("Bruxelles");
+    address.setPostalCode("1000");
+    address.setRegion("");
+    CountryDto addressCountry = (CountryDto) entityFactory.build(CountryDto.class);
+    addressCountry.setCountryCode("BE");
+    address.setCountry(addressCountry);
     nominatedStudent.setAddress(address);
     nominatedStudent.setPhoneNumber(PHONE_NUMBER);
     nominatedStudent.setGender(GENDER);

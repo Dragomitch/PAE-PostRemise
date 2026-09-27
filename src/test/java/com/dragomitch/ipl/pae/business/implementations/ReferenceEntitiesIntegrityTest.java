@@ -1,14 +1,13 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.INVALID_REASON_401;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.business.Country;
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.Option;
 import com.dragomitch.ipl.pae.business.Programme;
+import com.dragomitch.ipl.pae.business.Violations;
+import com.dragomitch.ipl.pae.business.validation.ValidationGroups.Reference;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +15,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** checkDataIntegrity() of the small reference entities: option, programme, country, reason. */
+/**
+ * Constraints of the small reference entities: option, programme, country, denial reason (their
+ * former {@code checkDataIntegrity()}), in full ({@code Default} group) and as references
+ * ({@code Reference} group: only the identifier).
+ */
 class ReferenceEntitiesIntegrityTest {
 
   private final EntityFactoryImpl factory = new EntityFactoryImpl();
@@ -38,31 +41,44 @@ class ReferenceEntitiesIntegrityTest {
 
   @Test
   void aCompleteOptionIsValid() {
-    assertThatCode(() -> option("BIN", "Informatique").checkDataIntegrity())
-        .doesNotThrowAnyException();
+    assertThat(Violations.of(option("BIN", "Informatique"))).isEmpty();
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"NULL, Informatique", "'', Informatique", "BIN, NULL", "BIN, ''"},
-      nullValues = "NULL")
-  void anOptionNeedsACodeAndAName(String code, String name) {
-    assertThatThrownBy(() -> option(code, name).checkDataIntegrity())
-        .isInstanceOf(IllegalArgumentException.class);
+  @CsvSource(value = {"NULL, option code, code:NotBlank", "'', empty code, code:NotBlank",
+      "BI, code too short, code:Size", "BINF, code too long, code:Size"}, nullValues = "NULL")
+  void anOptionIsIdentifiedByACodeOfThreeCharacters(String code, String why, String violation) {
+    assertThat(Violations.of(option(code, "Informatique"))).as(why).contains(violation);
+    assertThat(Violations.of(option(code, "Informatique"), Reference.class)).contains(violation);
+  }
+
+  @Test
+  void theNameOfAnOptionIsNotRequired() {
+    // clients only send the code of an option (sign-up form, partner options)
+    assertThat(Violations.of(option("BIN", null))).isEmpty();
   }
 
   @ParameterizedTest
   @ValueSource(ints = {0, 1, 3})
   void aProgrammeWithAPositiveOrZeroIdAndNamesIsValid(int id) {
-    assertThatCode(() -> programme(id, "Erasmus+", "Mobility Tool").checkDataIntegrity())
-        .doesNotThrowAnyException();
+    assertThat(Violations.of(programme(id, "Erasmus+", "Mobility Tool"))).isEmpty();
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"-1, Erasmus+, Mobility Tool", "1, NULL, Mobility Tool", "1, '', Tool",
-      "1, Erasmus+, NULL", "1, Erasmus+, ''"}, nullValues = "NULL")
-  void aProgrammeNeedsANonNegativeIdAndBothNames(int id, String name, String software) {
-    assertThatThrownBy(() -> programme(id, name, software).checkDataIntegrity())
-        .isInstanceOf(IllegalArgumentException.class);
+  @CsvSource(value = {"-1, Erasmus+, Mobility Tool, id:PositiveOrZero",
+      "1, NULL, Mobility Tool, programmeName:NotBlank", "1, '', Tool, programmeName:NotBlank",
+      "1, Erasmus+, NULL, externalSoftName:NotBlank", "1, Erasmus+, '', externalSoftName:NotBlank"},
+      nullValues = "NULL")
+  void aProgrammeNeedsANonNegativeIdAndBothNames(int id, String name, String software,
+      String violation) {
+    assertThat(Violations.of(programme(id, name, software))).containsExactly(violation);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, -1})
+  void aReferencedProgrammeNeedsAPositiveId(int id) {
+    assertThat(Violations.of(programme(id, null, null), Reference.class))
+        .containsExactly("id:Positive");
   }
 
   @Test
@@ -72,19 +88,30 @@ class ReferenceEntitiesIntegrityTest {
     country.setName("Belgique");
     country.setProgramme(programme(2, "Erabel", "Mobi-ERABEL"));
 
-    assertThatCode(country::checkDataIntegrity).doesNotThrowAnyException();
+    assertThat(Violations.of(country)).isEmpty();
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"NULL, Belgique, Erabel", "BE, '', Erabel", "BE, Belgique, ''"},
-      nullValues = "NULL")
-  void aCountryChecksItsFieldsAndItsProgramme(String code, String name, String programmeName) {
+  @CsvSource(value = {"NULL, Belgique, Erabel, countryCode:NotBlank",
+      "BEL, Belgique, Erabel, countryCode:Size", "BE, '', Erabel, name:NotBlank",
+      "BE, Belgique, '', programme.programmeName:NotBlank"}, nullValues = "NULL")
+  void aCountryChecksItsFieldsAndItsProgramme(String code, String name, String programmeName,
+      String violation) {
     Country country = (Country) factory.build(Country.class);
     country.setCountryCode(code);
     country.setName(name);
     country.setProgramme(programme(2, programmeName, "Mobi-ERABEL"));
 
-    assertThatThrownBy(country::checkDataIntegrity).isInstanceOf(IllegalArgumentException.class);
+    assertThat(Violations.of(country)).containsExactly(violation);
+  }
+
+  @Test
+  void aReferencedCountryOnlyNeedsItsCode() {
+    Country country = (Country) factory.build(Country.class);
+    country.setCountryCode("BE");
+
+    assertThat(Violations.of(country, Reference.class)).isEmpty();
+    assertThat(Violations.of(country)).containsExactly("name:NotBlank", "programme:NotNull");
   }
 
   @Test
@@ -92,7 +119,7 @@ class ReferenceEntitiesIntegrityTest {
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
     reason.setReason("Dossier incomplet");
 
-    assertThat(Violations.of(reason::checkDataIntegrity)).isEmpty();
+    assertThat(Violations.of(reason)).isEmpty();
   }
 
   @ParameterizedTest
@@ -101,16 +128,18 @@ class ReferenceEntitiesIntegrityTest {
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
     reason.setReason(text);
 
-    assertThat(Violations.of(reason::checkDataIntegrity)).containsExactly(INVALID_REASON_401);
+    assertThat(Violations.of(reason)).containsExactly("reason:NotBlank");
   }
 
   @Test
-  void aDenialReasonLongerThanTheColumnIsNotRejectedByTheBusinessCheck() {
-    // documented gap: denial_reasons.reason is VARCHAR(300) but only emptiness is checked, so a
-    // longer text fails in the database (see DenialReasonDaoIT)
+  void aDenialReasonCannotBeLongerThanTheColumn() {
+    // formerly a documented gap (only emptiness was checked): denial_reasons.reason is
+    // VARCHAR(300), a longer text is now refused before reaching the database
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
-    reason.setReason("x".repeat(301));
+    reason.setReason("x".repeat(300));
+    assertThat(Violations.of(reason)).isEmpty();
 
-    assertThat(Violations.of(reason::checkDataIntegrity)).isEmpty();
+    reason.setReason("x".repeat(301));
+    assertThat(Violations.of(reason)).containsExactly("reason:Size");
   }
 }

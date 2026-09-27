@@ -1,8 +1,9 @@
 package com.dragomitch.ipl.pae.business;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
@@ -10,13 +11,11 @@ import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -276,133 +275,107 @@ public class TestMobilityChoice {
 
   @Test
   public void testCheckDataIntegrityTC0() {
-    correctMobilityChoice.checkDataIntegrity();
+    assertEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC1() {
-    assertThrows(BusinessException.class, () -> {
-      int prefenceOrder = 0;
-      correctMobilityChoice.setPreferenceOrder(prefenceOrder);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int prefenceOrder = 0;
+    correctMobilityChoice.setPreferenceOrder(prefenceOrder);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC2() {
-    assertThrows(BusinessException.class, () -> {
-      int prefenceOrder = 4;
-      correctMobilityChoice.setPreferenceOrder(prefenceOrder);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int prefenceOrder = 4;
+    correctMobilityChoice.setPreferenceOrder(prefenceOrder);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC4() {
-    assertThrows(BusinessException.class, () -> {
-      String mobilityType = "";
-      correctMobilityChoice.setMobilityType(mobilityType);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    String mobilityType = "";
+    correctMobilityChoice.setMobilityType(mobilityType);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC5() {
-    assertThrows(BusinessException.class, () -> {
-      String mobilityType = "Test";
-      correctMobilityChoice.setMobilityType(mobilityType);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    String mobilityType = "Test";
+    correctMobilityChoice.setMobilityType(mobilityType);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC6() {
     String mobilityType = "SMS";
     correctMobilityChoice.setMobilityType(mobilityType);
-    correctMobilityChoice.checkDataIntegrity();
+    assertEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC7() {
     String mobilityType = "SMP";
     correctMobilityChoice.setMobilityType(mobilityType);
-    correctMobilityChoice.checkDataIntegrity();
+    assertEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC8() {
-    assertThrows(BusinessException.class, () -> {
-      int academicYear = -1;
-      correctMobilityChoice.setAcademicYear(academicYear);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int academicYear = -1;
+    correctMobilityChoice.setAcademicYear(academicYear);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC9() {
-    assertThrows(BusinessException.class, () -> {
-      int academicYear = 0;
-      correctMobilityChoice.setAcademicYear(academicYear);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int academicYear = 0;
+    correctMobilityChoice.setAcademicYear(academicYear);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC10() {
-    assertThrows(BusinessException.class, () -> {
-      int term = -1;
-      correctMobilityChoice.setTerm(term);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int term = -1;
+    correctMobilityChoice.setTerm(term);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC11() {
-    assertThrows(BusinessException.class, () -> {
-      int term = 0;
-      correctMobilityChoice.setTerm(term);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int term = 0;
+    correctMobilityChoice.setTerm(term);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC12() {
-    assertThrows(BusinessException.class, () -> {
-      int term = 3;
-      correctMobilityChoice.setTerm(term);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    int term = 3;
+    correctMobilityChoice.setTerm(term);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC13() {
-    assertThrows(BusinessException.class, () -> {
-      correctMobilityChoice.setUser(null);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    correctMobilityChoice.setUser(null);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC14() {
-    assertThrows(BusinessException.class, () -> {
-      correctMobilityChoice.getUser().setId(0);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    correctMobilityChoice.getUser().setId(0);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC17() {
-    assertThrows(BusinessException.class, () -> {
-      correctMobilityChoice.setProgramme(null);
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    correctMobilityChoice.setProgramme(null);
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC18() {
-    assertThrows(BusinessException.class, () -> {
-      correctMobilityChoice.getProgramme().setId(0);;
-      correctMobilityChoice.checkDataIntegrity();
-    });
+    correctMobilityChoice.getProgramme().setId(0);;
+    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 }

@@ -109,10 +109,10 @@ class EndpointAuthorizationTest {
         Arguments.of("GET", "/session", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("DELETE", "/session", null, Access.PROFESSOR_OR_STUDENT),
         // users
-        Arguments.of("POST", "/users", "{}", Access.PUBLIC),
+        Arguments.of("POST", "/users", TestBodies.USER, Access.PUBLIC),
         Arguments.of("GET", "/users", null, Access.PROFESSOR),
         Arguments.of("PUT", "/users/3/promote", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/users/edit", "{}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("PUT", "/users/edit", TestBodies.USER, Access.PROFESSOR_OR_STUDENT),
         // countries
         Arguments.of("GET", "/countries", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/countries/BE", null, Access.PROFESSOR_OR_STUDENT),
@@ -121,13 +121,13 @@ class EndpointAuthorizationTest {
         Arguments.of("GET", "/denialReasons", null, Access.PROFESSOR),
         Arguments.of("PUT", "/denialReasons/1", "{\"reason\":\"r\"}", Access.PROFESSOR),
         // mobility choices
-        Arguments.of("POST", "/mobilityChoice", "{}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("POST", "/mobilityChoice", TestBodies.MOBILITY_CHOICE, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices?filter=all", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices/count", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("PUT", "/mobilityChoices/1/cancel?reason=r", null, Access.STUDENT),
         Arguments.of("PUT", "/mobilityChoices/1/reject?reason=1", null, Access.PROFESSOR),
         Arguments.of("PUT", "/mobilityChoices/1/confirm", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/mobilityChoices/1/confirmWithNewPartner", "{}",
+        Arguments.of("PUT", "/mobilityChoices/1/confirmWithNewPartner", TestBodies.PARTNER,
             Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices/export", null, Access.PROFESSOR),
         // mobilities
@@ -144,20 +144,22 @@ class EndpointAuthorizationTest {
             Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilities/1/export", null, Access.PROFESSOR),
         // nominated students
-        Arguments.of("POST", "/nominatedStudents", "{}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("POST", "/nominatedStudents", TestBodies.NOMINATED_STUDENT,
+            Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/nominatedStudents/2", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/nominatedStudents", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/nominatedStudents/2", "{}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("PUT", "/nominatedStudents/2", TestBodies.NOMINATED_STUDENT,
+            Access.PROFESSOR_OR_STUDENT),
         // options
         Arguments.of("GET", "/options", null, Access.PUBLIC),
         Arguments.of("GET", "/options/BIN", null, Access.PROFESSOR_OR_STUDENT),
         // partners
-        Arguments.of("POST", "/partners", "{}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("POST", "/partners", TestBodies.PARTNER, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/partners/1", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/partners?filter=country&value=BE", null,
             Access.PROFESSOR_OR_STUDENT),
-        Arguments.of("PUT", "/partners/1", "{}", Access.PROFESSOR),
-        Arguments.of("POST", "/partners/1", "{\"code\":\"BIN\"}", Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("PUT", "/partners/1", TestBodies.PARTNER, Access.PROFESSOR),
+        Arguments.of("POST", "/partners/1", TestBodies.PARTNER_OPTION, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/partners/partnersOptions/1", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("PUT", "/partners/1/restore", null, Access.PROFESSOR_OR_STUDENT),
         // payments
@@ -185,7 +187,7 @@ class EndpointAuthorizationTest {
     } else {
       mockMvc.perform(call(method, path, body))
           .andExpect(status().isUnauthorized())
-          .andExpect(jsonPath("$.errorCode").value(101));
+          .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
   }
 
@@ -209,7 +211,7 @@ class EndpointAuthorizationTest {
     } else {
       mockMvc.perform(call(method, path, body).with(user))
           .andExpect(status().isForbidden())
-          .andExpect(jsonPath("$.errorCode").value(103));
+          .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
   }
 
@@ -227,7 +229,7 @@ class EndpointAuthorizationTest {
     } else {
       mockMvc.perform(builder)
           .andExpect(status().isForbidden())
-          .andExpect(jsonPath("$.errorCode").value(103));
+          .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
   }
 

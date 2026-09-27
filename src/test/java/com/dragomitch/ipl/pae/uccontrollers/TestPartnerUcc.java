@@ -1,38 +1,37 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.User;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerOptionDao;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+
+import jakarta.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestPartnerUcc {
@@ -74,7 +73,7 @@ public class TestPartnerUcc {
 
   @Test
   public void testAddOptionTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
       partnerUcc.addOption(0, option); // L'id doit être > 0
     });
@@ -82,14 +81,14 @@ public class TestPartnerUcc {
 
   @Test
   public void testAddOptionTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       partnerUcc.addOption(1, null); // Le PartnerOption doit être différent de null
     });
   }
 
   @Test
   public void testAddOptionTC3() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
       option.setCode("");
       partnerUcc.addOption(1, option); // le code doit être une String valide
@@ -98,7 +97,7 @@ public class TestPartnerUcc {
 
   @Test
   public void testAddOptionTC4() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
       option.setDepartement("");
       partnerUcc.addOption(1, option); // le departement doit être une String valide
@@ -107,12 +106,12 @@ public class TestPartnerUcc {
 
   @Test
   public void testAddOptionTC5() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertEquals(ErrorCode.UNKNOWN_OPTION, Violations.errorCodeOf(() -> {
       PartnerDto partner = partnerDao.create(partnerDto);
       PartnerOptionDto option = partner.getOptions().get(0);
-      option.setCode("Bouilla");
+      option.setCode("ZZZ");
       partnerUcc.addOption(1, option); // Il doit exister une option avec le bon OptionCode
-    });
+    }));
   }
 
   @Test
@@ -211,21 +210,6 @@ public class TestPartnerUcc {
   }
 
   /**
-   * Returns the codes of the violations detailed in a BusinessException.
-   */
-  private static List<Integer> violationCodes(BusinessException ex) {
-    List<Integer> codes = new ArrayList<Integer>();
-    ErrorFormat error = ex.getError();
-    if (error != null && error.getDetails() != null) {
-      for (ErrorFormat detail : error.getDetails()) {
-        assertNotNull(detail, "Every violation must be declared in errors.json");
-        codes.add(detail.getErrorCode());
-      }
-    }
-    return codes;
-  }
-
-  /**
    * Stores a partner directly in the 'database', bypassing the use case (like legacy data).
    */
   private PartnerDto storeWithoutOptions(boolean archived) {
@@ -249,10 +233,8 @@ public class TestPartnerUcc {
   public void testCreateWithEmptyOptionsIsRejected() {
     partnerDto.setStatus(false);
     partnerDto.setOptions(new ArrayList<PartnerOptionDto>());
-    BusinessException ex = assertThrows(BusinessException.class,
-        () -> partnerUcc.create(partnerDto, User.ROLE_PROFESSOR));
-    assertEquals(ErrorFormat.INVALID_INPUT_DATA_110, ex.getError().getErrorCode());
-    assertTrue(violationCodes(ex).contains(ErrorFormat.PARTNER_OPTION_REQUIRED_712));
+    assertEquals(List.of("create.partner.options:NotEmpty"),
+        Violations.thrownBy(() -> partnerUcc.create(partnerDto, User.ROLE_PROFESSOR)));
     assertNull(partnerDao.findById(1), "No partner must be created without an option");
   }
 
@@ -260,9 +242,8 @@ public class TestPartnerUcc {
   public void testCreateWithNullOptionsIsRejected() {
     partnerDto.setStatus(false);
     partnerDto.setOptions(null);
-    BusinessException ex = assertThrows(BusinessException.class,
-        () -> partnerUcc.create(partnerDto, User.ROLE_STUDENT));
-    assertTrue(violationCodes(ex).contains(ErrorFormat.PARTNER_OPTION_REQUIRED_712));
+    assertEquals(List.of("create.partner.options:NotEmpty"),
+        Violations.thrownBy(() -> partnerUcc.create(partnerDto, User.ROLE_STUDENT)));
     assertNull(partnerDao.findById(1), "No partner must be created without an option");
   }
 
@@ -311,7 +292,7 @@ public class TestPartnerUcc {
     changes.setOptions(new ArrayList<PartnerOptionDto>());
     BusinessException ex = assertThrows(BusinessException.class,
         () -> partnerUcc.edit(stored.getId(), changes, User.ROLE_PROFESSOR));
-    assertEquals(ErrorFormat.PARTNER_OPTION_REQUIRED_712, ex.getError().getErrorCode());
+    assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
   }
 
   @Test
@@ -321,7 +302,7 @@ public class TestPartnerUcc {
     changes.setOptions(null);
     BusinessException ex = assertThrows(BusinessException.class,
         () -> partnerUcc.edit(stored.getId(), changes, User.ROLE_PROFESSOR));
-    assertEquals(ErrorFormat.PARTNER_OPTION_REQUIRED_712, ex.getError().getErrorCode());
+    assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
   }
 
   @Test
@@ -337,7 +318,7 @@ public class TestPartnerUcc {
     PartnerDto stored = storeWithoutOptions(true);
     BusinessException ex = assertThrows(BusinessException.class,
         () -> partnerUcc.restore(stored.getId(), User.ROLE_PROFESSOR));
-    assertEquals(ErrorFormat.PARTNER_OPTION_REQUIRED_712, ex.getError().getErrorCode());
+    assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
     assertTrue(partnerDao.findById(stored.getId()).isArchived(), "The partner must stay archived");
   }
 
@@ -354,7 +335,7 @@ public class TestPartnerUcc {
     PartnerDto created = partnerUcc.create(partnerDto, User.ROLE_PROFESSOR);
     BusinessException ex = assertThrows(BusinessException.class,
         () -> partnerUcc.restore(created.getId(), User.ROLE_PROFESSOR));
-    assertEquals(ErrorFormat.PARTNER_NOT_ARCHIVED_711, ex.getError().getErrorCode());
+    assertEquals(ErrorCode.PARTNER_NOT_ARCHIVED, ex.getErrorCode());
   }
 
 }
