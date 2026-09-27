@@ -25,11 +25,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Spring context of the DAO integration tests: the <em>real</em> persistence beans (every DAO,
- * {@code DalBackendServicesImpl}, the Spring Data JDBC setup and repositories of
- * {@code JdbcPersistenceConfig}), the real {@code EntityFactory}, a
- * {@code DataSourceTransactionManager} and the {@code NamedParameterJdbcTemplate}/{@code JdbcClient}
- * that Spring Boot auto-configures in the application, on top of a throw-away PostgreSQL 16 server
- * started in-process by zonky's embedded-postgres (no Docker needed).
+ * the Spring Data JDBC setup and repositories of {@code JdbcPersistenceConfig}), the real
+ * {@code EntityFactory}, a {@code DataSourceTransactionManager} and the
+ * {@code NamedParameterJdbcTemplate}/{@code JdbcClient} that Spring Boot auto-configures in the
+ * application, on top of a throw-away PostgreSQL 16 server started in-process by zonky's
+ * embedded-postgres (no Docker needed).
  *
  * <p>The Spring TestContext framework caches this context, so the server is started and
  * {@code SQLRessources/init.sql} is loaded <strong>once per test JVM</strong>; the server is

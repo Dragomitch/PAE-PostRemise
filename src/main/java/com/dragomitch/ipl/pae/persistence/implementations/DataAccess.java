@@ -9,14 +9,17 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.jdbc.core.mapping.AggregateReference;
 import org.springframework.data.relational.core.conversion.DbActionExecutionException;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Keeps the contract of the DAO interfaces for the DAOs implemented with Spring Data JDBC
- * repositories or {@code JdbcClient}, which report errors as {@link DataAccessException}s:
+ * Keeps the contract of the DAO interfaces for their implementations, built on Spring Data JDBC
+ * repositories or on {@code JdbcClient}, which report errors as {@link DataAccessException}s.
+ * Every DAO method runs through {@link #call(Supplier)}:
  * <ul>
  *   <li>a DAO is only called inside a transaction ({@code @Transactional} use case), otherwise
- *       {@link IllegalStateException}, like {@link DalBackendServices};</li>
+ *       {@link IllegalStateException}: outside one, a repository would silently open its own
+ *       transaction and {@code JdbcClient} would run in auto-commit mode;</li>
  *   <li>a stale version ({@link OptimisticLockingFailureException}, raised by Spring Data for
  *       {@code @Version} aggregates) is a {@link ConcurrentModificationException};</li>
  *   <li>any other database error is a {@link FatalException}, including the
@@ -63,6 +66,18 @@ final class DataAccess {
    */
   static <T, I> AggregateReference<T, I> reference(I id) {
     return id == null ? null : AggregateReference.to(id);
+  }
+
+  /**
+   * A statement parameter with its SQL type, for {@code JdbcClient} parameters that may be
+   * {@code null}.
+   *
+   * @param sqlType the {@link java.sql.Types} constant
+   * @param value the value, possibly {@code null}
+   * @return the typed value
+   */
+  static SqlParameterValue typed(int sqlType, Object value) {
+    return new SqlParameterValue(sqlType, value);
   }
 
   /**

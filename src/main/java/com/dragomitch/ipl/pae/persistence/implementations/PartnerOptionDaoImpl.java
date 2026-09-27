@@ -3,113 +3,67 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link PartnerOptionDao} with Spring's {@link JdbcClient}: the options (and department) a
+ * partner welcomes students from (composite key option_code + partner_id).
+ */
 @Repository
 class PartnerOptionDaoImpl implements PartnerOptionDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
+  private static final String SQL_INSERT = """
+      INSERT INTO student_exchange_tools.partner_options (option_code, partner_id, departement)
+      VALUES (?, ?, ?)""";
 
-
-  private static final String SQL_INSERT =
-      "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + " (" + COLUMN_OPTION_CODE + ", "
-          + COLUMN_PARTNER_ID + ", " + COLUMN_DEPARTEMENT + ") VALUES (?, ?, ?)";
-
-  private static final String SQL_SELECT =
-      "SELECT po." + COLUMN_OPTION_CODE + ", po." + COLUMN_PARTNER_ID + ", po." + COLUMN_DEPARTEMENT
-          + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " po";
+  private static final String SQL_SELECT = """
+      SELECT po.option_code, po.partner_id, po.departement
+        FROM student_exchange_tools.partner_options po""";
 
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final JdbcClient jdbcClient;
 
-
-  /**
-   * Sole constructor for explicit invocation.
-   * 
-   * @param entityFactory an on-demand object dispenser
-   * @param dalBackendServices backend services
-   */
-  public PartnerOptionDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  PartnerOptionDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.jdbcClient = jdbcClient;
   }
 
   @Override
   public PartnerOptionDto create(PartnerOptionDto partnerOption, int partnerId) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_INSERT)) {
-      stmt.setString(1, partnerOption.getCode());
-      stmt.setInt(2, partnerId);
-      stmt.setString(3, partnerOption.getDepartement());
-      stmt.execute();
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG);
-    }
+    DataAccess.run(() -> jdbcClient.sql(SQL_INSERT).param(partnerOption.getCode())
+        .param(partnerId).param(partnerOption.getDepartement()).update());
     return partnerOption;
   }
 
   @Override
   public List<PartnerDto> findAllPartnersByOption(String optionCode) {
-    List<PartnerDto> partners = new ArrayList<PartnerDto>();
-    try (PreparedStatement stmt =
-        dalBackendServices.prepareStatement(SQL_SELECT + " WHERE po.option_code = ?")) {
-      stmt.setString(1, optionCode);
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          partners.add(populatePartnerDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return partners;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " WHERE po.option_code = ?")
+        .param(optionCode).query(this::toPartnerDto).list());
   }
 
   @Override
   public List<PartnerOptionDto> findAllOptionsByPartner(int partnerId) {
-    List<PartnerOptionDto> partnerOptions = new ArrayList<PartnerOptionDto>();
-    try (PreparedStatement stmt =
-        dalBackendServices.prepareStatement(SQL_SELECT + " WHERE po.partner_id = ?")) {
-      stmt.setInt(1, partnerId);
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          partnerOptions.add(populatePartnerOptionDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return partnerOptions;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " WHERE po.partner_id = ?")
+        .param(partnerId).query(this::toPartnerOptionDto).list());
   }
 
-  /*
-   * /** Populate an OptionDto based on a resultSet.
-   * 
-   * @param rs a cursor pointing to its current row of data
-   * 
-   * @return an optionDto
-   */
-  private PartnerOptionDto populatePartnerOptionDto(ResultSet rs) throws SQLException {
+  /** The option code and the department; the partner is the one queried. */
+  private PartnerOptionDto toPartnerOptionDto(ResultSet rs, int rowNum) throws SQLException {
     PartnerOptionDto partnerOption = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
     partnerOption.setCode(rs.getString(1));
     partnerOption.setDepartement(rs.getString(3));
     return partnerOption;
   }
 
-  /**
-   * Populate a PartnerDto based on a resultSet.
-   * 
-   * @param rs a cursor pointing to its current row of data
-   * @return a partnerDto
-   */
-  private PartnerDto populatePartnerDto(ResultSet rs) throws SQLException {
+  /** The partner id only. */
+  private PartnerDto toPartnerDto(ResultSet rs, int rowNum) throws SQLException {
     PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
     partner.setId(rs.getInt(2));
     return partner;

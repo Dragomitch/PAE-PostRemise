@@ -6,187 +6,135 @@ import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
-import com.dragomitch.ipl.pae.persistence.AddressDao;
-import com.dragomitch.ipl.pae.persistence.CountryDao;
-import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
-import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
-import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link PartnerDao} with Spring's {@link JdbcClient}. Partners are read joined with their
+ * address, country, programme and options; the inner join on the options makes a partner without
+ * any option invisible (legacy behaviour pinned by PartnerDaoIT). Updates check the version.
+ */
 @Repository
 class PartnerDaoImpl implements PartnerDao {
 
-  private static final String SCHEMA = DalBackendServices.SCHEMA_NAME;
+  private static final String SQL_INSERT = """
+      INSERT INTO student_exchange_tools.partners
+        (legal_name, business_name, full_name, organisation_type, employee_count, address, email,
+         website, phone_number, is_official, is_archived, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE, 1)
+      RETURNING partner_id""";
 
-  private static final String SQL_INSERT = "INSERT INTO " + SCHEMA + "." + TABLE_NAME + " ("
-      + COLUMN_LEGAL_NAME + ", " + COLUMN_BUSINESS_NAME + ", " + COLUMN_FULL_NAME + ", "
-      + COLUMN_ORGANISATION_TYPE + ", " + COLUMN_EMPLOYEE_COUNT + ", " + COLUMN_ADDRESS + ", "
-      + COLUMN_EMAIL + ", " + COLUMN_WEBSITE + ", " + COLUMN_PHONE_NUMBER + ", "
-      + COLUMN_STATUS_OFFICIAL + ", " + COLUMN_ARCHIVE + ", version) "
-      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false, 1) RETURNING partner_id";
+  private static final String SQL_SELECT = """
+      SELECT DISTINCT p.partner_id, p.legal_name, p.business_name, p.full_name,
+             p.organisation_type, p.employee_count, p.address, p.email, p.website, p.phone_number,
+             p.is_official, p.is_archived, p.version, pr.programme_id, pr.name, c.country_code,
+             c.name
+        FROM student_exchange_tools.partners p
+        JOIN student_exchange_tools.addresses a ON p.address = a.address_id
+        JOIN student_exchange_tools.countries c ON a.country = c.country_code
+        JOIN student_exchange_tools.programmes pr ON c.programme_id = pr.programme_id
+        JOIN student_exchange_tools.partner_options po ON po.partner_id = p.partner_id
+        JOIN student_exchange_tools.options o ON po.option_code = o.option_code
+       WHERE TRUE""";
 
-  private static final String SQL_SELECT = "SELECT DISTINCT p." + COLUMN_ID + ", p."
-      + COLUMN_LEGAL_NAME + ", p." + COLUMN_BUSINESS_NAME + ", p." + COLUMN_FULL_NAME + ", p."
-      + COLUMN_ORGANISATION_TYPE + ", p." + COLUMN_EMPLOYEE_COUNT + ", p." + COLUMN_ADDRESS + ", p."
-      + COLUMN_EMAIL + ", p." + COLUMN_WEBSITE + ", p." + COLUMN_PHONE_NUMBER + ", p."
-      + COLUMN_STATUS_OFFICIAL + ", p." + COLUMN_ARCHIVE + ", p." + COLUMN_VERSION
-      + ", pr.programme_id, pr.name," + " c.country_code, c.name FROM " + SCHEMA + "." + TABLE_NAME
-      + " p, " + SCHEMA + "." + AddressDao.TABLE_NAME + " a, " + SCHEMA + "."
-      + PartnerOptionDao.TABLE_NAME + " po, " + SCHEMA + "." + OptionDao.TABLE_NAME + " o, "
-      + SCHEMA + "." + CountryDao.TABLE_NAME + " c, " + SCHEMA + "." + ProgrammeDao.TABLE_NAME
-      + " pr " + "WHERE p." + COLUMN_ADDRESS + " = a." + AddressDao.COLUMN_ID + " AND a."
-      + AddressDao.COLUMN_COUNTRY + " = c." + CountryDao.COLUMN_CODE + " " + "AND c."
-      + CountryDao.COLUMN_PROGRAMME_ID + " = pr." + ProgrammeDao.COLUMN_ID
-      + " AND po.partner_id = p.partner_id " + "AND po.option_code = o.option_code";
-
-  private static final String SQL_UPDATE = "UPDATE " + SCHEMA + "." + TABLE_NAME + " p SET ("
-      + COLUMN_LEGAL_NAME + ", " + COLUMN_BUSINESS_NAME + ", " + COLUMN_FULL_NAME + ", "
-      + COLUMN_ORGANISATION_TYPE + ", " + COLUMN_EMPLOYEE_COUNT + ", " + COLUMN_ADDRESS + ", "
-      + COLUMN_EMAIL + ", " + COLUMN_WEBSITE + ", " + COLUMN_PHONE_NUMBER + ", "
-      + COLUMN_STATUS_OFFICIAL + ", " + COLUMN_ARCHIVE + ", " + COLUMN_VERSION
-      + ") = (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, version+1) WHERE p." + COLUMN_ID + " = ? AND p."
-      + COLUMN_VERSION + " = ? RETURNING p." + COLUMN_VERSION;
-
+  private static final String SQL_UPDATE = """
+      UPDATE student_exchange_tools.partners p
+         SET (legal_name, business_name, full_name, organisation_type, employee_count, address,
+              email, website, phone_number, is_official, is_archived, version)
+           = (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, version + 1)
+       WHERE p.partner_id = ? AND p.version = ?
+      RETURNING p.version""";
 
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final JdbcClient jdbcClient;
 
-  public PartnerDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  PartnerDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.jdbcClient = jdbcClient;
   }
 
   @Override
   public PartnerDto create(PartnerDto partner) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_INSERT)) {
-      populatePreparedStatement(stmt, partner, SQL_INSERT);
-      try (ResultSet rs = stmt.executeQuery()) {
-        rs.next();
-        partner.setId(rs.getInt(1));
-      }
-      partner.setVersion(1);
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    int id = DataAccess.call(() -> bindColumns(jdbcClient.sql(SQL_INSERT), partner)
+        .query(Integer.class).single());
+    partner.setId(id);
+    partner.setVersion(1);
     return partner;
   }
 
   @Override
   public PartnerDto findById(int id) {
-    PartnerDto partner = null;
-    try {
-      PreparedStatement stmt =
-          dalBackendServices.prepareStatement(SQL_SELECT + " AND p." + COLUMN_ID + " = ?");
-      stmt.setInt(1, id);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          partner = populatePartnerDto(rs);
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return partner;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " AND p.partner_id = ?").param(id)
+        .query(this::toDto).list().stream().findFirst().orElse(null));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>As before, a student only sees the official, non-archived partners of their option, and
+   * an unknown filter adds no condition but still binds {@code %value%}, which the database
+   * rejects (FatalException).
+   */
   @Override
   public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
-    List<PartnerDto> partners = new ArrayList<PartnerDto>();
-    String queryFilter = "";
+    boolean student = userRole.equals(UserDto.ROLE_STUDENT);
+    String condition = "";
+    List<Object> params = new ArrayList<>();
     if (filter.equals(FILTER_ALL_PARTNERS)) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        queryFilter += " AND p." + COLUMN_ARCHIVE + "= FALSE AND p." + COLUMN_STATUS_OFFICIAL
-            + "= TRUE AND po." + PartnerOptionDao.COLUMN_OPTION_CODE + "=?";
+      if (student) {
+        condition = " AND p.is_archived = FALSE AND p.is_official = TRUE AND po.option_code = ?";
+        params.add(option);
       }
     } else if (filter.equals(FILTER_COUNTRY)) {
-      queryFilter += " AND c." + CountryDao.COLUMN_CODE + " = ?";
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        queryFilter +=
-            " AND p." + COLUMN_ARCHIVE + " = FALSE AND po." + PartnerOptionDao.COLUMN_OPTION_CODE
-                + " = ? AND p." + COLUMN_STATUS_OFFICIAL + "=TRUE";
+      condition = " AND c.country_code = ?";
+      params.add(value);
+      if (student) {
+        condition += " AND p.is_archived = FALSE AND po.option_code = ? AND p.is_official = TRUE";
+        params.add(option);
       }
-    } else if (filter.equals(FILTER_ARCHIVED_PARTNERS)) {
-      queryFilter +=
-          " AND p." + COLUMN_ARCHIVE + " = TRUE AND lower(p." + COLUMN_FULL_NAME + ") LIKE ?";
+    } else {
+      if (filter.equals(FILTER_ARCHIVED_PARTNERS)) {
+        condition = " AND p.is_archived = TRUE AND lower(p.full_name) LIKE ?";
+      }
+      params.add("%" + value.toLowerCase() + "%");
     }
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT + queryFilter)) {
-      if (!filter.equals(FILTER_ALL_PARTNERS)) {
-        if (filter.equals(FILTER_COUNTRY)) {
-          stmt.setString(1, value);
-          if (userRole.equals(UserDto.ROLE_STUDENT)) {
-            stmt.setString(2, option);
-          }
-        } else {
-          stmt.setString(1, "%" + value.toLowerCase() + "%");
-        }
-      } else {
-        if (userRole.equals(UserDto.ROLE_STUDENT)) {
-          stmt.setString(1, option);
-        }
-      }
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          partners.add(populatePartnerDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return partners;
+    String sql = SQL_SELECT + condition;
+    return DataAccess.call(() -> jdbcClient.sql(sql).params(params).query(this::toDto).list());
   }
 
   @Override
   public PartnerDto update(PartnerDto partner) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_UPDATE)) {
-      populatePreparedStatement(stmt, partner, SQL_UPDATE);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          partner.setVersion(rs.getInt(1));
-        } else {
-          throw new ConcurrentModificationException();
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    int version = DataAccess.call(() -> bindColumns(jdbcClient.sql(SQL_UPDATE), partner)
+        .param(partner.isArchived()).param(partner.getId()).param(partner.getVersion())
+        .query(Integer.class).optional().orElseThrow(ConcurrentModificationException::new));
+    partner.setVersion(version);
     return partner;
   }
 
-  private void populatePreparedStatement(PreparedStatement ps, PartnerDto partner, String query)
-      throws SQLException {
-    ps.setString(1, partner.getLegalName());
-    ps.setString(2, partner.getBusinessName());
-    ps.setString(3, partner.getFullName());
-    ps.setString(4, partner.getOrganisationType());
-    ps.setInt(5, partner.getEmployeeCount());
-    ps.setInt(6, partner.getAddress().getId());
-    ps.setString(7, partner.getEmail());
-    ps.setString(8, partner.getWebsite());
-    ps.setString(9, partner.getPhoneNumber());
-    ps.setBoolean(10, partner.isOfficial());
-    if (query.equals(SQL_UPDATE)) {
-      ps.setBoolean(11, partner.isArchived());
-      ps.setInt(12, partner.getId());
-      ps.setInt(13, partner.getVersion());
-    }
+  /** Binds the columns legal_name to is_official, in the order of the statements above. */
+  private static JdbcClient.StatementSpec bindColumns(JdbcClient.StatementSpec statement,
+      PartnerDto partner) {
+    return statement.param(partner.getLegalName())
+        .param(partner.getBusinessName())
+        .param(partner.getFullName())
+        .param(partner.getOrganisationType())
+        .param(partner.getEmployeeCount())
+        .param(partner.getAddress().getId())
+        .param(partner.getEmail())
+        .param(partner.getWebsite())
+        .param(partner.getPhoneNumber())
+        .param(partner.isOfficial());
   }
 
-  /**
-   * Populate a PartnerDto based on a resultSet.
-   * 
-   * @param rs a cursor pointing to its current row of data
-   * @return a partnerDto
-   */
-  private PartnerDto populatePartnerDto(ResultSet rs) throws SQLException {
+  private PartnerDto toDto(ResultSet rs, int rowNum) throws SQLException {
     PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
     partner.setId(rs.getInt(1));
     partner.setLegalName(rs.getString(2));
@@ -211,8 +159,6 @@ class PartnerDaoImpl implements PartnerDao {
     programme.setId(rs.getInt(14));
     programme.setProgrammeName(rs.getString(15));
     partner.setProgramme(programme);
-
     return partner;
   }
-
 }
