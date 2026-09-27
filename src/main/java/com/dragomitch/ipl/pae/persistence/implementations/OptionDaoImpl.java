@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
@@ -17,7 +15,7 @@ import java.util.List;
 @Repository
 class OptionDaoImpl implements OptionDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SQL_SELECT = "SELECT o." + COLUMN_CODE + ", o." + COLUMN_NAME
       + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " o";
@@ -25,7 +23,6 @@ class OptionDaoImpl implements OptionDao {
   private final EntityFactory entityFactory;
   private final DalBackendServices dalBackendServices;
 
-  @Inject
   public OptionDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

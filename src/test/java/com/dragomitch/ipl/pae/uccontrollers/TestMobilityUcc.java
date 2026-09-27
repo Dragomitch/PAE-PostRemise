@@ -11,11 +11,8 @@ import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
@@ -27,8 +24,16 @@ import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestMobilityUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private MockDtoFactory mockDtoFactory;
@@ -38,22 +43,17 @@ public class TestMobilityUcc {
   private DenialReasonUcc denialReasonUcc;
   private UserUcc userUcc;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    mobilityUcc = DependencyManager.getInstance(MobilityUcc.class);
-    mobilityDao = DependencyManager.getInstance(MobilityDao.class);
-    mobilityChoiceUcc = DependencyManager.getInstance(MobilityChoiceUcc.class);
-    userUcc = DependencyManager.getInstance(UserUcc.class);
-    denialReasonUcc = DependencyManager.getInstance(DenialReasonUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    mobilityUcc = context.getBean(MobilityUcc.class);
+    mobilityDao = context.getBean(MobilityDao.class);
+    mobilityChoiceUcc = context.getBean(MobilityChoiceUcc.class);
+    userUcc = context.getBean(UserUcc.class);
+    denialReasonUcc = context.getBean(DenialReasonUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     // Creates User
 
@@ -74,9 +74,9 @@ public class TestMobilityUcc {
   @AfterEach
   public void cleanUp() {
     ((MockMobilityDao) mobilityDao).empty();
-    MobilityChoiceDao mobilityChoiceDao = DependencyManager.getInstance(MobilityChoiceDao.class);
+    MobilityChoiceDao mobilityChoiceDao = context.getBean(MobilityChoiceDao.class);
     ((MockMobilityChoiceDao) mobilityChoiceDao).empty();
-    UserDao userDao = DependencyManager.getInstance(UserDao.class);
+    UserDao userDao = context.getBean(UserDao.class);
     ((MockUserDao) userDao).empty();
   }
 

@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -18,7 +16,7 @@ import java.util.List;
 @Repository
 class MobilityDocumentDaoImpl implements MobilityDocumentDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String INSERT_QUERY =
       "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + " (" + COLUMN_DOCUMENT_ID + ", "
@@ -43,7 +41,6 @@ class MobilityDocumentDaoImpl implements MobilityDocumentDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public MobilityDocumentDaoImpl(EntityFactory entityFactory,
       DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;

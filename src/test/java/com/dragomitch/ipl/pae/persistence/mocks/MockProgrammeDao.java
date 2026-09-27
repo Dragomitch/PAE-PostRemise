@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ public class MockProgrammeDao implements ProgrammeDao {
    * 
    * @param entityFactory an on-demand object dispenser
    */
-  @Inject
   public MockProgrammeDao(EntityFactory entityFactory) {
     programmes = new ArrayList<ProgrammeDto>();
     this.entityFactory = entityFactory;

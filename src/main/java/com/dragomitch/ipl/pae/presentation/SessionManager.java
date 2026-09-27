@@ -1,5 +1,7 @@
 package com.dragomitch.ipl.pae.presentation;
 
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -9,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 
 import java.time.Instant;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
@@ -18,10 +21,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SessionManager {
 
   /**
@@ -31,12 +35,10 @@ public class SessionManager {
 
   private static Logger logger = LogManager.getLogger(SessionManager.class.getName());
 
-  private final String jwtSecret;
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
 
   public SessionManager(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
-    this.jwtSecret = ContextManager.getProperty("secret_key");
     this.jwtEncoder = jwtEncoder;
     this.jwtDecoder = jwtDecoder;
   }
@@ -54,6 +56,10 @@ public class SessionManager {
     Cookie sessionCookie = findSessionCookie(req);
     if (sessionCookie != null) {
       Map<String, Object> claims = decodeToken(sessionCookie.getValue());
+      if (claims == null) {
+        // Invalid or expired token (e.g. signed with a previous key): start a fresh one
+        claims = new HashMap<String, Object>();
+      }
       claims.putAll(data);
       String token = encodeToken(claims);
       sessionCookie.setValue(token);
@@ -163,11 +169,11 @@ public class SessionManager {
     if (claims == null) {
       return "";
     }
-    claims.put("timestamp", Instant.now());
     JwtClaimsSet.Builder builder = JwtClaimsSet.builder();
     claims.forEach(builder::claim);
-    JwtClaimsSet claimSet = builder.build();
-    return jwtEncoder.encode(JwtEncoderParameters.from(claimSet)).getTokenValue();
+    builder.issuedAt(Instant.now());
+    JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+    return jwtEncoder.encode(JwtEncoderParameters.from(header, builder.build())).getTokenValue();
   }
 
   /**
@@ -180,7 +186,8 @@ public class SessionManager {
     if (token != null) {
       try {
         Jwt decoded = jwtDecoder.decode(token);
-        return decoded.getClaims();
+        // copy: the decoded claims are read-only and callers add to them
+        return new HashMap<String, Object>(decoded.getClaims());
       } catch (JwtException ex) {
         logger.info("JWT: Invalid token", ex);
         return null;

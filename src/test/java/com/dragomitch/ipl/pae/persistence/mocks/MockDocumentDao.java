@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class MockDocumentDao implements DocumentDao {
    * 
    * @param entityFactory a factory for objects
    */
-  @Inject
   public MockDocumentDao(EntityFactory entityFactory) {
     this.entityFactory = entityFactory;
     documents = new ArrayList<DocumentDto>();

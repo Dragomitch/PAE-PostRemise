@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.presentation.annotations.ApiCollection;
 import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
@@ -14,14 +13,15 @@ import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @ApiCollection(name = "Countries", endpoint = "/countries")
+@Service
 class CountryUccImpl implements CountryUcc {
 
   private CountryDao countryDao;
   private UnitOfWork unitOfWork;
 
-  @Inject
   public CountryUccImpl(CountryDao countryDao, UnitOfWork unitOfWork) {
     this.countryDao = countryDao;
     this.unitOfWork = unitOfWork;

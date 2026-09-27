@@ -6,21 +6,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPaymentDao;
 import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.PaymentUcc;
 
 import java.util.ArrayList;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestPaymentUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private PaymentDao paymentDao;
@@ -30,19 +35,14 @@ public class TestPaymentUcc {
   private PaymentDto payment2;
 
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    paymentDao = DependencyManager.getInstance(PaymentDao.class);
-    paymentUcc = DependencyManager.getInstance(PaymentUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    paymentDao = context.getBean(PaymentDao.class);
+    paymentUcc = context.getBean(PaymentUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     payment1 = mockDtoFactory.getPayment();
     payment2 = mockDtoFactory.getPayment();

@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -35,7 +34,9 @@ import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionExce
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
+import org.springframework.stereotype.Service;
 
+@Service
 class PartnerUccImpl implements PartnerUcc {
 
   private AddressDao addressDao;
@@ -49,7 +50,6 @@ class PartnerUccImpl implements PartnerUcc {
   private UnitOfWork unitOfWork;
   private EntityFactory entityFactory;
 
-  @Inject
   public PartnerUccImpl(AddressDao addressDao, OptionDao optionDao, PartnerDao partnerDao,
       PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao, ProgrammeDao programmeDao,
       UserDao userDao, DalServices dalServices, UnitOfWork unitOfWork, EntityFactory entityFactory) {
@@ -171,21 +171,26 @@ class PartnerUccImpl implements PartnerUcc {
         }
       }
       PartnerDto partnerDb = partnerDao.findById(partner.getId());
+      List<PartnerOptionDto> optionsDb = partnerOptionDao.findAllOptionsByPartner(partnerDb.getId());
+      List<PartnerOptionDto> optionsToAdd = new LinkedList<PartnerOptionDto>();
+      if (partner.getOptions() != null) {
+        for (PartnerOptionDto option : partner.getOptions()) {
+          if (option == null
+              || (!containsOption(optionsDb, option.getCode()) && !containsOption(optionsToAdd, option.getCode()))) {
+            optionsToAdd.add(option);
+          }
+        }
+      }
+      // Options are never removed by an edit, so the partner keeps its existing ones plus the new ones.
+      if (optionsDb.isEmpty() && optionsToAdd.isEmpty()) {
+        throw new BusinessException(ErrorFormat.PARTNER_OPTION_REQUIRED_712);
+      }
       AddressDto addressDb = partnerDb.getAddress();
       partner.getAddress().setId(addressDb.getId());
       partner.setAddress(addressDao.update(partner.getAddress()));
       partner.setVersion((partnerDb.getVersion()));
-      List<PartnerOptionDto> optionsDb = partnerOptionDao.findAllOptionsByPartner(partnerDb.getId());
-      List<PartnerOptionDto> options = partner.getOptions();
-
-      for (int i = 0; i < options.size(); i++) {
-        for (int j = 0; j < optionsDb.size(); j++) {
-          if (options.get(i).getCode().equals((optionsDb).get(j).getCode())) {
-            break;
-          } else {
-            addOption(partner.getId(), options.get(i));
-          }
-        }
+      for (PartnerOptionDto option : optionsToAdd) {
+        addOption(partner.getId(), option);
       }
       partner = partnerDao.update(partner);
       unitOfWork.commit();
@@ -237,10 +242,13 @@ class PartnerUccImpl implements PartnerUcc {
         throw new RessourceNotFoundException();
       }
       if (!partner.isArchived()) {
-        throw new BusinessException(3);// "Partner is not archived");
+        throw new BusinessException(ErrorFormat.PARTNER_NOT_ARCHIVED_711);
       }
       if (role.equals(UserDto.ROLE_STUDENT) && !partner.isOfficial()) {
         throw new InsufficientPermissionException();
+      }
+      if (partnerOptionDao.findAllOptionsByPartner(id).isEmpty()) {
+        throw new BusinessException(ErrorFormat.PARTNER_OPTION_REQUIRED_712);
       }
       partner.setArchived(false);
       partner.setArchivable(true);
@@ -279,11 +287,26 @@ class PartnerUccImpl implements PartnerUcc {
     if (!isAValidString(partner.getPhoneNumber())) {
       violations.add(ErrorFormat.INVALID_PHONE_NUMBER_708);
     }//TODO In the test Scenario there is a partner without phone number, is that the correct comportment ?
-    if (partner.getOptions().size() < 1) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_OPTION_NULL_141);
+    if (partner.getOptions() == null || partner.getOptions().isEmpty()) {
+      violations.add(ErrorFormat.PARTNER_OPTION_REQUIRED_712);
     }
     if (violations.size() != 0) {
       throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
     }
+  }
+
+  /**
+   * Tells whether a list of partner options already contains an option with the given code.
+   */
+  private static boolean containsOption(List<PartnerOptionDto> options, String code) {
+    if (code == null) {
+      return false;
+    }
+    for (PartnerOptionDto option : options) {
+      if (option != null && code.equals(option.getCode())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

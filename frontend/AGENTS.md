@@ -76,9 +76,22 @@ cd frontend
 # 2. Install dependencies
 npm install
 
-# 3. Start development server
+# 3. Start development server (the backend must run on http://localhost:8080)
 ng serve
 ```
+
+### API calls and CORS
+
+`ApiService` uses relative URLs (`/api/1.0/...`) so the browser always talks to the origin that
+served the app:
+
+- `ng serve`: `proxy.conf.json` (wired in `angular.json` under `serve.options.proxyConfig`)
+  forwards `/api` to `http://localhost:8080`.
+- Docker Compose: `nginx.conf` serves the build and proxies `/api` to `http://backend:8080`.
+
+Do not hard-code `http://localhost:8080` in services. If the app must call the backend directly
+from another origin, add that origin to the backend's `app.cors.allowed-origins` property
+(env var `APP_CORS_ALLOWED_ORIGINS`, default `http://localhost:4200`).
 
 ## Core Feature Implementation
 
@@ -129,16 +142,9 @@ ng build --configuration production
 
 ### Deployment Steps
 
-1. Build the Docker image
-2. Serve the static files via Nginx or the Node-based server
-3. Configure environment variables for API endpoints
-4. Verify the application loads on port 4200
-
-### Environment Variables
-
-```env
-API_URL=
-```
+1. Build the Docker image (`dist/frontend/browser` is copied into Nginx)
+2. Nginx serves the static files with an `index.html` fallback and proxies `/api` to the backend
+3. Verify the application loads on port 4200
 
 ## Performance Optimization
 
@@ -179,7 +185,9 @@ API_URL=
 
 ### Issue 2: API requests fail in development
 
-**Solution**: Check that the backend is running and `API_URL` is correctly configured.
+**Solution**: Check that the backend is running on port 8080 and that you started the app with
+`ng serve` / `npm start` (which applies `proxy.conf.json`). A CORS error means the app is calling
+the backend on another origin instead of the relative `/api` path.
 
 ## Reference Resources
 

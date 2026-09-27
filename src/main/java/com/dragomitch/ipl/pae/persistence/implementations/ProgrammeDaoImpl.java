@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
@@ -17,7 +15,7 @@ import java.util.List;
 public @Repository
 class ProgrammeDaoImpl implements ProgrammeDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String SQL_SELECT = "SELECT pr." + COLUMN_ID + ", pr." + COLUMN_NAME
       + ", pr." + COLUMN_EXTERNAL_SOFTWARE_NAME + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " pr";
@@ -31,7 +29,6 @@ class ProgrammeDaoImpl implements ProgrammeDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public ProgrammeDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
@@ -18,7 +17,6 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
    * Sole constructor.
    * 
    */
-  @Inject
   public MockPartnerOptionDao(PartnerDao partnerDao) {
     partnerOptions = new ArrayList<PartnerOption>();
     this.partnerDao = partnerDao;
@@ -26,8 +24,7 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
 
   @Override
   public PartnerOptionDto create(PartnerOptionDto partnerOption, int id) {
-    partnerOptions
-        .add(new PartnerOption(partnerOption.getCode(), id, partnerOption.getDepartement()));
+    partnerOptions.add(new PartnerOption(partnerOption, id));
     return partnerOption;
   }
 
@@ -47,7 +44,7 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
     List<PartnerOptionDto> options = new ArrayList<PartnerOptionDto>();
     for (PartnerOption partnerOption : partnerOptions) {
       if (partnerOption.getPartnerId() == partnerId) {
-        // TODO something to do
+        options.add(partnerOption.getDto());
       }
     }
     return options;
@@ -58,27 +55,24 @@ public class MockPartnerOptionDao implements PartnerOptionDao {
   }
 
   private static class PartnerOption {
-    private String optionCode;
+    private PartnerOptionDto dto;
     private int partnerId;
-    private String departement;
 
-    private PartnerOption(String optionCode, int partnerId, String departement) {
-      this.optionCode = optionCode;
+    private PartnerOption(PartnerOptionDto dto, int partnerId) {
+      this.dto = dto;
       this.partnerId = partnerId;
-      this.departement = departement;
     }
 
     public String getOptionCode() {
-      return optionCode;
+      return dto.getCode();
     }
 
     public int getPartnerId() {
       return partnerId;
     }
 
-    @SuppressWarnings("unused")
-    public String getDepartement() {
-      return departement;
+    public PartnerOptionDto getDto() {
+      return dto;
     }
   }
 }

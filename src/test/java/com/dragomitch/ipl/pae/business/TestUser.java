@@ -8,16 +8,21 @@ import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestUser {
+
+  @Autowired
+  private ApplicationContext context;
   private static final int ID = 1;
   private static final String USERNAME = "username";
   public static final String LAST_NAME = "Last Name";
@@ -37,19 +42,11 @@ public class TestUser {
   private User user;
 
   /**
-   * Loads the necessary resources for the execution of tests.
-   */
-  @BeforeAll
-  public static void setUpBeforeClass() {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
-  /**
    * Creates a new User instance.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = context.getBean(EntityFactory.class);
     user = setUpCorrectUser();
   }
 

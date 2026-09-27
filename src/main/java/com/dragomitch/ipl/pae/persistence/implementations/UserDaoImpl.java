@@ -3,8 +3,6 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
@@ -21,7 +19,7 @@ import java.util.List;
 @Repository
 class UserDaoImpl implements UserDao {
 
-  private static final String SCHEMA_NAME = ContextManager.getProperty(ContextManager.DB_SCHEMA);
+  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
   private static final String CREATE_QUERY = "INSERT INTO " + SCHEMA_NAME + "." + UserDao.TABLE_NAME
       + "(" + UserDao.COLUMN_USERNAME + ", " + UserDao.COLUMN_LAST_NAME + ", "
@@ -60,7 +58,6 @@ class UserDaoImpl implements UserDao {
    * @param entityFactory an on-demand object dispenser
    * @param dalBackendServices backend services
    */
-  @Inject
   public UserDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
     this.entityFactory = entityFactory;
     this.dalBackendServices = dalBackendServices;

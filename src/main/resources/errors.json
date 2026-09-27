@@ -533,6 +533,12 @@
     "userMessage": null
   },
 
+  "712": {
+    "errorName": "PARTNER_OPTION_REQUIRED",
+    "developerMessage": "Business constraint violation: a partner must always have at least one option specified",
+    "userMessage": null
+  },
+
   "800": {
     "errorName": "EXISTENCE_VIOLATION_ADDRESS_ID",
     "developerMessage": "Existence violation : field id does not exist",

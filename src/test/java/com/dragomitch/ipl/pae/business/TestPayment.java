@@ -9,16 +9,21 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestPayment {
+
+  @Autowired
+  private ApplicationContext context;
 
   private static final int MOBILITYCHOICEID = 1;
   private static final String MOBILITYTYPE = "";
@@ -31,17 +36,12 @@ public class TestPayment {
   private EntityFactory entityFactory;
   private PaymentDto payment;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Creates a new Payment instance.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = context.getBean(EntityFactory.class);
     this.payment = (PaymentDto) entityFactory.build(PaymentDto.class);
   }
 

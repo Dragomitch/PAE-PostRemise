@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -45,7 +44,9 @@ import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
+import org.springframework.stereotype.Service;
 
+@Service
 class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   private UserDao userDao;
@@ -60,7 +61,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   private PartnerUcc partnerUcc;
   private UnitOfWork unitOfWork;
 
-  @Inject
   public MobilityChoiceUccImpl(UserDao userDao, MobilityChoiceDao mobilityChoiceDao, MobilityDao mobilityDao,
       DenialReasonDao denialReasonDao, DocumentDao documentDao, MobilityDocumentDao mobilityDocumentDao,
       EntityFactory entityFactory, CountryDao countryDao, ProgrammeDao programmeDao, PartnerUcc partnerUcc,

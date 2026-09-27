@@ -1,17 +1,36 @@
-version: '3.8'
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME:-testdb}
+      - POSTGRES_USER=${DB_USERNAME:-pguser01}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-yoursecurepassword}
+    volumes:
+      # Creates the student_exchange_tools schema and its reference data on first start
+      - ./SQLRessources/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      - DB_HOST=${DB_HOST:-localhost}
+      - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-5432}
       - DB_NAME=${DB_NAME:-testdb}
       - DB_USERNAME=${DB_USERNAME:-pguser01}
       - DB_PASSWORD=${DB_PASSWORD:-yoursecurepassword}
+      # Set it (32+ bytes) to keep sessions valid across restarts
+      - JWT_SECRET=${JWT_SECRET:-}
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -19,3 +38,6 @@ services:
       - "4200:80"
     depends_on:
       - backend
+
+volumes:
+  db-data:

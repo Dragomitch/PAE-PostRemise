@@ -7,14 +7,19 @@ import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestAddress {
+
+  @Autowired
+  private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String STREET = "Rue de l'aurée du bois";
@@ -29,17 +34,12 @@ public class TestAddress {
   private CountryDto countryDto;
   private static final String COUNTRY_CODE = "BE";
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Creates a new Address instance.
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    entityFactory = context.getBean(EntityFactory.class);
     this.address = (Address) entityFactory.build(Address.class);
     this.countryDto = (CountryDto) entityFactory.build(CountryDto.class);
   }

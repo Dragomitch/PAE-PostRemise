@@ -11,6 +11,10 @@ VALUES (  'Dublin Institute of Technologies Institu', 'DIT',
           'Institute', 100, 'dit@gmail.com', 'https://dit.com',
           '0444879856', TRUE, 1, FALSE, 1);
 
+-- A partner must always have at least one option (issue #17).
+INSERT INTO student_exchange_tools.partner_options
+    VALUES ('BIN', 1, 'School of Computing');
+
 INSERT INTO student_exchange_tools.users VALUES
   (DEFAULT, 'prof', 'Dragomir', 'Philippe', 'prof@gmail.com',
    '$2a$10$4eOFXG3pVBe5ZYqeByaQsO/rg/I5I2OIy2zA8UUuyISn5Bd/VpInq', 'Professor', 'BIN', NOW(), 1); -- password : 123456
