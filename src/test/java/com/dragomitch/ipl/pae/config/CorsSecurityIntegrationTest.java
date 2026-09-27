@@ -23,9 +23,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Checks {@link CorsConfig} against the Spring Security filter chain Spring Boot sets up by
- * default (every request authenticated), with the filters registered in their real order. Only
- * the web and security auto-configurations are loaded, so no database is needed.
+ * Checks that {@link CorsConfig} runs ahead of Spring Security, using the strictest chain (Spring
+ * Boot's default, every request authenticated) so that preflights keep working even if the
+ * application's own permissive chain ({@link SecurityConfig}) is tightened later. The real
+ * application wiring is covered by {@code ApplicationTests}.
  */
 @SpringBootTest(classes = {CorsConfig.class, CorsSecurityIntegrationTest.PingController.class})
 @ImportAutoConfiguration({SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class,
