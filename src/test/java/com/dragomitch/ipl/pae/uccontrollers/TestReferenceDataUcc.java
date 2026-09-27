@@ -42,6 +42,18 @@ class TestReferenceDataUcc {
   }
 
   @Test
+  void anUnknownCountryIsNotFound() {
+    assertThatBusinessException(() -> countryUcc.showOne("ZZ"))
+        .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+  }
+
+  @Test
+  void anUnknownProgrammeIsNotFound() {
+    assertThatBusinessException(() -> programmeUcc.showOne(99))
+        .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+  }
+
+  @Test
   void everyProgrammeIsListed() {
     assertThat(programmeUcc.showAll()).extracting(ProgrammeDto::getProgrammeName)
         .containsExactly("Erasmus+");

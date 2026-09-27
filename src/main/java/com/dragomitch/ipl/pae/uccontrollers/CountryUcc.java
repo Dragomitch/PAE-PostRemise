@@ -22,6 +22,8 @@ public interface CountryUcc {
    * 
    * @param countryCode : the country code of the country we want to find
    * @return the countryDto found in the database
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if no country
+   *         has this code
    */
   CountryDto showOne(
       @NotBlank @Size(min = CountryDto.CODE_LENGTH, max = CountryDto.CODE_LENGTH)

@@ -14,6 +14,8 @@ public interface ProgrammeUcc {
    * 
    * @param id : the id of the programme we want to find
    * @return the progrmmeDto corresponding to the id
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if no programme
+   *         has this id
    */
   ProgrammeDto showOne(@Positive int id);
 
