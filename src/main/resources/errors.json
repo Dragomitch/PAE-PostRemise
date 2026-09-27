@@ -1,4 +1,28 @@
 {
+  "100": {
+    "errorName": "INTERNAL_ERROR",
+    "developerMessage": "Internal server error",
+    "userMessage": null
+  },
+
+  "101": {
+    "errorName": "UNAUTHENTICATED",
+    "developerMessage": "Authentication required: missing, invalid or expired session",
+    "userMessage": null
+  },
+
+  "103": {
+    "errorName": "ACCESS_DENIED",
+    "developerMessage": "Access denied",
+    "userMessage": null
+  },
+
+  "104": {
+    "errorName": "RESOURCE_NOT_FOUND",
+    "developerMessage": "Resource not found",
+    "userMessage": null
+  },
+
   "110": {
     "errorName": "INVALID_INPUT_DATA",
     "developerMessage": "Invalid input data",

@@ -5,12 +5,9 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 import com.dragomitch.ipl.pae.business.Country;
 import com.dragomitch.ipl.pae.business.Programme;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.persistence.CountryDao;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 
 import java.io.Serializable;
 
-@DaoClass(CountryDao.class)
 class CountryImpl implements Country, Serializable {
 
   private static final long serialVersionUID = 1L;

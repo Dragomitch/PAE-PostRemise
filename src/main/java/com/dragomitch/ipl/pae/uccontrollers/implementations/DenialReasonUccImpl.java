@@ -6,85 +6,51 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
-import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.Role;
-import com.dragomitch.ipl.pae.presentation.annotations.Route;
-import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
 import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
-import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 class DenialReasonUccImpl implements DenialReasonUcc {
 
-  private DenialReasonDao denialReasonDao;
-  private UnitOfWork unitOfWork;
+  private final DenialReasonDao denialReasonDao;
 
-  DenialReasonUccImpl(DenialReasonDao denialReasonDao, UnitOfWork unitOfWork) {
+  DenialReasonUccImpl(DenialReasonDao denialReasonDao) {
     this.denialReasonDao = denialReasonDao;
-    this.unitOfWork = unitOfWork;
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.POST, template = "/denialreasons")
-  public DenialReasonDto create(@HttpParameter("reason") DenialReasonDto denialReason) {
+  public DenialReasonDto create(DenialReasonDto denialReason) {
     checkObject(denialReason);
     checkDataIntegrity(denialReason);
-    try {
-      unitOfWork.startTransaction();
-      denialReason = denialReasonDao.create(denialReason);
-      unitOfWork.commit();
-      return denialReason;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
-    }
+    return denialReasonDao.create(denialReason);
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.GET, template = "/denialreasons")
+  @Transactional(readOnly = true)
   public List<DenialReasonDto> showAll() {
-    try {
-      unitOfWork.startTransaction();
-      List<DenialReasonDto> denialReasonList = denialReasonDao.findAll();
-      unitOfWork.commit();
-      return denialReasonList;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
-    }
+    return denialReasonDao.findAll();
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.PUT, template = "/denialreasons/{id}")
-  public DenialReasonDto edit(@PathParameter("id") int id, DenialReasonDto denialReason) {
+  public DenialReasonDto edit(int id, DenialReasonDto denialReason) {
     checkPositive(id);
     checkObject(denialReason);
-    try {
-      unitOfWork.startTransaction();
-      if (denialReasonDao.findById(id) == null) {
-        throw new RessourceNotFoundException();
-      }
-      checkDataIntegrity(denialReason);
-      denialReasonDao.update(denialReason);
-      unitOfWork.commit();
-      return denialReason;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    if (denialReasonDao.findById(id) == null) {
+      throw new RessourceNotFoundException();
     }
+    denialReason.setId(id);
+    checkDataIntegrity(denialReason);
+    denialReasonDao.update(denialReason);
+    return denialReason;
   }
 
   /**

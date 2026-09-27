@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 
-import java.util.Map;
+import java.util.List;
 
 public interface UserUcc {
 
@@ -10,9 +10,9 @@ public interface UserUcc {
   /**
    * Return a list of all stored users.
    * 
-   * @return a list of denial reason
+   * @return a list of users
    */
-  Map<String, Object> showAll();
+  List<UserDto> showAll();
 
   /**
    * Registers a new user.

@@ -8,14 +8,14 @@ import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPaymentDao;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.PaymentUcc;
 
-import java.util.ArrayList;
+import java.util.List;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -58,19 +58,16 @@ public class TestPaymentUcc {
     ((MockPaymentDao) paymentDao).empty();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testShowAllTC1() {
-    Object payments = paymentUcc.showAll(UserDto.ROLE_PROFESSOR).get("data");
-    assertEquals(2, ((ArrayList<PaymentDto>) payments).size());
+    List<PaymentDto> payments = paymentUcc.showAll(UserDto.ROLE_PROFESSOR);
+    assertEquals(2, payments.size());
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testShowAllTC2() {
     assertThrows(InsufficientPermissionException.class, () -> {
-      Object payments = paymentUcc.showAll(UserDto.ROLE_STUDENT).get("data");
-      assertEquals(2, ((ArrayList<PaymentDto>) payments).size());
+      paymentUcc.showAll(UserDto.ROLE_STUDENT);
     });
   }
 

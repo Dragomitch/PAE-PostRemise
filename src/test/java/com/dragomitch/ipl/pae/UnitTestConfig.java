@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae;
 
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockCountryDao;
-import com.dragomitch.ipl.pae.persistence.mocks.MockDalServices;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDocumentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityChoiceDao;
@@ -38,7 +37,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Import({
     MockAddressDao.class,
     MockCountryDao.class,
-    MockDalServices.class,
     MockDenialReasonDao.class,
     MockDocumentDao.class,
     MockMobilityChoiceDao.class,

@@ -2,49 +2,33 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 
+import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
-import com.dragomitch.ipl.pae.presentation.annotations.Role;
-import com.dragomitch.ipl.pae.presentation.annotations.Route;
-import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
-import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.PaymentUcc;
-import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class PaymentUccImpl implements PaymentUcc {
+@Transactional(readOnly = true)
+class PaymentUccImpl implements PaymentUcc {
 
-  private PaymentDao paymentDao;
-  private UnitOfWork unitOfWork;
+  private final PaymentDao paymentDao;
 
-  public PaymentUccImpl(PaymentDao paymentDao, UnitOfWork unitOfWork) {
+  PaymentUccImpl(PaymentDao paymentDao) {
     this.paymentDao = paymentDao;
-    this.unitOfWork = unitOfWork;
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.GET, template = "/payments")
-  public Map<String, Object> showAll(@SessionParameter("userRole") String userRole) {
+  public List<PaymentDto> showAll(String userRole) {
     checkString(userRole);
     if (userRole.equals(UserDto.ROLE_STUDENT)) {
       throw new InsufficientPermissionException();
     }
-    try {
-      unitOfWork.startTransaction();
-      Map<String, Object> map = new HashMap<String, Object>();
-      map.put("data", paymentDao.findAll());
-      unitOfWork.commit();
-      return map;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
-    }
+    return paymentDao.findAll();
   }
 
 }

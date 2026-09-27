@@ -30,7 +30,7 @@ import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityDocumentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -276,81 +276,76 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testShowAllTC3() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, null);
-    assertEquals(1, data.size());
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR, null);
+    assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC4() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
         MobilityChoiceDao.FILTER_REJECTED_MOBILITIES_CHOICES);
-    assertEquals(1, data.size());
+    assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC5() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
         MobilityChoiceDao.FILTER_ALL_MOBILITIES_CHOICES);
-    assertEquals(1, data.size());
+    assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC6() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_PROFESSOR,
         MobilityChoiceDao.FILTER_PASSED_MOBILITIES_CHOICES);
-    assertEquals(1, data.size());
+    assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC7() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(1, UserDto.ROLE_PROFESSOR,
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(1, UserDto.ROLE_PROFESSOR,
         MobilityChoiceDao.FILTER_CANCELED_MOBILITIES_CHOICES);
-    assertEquals(1, data.size());
+    assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC8() {
-    Map<String, Object> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_STUDENT,
+    List<MobilityChoiceDto> data = mobilityChoiceUcc.showAll(2, UserDto.ROLE_STUDENT,
         MobilityChoiceDao.FILTER_CANCELED_MOBILITIES_CHOICES);
-    assertEquals(1, data.size());
+    assertNotNull(data);
   }
 
   @Test
   public void testCountAllTC1() {
-    Map<String, Object> data = mobilityChoiceUcc.countAll(1, UserDto.ROLE_PROFESSOR, null);
-    assertEquals(1, data.size());
+    int count = mobilityChoiceUcc.countAll(1, UserDto.ROLE_PROFESSOR, null);
+    assertEquals(mobilityChoiceUcc.showAll(1, UserDto.ROLE_PROFESSOR, null).size(), count);
   }
 
   @Test
   public void testCountAllTC2() {
-    Map<String, Object> data = mobilityChoiceUcc.countAll(1, UserDto.ROLE_PROFESSOR, null);
-    assertEquals(1, data.get("count"));
+    assertEquals(1, mobilityChoiceUcc.countAll(1, UserDto.ROLE_PROFESSOR, null));
   }
 
   @Test
   public void testCountAllTC3() {
-    Map<String, Object> data = mobilityChoiceUcc.countAll(2, UserDto.ROLE_PROFESSOR, null);
-    assertEquals(1, data.get("count"));
+    assertEquals(1, mobilityChoiceUcc.countAll(2, UserDto.ROLE_PROFESSOR, null));
   }
 
   @Test
   public void testCountAllTC4() {
-    Map<String, Object> data = mobilityChoiceUcc.countAll(2, UserDto.ROLE_STUDENT, null);
-    assertEquals(0, data.get("count"));
+    assertEquals(0, mobilityChoiceUcc.countAll(2, UserDto.ROLE_STUDENT, null));
   }
 
   @Test
   public void testCountAllTC5() {
-    Map<String, Object> data = mobilityChoiceUcc.countAll(1, UserDto.ROLE_STUDENT, null);
-    assertEquals(1, data.get("count"));
+    assertEquals(1, mobilityChoiceUcc.countAll(1, UserDto.ROLE_STUDENT, null));
   }
 
   @Test
   public void testCountAllTC6() {
     mobilityChoice.setUser(userStud);
     mobilityChoiceUcc.create(mobilityChoice, 2, UserDto.ROLE_STUDENT);
-    Map<String, Object> data = mobilityChoiceUcc.countAll(2, UserDto.ROLE_STUDENT, null);
-    assertEquals(2, data.get("count"));
+    assertEquals(2, mobilityChoiceUcc.countAll(2, UserDto.ROLE_STUDENT, null));
   }
 
   @Test

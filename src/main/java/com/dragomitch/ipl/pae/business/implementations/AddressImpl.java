@@ -7,14 +7,11 @@ import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.persistence.AddressDao;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-@DaoClass(AddressDao.class)
 class AddressImpl implements Address, Serializable {
 
   private static final long serialVersionUID = 1L;

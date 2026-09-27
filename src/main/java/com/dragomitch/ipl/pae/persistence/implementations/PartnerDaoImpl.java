@@ -131,7 +131,6 @@ class PartnerDaoImpl implements PartnerDao {
           stmt.setString(1, option);
         }
       }
-      System.out.println(stmt);
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
           partners.add(populatePartnerDto(rs));
