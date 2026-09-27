@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import org.slf4j.Logger;
 
@@ -46,17 +47,38 @@ public class ContextManager {
         ContextManager.environment = environmentFilePath;
         ContextManager.properties = new Properties();
 
+        String fileName = environmentFilePath + ".properties";
         String propertiesPath = getCurrentAbsolutePath();
         logger.info("Loading context: running in " + propertiesPath + environmentFilePath);
 
-        try (FileInputStream fin = new FileInputStream(propertiesPath + environmentFilePath + ".properties")) {
-            properties.load(fin);
+        try (InputStream in = openResource(fileName)) {
+            properties.load(in);
         } catch (FileNotFoundException ex) {
-            throw new FatalException("Properties file not found: " + propertiesPath + environmentFilePath + ".properties", ex);
+            throw new FatalException("Properties file not found: " + propertiesPath + fileName, ex);
         } catch (IOException ex) {
-            throw new FatalException(
-                    "I/O Error while reading properties file: " + propertiesPath + environmentFilePath + ".properties", ex);
+            throw new FatalException("I/O Error while reading properties file: " + propertiesPath + fileName, ex);
         }
+    }
+
+    /**
+     * Opens a configuration resource. A file placed next to the application (in the launch
+     * directory) takes precedence so it can be overridden at deployment time; otherwise the
+     * resource is read from the classpath.
+     *
+     * @param fileName the name of the resource to open
+     * @return an open stream on the resource
+     * @throws FileNotFoundException if the resource exists neither on disk nor on the classpath
+     */
+    public static InputStream openResource(String fileName) throws FileNotFoundException {
+        File external = new File(getCurrentAbsolutePath() + fileName);
+        if (external.isFile()) {
+            return new FileInputStream(external);
+        }
+        InputStream in = ContextManager.class.getClassLoader().getResourceAsStream(fileName);
+        if (in == null) {
+            throw new FileNotFoundException(fileName);
+        }
+        return in;
     }
 
     /**

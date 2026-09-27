@@ -1,10 +1,13 @@
 package com.dragomitch.ipl.pae.business.exceptions;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
 /**
  * Class used to format an error which has occured during the process of a request.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorFormat {
 
   public static final int INVALID_INPUT_DATA_110 = 110;
