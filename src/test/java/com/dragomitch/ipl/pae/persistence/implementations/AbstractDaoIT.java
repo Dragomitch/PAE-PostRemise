@@ -45,9 +45,9 @@ import javax.sql.DataSource;
  * {@link TransactionTemplate} (the {@code DataSourceTransactionManager} of {@link DaoItConfig})
  * whose status is set to rollback-only, and the fixtures and the helper queries use the
  * transaction-bound connection ({@code DataSourceUtils.getConnection(dataSource)}), the one the
- * DAOs get from {@link DalBackendServices#prepareStatement(String)}. When the persistence layer
- * moves to Spring Data, the test classes, which only rely on the helpers below and on the DAO
- * interfaces, describe the behaviour the new repositories must keep.
+ * Spring Data repositories and the {@code JdbcClient} of the DAOs use. The test classes only rely
+ * on the helpers below and on the DAO interfaces: they describe the behaviour every DAO
+ * implementation must keep, whatever the persistence technology behind it.
  *
  * <h2>Fixtures</h2>
  * Subclasses list classpath SQL scripts in {@link #fixtures()} (see {@code src/test/resources/db/

@@ -16,7 +16,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Every use-case service is transactional at class level: a DAO can then never be reached outside
- * a transaction (which would leak its connection; {@code DalBackendServices} refuses it anyway).
+ * a transaction (which would leak its connection; the DAOs refuse it anyway, see {@code DataAccess}).
  */
 class TransactionalServicesTest {
 

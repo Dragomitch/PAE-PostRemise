@@ -2,92 +2,62 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
-import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link MobilityDocumentDao} with Spring's {@link JdbcClient}: the link table between mobilities
+ * and the documents of their programme (composite key, read joined with the documents).
+ */
 @Repository
 class MobilityDocumentDaoImpl implements MobilityDocumentDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
+  private static final String SQL_INSERT = """
+      INSERT INTO student_exchange_tools.mobility_documents
+        (document_id, mobility_id, is_filled_in, version) VALUES (?, ?, FALSE, 1)""";
 
-  private static final String INSERT_QUERY =
-      "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + " (" + COLUMN_DOCUMENT_ID + ", "
-          + COLUMN_MOBILITY_ID + ", " + COLUMN_IS_FILLED_IN + ", version) VALUES (?, ?, ?, 1)";
+  private static final String SQL_SELECT_BY_MOBILITY = """
+      SELECT d.document_id, d.name, d.category, md.is_filled_in
+        FROM student_exchange_tools.documents d
+        JOIN student_exchange_tools.mobility_documents md ON d.document_id = md.document_id
+       WHERE md.mobility_id = ?""";
 
-  private static final String SELECT_MOBILITY_DOCUMENTS = "SELECT d." + COLUMN_DOCUMENT_ID + ", d."
-      + DocumentDao.COLUMN_NAME + ", d." + DocumentDao.COLUMN_CATEGORY + ", md."
-      + COLUMN_IS_FILLED_IN + " FROM " + SCHEMA_NAME + "." + DocumentDao.TABLE_NAME + " d, "
-      + SCHEMA_NAME + "." + TABLE_NAME + " md WHERE d." + DocumentDao.COLUMN_ID + " = md."
-      + COLUMN_DOCUMENT_ID + " AND " + COLUMN_MOBILITY_ID + " = ?";
-
-  private static final String UPDATE_FILL_DOCUMENT = "UPDATE " + SCHEMA_NAME + "." + TABLE_NAME
-      + " " + "SET (" + COLUMN_IS_FILLED_IN + ", version) = (?, version+1) WHERE "
-      + COLUMN_DOCUMENT_ID + " = ? AND " + COLUMN_MOBILITY_ID + " = ?";
+  private static final String SQL_FILL_IN = """
+      UPDATE student_exchange_tools.mobility_documents
+         SET (is_filled_in, version) = (TRUE, version + 1)
+       WHERE document_id = ? AND mobility_id = ?""";
 
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final JdbcClient jdbcClient;
 
-  /**
-   * Sole constructor for explicit invocation.
-   * 
-   * @param entityFactory an on-demand object dispenser
-   * @param dalBackendServices backend services
-   */
-  public MobilityDocumentDaoImpl(EntityFactory entityFactory,
-      DalBackendServices dalBackendServices) {
+  MobilityDocumentDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.jdbcClient = jdbcClient;
   }
 
   @Override
   public void create(int documentId, int mobilityId) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(INSERT_QUERY)) {
-      stmt.setInt(1, documentId);
-      stmt.setInt(2, mobilityId);
-      stmt.setBoolean(3, false);
-      stmt.execute();
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG);
-    }
+    DataAccess.run(() -> jdbcClient.sql(SQL_INSERT).param(documentId).param(mobilityId).update());
   }
 
   @Override
   public List<DocumentDto> findAllByMobility(int mobilityId) {
-    List<DocumentDto> documents = new ArrayList<DocumentDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SELECT_MOBILITY_DOCUMENTS)) {
-      stmt.setInt(1, mobilityId);
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          documents.add(populateDocumentDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return documents;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT_BY_MOBILITY).param(mobilityId)
+        .query(this::toDto).list());
   }
 
   @Override
   public void fillInDocument(int document, int mobility) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(UPDATE_FILL_DOCUMENT)) {
-      stmt.setBoolean(1, true);
-      stmt.setInt(2, document);
-      stmt.setInt(3, mobility);
-      stmt.execute();
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    DataAccess.run(() -> jdbcClient.sql(SQL_FILL_IN).param(document).param(mobility).update());
   }
 
-  private DocumentDto populateDocumentDto(ResultSet rs) throws SQLException {
+  private DocumentDto toDto(ResultSet rs, int rowNum) throws SQLException {
     DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
     document.setId(rs.getInt(1));
     document.setName(rs.getString(2));

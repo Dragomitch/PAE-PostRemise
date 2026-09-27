@@ -82,9 +82,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- Spring Data JDBC (includes spring-boot-starter-jdbc: HikariCP, JdbcTemplate/JdbcClient,
+             DataSourceTransactionManager). Repositories and aggregates live in persistence.jdbc;
+             the remaining hand-written DAOs share the same transaction-bound connection. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <artifactId>spring-boot-starter-data-jdbc</artifactId>
         </dependency>
         <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
         <dependency>
@@ -171,8 +174,9 @@
                         </goals>
                         <configuration>
                             <!-- Thresholds: jacoco.minimum.* properties above. The second rule
-                                 guards the JDBC DAOs (covered by the *IT tests) while they are
-                                 migrated; move it to the new repositories' package then. -->
+                                 guards every persistence package (covered by the *IT tests): the
+                                 DAO implementations, JDBC or Spring Data adapters, and the Spring
+                                 Data JDBC configuration and aggregates (persistence.jdbc*). -->
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -193,6 +197,8 @@
                                     <element>PACKAGE</element>
                                     <includes>
                                         <include>com.dragomitch.ipl.pae.persistence.implementations</include>
+                                        <!-- Spring Data JDBC setup and aggregates -->
+                                        <include>com.dragomitch.ipl.pae.persistence.jdbc*</include>
                                     </includes>
                                     <limits>
                                         <limit>

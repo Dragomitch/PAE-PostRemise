@@ -2,101 +2,57 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
+import com.dragomitch.ipl.pae.persistence.jdbc.entity.DenialReasonEntity;
+import com.dragomitch.ipl.pae.persistence.jdbc.repository.DenialReasonRepository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link DenialReasonDao} on top of the Spring Data {@link DenialReasonRepository}. Denial
+ * reasons have no version: an update is not checked and an unknown id is silently ignored.
+ */
 @Repository
 class DenialReasonDaoImpl implements DenialReasonDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
-
-  private static final String SQL_INSERT =
-      "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "(reason) VALUES (?) RETURNING reason_id";
-
-  private static final String SQL_SELECT =
-      "SELECT " + COLUMN_ID + ", " + COLUMN_REASON + " FROM " + SCHEMA_NAME + "." + TABLE_NAME;
-
-  private static final String SQL_UPDATE = "UPDATE " + SCHEMA_NAME + "." + TABLE_NAME + " SET "
-      + COLUMN_REASON + " = ? WHERE " + COLUMN_ID + " = ?";
-
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final DenialReasonRepository reasons;
 
-  public DenialReasonDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  DenialReasonDaoImpl(EntityFactory entityFactory, DenialReasonRepository reasons) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.reasons = reasons;
   }
 
   @Override
   public DenialReasonDto create(DenialReasonDto denialReason) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_INSERT)) {
-      stmt.setString(1, denialReason.getReason());
-      try (ResultSet rs = stmt.executeQuery()) {
-        rs.next();
-        denialReason.setId(rs.getInt(1));
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    DenialReasonEntity created = DataAccess.call(
+        () -> reasons.save(new DenialReasonEntity(null, denialReason.getReason())));
+    denialReason.setId(created.id());
     return denialReason;
   }
 
   @Override
   public DenialReasonDto findById(int id) {
-    DenialReasonDto denialReason = null;
-    try (PreparedStatement stmt =
-        dalBackendServices.prepareStatement(SQL_SELECT + " WHERE reason_id = ?")) {
-      stmt.setInt(1, id);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          denialReason = populateDto(rs);
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return denialReason;
+    return DataAccess.call(() -> reasons.findById(id).map(this::toDto).orElse(null));
   }
 
   @Override
   public List<DenialReasonDto> findAll() {
-    List<DenialReasonDto> reasons = new ArrayList<DenialReasonDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT)) {
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          reasons.add(populateDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return reasons;
+    return DataAccess.call(() -> reasons.findAll().stream().map(this::toDto).toList());
   }
 
   @Override
   public DenialReasonDto update(DenialReasonDto denialReason) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_UPDATE)) {
-      stmt.setString(1, denialReason.getReason());
-      stmt.setInt(2, denialReason.getId());
-      stmt.execute();
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    DataAccess.run(() -> reasons.updateReason(denialReason.getId(), denialReason.getReason()));
     return denialReason;
   }
 
-  private DenialReasonDto populateDto(ResultSet set) throws SQLException {
+  private DenialReasonDto toDto(DenialReasonEntity entity) {
     DenialReasonDto reason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
-    reason.setId(set.getInt(1));
-    reason.setReason(set.getString(2));
+    reason.setId(entity.id());
+    reason.setReason(entity.reason());
     return reason;
   }
-
 }
