@@ -175,7 +175,8 @@ Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../per
 ### Unit Testing
 
 - Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
-- Test coverage requirements: aim for 80%
+- Test coverage requirements: the JaCoCo gates of `pom.xml` (`mvn verify`): overall 0.98 lines / 0.91 branches, persistence 0.98 / 0.98, use cases (`uccontrollers.implementations`) 0.98 / 0.97. Raise them as coverage grows, never lower them.
+- Use cases: `*UccImplTest` test the business rules of a service with Mockito DAOs answering as their `*IT` contract says and the real business objects (`EntityFactories.create()`); `Test*Ucc` run the use cases in the `UnitTestConfig` context on the in-memory mock DAOs (emptied before each test by `MockDaoResetListener`). Assert on the returned DTO, the DAO writes and the exact error (`BusinessExceptionAssert`: `ErrorCode` and problem arguments).
 - Test file organization: mirror package structure under `src/test/java`
 
 ### Integration Testing
