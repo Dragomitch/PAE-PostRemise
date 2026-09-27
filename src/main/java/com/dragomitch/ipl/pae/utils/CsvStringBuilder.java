@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.utils;
 
 public class CsvStringBuilder {
-  static final String ENCODING = "UTF-8";
   static final String UTF8_BOM = "\uFEFF";
-  final char separator;
-  StringBuilder csvContent;
+  private final char separator;
+  private final StringBuilder csvContent;
 
   /**
    * Initialize the parameters create a CSV string.
@@ -45,16 +44,6 @@ public class CsvStringBuilder {
    */
   public void writeLine(String[] line) {
     write(line);
-    csvContent.append('\n');
-  }
-
-  /**
-   * Write strings to the current position into the CSV. Return to line after last string.
-   * 
-   * @param word the string to put into the CSV.
-   */
-  public void writeLine(String word) {
-    write(word);
     csvContent.append('\n');
   }
 
