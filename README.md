@@ -14,7 +14,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
   - additional packages include `logging`, `exceptions`, `utils`, and the `main` entry point.
 - **src/main/resources** contains configuration files (`dev.properties`, `errors.json`, SQL scripts…).
 - **src/main/webapp** hosts the client-side HTML, CSS and JavaScript.
-- **test/java** holds JUnit tests using mock DAOs.
+- **src/test/java** holds the JUnit 5 tests; they run against the mock DAOs configured in `src/test/resources/test.properties`.
 
 ## Key design aspects
 - **Dependency injection**: implementations are resolved via reflection from `dev.properties`.
@@ -27,7 +27,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
 2. Explore the DTOs and validation logic in the `business` package.
 3. Examine the controllers in `uccontrollers` for available API endpoints (look for `@Route`).
 4. Review the SQL scripts under `SQLRessources` to understand the schema.
-5. Run the JUnit tests under `test/java` as examples of typical workflows.
+5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
 ## Building
 The project uses Maven for dependency management and builds. Execute:
