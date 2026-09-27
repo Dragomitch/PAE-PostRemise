@@ -1225,7 +1225,21 @@ var debugg = 1;
     var $organisationTypesSelect = $form.find('#fsu-field-organisation-type');
     var $fullNameInput = $form.find('#fsu-field-full-name');
     var $partnerOptionsDiv = $form.find('#div-partner-options');
+    var $partnerOptionsCount = $form.find('#fsu-field-partner-options-count');
     var $divClose = $el.find('div .close');
+
+    // A partner must always have at least one option: the options added so far are the
+    // entries of the options list (the DOM is shared by every instance of this view).
+    $.validator.addMethod('partnerOptionRequired', function () {
+      return $('#div-partner-options').children().length > 0;
+    });
+
+    function refreshOptionsValidation() {
+      $partnerOptionsCount.val(partnerOptions.length);
+      if ($form.data('validator') !== undefined) {
+        $form.validate().element($partnerOptionsCount);
+      }
+    }
 
     // Bind events
     function bindAll() {
@@ -1294,6 +1308,10 @@ var debugg = 1;
     function addOption(e) {
       e.preventDefault();
       var department = $form.find('#fsu-field-partner-option');
+      if ($.trim(department.val()) === '') { // the partner's department is required by the server
+        Utils.animate(department, 'wobble');
+        return;
+      }
       for (var i = 0; i < partnerOptions.length; i++) {
         if (partnerOptions[i]['code'] === $optionsSelect.val()) {
           Utils.animate(
@@ -1312,7 +1330,7 @@ var debugg = 1;
           + '</span><button type="button" value="' + (partnerOptions.length - 1)
           + '" class="btn-default" style="margin: 1px">x</button></div>');
       department.val('');
-      console.log("partnerOptions= ", partnerOptions );
+      refreshOptionsValidation();
     }
 
     function removeOption(e) {
@@ -1324,6 +1342,7 @@ var debugg = 1;
         $partnerOptionsDiv.find('div:nth-child(' + (i + 1) + ') button').val(i);
       }
       partnerOptions.length--;
+      refreshOptionsValidation();
     }
 
     function closeWindow(e) {
@@ -1336,7 +1355,12 @@ var debugg = 1;
       submitHandler: function (form) {
         console.log(form);
       },
+      // Validate the hidden options counter, but keep ignoring the other hidden fields.
+      ignore: ':hidden:not(#fsu-field-partner-options-count)',
       rules: {
+        partnerOptionsCount: {
+          partnerOptionRequired: true
+        },
         legalName: {
           required: true,
           maxlength: 255
@@ -1398,7 +1422,8 @@ var debugg = 1;
         postalCode: "Le champ ne peut pas être vide.",
         city: "Le champ ne peut pas être vide.",
         email: "L'email est invalide.",
-        phoneNumber: "Le numéro de téléphone ne peut pas être vide."
+        phoneNumber: "Le numéro de téléphone ne peut pas être vide.",
+        partnerOptionsCount: "Le partenaire doit avoir au moins une option : choisissez-en une et cliquez sur « Ajouter option »."
       }
     };
 
@@ -1422,8 +1447,11 @@ var debugg = 1;
           data = {};
         }
       } else {
-        $form.validate({debug: true});
+        if (!$form.valid()) {
+          return;
+        }
         data = Utils.serializeForm($form);
+        delete data['partnerOptionsCount'];
       }
       data['options'] = partnerOptions;
       if (data['official'] == 'on') {
@@ -1517,6 +1545,9 @@ var debugg = 1;
       while (partnerOptions.length) {
         partnerOptions.pop();
       }
+      $partnerOptionsDiv.empty();
+      $partnerOptionsCount.val(0);
+      $form.validate().resetForm();
       mobilityChoiceId = undefined;
       myCallback = undefined;
       document.title = previousTitle;
