@@ -45,7 +45,7 @@ class UserDaoImpl implements UserDao {
       + UserDao.COLUMN_OPTION;
 
   private static final String PROMOTE_QUERY =
-      "UPDATE student_exchange_tools.users SET role = ? WHERE username = ?";
+      "UPDATE student_exchange_tools.users SET role = ? WHERE user_id = ?";
 
   private static final String IS_EMPTY_QUERY = "SELECT 1 FROM student_exchange_tools.users";
 
