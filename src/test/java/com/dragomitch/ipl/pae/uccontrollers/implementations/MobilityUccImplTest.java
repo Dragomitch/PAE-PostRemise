@@ -229,6 +229,19 @@ class MobilityUccImplTest {
     }
 
     @Test
+    void aMobilityConfirmedWithANewPartnerHasNoProfessorInCharge() {
+      // confirmWithNewPartner creates the mobility without professor (nullable column)
+      MobilityDto stored = givenMobility(MobilityDto.STATE_CREATED);
+      stored.setProfessorInCharge(null);
+      when(mobilityDocumentDao.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
+
+      MobilityDto shown = mobilityUcc.showOne(MOBILITY_ID, UserDto.ROLE_STUDENT, STUDENT_ID);
+
+      assertThat(shown.getProfessorInCharge()).isNull();
+      verifyNoInteractions(userDao);
+    }
+
+    @Test
     void theStudentSummaryIsKeptWhenThePersonalDataAreNotRecorded() {
       MobilityDto stored = givenMobility(MobilityDto.STATE_CREATED);
       NominatedStudentDto summary = stored.getNominatedStudent();

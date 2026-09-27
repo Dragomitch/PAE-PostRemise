@@ -92,7 +92,10 @@ class MobilityUccImpl implements MobilityUcc {
     }
     mobility.setPartner(partnerUcc.showOne(mobility.getPartner().getId()));
     mobility.setProgramme(programmeUcc.showOne(mobility.getProgramme().getId()));
-    mobility.setProfessorInCharge(userDao.findById(mobility.getProfessorInCharge().getId()));
+    // a mobility confirmed with a new partner has no professor in charge
+    if (mobility.getProfessorInCharge() != null) {
+      mobility.setProfessorInCharge(userDao.findById(mobility.getProfessorInCharge().getId()));
+    }
     return mobility;
   }
 
