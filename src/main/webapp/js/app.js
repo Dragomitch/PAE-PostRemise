@@ -608,14 +608,14 @@ var debugg = 1;
             {
               mData: function (o, type) {
                 var $cellContents = '';
-                if (o.country.countryCode !== undefined) {
+                if (o.country != null && o.country.countryCode != null) {
                   $cellContents = '<img src="/images/flags/'
                       + o.country.countryCode
                       + '.png" alt="Drapeau" class="flags">';
                 }
-                if (o.partner === undefined) {
-                  if (o.denialReason === undefined && o.cancellationReason
-                      === undefined) {
+                if (o.partner == null) {
+                  if (o.denialReason == null && o.cancellationReason
+                      == null) {
                     $cellContents += '<a class="new-partner-button" href="" name="new-partner">Ajouter un partenaire</a>';
                   } else {
 
@@ -649,12 +649,12 @@ var debugg = 1;
             },
             {
               mData: function (o, type) {
-                if (o.denialReason !== undefined) {
+                if (o.denialReason != null) {
                   return 'Refusée';
-                } else if (o.cancellationReason !== undefined) {
+                } else if (o.cancellationReason != null) {
                   return 'Annulée';
                 } else {
-                  if (o.partner === undefined) {
+                  if (o.partner == null) {
                     return '<button class="btn btn-default new-partner-button">Confirmer</button>  <button class="btn btn-danger cancel-mc-button">Annuler</button>';
                   } else {
                     return '<button class="btn btn-default confirm-mc-button">Confirmer</button>  <button class="btn btn-danger cancel-mc-button">Annuler</button>';
@@ -690,14 +690,14 @@ var debugg = 1;
             {
               mData: function (o, type) {
                 var $cellContents = '';
-                if (o.country.countryCode !== undefined) {
+                if (o.country != null && o.country.countryCode != null) {
                   $cellContents = '<img src="/images/flags/'
                       + o.country.countryCode
                       + '.png" alt="Drapeau" class="flags">';
                 }
-                if (o.partner === undefined) {
-                  if (o.denialReason === undefined && o.cancellationReason
-                      === undefined) {
+                if (o.partner == null) {
+                  if (o.denialReason == null && o.cancellationReason
+                      == null) {
                     $cellContents += '<a class="new-partner-button" href="" name="new-partner">Ajouter un partenaire</a>';
                   } else {
 
@@ -731,9 +731,9 @@ var debugg = 1;
             },
             {
               mData: function (o, type) {
-                if (o.denialReason !== undefined) {
+                if (o.denialReason != null) {
                   return 'Refusée';
-                } else if (o.cancellationReason !== undefined) {
+                } else if (o.cancellationReason != null) {
                   return 'Annulée';
                 } else {
                   return '<button class="btn btn-primary cancel-mc-button">Annuler</button>';
@@ -1996,7 +1996,7 @@ var debugg = 1;
         $elCancellation.hide();
       } else if (mobility.state === STATE_CANCELLED) {
         // Mobility is cancelled
-        if (mobility.cancellationReason !== undefined) {
+        if (mobility.cancellationReason != null) {
           $elCancellation.find(
               'mobility-cancel-reason').html('<p class="label col-md-12">Raison de l\'annulation:<br> '
               + mobility.cancellationReason + '</p>');
@@ -2029,14 +2029,14 @@ var debugg = 1;
       if (!checkBankDetails()) {
         $elPayments.find('.notification').show();
       } else {
-        if (mobility.firstPaymentRequestDate !== undefined) {
+        if (mobility.firstPaymentRequestDate != null) {
           var firstPaymentRequestDate = new Date(
               mobility.firstPaymentRequestDate);
           $elPayments.find('#first-payment-status .content').html('Effectué le '
               + firstPaymentRequestDate.getUTCDate() + '/'
               + firstPaymentRequestDate.getUTCMonth() + '/'
               + firstPaymentRequestDate.getUTCFullYear());
-          if (mobility.secondPaymentRequestDate !== undefined) {
+          if (mobility.secondPaymentRequestDate != null) {
             var secondPaymentRequestDate = new Date(
                 mobility.secondPaymentRequestDate);
             $elPayments.find(
@@ -2151,8 +2151,8 @@ var debugg = 1;
     }
 
     function checkBankDetails() {
-      return mobility.nominatedStudent.iban !== undefined &&
-          mobility.nominatedStudent.bic !== undefined;
+      return mobility.nominatedStudent.iban != null &&
+          mobility.nominatedStudent.bic != null;
     }
 
     function destroy(e) {
@@ -2677,7 +2677,7 @@ var debugg = 1;
       $el.find('[data-src=employeeCount]').html(partner.employeeCount);
       $el.find('[data-src="address[street]"]').html(partner.address.street);
       $el.find('[data-src="address[number]"]').html(partner.address.number);
-      if (partner.address.region !== undefined) {
+      if (partner.address.region != null) {
         $el.find('[data-src="address[region]"]').html(partner.address.region);
       }
       $el.find('[data-src="address[city]"]').html(partner.address.city);
