@@ -4,6 +4,7 @@ import static com.dragomitch.ipl.pae.business.exceptions.BusinessExceptionAssert
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -388,6 +389,19 @@ class MobilityChoiceUccImplTest {
     }
 
     @Test
+    void aRejectedChoiceAsTheDaoReadsItCannotBeRejectedAgain() {
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      DenialReasonDto firstReason = storedDenialReason(3);
+      choice.setDenialReason(firstReason);
+      lenient().when(denialReasonDao.findById(4)).thenReturn(storedDenialReason(4));
+
+      assertThatBusinessException(() -> mobilityChoiceUcc.reject(CHOICE_ID, 4))
+          .hasErrorCode(ErrorCode.MOBILITY_CHOICE_CLOSED);
+      assertThat(choice.getDenialReason()).isSameAs(firstReason);
+      verify(mobilityChoiceDao, never()).update(any());
+    }
+
+    @Test
     void theDenialReasonMustExist() {
       givenChoice(CHOICE_ID, 2016, 1);
 
@@ -464,6 +478,31 @@ class MobilityChoiceUccImplTest {
       assertThat(otherTerm.getDenialReason()).isNull();
       assertThat(otherYear.getDenialReason()).isNull();
       verify(mobilityChoiceDao, never()).update(choice);
+    }
+
+    @Test
+    void theClosedChoicesOfTheTermAreLeftAsTheyAre() {
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      givenProgrammeDocuments(1);
+      MobilityChoiceDto cancelled = storedChoice(OTHER_CHOICE_ID, 2016, 1);
+      close(cancelled, Closed.CANCELLED);
+      lenient().when(mobilityChoiceDao.findById(OTHER_CHOICE_ID)).thenReturn(cancelled);
+      MobilityChoiceDto rejected = storedChoice(13, 2016, 1);
+      DenialReasonDto firstReason = storedDenialReason(3);
+      rejected.setDenialReason(firstReason);
+      lenient().when(mobilityChoiceDao.findById(13)).thenReturn(rejected);
+      lenient().when(denialReasonDao.findById(AUTOMATIC_DENIAL_REASON))
+          .thenReturn(storedDenialReason(AUTOMATIC_DENIAL_REASON));
+      when(mobilityChoiceDao.findByUser(STUDENT_ID))
+          .thenReturn(List.of(choice, cancelled, rejected));
+
+      mobilityChoiceUcc.confirm(CHOICE_ID, PROFESSOR_ID);
+
+      assertThat(createdMobility().getId()).isEqualTo(CHOICE_ID);
+      assertThat(cancelled.getDenialReason()).isNull();
+      assertThat(rejected.getDenialReason()).isSameAs(firstReason);
+      verify(mobilityChoiceDao, never()).update(any());
     }
 
     @Test

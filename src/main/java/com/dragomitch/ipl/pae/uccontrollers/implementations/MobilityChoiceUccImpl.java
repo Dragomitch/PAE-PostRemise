@@ -126,8 +126,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     if (mobilityChoice == null) {
       throw new ResourceNotFoundException();
     }
-    if (mobilityChoice.getCancellationReason() != null || (mobilityChoice.getDenialReason() != null
-        && mobilityChoice.getDenialReason().getReason() != null)) {
+    if (isClosed(mobilityChoice)) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
     DenialReasonDto denialReason = denialReasonDao.findById(reason);
@@ -177,7 +176,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     for (MobilityChoiceDto choice : mobilityChoices) {
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
-          && choice.getTerm() == mobilityChoice.getTerm()) {
+          && choice.getTerm() == mobilityChoice.getTerm()
+          && !isClosed(choice)) {
         reject(choice.getId(), 1);
       }
     }
@@ -230,8 +230,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
           && choice.getTerm() == mobilityChoice.getTerm()
-          && choice.getCancellationReason() == null
-          && (choice.getDenialReason() == null || choice.getDenialReason().getReason() == null)) {
+          && !isClosed(choice)) {
         reject(choice.getId(), 1);
       }
     }
@@ -249,6 +248,15 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       csvStringBuilder.writeLine(transformToStringTable(mobiChoice));
     }
     return csvStringBuilder.close();
+  }
+
+  /**
+   * Tells whether a choice was cancelled by the student or rejected by a professor. The DAO reads
+   * the denial reason of a rejected choice with its id only, without its text.
+   */
+  private static boolean isClosed(MobilityChoiceDto mobilityChoice) {
+    return mobilityChoice.getCancellationReason() != null
+        || mobilityChoice.getDenialReason() != null;
   }
 
   /**
