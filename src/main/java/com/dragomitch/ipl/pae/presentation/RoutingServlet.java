@@ -79,6 +79,9 @@ public class RoutingServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    // API responses depend on the authenticated user (session cookie): they must never be
+    // served from a browser or proxy cache, e.g. after logging in as another user.
+    resp.setHeader("Cache-Control", "no-store");
     try {
       // Looking for the right route
       Route route = routeResolver.findRoute(HttpMethod.valueOf(req.getMethod()), req.getPathInfo());

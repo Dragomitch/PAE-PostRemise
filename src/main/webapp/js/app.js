@@ -26,10 +26,35 @@ var debugg = 1;
     }
 
     function setUser(userl) {
+      var previousKey = userKey(user);
       user = userl;
+      if (debugg == 1) {
+        updateDebugLogo();
+      }
+      if (userKey(user) !== previousKey) {
+        // Views keep per-user state (e.g. DataTables whose columns depend on
+        // the role): let them reset it when the authenticated user changes.
+        PubSub.publish('userChanged');
+      }
+    }
+
+    function userKey(u) {
+      return (u === undefined || u === null) ? '' : u.id + '|' + u.role;
+    }
+
+    function updateDebugLogo() {
+      var $logo = $('.logo');
+      if ($logo.data('baseText') === undefined) {
+        $logo.data('baseText', $.trim($logo.text()));
+      }
+      $logo.text($logo.data('baseText')
+          + (user !== undefined ? ' - User: ' + user['username'] : ''));
     }
 
     function init() {
+      // API responses depend on the authenticated user: never let the browser
+      // serve a GET from its cache (e.g. the previous user's data or session).
+      $.ajaxSetup({cache: false});
       getSession();
     }
 
@@ -48,10 +73,6 @@ var debugg = 1;
         success: function (resp) {
           setUser(resp);
           Router.navigate(currentPath);
-          if (debugg == 1) {
-            $('.logo').html($('.logo').html() + ' - User: '
-                + app.getUser()['username']);
-          }
         },
         error: function () {
           Router.navigate(currentPath);
@@ -396,8 +417,9 @@ var debugg = 1;
 
     // Private attributes
     var title = 'Demandes de mobilité';
-    var filter;
     var table;
+    // Role the current DataTable (and therefore its columns) was built for
+    var tableRole;
 
     // Cache DOM
     var $el = $('#mobility-choices-view');
@@ -405,6 +427,10 @@ var debugg = 1;
     var $filtersSelect = $el.find('#fsu-field-filter');
     var $createButton = $el.find('button');
     var $buttonExport = $el.find('#export-mobility-choices');
+
+    // The columns depend on the user's role: throw away the table built for
+    // the previous user as soon as the authenticated user changes.
+    PubSub.subscribe('userChanged', resetTable);
 
     function bindAll() {
       PubSub.subscribe('destroy', destroy);
@@ -487,19 +513,49 @@ var debugg = 1;
 
     function reloadTable(e) {
       e.preventDefault();
-      table.destroy();
-      initializeTable();
+      // The filter is read when each request is built (see addFilterParam),
+      // so reloading the data is enough: no need to re-initialise the table.
+      if (table) {
+        table.ajax.reload();
+      } else {
+        initializeTable();
+      }
+    }
+
+    function addFilterParam(data) {
+      data.filter = $filtersSelect.val();
+    }
+
+    function destroyTable() {
+      if ($.fn.dataTable.isDataTable($table)) {
+        $table.DataTable().destroy();
+      }
+      // destroy() leaves the generated <thead> and <tbody> rows in the table.
+      // Remove them, otherwise the next initialisation reuses the old header
+      // and rows, which breaks as soon as the column set differs.
+      $table.empty();
+      table = undefined;
+      tableRole = undefined;
+    }
+
+    function resetTable() {
+      destroyTable();
+      $filtersSelect.prop('selectedIndex', 0);
+    }
+
+    function currentRole() {
+      return app.getUser() === undefined ? undefined : app.getUser().role;
     }
 
     function initializeTable() {
+      destroyTable();
+      tableRole = currentRole();
       if (app.isProfessor()) {
         table = $table.DataTable({
           serverSide: false,
           ajax: {
             url: app.API_URL + '/mobilityChoices',
-            data: {
-              filter: $filtersSelect.val()
-            }
+            data: addFilterParam
           },
           autoWidth: false,
           bLengthChange: false,
@@ -587,9 +643,7 @@ var debugg = 1;
           serverSide: false,
           ajax: {
             url: app.API_URL + '/mobilityChoices',
-            data: {
-              filter: $filtersSelect.val()
-            }
+            data: addFilterParam
           },
           autoWidth: false,
           bLengthChange: false,
@@ -682,7 +736,7 @@ var debugg = 1;
 
     function render() {
       NavigationBarView.render();
-      if (!table) {
+      if (!table || tableRole !== currentRole()) {
         initializeTable();
       } else {
         updateTable();
