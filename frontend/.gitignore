@@ -3,3 +3,6 @@
 /dist
 /.angular/cache
 /coverage
+
+# test reports
+/reports

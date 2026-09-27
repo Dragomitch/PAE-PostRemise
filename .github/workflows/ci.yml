@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+# A new push to the same PR/branch cancels the run in progress.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (build, tests, coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build and test
+        run: mvn -B -ntp verify
+      - name: Upload backend reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            target/site/jacoco/
+          if-no-files-found: warn
+          retention-days: 14
+
+  frontend:
+    name: Frontend (build, tests, coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Production build
+        run: npm run build
+      - name: Unit tests
+        run: npm run test:ci
+      - name: Upload frontend reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: |
+            frontend/reports/junit/
+            frontend/coverage/frontend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  workflows:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        run: pipx run actionlint-py -color
+
+  docker:
+    name: Docker images & Compose file
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+      - uses: docker/setup-buildx-action@v3
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  report:
+    name: Test report
+    needs: [ backend, frontend ]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write          # "Test results" check run with annotations
+      pull-requests: write   # sticky summary comment
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - uses: actions/download-artifact@v4
+        with:
+          path: reports
+      - name: Publish test results
+        uses: mikepenz/action-junit-report@v5
+        with:
+          check_name: Test results
+          report_paths: |
+            reports/backend-reports/surefire-reports/TEST-*.xml
+            reports/backend-reports/failsafe-reports/TEST-*.xml
+            reports/frontend-reports/reports/junit/TEST-*.xml
+          detailed_summary: true
+          include_time_in_summary: true
+          group_suite: true
+          annotate_only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+      - name: Build CI report
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # normalise the artifact layout expected by the script
+          mkdir -p norm/backend-reports norm/frontend-reports
+          cp -r reports/backend-reports/surefire-reports norm/backend-reports/ 2>/dev/null || true
+          cp -r reports/backend-reports/failsafe-reports norm/backend-reports/ 2>/dev/null || true
+          cp -r reports/backend-reports/site/jacoco norm/backend-reports/jacoco 2>/dev/null || true
+          cp -r reports/frontend-reports/reports/junit norm/frontend-reports/junit 2>/dev/null || true
+          cp -r reports/frontend-reports/coverage/frontend norm/frontend-reports/coverage 2>/dev/null || true
+          python3 .github/scripts/ci_report.py norm ci-report.md
+          cat ci-report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Comment on the pull request
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: ci-report
+          path: ci-report.md
+
+  # Single required status check for branch protection.
+  ci-passed:
+    name: CI passed
+    needs: [ backend, frontend, workflows, docker, report ]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        run: |
+          echo 'backend=${{ needs.backend.result }} frontend=${{ needs.frontend.result }} workflows=${{ needs.workflows.result }} docker=${{ needs.docker.result }} report=${{ needs.report.result }}'
+          for r in '${{ needs.backend.result }}' '${{ needs.frontend.result }}' '${{ needs.workflows.result }}' '${{ needs.docker.result }}' '${{ needs.report.result }}'; do
+            [ "$r" = success ] || { echo "::error::A required job did not succeed ($r)"; exit 1; }
+          done
