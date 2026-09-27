@@ -11,39 +11,39 @@ import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import java.util.ArrayList;
 import java.util.List;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerOptionDao;
 import com.dragomitch.ipl.pae.uccontrollers.OptionUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestOptionUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private OptionUcc optionUcc;
   private PartnerDao partnerDao;
   private PartnerOptionDao partnerOptionDao;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    this.entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    this.optionUcc = DependencyManager.getInstance(OptionUcc.class);
-    this.partnerDao = DependencyManager.getInstance(PartnerDao.class);
-    this.partnerOptionDao = DependencyManager.getInstance(PartnerOptionDao.class);
+    this.entityFactory = context.getBean(EntityFactory.class);
+    this.optionUcc = context.getBean(OptionUcc.class);
+    this.partnerDao = context.getBean(PartnerDao.class);
+    this.partnerOptionDao = context.getBean(PartnerOptionDao.class);
   }
 
   @AfterEach

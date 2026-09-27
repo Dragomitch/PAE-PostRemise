@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
 
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.presentation.annotations.Role;
 import com.dragomitch.ipl.pae.presentation.annotations.Route;
@@ -15,13 +14,14 @@ import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
+@Service
 public class PaymentUccImpl implements PaymentUcc {
 
   private PaymentDao paymentDao;
   private UnitOfWork unitOfWork;
 
-  @Inject
   public PaymentUccImpl(PaymentDao paymentDao, UnitOfWork unitOfWork) {
     this.paymentDao = paymentDao;
     this.unitOfWork = unitOfWork;

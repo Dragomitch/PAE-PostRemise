@@ -9,12 +9,8 @@ import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
-import com.dragomitch.ipl.pae.context.ErrorManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
@@ -24,8 +20,16 @@ import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerOptionDao;
 import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestPartnerUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private PartnerDao partnerDao;
@@ -35,22 +39,16 @@ public class TestPartnerUcc {
   private AddressDao addressDao;
   private PartnerOptionDao partnerOptionDao;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    ErrorManager.load();
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    addressDao = DependencyManager.getInstance(AddressDao.class);
-    partnerDao = DependencyManager.getInstance(PartnerDao.class);
-    partnerOptionDao = DependencyManager.getInstance(PartnerOptionDao.class);
-    partnerUcc = DependencyManager.getInstance(PartnerUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    addressDao = context.getBean(AddressDao.class);
+    partnerDao = context.getBean(PartnerDao.class);
+    partnerOptionDao = context.getBean(PartnerOptionDao.class);
+    partnerUcc = context.getBean(PartnerUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     partnerDto = mockDtoFactory.getPartner();
   }

@@ -14,7 +14,6 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
@@ -40,8 +39,10 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 @ApiCollection(name = "Mobilities", endpoint = "/mobilities")
+@Service
 class MobilityUccImpl implements MobilityUcc {
 
   private static final int SOFTWARE_PRO_ECO = 1;
@@ -61,7 +62,6 @@ class MobilityUccImpl implements MobilityUcc {
   private UserDao userDao;
   private UnitOfWork unitOfWork;
 
-  @Inject
   MobilityUccImpl(MobilityDao mobilityDao, NominatedStudentDao nominatedStudentDao,
       DenialReasonDao denialReasonDao, MobilityDocumentDao mobilityDocumentDao,
       PartnerUcc partnerUcc, ProgrammeUcc programmeUcc, UserDao userDao, UnitOfWork unitOfWork) {

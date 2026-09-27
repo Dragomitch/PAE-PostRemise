@@ -9,7 +9,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
@@ -17,13 +16,14 @@ import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 class AddressUccImpl implements AddressUcc {
   AddressDao addressDao;
   CountryDao countryDao;
   UnitOfWork unitOfWork;
 
-  @Inject
   AddressUccImpl(AddressDao addressDao, CountryDao countryDao, UnitOfWork unitOfWork) {
     this.addressDao = addressDao;
     this.countryDao = countryDao;

@@ -1,6 +1,5 @@
 package com.dragomitch.ipl.pae.presentation;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
 import java.io.IOException;
 import org.slf4j.Logger;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,10 +10,10 @@ public class ResponseHandler {
 
   private static Logger logger = LogManager.getLogger(ResponseHandler.class.getName());
 
-  protected JsonSerializer jsonSerializer;
+  protected final JsonSerializer jsonSerializer;
 
-  public ResponseHandler(EntityFactory entityFactory) {
-    this.jsonSerializer = new JsonSerializer(entityFactory);
+  public ResponseHandler(JsonSerializer jsonSerializer) {
+    this.jsonSerializer = jsonSerializer;
   }
 
   /**

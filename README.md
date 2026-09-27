@@ -7,23 +7,24 @@ This repository contains a web application for managing Erasmus mobilities. It w
 ## General structure
 - **src/main/java**
   - `business` – entity interfaces and implementations (`User`, `Mobility`, …) with validation logic and DTO definitions.
-  - `persistence` – DAO interfaces and implementations for database access as well as mocks for tests.
+  - `persistence` – DAO interfaces and their JDBC implementations.
   - `uccontrollers` – use case controllers that orchestrate business logic and expose API routes.
-  - `presentation` – a lightweight HTTP layer with a custom routing system.
-  - `context` – utilities such as the dependency and context managers.
-  - additional packages include `logging`, `exceptions`, `utils`, and the `main` entry point.
-- **src/main/resources** contains configuration files (`dev.properties`, `errors.json`, SQL scripts…).
-- **src/main/webapp** hosts the client-side HTML, CSS and JavaScript.
-- **src/test/java** holds the JUnit 5 tests; they run against the mock DAOs configured in `src/test/resources/test.properties`.
+  - `presentation` – a lightweight HTTP layer with a custom routing system (`RoutingServlet`).
+  - `config` – Spring configuration (security/JWT, web UI routing).
+  - additional packages include `logging`, `exceptions` and `utils`; `Application` is the Spring Boot entry point.
+- **src/main/resources** contains `application.properties` (Spring configuration) and `errors.json` (error catalogue).
+- **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
+- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); `ApplicationTests` boots the whole application without a database.
 
 ## Key design aspects
-- **Dependency injection**: implementations are resolved via reflection from `dev.properties`.
-- **Servlet routing**: controllers expose routes through custom annotations that are processed at start-up.
-- **Entry point**: `Main` loads the context, initializes error messages and starts a Jetty server.
+- **Dependency injection**: Spring (constructor injection). Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation.
+- **Servlet routing**: controllers expose routes through custom annotations that are processed at start-up; `RoutingServlet` serves them under `/api/1.0/*`.
+- **Sessions**: a signed JWT cookie (`session`) backs the HTTP session; authorization is enforced per route with `@Role`.
+- **Entry point**: `Application` (Spring Boot, embedded Tomcat).
 - **Validation helpers**: common checks are centralised in `DataValidationUtils`.
 
 ## Getting started
-1. Inspect `src/main/resources/dev.properties` to see how interfaces map to implementations and to configure the database.
+1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and validation logic in the `business` package.
 3. Examine the controllers in `uccontrollers` for available API endpoints (look for `@Route`).
 4. Review the SQL scripts under `SQLRessources` to understand the schema.
@@ -39,7 +40,7 @@ mvn package
 to compile the sources, run the tests and assemble the final JAR.
 
 ## Suggestions for further learning
-- Dive into the custom annotation-based routing and dependency injection system.
+- Dive into the custom annotation-based routing system.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 
@@ -64,7 +65,7 @@ The resulting JAR can be found under `target/`.
 
 
 ## Running with Docker Compose
-A `docker-compose.yml` file is provided to build and run both the Spring Boot backend and the Angular frontend.
+A `docker-compose.yml` file is provided to run PostgreSQL (initialised with `SQLRessources/init.sql`), the Spring Boot backend and the Angular frontend.
 
 To start everything:
 
@@ -72,20 +73,21 @@ To start everything:
 docker compose up
 ```
 
-The backend container exposes port `8080` while the frontend is served on port `4200`.
+The backend container exposes port `8080` (API and legacy web UI) while the Angular frontend is served on port `4200`.
 
 ### Configuration
-The following environment variables can be used to configure the database connection for the backend:
+The backend reads the following environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DB_HOST` | Database host | `localhost` |
+| `DB_HOST` | Database host | `localhost` (`db` in Compose) |
 | `DB_PORT` | Database port | `5432` |
 | `DB_NAME` | Database name | `testdb` |
-| `DB_USERNAME` | Database user | `pguser01` |
-| `DB_PASSWORD` | Database password | `yoursecurepassword` |
+| `DB_USERNAME` | Database user | _(empty)_ |
+| `DB_PASSWORD` | Database password | _(empty)_ |
+| `JWT_SECRET` | Secret signing the session cookie, 32+ bytes | random per start (dev only) |
 
-These values map to the properties defined in `dev.properties`.
+They are resolved in `src/main/resources/application.properties`. Always set `JWT_SECRET` outside local development, otherwise every restart logs everyone out.
 
 ## Upgrade tasks
-See [UPGRADE_TASKS.md](UPGRADE_TASKS.md) for pending migration tasks.
+See [UPGRADE_TASKS.md](UPGRADE_TASKS.md) for the Spring migration status.

@@ -37,7 +37,7 @@ src/
 │   └── webapp/
 └── test/
     ├── java/       # mirrors the main package structure
-    └── resources/  # test.properties (legacy context wired to the mock DAOs)
+    └── java/.../persistence/mocks  # in-memory DAOs used by UnitTestConfig
 pom.xml
 ```
 
@@ -103,7 +103,7 @@ public class UserController {
 
 ### Feature Module 2
 
-Persistence is handled with Spring Data JPA repositories found under `persistence`. Entities are mapped using standard JPA annotations.
+Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`), sharing a thread-bound connection from `DalServices` on top of the Spring Boot `DataSource`. Unit tests replace them with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig`.
 
 ## Testing Strategy
 
@@ -192,7 +192,7 @@ DB_PASSWORD=
 
 ### Issue 2: Tests fail due to context loading
 
-**Solution**: Check that `application-test.properties` points to an in-memory database and that migrations run before tests.
+**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (mock DAOs, no database). `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
 
 ## Reference Resources
 

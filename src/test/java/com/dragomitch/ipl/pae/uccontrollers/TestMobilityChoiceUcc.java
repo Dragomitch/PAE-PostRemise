@@ -12,9 +12,6 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
-import com.dragomitch.ipl.pae.context.ErrorManager;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
@@ -32,13 +29,20 @@ import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionExce
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 
 import java.util.Map;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestMobilityChoiceUcc {
+
+  @Autowired
+  private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private MockDtoFactory mockDtoFactory;
@@ -59,28 +63,22 @@ public class TestMobilityChoiceUcc {
   // private ProgrammeDao programmeDao;
   private static final String CANCELLATION_REASON = "testing purposes, of course";
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    this.entityFactory = DependencyManager.getInstance(EntityFactory.class);
+    this.entityFactory = context.getBean(EntityFactory.class);
     this.mockDtoFactory = new MockDtoFactory(entityFactory);
-    this.mobilityChoiceUcc = DependencyManager.getInstance(MobilityChoiceUcc.class);
-    this.mobilityDao = DependencyManager.getInstance(MobilityDao.class);
-    this.mobilityChoiceDao = DependencyManager.getInstance(MobilityChoiceDao.class);
-    this.mobilityDocumentDao = DependencyManager.getInstance(MobilityDocumentDao.class);
-    this.partnerDao = DependencyManager.getInstance(PartnerDao.class);
-    this.userDao = DependencyManager.getInstance(UserDao.class);
-    this.denialReasonDao = DependencyManager.getInstance(DenialReasonDao.class);
-    this.countryDao = DependencyManager.getInstance(CountryDao.class);
-    // this.programmeDao = DependencyManager.getInstance(ProgrammeDao.class);
-    ErrorManager.load();
+    this.mobilityChoiceUcc = context.getBean(MobilityChoiceUcc.class);
+    this.mobilityDao = context.getBean(MobilityDao.class);
+    this.mobilityChoiceDao = context.getBean(MobilityChoiceDao.class);
+    this.mobilityDocumentDao = context.getBean(MobilityDocumentDao.class);
+    this.partnerDao = context.getBean(PartnerDao.class);
+    this.userDao = context.getBean(UserDao.class);
+    this.denialReasonDao = context.getBean(DenialReasonDao.class);
+    this.countryDao = context.getBean(CountryDao.class);
+    // this.programmeDao = context.getBean(ProgrammeDao.class);
     mobilityChoice = mockDtoFactory.getMobilityChoice();
     mobilityChoiceDao.create(mobilityChoice);
     partner = mockDtoFactory.getPartner();

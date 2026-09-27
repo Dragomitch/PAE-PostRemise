@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.NominatedStudent;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
-import com.dragomitch.ipl.pae.annotations.Inject;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 
@@ -19,7 +18,6 @@ public class MockMobilityDao implements MobilityDao {
   private EntityFactory entityFactory;
   private Set<MobilityDto> mobilities = new HashSet<MobilityDto>();
 
-  @Inject
   public MockMobilityDao(EntityFactory entityFactory, MobilityChoiceDao mobilityChoiceDao) {
     this.entityFactory = entityFactory;
     this.mobilityChoiceDao = mobilityChoiceDao;

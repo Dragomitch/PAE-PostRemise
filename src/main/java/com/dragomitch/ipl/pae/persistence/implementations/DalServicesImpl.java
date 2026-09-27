@@ -1,38 +1,30 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import com.dragomitch.ipl.pae.context.ContextManager;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DalServices;
-
-import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
+import org.springframework.stereotype.Component;
+
+/**
+ * Thread-bound JDBC connection handling on top of the pooled {@link DataSource} configured by
+ * Spring Boot ({@code spring.datasource.*}).
+ */
+@Component
 class DalServicesImpl implements DalServices, DalBackendServices {
 
-  private HikariDataSource connectionPool;
-  private ThreadLocal<Connection> threadMap;
-  private ThreadLocal<Integer> semaphore;
+  private final DataSource connectionPool;
+  private final ThreadLocal<Connection> threadMap;
+  private final ThreadLocal<Integer> semaphore;
 
-  private final String dbHost = ContextManager.getProperty(ContextManager.DB_HOST);
-  private final String dbPort = ContextManager.getProperty(ContextManager.DB_PORT);
-  private final String dbDatabase = ContextManager.getProperty(ContextManager.DB_NAME);
-  private final String dbUser = ContextManager.getProperty(ContextManager.DB_USERNAME);
-  private final String dbPassword = ContextManager.getProperty(ContextManager.DB_PASSWORD);
-  private final String drivers = ContextManager.getProperty(ContextManager.DB_DRIVER_CLASS);
-
-  public DalServicesImpl() {
-    threadMap = new ThreadLocal<Connection>();
-    semaphore = new ThreadLocal<Integer>();
-    connectionPool = new HikariDataSource();
-    String url =
-        "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbDatabase + "?autoReconnect=true";
-    connectionPool.setJdbcUrl(url);
-    connectionPool.setUsername(dbUser);
-    connectionPool.setPassword(dbPassword);
-    connectionPool.setDriverClassName(drivers);
+  public DalServicesImpl(DataSource connectionPool) {
+    this.connectionPool = connectionPool;
+    this.threadMap = new ThreadLocal<Connection>();
+    this.semaphore = new ThreadLocal<Integer>();
   }
 
   @Override

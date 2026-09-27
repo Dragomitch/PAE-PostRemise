@@ -11,7 +11,7 @@ import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -75,7 +75,8 @@ class UserImpl implements User, Serializable {
   }
 
   @Override
-  @JsonIgnore
+  // Accepted from clients (signup) but never sent back to them.
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getPassword() {
     return password;
   }

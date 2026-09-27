@@ -7,18 +7,23 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.context.ContextManager;
-import com.dragomitch.ipl.pae.context.DependencyManager;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(UnitTestConfig.class)
 public class TestDenialReasonUcc {
+
+  @Autowired
+  private ApplicationContext context;
   private EntityFactory entityFactory;
   private DenialReasonDao denialReasonDao;
   private DenialReasonUcc denialReasonUcc;
@@ -26,19 +31,14 @@ public class TestDenialReasonUcc {
   private DenialReasonDto denialReason;
 
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ContextManager.loadContext(ContextManager.ENV_TEST);
-  }
-
   /**
    * Sets up the environment before every test.
    */
   @BeforeEach
   public void setUp() {
-    entityFactory = DependencyManager.getInstance(EntityFactory.class);
-    denialReasonDao = DependencyManager.getInstance(DenialReasonDao.class);
-    denialReasonUcc = DependencyManager.getInstance(DenialReasonUcc.class);
+    entityFactory = context.getBean(EntityFactory.class);
+    denialReasonDao = context.getBean(DenialReasonDao.class);
+    denialReasonUcc = context.getBean(DenialReasonUcc.class);
     mockDtoFactory = new MockDtoFactory(entityFactory);
     denialReason = mockDtoFactory.getDenialReason();
   }
