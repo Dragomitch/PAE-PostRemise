@@ -695,6 +695,17 @@ class MobilityUccImplTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {MobilityDto.STATE_CANCELLED, MobilityDto.STATE_CLOSED})
+    void aStudentLearnsNothingAboutTheMobilityOfAnotherStudent(String state) {
+      MobilityDto mobility = givenMobility(state);
+      mobility.setCancellationReason("personal reason of the owner");
+
+      assertThat(Violations.errorCodeOf(() -> mobilityUcc.cancel(MOBILITY_ID, VERSION, "reason",
+          0, STUDENT_ID + 1, UserDto.ROLE_STUDENT))).isEqualTo(ErrorCode.ACCESS_DENIED);
+      verify(mobilityDao, never()).update(any());
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
     void aClosedMobilityCannotBeCancelled(String role) {
       givenMobility(MobilityDto.STATE_CLOSED);

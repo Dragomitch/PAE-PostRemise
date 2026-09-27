@@ -197,15 +197,16 @@ class MobilityUccImpl implements MobilityUcc {
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
+    // The student does not own the mobility: checked first, so that the state and the reasons
+    // of the mobility of another student are not disclosed
+    if (userRole.equals(UserDto.ROLE_STUDENT)
+        && userId != mobility.getNominatedStudent().getId()) {
+      throw new InsufficientPermissionException();
+    }
     mobility.checkNotClosed();
     // The mobility is already cancelled
     if (mobility.getState().equals(Mobility.STATE_CANCELLED)) {
       return mobility;
-    }
-    // The student does not own the mobility
-    if (userRole.equals(UserDto.ROLE_STUDENT)
-        && userId != mobility.getNominatedStudent().getId()) {
-      throw new InsufficientPermissionException();
     }
     // The mobility can be cancelled
     String stateBeforeCancellation = mobility.getState();
