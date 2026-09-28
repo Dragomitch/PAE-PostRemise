@@ -248,6 +248,21 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   }
 
   @Test
+  void createStoresAnEmptyCancellationReasonAsNullSoThatTheChoiceIsNotCancelled() {
+    runInTransaction(() -> {
+      MobilityChoiceDto choice = newChoice(1001);
+      choice.setCancellationReason("");
+
+      MobilityChoiceDto created = mobilityChoiceDao.create(choice);
+
+      assertThat(queryForRow(CHOICE_BY_ID, created.getId()))
+          .containsEntry("student_cancellation_reason", null);
+      assertThat(ids(mobilityChoiceDao.findAll(MobilityChoiceDao.FILTER_CANCELED_MOBILITIES_CHOICES)))
+          .containsExactly(5003);
+    });
+  }
+
+  @Test
   void createTreatsPartnerIdMinusOneAsNoPartner() {
     runInTransaction(() -> {
       MobilityChoiceDto choice = newChoice(1001);

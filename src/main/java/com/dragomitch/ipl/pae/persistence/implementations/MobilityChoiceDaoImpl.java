@@ -105,7 +105,12 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       } else {
         stmt.setInt(8, mobilityChoice.getDenialReason().getId());
       }
-      stmt.setString(9, mobilityChoice.getCancellationReason());
+      // as in update(): an empty reason is no cancellation
+      if (isAValidString(mobilityChoice.getCancellationReason())) {
+        stmt.setString(9, mobilityChoice.getCancellationReason());
+      } else {
+        stmt.setNull(9, java.sql.Types.VARCHAR);
+      }
       if (mobilityChoice.getPartner() != null && mobilityChoice.getPartner().getId() != -1) {
         stmt.setInt(10, mobilityChoice.getPartner().getId());
       } else {
