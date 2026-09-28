@@ -71,6 +71,12 @@
     "userMessage": null
   },
 
+  "141": {
+    "errorName": "EXISTENCE_VIOLATION_OPTION_NULL",
+    "developerMessage": "The option cannot be null",
+    "userMessage": null
+  },
+
   "200": {
     "errorName": "EXISTENCE_VIOLATION_USER_ID",
     "developerMessage": "Existence constraint violation: field user id does not exist",
@@ -233,6 +239,12 @@
     "userMessage": null
   },
 
+  "311": {
+    "errorName": "INVALID_USER_ID",
+    "developerMessage": "The user id must be a positive integer",
+    "userMessage": null
+  },
+
   "314": {
     "errorName": "MAX_LENGTH_COUNTRY_CODE_OVERFLOW",
     "developerMessage": "Database constraint violation: the countryCode value overflow the maximum of 2 chars allowed",
@@ -356,6 +368,12 @@
   "507": {
     "errorName": "ALL_DOCUMENTS_NOT_FILLED_IN",
     "developerMessage": "Operation cannot be completed: all documents must be filled in.",
+    "userMessage": null
+  },
+
+  "508": {
+    "errorName": "INVALID_DOCUMENT_FILTER",
+    "developerMessage": "Business constraint violation: the document filter must be D, DF, R or RF",
     "userMessage": null
   },
 
@@ -518,6 +536,12 @@
   "708": {
     "errorName": "INVALID_PHONE_NUMBER",
     "developerMessage": "phoneNumber must be a valid phoneNumber string",
+    "userMessage": null
+  },
+
+  "709": {
+    "errorName": "INVALID_PARTNER_FILTER",
+    "developerMessage": "Business constraint violation: the partner filter must be country or archived",
     "userMessage": null
   },
 
