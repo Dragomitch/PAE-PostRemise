@@ -73,7 +73,7 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 | `MALFORMED_REQUEST` | 400 | Unreadable JSON, missing or wrongly typed parameter | - |
 | `UNAUTHENTICATED` | 401 | No, invalid or expired session | 101 |
 | `INVALID_CREDENTIALS` | 401 | Wrong username or password at sign-in | 101 |
-| `ACCESS_DENIED` | 403 | Role, ownership or CSRF check failed | 103 |
+| `ACCESS_DENIED` | 403 | Role, ownership or CSRF check failed (e.g. a student adding an option to a partner that is not a non-official partner of his own choices) | 103 |
 | `RESOURCE_NOT_FOUND` | 404 | Unknown resource of the URL, unknown route | 104 |
 | `METHOD_NOT_ALLOWED` / `NOT_ACCEPTABLE` / `UNSUPPORTED_MEDIA_TYPE` / `PAYLOAD_TOO_LARGE` | 405 / 406 / 415 / 413 | HTTP-level errors | - |
 | `CONCURRENT_MODIFICATION` | 409 | Stale version (optimistic locking) | 120 (was a 400) |
@@ -82,10 +82,10 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 | `MOBILITY_CHOICE_ALREADY_CONFIRMED` | 409 | Choice already turned into a mobility | 301, 321 |
 | `MOBILITY_CHOICE_CLOSED` | 409 | Choice already cancelled or rejected | 317 |
 | `PARTNER_REQUIRED_TO_CONFIRM` | 409 | Confirmation without partner | 324 |
-| `MOBILITY_CANCELLED` / `MOBILITY_CLOSED` | 409 | State of the mobility | 501 / 502 |
+| `MOBILITY_CANCELLED` / `MOBILITY_CLOSED` | 409 | State of the mobility (no document filled in, no payment) | 501 / 502 |
 | `DEPARTURE_DOCUMENTS_INCOMPLETE` / `RETURN_DOCUMENTS_INCOMPLETE` / `DOCUMENTS_INCOMPLETE` | 409 | Documents not filled in | 503 / 504 / 507 |
 | `INCOMPLETE_BANK_DETAILS` | 409 | Payment without IBAN/BIC/bank | 506 |
-| `PAYMENT_NOT_EXPECTED` | 409 | No payment in this state | 110 (confirmPayment) |
+| `PAYMENT_NOT_EXPECTED` | 409 | No payment expected in this state (first payment only in `A payer`, second only in `Solde à payer`) | 110 (confirmPayment) |
 | `ALREADY_NOMINATED` | 409 | Personal data already recorded | 618 |
 | `PARTNER_HAS_MOBILITY_CHOICES` / `PARTNER_NOT_ARCHIVED` | 409 | Archive / restore a partner | 710 / 711 |
 | `UNKNOWN_USER` / `UNKNOWN_OPTION` / `UNKNOWN_COUNTRY` / `UNKNOWN_PROGRAMME` / `UNKNOWN_DENIAL_REASON` / `UNKNOWN_DOCUMENT` | 422 | The body references an entity that does not exist | 200 / 210 / 900 / 1000 / 134, 400 / 505 |
