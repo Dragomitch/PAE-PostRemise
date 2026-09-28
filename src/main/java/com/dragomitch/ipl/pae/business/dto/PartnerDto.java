@@ -94,10 +94,12 @@ public interface PartnerDto extends Entity {
 
   void setArchivable(boolean archivable);
 
-  /** The options offered; a new partner offers at least one (an edition only adds options). */
+  /**
+   * The options offered; a new partner offers at least one (an edition only adds options). A
+   * {@code null} element is refused ({@code options[i]}: {@code NotNull}).
+   */
   @NotEmpty(groups = OnCreate.class)
-  @Valid
-  List<PartnerOptionDto> getOptions();
+  List<@NotNull @Valid PartnerOptionDto> getOptions();
 
   void setOptions(List<PartnerOptionDto> options);
 

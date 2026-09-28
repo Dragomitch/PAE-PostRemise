@@ -94,6 +94,18 @@ class PartnerControllerTest {
   }
 
   @Test
+  void aNullOptionInAnEditIsAValidationProblem() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.professor())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(TestBodies.PARTNER.replace("\"options\":[", "\"options\":[null,")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+        .andExpect(jsonPath("$.errors[0].field").value("options[0]"))
+        .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+    verifyNoInteractions(partnerUcc);
+  }
+
+  @Test
   void anUnknownFilterIsAValidationProblem() throws Exception {
     mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=whatever&value=x")
             .with(TestUsers.student()))

@@ -275,6 +275,26 @@ public class TestPartnerUcc {
   }
 
   @Test
+  public void testEditWithANullOptionIsAValidationFailure() {
+    PartnerDto created = partnerUcc.create(partnerDto, User.ROLE_PROFESSOR); // BIN
+    PartnerDto changes = mockDtoFactory.getPartner();
+    changes.getOptions().add(null);
+    changes.setFullName("Not saved");
+    assertEquals(List.of("edit.partner.options[1].<list element>:NotNull"),
+        Violations.thrownBy(() -> partnerUcc.edit(created.getId(), changes,
+            User.ROLE_PROFESSOR)));
+    assertEquals(1, partnerOptionDao.findAllOptionsByPartner(created.getId()).size());
+  }
+
+  @Test
+  public void testCreateWithANullOptionIsAValidationFailure() {
+    partnerDto.getOptions().add(null);
+    assertEquals(List.of("create.partner.options[1].<list element>:NotNull"),
+        Violations.thrownBy(() -> partnerUcc.create(partnerDto, User.ROLE_PROFESSOR)));
+    assertNull(partnerDao.findById(1), "No partner must be created with a null option");
+  }
+
+  @Test
   public void testEditAddsNewOption() {
     PartnerDto created = partnerUcc.create(partnerDto, User.ROLE_PROFESSOR); // BIN
     PartnerDto changes = mockDtoFactory.getPartner();

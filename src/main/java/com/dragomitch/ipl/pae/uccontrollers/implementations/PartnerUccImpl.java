@@ -120,8 +120,9 @@ class PartnerUccImpl implements PartnerUcc {
     List<PartnerOptionDto> optionsToAdd = new LinkedList<PartnerOptionDto>();
     if (partner.getOptions() != null) {
       for (PartnerOptionDto option : partner.getOptions()) {
-        if (option == null
-            || (!containsOption(optionsDb, option.getCode()) && !containsOption(optionsToAdd, option.getCode()))) {
+        // the options are never null here (List<@NotNull @Valid PartnerOptionDto>)
+        if (!containsOption(optionsDb, option.getCode())
+            && !containsOption(optionsToAdd, option.getCode())) {
           optionsToAdd.add(option);
         }
       }
@@ -218,7 +219,7 @@ class PartnerUccImpl implements PartnerUcc {
       return false;
     }
     for (PartnerOptionDto option : options) {
-      if (option != null && code.equals(option.getCode())) {
+      if (code.equals(option.getCode())) {
         return true;
       }
     }
