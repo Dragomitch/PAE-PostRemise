@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 @Repository
@@ -81,7 +82,10 @@ class MobilityDocumentDaoImpl implements MobilityDocumentDao {
       stmt.setBoolean(1, true);
       stmt.setInt(2, document);
       stmt.setInt(3, mobility);
-      stmt.execute();
+      if (stmt.executeUpdate() == 0) {
+        throw new ConcurrentModificationException(
+            "Document " + document + " is not linked to mobility " + mobility);
+      }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
