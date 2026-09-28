@@ -34,14 +34,16 @@ class PartnerOptionDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void findAllOptionsByPartnerReturnsCodeAndDepartementOnly() {
+  void findAllOptionsByPartnerReturnsCodeNameAndDepartement() {
     List<PartnerOptionDto> options =
         inTransaction(() -> partnerOptionDao.findAllOptionsByPartner(3001));
 
-    assertThat(options).extracting(PartnerOptionDto::getCode, PartnerOptionDto::getDepartement)
-        .containsExactlyInAnyOrder(tuple("BIN", "Informatique"), tuple("BCH", "Chimie"));
-    // the option name is not joined
-    assertThat(options).extracting(PartnerOptionDto::getName).containsOnlyNulls();
+    assertThat(options)
+        .extracting(PartnerOptionDto::getCode, PartnerOptionDto::getName,
+            PartnerOptionDto::getDepartement)
+        .containsExactlyInAnyOrder(
+            tuple("BIN", "Bachelier en informatique de gestion", "Informatique"),
+            tuple("BCH", "Bachelier en chimie", "Chimie"));
   }
 
   @Test

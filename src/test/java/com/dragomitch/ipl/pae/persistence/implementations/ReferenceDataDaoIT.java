@@ -12,6 +12,8 @@ import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,7 +135,20 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
         "BE, Belgique, 2, Erabel, Mobi-ERABEL",
         "FR, France, 1, Erasmus+, Mobility Tool",
         "CA, Canada, 3, FAME, Mobi-FAME",
-        "DZ, Algérie, 3, FAME, Mobi-FAME"})
+        "DZ, Algérie, 3, FAME, Mobi-FAME",
+        // current ISO codes that had a flag but no row
+        "RS, Serbie, 1, Erasmus+, Mobility Tool",
+        "ME, Monténégro, 3, FAME, Mobi-FAME",
+        "SS, Soudan du Sud, 3, FAME, Mobi-FAME",
+        "CW, Curaçao, 3, FAME, Mobi-FAME",
+        "SX, Saint-Martin (partie néerlandaise), 3, FAME, Mobi-FAME",
+        "BQ, 'Bonaire, Saint-Eustache et Saba', 3, FAME, Mobi-FAME",
+        "BL, Saint-Barthélemy, 3, FAME, Mobi-FAME",
+        "GG, Guernesey, 3, FAME, Mobi-FAME",
+        "JE, Jersey, 3, FAME, Mobi-FAME",
+        // former codes, kept because data may reference them
+        "CS, Serbie-et-Monténégro, 3, FAME, Mobi-FAME",
+        "AN, Antilles Néerlandaises, 3, FAME, Mobi-FAME"})
     void findByIdJoinsTheProgramme(String code, String name, int programmeId,
         String programmeName, String software) {
       CountryDto country = inTransaction(() -> countryDao.findById(code));
@@ -143,6 +158,24 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
       assertThat(country.getProgramme().getId()).isEqualTo(programmeId);
       assertThat(country.getProgramme().getProgrammeName()).isEqualTo(programmeName);
       assertThat(country.getProgramme().getExternalSoftName()).isEqualTo(software);
+    }
+
+    @Test
+    void theScriptAddingTheMissingCountriesToAnExistingDatabaseIsIdempotent() throws Exception {
+      String script = Files.readString(Path.of("SQLRessources", "add-missing-countries.sql"));
+      String count = "SELECT count(*) AS n FROM student_exchange_tools.countries";
+
+      runInTransaction(() -> {
+        Object before = queryForRow(count).get("n");
+        execute("DELETE FROM student_exchange_tools.countries WHERE country_code IN ('RS', 'JE')");
+
+        execute(script);
+        execute(script);
+
+        assertThat(queryForRow(count).get("n")).isEqualTo(before);
+        assertThat(countryDao.findById("RS").getProgramme().getId()).isEqualTo(1);
+        assertThat(countryDao.findById("JE").getName()).isEqualTo("Jersey");
+      });
     }
 
     @ParameterizedTest
@@ -169,7 +202,7 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
     }
 
     @Test
-    void findAllByProgrammeMapsIdNameAndCategoryButNotTheProgrammeNorTheFilledInFlag() {
+    void findAllByProgrammeMapsIdNameCategoryAndProgramme() {
       List<DocumentDto> documents = inTransaction(() -> documentDao.findAllByProgramme(1));
 
       assertThat(documents).extracting(DocumentDto::getId, DocumentDto::getName,
@@ -178,7 +211,8 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
               tuple(5, "Preuve du passage des tests linguistiques", 'D'),
               tuple(14, "Attestation séjour", 'R'));
       assertThat(documents).allSatisfy(document -> {
-        assertThat(document.getProgramme()).isNull();
+        assertThat(document.getProgramme().getId()).isEqualTo(1);
+        // "filled in" belongs to the document of a mobility (MobilityDocumentDao)
         assertThat(document.isFilledIn()).isFalse();
       });
     }

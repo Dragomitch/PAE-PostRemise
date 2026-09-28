@@ -13,7 +13,7 @@ INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Haut Vents', '22', 'BE', 'Bruxelles', '1080', '', 1);
 
 INSERT INTO student_exchange_tools.nominated_students (user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (2, 'mr', now(), 1, 'BE', '+32323244334', 'm', 2, 'BE9827423432423', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (2, 'mr', now(), 1, 'BE', '+32323244334', 'm', 2, 'BE68539007547034', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 --
 INSERT INTO student_exchange_tools.users VALUES
   (DEFAULT, 'Dragomir', 'Dragomir', 'Philippe', 'dragomir.philippe@gmail.com',
@@ -23,7 +23,7 @@ INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Pimprenelles', '47', 'BE', 'Bruxelles', '1080', '', 1);
 
 INSERT INTO student_exchange_tools.nominated_students (user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (3, 'mr', now(), 2, 'BE', '+32491736687', 'm', 2, 'BE9827423432423', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (3, 'mr', now(), 2, 'BE', '+32491736687', 'm', 2, 'BE68539007547034', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 
 --
 INSERT INTO student_exchange_tools.users VALUES
@@ -34,7 +34,7 @@ INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Hirondelles', '222', 'BE', 'Etterbeek', '1040', '', 1);
 
 INSERT INTO student_exchange_tools.nominated_students (user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (4, 'mr', now(), 3, 'BE', '+32491736687', 'm', 2, 'BE9827423432423', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (4, 'mr', now(), 3, 'BE', '+32491736687', 'm', 2, 'BE68539007547034', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 --
 INSERT INTO student_exchange_tools.users VALUES
   (DEFAULT, 'Turing', 'Turing', 'Alan', 'turing@creators.com',
@@ -44,7 +44,7 @@ INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Hiboux', '147', 'BE', 'Etterbeek', '1040', '', 1);
 
 INSERT INTO student_exchange_tools.nominated_students (user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (5, 'mr', now(), 4, 'BE', '+32491736687', 'm', 2, 'BE9827423432423', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (5, 'mr', now(), 4, 'BE', '+32491736687', 'm', 2, 'BE68539007547034', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 --
 INSERT INTO student_exchange_tools.users VALUES
   (DEFAULT, 'Wagemans', 'Wagemans', 'Jeremy', 'wagemans.jeremy@me.com',
@@ -54,7 +54,7 @@ INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Gouroux', '666', 'BE', 'Woluwe-Saint-Lambert', '1200', '', 1);
 
 INSERT INTO student_exchange_tools.nominated_students (user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (6, 'mr', now(), 5, 'BE', '+32491736687', 'm', 2, 'BE9827423432423', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (6, 'mr', now(), 5, 'BE', '+32491736687', 'm', 2, 'BE68539007547034', NULL, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 --
 
 -- Inserts partners

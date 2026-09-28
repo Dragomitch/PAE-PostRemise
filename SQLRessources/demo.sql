@@ -23,7 +23,7 @@ INSERT INTO student_exchange_tools.users VALUES
 INSERT INTO student_exchange_tools.addresses
 VALUES (DEFAULT, 'Rue des Haut Vents', '22', 'BE', 'Bruxelles', '1080', '', 1);
 INSERT INTO student_exchange_tools.nominated_students(user_id, title, birthdate, address, nationality, phone_number, gender, passed_years_count, iban, card_holder, bank_name, bic, version)
-VALUES (5, 'Mr', '1994-03-18', 1, 'BE', '+32323244334', 'M', 2, 'BE9827423432423', null, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
+VALUES (5, 'Mr', '1994-03-18', 1, 'BE', '+32323244334', 'M', 2, 'BE68539007547034', null, 'Bnp Paribas Fortis', 'GEBABBEB', 1);
 
 -- Inserts partners
 INSERT INTO student_exchange_tools.addresses

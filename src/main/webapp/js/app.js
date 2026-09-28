@@ -1685,11 +1685,10 @@ var debugg = 1;
           },
           {
             mData: function (o, type) {
-              return o.partner.fullName;
+              return Utils.partnerName(o.partner);
             },
             mRender: function (partner, type, raw) {
-              return '<img src="/images/flags/' + raw.country.countryCode
-                  + '.png" class="flags" alt="Drapeau" >' + partner;
+              return Utils.flag(raw.country) + partner;
             },
             title: 'Partenaire'
           },
@@ -1824,10 +1823,8 @@ var debugg = 1;
       $spanEditorHeading
       .html(mobility.nominatedStudent.firstName + ' '
           + mobility.nominatedStudent.lastName
-          + ' à <img src="/images/flags/'
-          + mobility.country.countryCode + '.png" class="flags" alt="'
-          + mobility.country.name + '">'
-          + mobility.partner.fullName);
+          + ' à ' + Utils.flag(mobility.country)
+          + Utils.partnerName(mobility.partner));
       MobilityDetailsView.render(mobility);
       $el.show(function () {
         $el.removeClass('closed').addClass('open');
@@ -1937,11 +1934,9 @@ var debugg = 1;
       $el.find('[data-src=student]')
       .html(mobility.nominatedStudent.firstName + ' '
           + mobility.nominatedStudent.lastName);
-      $el.find('[data-src=partner]').html(mobility.partner.fullName);
+      $el.find('[data-src=partner]').html(Utils.partnerName(mobility.partner));
       $el.find('[data-src=country]')
-      .html('<img src="/images/flags/' + mobility.country.countryCode
-          + '.png" class="flags" alt="Drapeau">'
-          + mobility.country.name);
+      .html(Utils.flag(mobility.country) + Utils.countryName(mobility.country));
       $el.find('[data-src=programme]').html(mobility.programme.programmeName);
       $el.find('[data-src=departure]').html(
           Utils.departureStr(mobility.term, mobility.academicYear));
@@ -3061,7 +3056,7 @@ var debugg = 1;
           },
           {
             mData: function (o, type) {
-              return o.partner.fullName;
+              return Utils.partnerName(o.partner);
             },
             title: 'Partenaire'
           },

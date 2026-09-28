@@ -94,8 +94,30 @@ var Utils = (function() {
     }
 
     // Public API
+    // A mobility (or payment) may come from a choice without country or partner: the API then
+    // leaves the property out (null properties are not serialized). "== null" also covers an
+    // explicit null.
+    function flag(country) {
+        if (country == null || country.countryCode == null) {
+            return '';
+        }
+        return '<img src="/images/flags/' + country.countryCode + '.png" class="flags" alt="'
+            + (country.name == null ? 'Drapeau' : country.name) + '">';
+    }
+
+    function countryName(country) {
+        return (country == null || country.name == null) ? '' : country.name;
+    }
+
+    function partnerName(partner) {
+        return (partner == null || partner.fullName == null) ? '' : partner.fullName;
+    }
+
     return {
         animate: animate,
+        flag: flag,
+        countryName: countryName,
+        partnerName: partnerName,
         serializeForm: serializeForm,
         populateForm: populateForm,
         departureStr: departureStr,

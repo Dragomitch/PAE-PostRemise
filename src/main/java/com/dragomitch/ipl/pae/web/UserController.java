@@ -36,10 +36,21 @@ public class UserController {
     return new DataResponse<>(userUcc.showAll());
   }
 
+  /** Promotes the user having that id (the users list of the UI); a professor is unchanged. */
   @PutMapping("/{id}/promote")
   @PreAuthorize(ApiPaths.PROFESSOR)
   public void promoteToProfessor(@PathVariable int id) {
     userUcc.promoteToProfessor(id);
+  }
+
+  /**
+   * Promotes the user having that (case-sensitive) username, when only the login is known, and
+   * returns it with its new role and version; a professor is unchanged.
+   */
+  @PutMapping("/by-username/{username}/promote")
+  @PreAuthorize(ApiPaths.PROFESSOR)
+  public UserDto promoteToProfessorByUsername(@PathVariable String username) {
+    return userUcc.promoteToProfessorByUsername(username);
   }
 
   @PutMapping("/edit")

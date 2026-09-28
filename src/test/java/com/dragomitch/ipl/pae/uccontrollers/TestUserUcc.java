@@ -146,6 +146,76 @@ public class TestUserUcc {
     });
   }
 
+  /** Signs up a professor (the first user) then a student, and returns the student. */
+  private UserDto signUpProfessorThenStudent() {
+    userUcc.signup(prof);
+    stud.setUsername("student1");
+    stud.setEmail("student1@student.test");
+    return userUcc.signup(stud);
+  }
+
+  @Test
+  public void promoteToProfessorByIdIncrementsTheVersion() {
+    UserDto student = signUpProfessorThenStudent();
+    int version = student.getVersion();
+
+    userUcc.promoteToProfessor(student.getId());
+
+    UserDto promoted = userDao.findById(student.getId());
+    assertEquals(UserDto.ROLE_PROFESSOR, promoted.getRole());
+    assertEquals(version + 1, promoted.getVersion());
+  }
+
+  @Test
+  public void promoteToProfessorByIdLeavesAProfessorUntouched() {
+    signUpProfessorThenStudent();
+    int version = prof.getVersion();
+
+    userUcc.promoteToProfessor(prof.getId());
+
+    assertEquals(UserDto.ROLE_PROFESSOR, userDao.findById(prof.getId()).getRole());
+    assertEquals(version, userDao.findById(prof.getId()).getVersion());
+  }
+
+  @Test
+  public void promoteToProfessorByUsernamePromotesThatStudent() {
+    UserDto student = signUpProfessorThenStudent();
+    int version = student.getVersion();
+
+    UserDto promoted = userUcc.promoteToProfessorByUsername("student1");
+
+    assertEquals(student.getId(), promoted.getId());
+    assertEquals(UserDto.ROLE_PROFESSOR, promoted.getRole());
+    assertEquals(version + 1, promoted.getVersion());
+    assertEquals(UserDto.ROLE_PROFESSOR, userDao.findById(student.getId()).getRole());
+  }
+
+  @Test
+  public void promoteToProfessorByUsernameLeavesAProfessorUntouched() {
+    signUpProfessorThenStudent();
+    int version = prof.getVersion();
+
+    UserDto same = userUcc.promoteToProfessorByUsername(prof.getUsername());
+
+    assertEquals(UserDto.ROLE_PROFESSOR, same.getRole());
+    assertEquals(version, same.getVersion());
+  }
+
+  @Test
+  public void promoteToProfessorByUsernameOfAnUnknownUserIsNotFound() {
+    signUpProfessorThenStudent();
+
+    assertThrows(RessourceNotFoundException.class,
+        () -> userUcc.promoteToProfessorByUsername("nobody"));
+  }
+
+  @Test
+  public void promoteToProfessorByUsernameNeedsAUsername() {
+    assertThrows(IllegalArgumentException.class, () -> userUcc.promoteToProfessorByUsername(""));
+    assertThrows(IllegalArgumentException.class,
+        () -> userUcc.promoteToProfessorByUsername(null));
+  }
+
   @Test
   public void testEditTC1() {
     assertThrows(IllegalArgumentException.class, () -> {

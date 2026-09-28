@@ -14,7 +14,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Boundary cases of {@link DataValidationUtils} not covered by TestDataValidationUtils: length
- * limits, negative limits and the IBAN/BIC length rules on top of their regular expressions.
+ * limits, negative limits, the IBAN length and check digits and the BIC length rules on top of
+ * their regular expressions.
  */
 class DataValidationUtilsEdgeCasesTest {
 
@@ -34,7 +35,9 @@ class DataValidationUtilsEdgeCasesTest {
   @ParameterizedTest
   @ValueSource(strings = {
       "BE68539007547034",                 // 16, Belgium
-      "FR1420041010050500013M02606",      // 27, France
+      "NO9386011117947",                  // 15, the shortest IBANs
+      "DE89370400440532013000",           // 22, Germany
+      "FR1420041010050500013M02606",      // 27, France, letter in the account number
       "MT84MALT011000012345MTLCAST001S",  // 31, the column maximum
       "be68539007547034"})                // lower case is accepted
   void validIbans(String iban) {
@@ -44,10 +47,16 @@ class DataValidationUtilsEdgeCasesTest {
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {
-      "MT84MALT011000012345MTLCAST001S1", // 32 characters: the pattern caps IBANs at 31
+      "MT84MALT011000012345MTLCAST001S1", // 32 characters: longer than the column
       "BE68 5390 0754 7034",              // spaces
       "1E68539007547034",                 // country code must be letters
-      "BE6853900754"})                    // too short for the pattern
+      "BEXX539007547034",                 // check digits must be digits
+      "BE6853900754",                     // too short
+      "NO938601111794",                   // 14 characters: too short
+      "BE68539007547035",                 // wrong check digits (last digit changed)
+      "BE86539007547034",                 // wrong check digits (swapped)
+      "DE89370400440532013001",           // wrong check digits
+      "BE68-5390"})
   void invalidIbans(String iban) {
     assertThat(DataValidationUtils.isAValidIban(iban)).isFalse();
   }

@@ -104,7 +104,9 @@ class TransactionBoundaryTest {
     verify(connection).commit();
     verify(connection, never()).rollback();
     verify(connection).close();
-    verify(userDao).update(student);
+    // only the role and the version are written, with the version read in the transaction
+    verify(userDao).promoteToProfessor(5, 3);
+    verify(userDao, never()).update(any());
   }
 
   @Test
@@ -120,13 +122,13 @@ class TransactionBoundaryTest {
 
   @Test
   void aStaleVersionReachesTheCallerAndRollsBack() throws SQLException {
-    // the JDBC DAO updates "WHERE id = ? AND version = ?" and throws when no row matched
+    // the JDBC DAO updates "WHERE user_id = ? AND version = ?" and throws when no row matched
     when(userDao.findById(5)).thenReturn(student);
-    doThrow(new ConcurrentModificationException()).when(userDao).update(any());
+    doThrow(new ConcurrentModificationException()).when(userDao).promoteToProfessor(5, 3);
 
     assertThrows(ConcurrentModificationException.class, () -> userUcc.promoteToProfessor(5));
 
-    verify(userDao).update(student);
+    verify(userDao).promoteToProfessor(5, 3);
     assertEquals(3, student.getVersion(), "the DAO checks the version read in the transaction");
     verify(connection).rollback();
     verify(connection, never()).commit();

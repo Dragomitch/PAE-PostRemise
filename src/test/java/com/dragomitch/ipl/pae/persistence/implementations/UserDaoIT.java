@@ -192,14 +192,50 @@ class UserDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void promoteToProfessorChangesTheRoleOfThatUserOnly() {
+  void promoteToProfessorByIdChangesTheRoleAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      userDao.promoteToProfessor(1001);
+      assertThat(userDao.promoteToProfessor(1004, 2)).isEqualTo(3);
 
-      assertThat(userDao.findById(1001).getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Professor")
+          .containsEntry("version", 3).containsEntry("username", "david");
+      assertThat(queryForRow(USER_BY_ID, 1003)).containsEntry("role", "Student")
+          .containsEntry("version", 1);
+    });
+  }
+
+  @Test
+  void promoteToProfessorByUsernameChangesTheRoleAndIncrementsTheVersion() {
+    runInTransaction(() -> {
+      assertThat(userDao.promoteToProfessor("alice", 1)).isEqualTo(2);
+
+      UserDto alice = userDao.findById(1001);
+      assertThat(alice.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      assertThat(alice.getVersion()).isEqualTo(2);
       assertThat(userDao.findById(1003).getRole()).isEqualTo(UserDto.ROLE_STUDENT);
-      // legacy behaviour: the version is not incremented by this statement
-      assertThat(userDao.findById(1001).getVersion()).isEqualTo(1);
+    });
+  }
+
+  @ParameterizedTest(name = "user {0}, expected version {1}")
+  @CsvSource({"1004, 1", "1004, 3", "424242, 1"})
+  void promoteToProfessorByIdWithAStaleVersionOrAnUnknownIdFailsAndWritesNothing(int id,
+      int version) {
+    runInTransaction(() -> {
+      assertThatThrownBy(() -> userDao.promoteToProfessor(id, version))
+          .isInstanceOf(ConcurrentModificationException.class);
+      assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Student")
+          .containsEntry("version", 2);
+    });
+  }
+
+  @ParameterizedTest(name = "user {0}, expected version {1}")
+  @CsvSource({"alice, 2", "Alice, 1", "nobody, 1"})
+  void promoteToProfessorByUsernameWithAStaleVersionOrAnUnknownUsernameFailsAndWritesNothing(
+      String username, int version) {
+    runInTransaction(() -> {
+      assertThatThrownBy(() -> userDao.promoteToProfessor(username, version))
+          .isInstanceOf(ConcurrentModificationException.class);
+      assertThat(queryForRow(USER_BY_ID, 1001)).containsEntry("role", "Student")
+          .containsEntry("version", 1);
     });
   }
 

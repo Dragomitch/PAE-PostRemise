@@ -2,11 +2,14 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
@@ -22,8 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Partners and their search filters (see db/fixtures/partners.sql for the data set).
  *
- * <p>Notable behaviour: every query joins {@code partner_options}, so a partner without any option
- * (3005) is invisible to {@code findById} and {@code findAll}.
+ * <p>The options are LEFT-joined and merged into {@code getOptions()}: a partner without any option
+ * (3005) is found with an empty option list, and a partner with several options is returned once.
  */
 class PartnerDaoIT extends AbstractDaoIT {
 
@@ -84,6 +87,20 @@ class PartnerDaoIT extends AbstractDaoIT {
     assertThat(partner.getAddress().getCountry().getName()).isEqualTo("France");
     assertThat(partner.getProgramme().getId()).isEqualTo(1);
     assertThat(partner.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
+    assertThat(partner.getOptions())
+        .extracting(PartnerOptionDto::getCode, PartnerOptionDto::getDepartement,
+            PartnerOptionDto::getName)
+        .containsExactly(tuple("BCH", "Chimie", "Bachelier en chimie"),
+            tuple("BIN", "Informatique", "Bachelier en informatique de gestion"));
+  }
+
+  @Test
+  void findByIdFindsAPartnerWithoutAnyOptionWithAnEmptyOptionList() {
+    PartnerDto orphan = inTransaction(() -> partnerDao.findById(3005));
+
+    assertThat(orphan.getFullName()).isEqualTo("Orphan Partner");
+    assertThat(orphan.getAddress().getCountry().getCountryCode()).isEqualTo("FR");
+    assertThat(orphan.getOptions()).isEmpty();
   }
 
   @Test
@@ -95,8 +112,8 @@ class PartnerDaoIT extends AbstractDaoIT {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0, -1, 2999, 3005})
-  void findByIdReturnsNullWhenAbsentOrWithoutAnyOption(int id) {
+  @ValueSource(ints = {0, -1, 2999, 3006})
+  void findByIdReturnsNullWhenAbsent(int id) {
     assertThat(inTransaction(() -> partnerDao.findById(id))).isNull();
   }
 
@@ -117,8 +134,8 @@ class PartnerDaoIT extends AbstractDaoIT {
           .containsEntry("phone_number", "+3290000000").containsEntry("is_official", false)
           .containsEntry("is_archived", false).containsEntry("version", 1);
 
-      // not visible until it has an option
-      assertThat(partnerDao.findById(created.getId())).isNull();
+      // visible before it has an option
+      assertThat(partnerDao.findById(created.getId()).getOptions()).isEmpty();
       PartnerOptionDto option = build(PartnerOptionDto.class);
       option.setCode("BIN");
       option.setDepartement("Informatique");
@@ -127,6 +144,7 @@ class PartnerDaoIT extends AbstractDaoIT {
       PartnerDto found = partnerDao.findById(created.getId());
       assertThat(found.getFullName()).isEqualTo("Gent Technology Institute");
       assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erabel");
+      assertThat(found.getOptions()).extracting(PartnerOptionDto::getCode).containsExactly("BIN");
     });
   }
 
@@ -175,12 +193,34 @@ class PartnerDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void findAllForAProfessorReturnsEveryPartnerHavingAnOptionOnce() {
+  void findAllForAProfessorReturnsEveryPartnerOnceWithAllItsOptions() {
     List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(
         PartnerDao.FILTER_ALL_PARTNERS, null, UserDto.ROLE_PROFESSOR, "BIN"));
 
-    // 3001 has two options but is listed once (SELECT DISTINCT); 3005 has no option
-    assertThat(ids(partners)).containsExactlyInAnyOrder(3001, 3002, 3003, 3004);
+    // 3001 has two options but is listed once; 3005 has no option but is listed too
+    assertThat(ids(partners)).containsExactly(3001, 3002, 3003, 3004, 3005);
+    assertThat(partners.get(0).getOptions()).extracting(PartnerOptionDto::getCode)
+        .containsExactly("BCH", "BIN");
+    assertThat(partners.get(4).getOptions()).isEmpty();
+  }
+
+  @Test
+  void findAllForAStudentKeepsEveryOptionOfTheMatchingPartners() {
+    List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(
+        PartnerDao.FILTER_ALL_PARTNERS, null, UserDto.ROLE_STUDENT, "BIN"));
+
+    // filtered on BIN, but the BCH option of 3001 is still part of its option list
+    assertThat(partners).singleElement().satisfies(lyon -> assertThat(lyon.getOptions())
+        .extracting(PartnerOptionDto::getCode).containsExactly("BCH", "BIN"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"whatever", ""})
+  void findAllRejectsAnUnknownFilter(String filter) {
+    runInTransaction(() -> assertThatThrownBy(
+        () -> partnerDao.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
+        .isInstanceOfSatisfying(BusinessException.class, ex -> assertThat(
+            ex.getError().getErrorCode()).isEqualTo(ErrorFormat.INVALID_PARTNER_FILTER_709)));
   }
 
   @ParameterizedTest(name = "student of {0} sees {1}")
@@ -204,7 +244,7 @@ class PartnerDaoIT extends AbstractDaoIT {
   }
 
   @ParameterizedTest(name = "professor searching country {0} sees {1}")
-  @CsvSource({"FR, 3001;3002", "BE, 3003", "CA, 3004", "DE, ''"})
+  @CsvSource({"FR, 3001;3002;3005", "BE, 3003", "CA, 3004", "DE, ''"})
   void findAllByCountryForAProfessorReturnsEveryPartnerOfThatCountry(String country,
       String expected) {
     List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(

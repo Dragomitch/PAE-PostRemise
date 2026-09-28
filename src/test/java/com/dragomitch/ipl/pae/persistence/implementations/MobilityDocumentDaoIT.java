@@ -8,7 +8,9 @@ import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -94,11 +96,16 @@ class MobilityDocumentDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void fillInDocumentOfAnUnlinkedDocumentIsSilentlyIgnored() {
+  void fillInDocumentOfAnUnlinkedDocumentFailsAndWritesNothing() {
     runInTransaction(() -> {
-      mobilityDocumentDao.fillInDocument(5, 5006);
+      List<Map<String, Object>> before =
+          query("SELECT * FROM student_exchange_tools.mobility_documents ORDER BY document_id");
 
-      assertThat(query("SELECT * FROM student_exchange_tools.mobility_documents")).hasSize(3);
+      assertThatThrownBy(() -> mobilityDocumentDao.fillInDocument(5, 5006))
+          .isInstanceOf(ConcurrentModificationException.class)
+          .hasMessageContaining("Document 5").hasMessageContaining("5006");
+      assertThat(query("SELECT * FROM student_exchange_tools.mobility_documents "
+          + "ORDER BY document_id")).isEqualTo(before);
     });
   }
 }

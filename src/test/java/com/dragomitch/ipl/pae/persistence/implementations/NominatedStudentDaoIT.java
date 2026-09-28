@@ -130,18 +130,19 @@ class NominatedStudentDaoIT extends AbstractDaoIT {
   }
 
   /**
-   * Legacy behaviour: the version column receives the version carried by the DTO (the use case
-   * copies the user's version into it) while the returned DTO always says 1.
+   * A nominated student shares the version of its user (the use case copies the user's version
+   * into the DTO): the row stores it and the returned DTO carries the same version.
    */
   @Test
-  void createStoresTheVersionCarriedByTheDtoButReturnsVersionOne() {
+  void createStoresAndReturnsTheVersionCarriedByTheDto() {
     runInTransaction(() -> {
       NominatedStudentDto student = newStudent(1002, "Bob Dupont");
       student.setVersion(3);
 
-      assertThat(nominatedStudentDao.create(student).getVersion()).isEqualTo(1);
+      assertThat(nominatedStudentDao.create(student).getVersion()).isEqualTo(3);
       assertThat(queryForRow(STUDENT_BY_ID, 1002)).containsEntry("version", 3)
           .containsEntry("card_holder", "Bob Dupont");
+      assertThat(nominatedStudentDao.findById(1002).getVersion()).isEqualTo(3);
     });
   }
 

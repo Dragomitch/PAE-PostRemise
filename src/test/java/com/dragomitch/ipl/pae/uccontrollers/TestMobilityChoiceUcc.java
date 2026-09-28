@@ -464,6 +464,17 @@ public class TestMobilityChoiceUcc {
   }
 
   @Test
+  public void aChoiceWithADenialReasonCannotBeRejectedAgainWhateverTheReasonText() {
+    DenialReasonDto withoutText = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    withoutText.setId(denialReason.getId());
+    mobilityChoice.setDenialReason(withoutText);
+
+    BusinessException ex = assertThrows(BusinessException.class,
+        () -> mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId()));
+    assertEquals(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317, ex.getError().getErrorCode());
+  }
+
+  @Test
   public void testRejectTC5() {
     assertThrows(BusinessException.class, () -> {
       mobilityChoice.setCancellationReason(CANCELLATION_REASON);
@@ -555,6 +566,25 @@ public class TestMobilityChoiceUcc {
       }
     }
     assertEquals(1, countNotRejected, "It should remain only 1 mobilityChoice not rejected for that user");
+  }
+
+  @Test
+  public void confirmLeavesTheAlreadyCancelledChoicesOfTheSameTermAlone() {
+    MobilityChoiceDto cancelled = mockDtoFactory.getMobilityChoice();
+    cancelled.setUser(userStud);
+    cancelled.setCancellationReason(CANCELLATION_REASON);
+    mobilityChoiceDao.create(cancelled);
+    MobilityChoiceDto open = mockDtoFactory.getMobilityChoice();
+    open.setUser(userStud);
+    mobilityChoiceDao.create(open);
+    mobilityChoice.setUser(userStud);
+
+    mobilityChoiceUcc.confirm(mobilityChoice.getId(), userProf.getId());
+
+    assertNotNull(mobilityDao.findById(mobilityChoice.getId()));
+    assertNull(cancelled.getDenialReason(), "the cancelled choice is not rejected on top");
+    assertEquals(CANCELLATION_REASON, cancelled.getCancellationReason());
+    assertNotNull(open.getDenialReason(), "the other open choice of the term is rejected");
   }
 
   @Test
@@ -656,11 +686,40 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testConfirmWithNewPartnerWithOption() {
-    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option, in GB
     newPartner.setStatus(false);
+    mobilityChoice.setCountry(country); // GB, the country of the partner
     mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
         userProf.getRole());
     assertNotNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must be confirmed");
+    assertEquals(newPartner.getId(), mobilityChoice.getPartner().getId());
+  }
+
+  @Test
+  public void confirmWithNewPartnerRefusesAPartnerOutsideTheChosenCountry() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // in GB
+    newPartner.setStatus(false);
+    mobilityChoice.setCountry(mockDtoFactory.getCountry()); // IE
+
+    BusinessException ex = assertThrows(BusinessException.class,
+        () -> mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner,
+            userProf.getId(), userProf.getRole()));
+    assertEquals(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320, ex.getError().getErrorCode());
+    assertNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must stay unconfirmed");
+    assertEquals("IE", mobilityChoice.getCountry().getCountryCode());
+  }
+
+  @Test
+  public void confirmWithNewPartnerGivesAChoiceWithoutCountryThePartnerCountry() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // in GB
+    newPartner.setStatus(false);
+    mobilityChoice.setCountry(null);
+
+    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
+        userProf.getRole());
+
+    assertEquals("GB", mobilityChoice.getCountry().getCountryCode());
+    assertNotNull(mobilityDao.findById(mobilityChoice.getId()));
   }
 
 }

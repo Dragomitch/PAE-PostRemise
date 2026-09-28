@@ -29,10 +29,12 @@ public interface MobilityDocumentDao {
   List<DocumentDto> findAllByMobility(int mobilityId);
 
   /**
-   * Update the database to insert a new filled document corresponding to a mobility.
+   * Marks a document of a mobility as filled in (and increments the version of the link).
    * 
    * @param document the id of the document that has been filled.
    * @param mobility the id of the mobility for which the document has been filled.
+   * @throws java.util.ConcurrentModificationException if that document is not linked to that
+   *         mobility (0 rows updated, as for the other DAO updates)
    */
   void fillInDocument(int document, int mobility);
 
