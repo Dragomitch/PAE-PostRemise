@@ -429,11 +429,17 @@ class MobilityChoiceUccImplTest {
     }
   }
 
+  /** Departure documents of the programme of the choices. */
   private List<DocumentDto> givenProgrammeDocuments(int... ids) {
+    return givenProgrammeDocuments(DocumentDto.DEPARTURE_DOCUMENT, ids);
+  }
+
+  private List<DocumentDto> givenProgrammeDocuments(char category, int... ids) {
     List<DocumentDto> documents = new ArrayList<>();
     for (int id : ids) {
       DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
       document.setId(id);
+      document.setCategory(category);
       documents.add(document);
     }
     when(documentDao.findAllByProgramme(1)).thenReturn(documents);
@@ -618,6 +624,38 @@ class MobilityChoiceUccImplTest {
           .hasErrorCode(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
       assertThat(choice.getCountry().getCountryCode()).isEqualTo("IE");
       verifyNoInteractions(partnerUcc);
+      verify(mobilityChoiceDao, never()).update(any());
+      verify(mobilityDao, never()).create(any());
+    }
+
+    @Test
+    void aMobilityWithoutDepartureDocumentStartsToBePaid() {
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      PartnerDto request = partner(0, false);
+      when(partnerUcc.create(request, UserDto.ROLE_PROFESSOR)).thenReturn(request);
+      givenProgrammeDocuments(DocumentDto.RETURN_DOCUMENT, 3);
+      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      when(mobilityChoiceDao.findByUser(STUDENT_ID)).thenReturn(List.of(choice));
+
+      mobilityChoiceUcc.confirmWithNewPartner(CHOICE_ID, request, PROFESSOR_ID,
+          UserDto.ROLE_PROFESSOR);
+
+      assertThat(createdMobility().getState()).isEqualTo(MobilityDto.STATE_TO_BE_PAID);
+      verify(mobilityDocumentDao).create(3, CHOICE_ID);
+    }
+
+    @Test
+    void aRestoredPartnerIsCheckedAsStoredNotAsSentByTheClient() {
+      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      PartnerDto request = partner(PARTNER_ID, false); // claims the country of the choice (IE)
+      PartnerDto stored = partner(PARTNER_ID, false);
+      stored.getAddress().getCountry().setCountryCode("GB");
+      when(partnerUcc.restore(PARTNER_ID, UserDto.ROLE_PROFESSOR)).thenReturn(stored);
+
+      assertThatBusinessException(() -> mobilityChoiceUcc.confirmWithNewPartner(CHOICE_ID,
+          request, PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
+      assertThat(choice.getCountry().getCountryCode()).isEqualTo("IE");
       verify(mobilityChoiceDao, never()).update(any());
       verify(mobilityDao, never()).create(any());
     }

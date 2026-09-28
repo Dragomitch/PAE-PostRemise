@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
+import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
@@ -158,17 +159,9 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     if (mobilityChoice.getPartner() == null) {
       throw new BusinessException(ErrorCode.PARTNER_REQUIRED_TO_CONFIRM);
     }
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
-    mobility.setId(id);
-    mobility.setState(Mobility.STATE_CREATED);
-    mobility.setSubmissionDate(LocalDateTime.now());
-
+    MobilityDto mobility = newMobility(id);
     mobility.setProfessorInCharge(userDao.findById(userId));
-    mobilityDao.create(mobility);
-    List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
-    for (DocumentDto document : documents) {
-      mobilityDocumentDao.create(document.getId(), id);
-    }
+    createMobility(mobility, mobilityChoice);
     List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
         UserDto.ROLE_PROFESSOR);
     for (MobilityChoiceDto choice : mobilityChoices) {
@@ -201,29 +194,19 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     // the partner must be in the country of the choice, if the student chose one
-    CountryDto partnerCountry = partner.getAddress().getCountry();
-    CountryDto choiceCountry = mobilityChoice.getCountry();
-    if (choiceCountry != null && choiceCountry.getCountryCode() != null
-        && !choiceCountry.getCountryCode().equals(partnerCountry.getCountryCode())) {
-      throw new BusinessException(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
-    }
-    mobilityChoice.setCountry(partnerCountry);
     if (partner.getId() <= 0) {
+      checkPartnerCountry(mobilityChoice, partner);
       partner = partnerUcc.create(partner, userRole);
     } else {
+      // an existing partner is checked as stored, not as sent by the client (the transaction
+      // rolls the restoration back if it is refused)
       partner = partnerUcc.restore(partner.getId(), userRole);
+      checkPartnerCountry(mobilityChoice, partner);
     }
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
-    mobility.setId(id);
-    mobility.setState(Mobility.STATE_CREATED);
-    mobility.setSubmissionDate(LocalDateTime.now());
+    mobilityChoice.setCountry(partner.getAddress().getCountry());
     mobilityChoice.setPartner(partner);
     mobilityChoiceDao.update(mobilityChoice);
-    mobilityDao.create(mobility);
-    List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
-    for (DocumentDto document : documents) {
-      mobilityDocumentDao.create(document.getId(), id);
-    }
+    createMobility(newMobility(id), mobilityChoice);
     List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, userRole);
     for (MobilityChoiceDto choice : mobilityChoices) {
       if (choice.getId() != mobilityChoice.getId()
@@ -327,4 +310,40 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       throw new BusinessException(ErrorCode.UNKNOWN_USER, mobilityChoice.getUser().getId());
     }
   }
+
+
+  private MobilityDto newMobility(int id) {
+    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+    mobility.setId(id);
+    mobility.setSubmissionDate(LocalDateTime.now());
+    return mobility;
+  }
+
+  /**
+   * Creates the mobility of a confirmed choice with the documents of its programme. It starts
+   * {@value MobilityDto#STATE_CREATED}, or directly {@value MobilityDto#STATE_TO_BE_PAID} when the
+   * programme has no departure document to fill in (nothing would ever move it forward).
+   */
+  private void createMobility(MobilityDto mobility, MobilityChoiceDto mobilityChoice) {
+    List<DocumentDto> documents =
+        documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
+    boolean departureDocuments = documents.stream()
+        .anyMatch(document -> document.getCategory() == Document.DEPARTURE_DOCUMENT);
+    mobility.setState(departureDocuments ? Mobility.STATE_CREATED : Mobility.STATE_TO_BE_PAID);
+    mobilityDao.create(mobility);
+    for (DocumentDto document : documents) {
+      mobilityDocumentDao.create(document.getId(), mobility.getId());
+    }
+  }
+  /**
+   * Refuses a partner outside the country the student chose for the mobility choice, if any.
+   */
+  private static void checkPartnerCountry(MobilityChoiceDto mobilityChoice, PartnerDto partner) {
+    CountryDto choiceCountry = mobilityChoice.getCountry();
+    if (choiceCountry != null && choiceCountry.getCountryCode() != null && !choiceCountry
+        .getCountryCode().equals(partner.getAddress().getCountry().getCountryCode())) {
+      throw new BusinessException(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
+    }
+  }
+
 }
