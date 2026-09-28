@@ -53,7 +53,8 @@ public interface PartnerDao {
    *        offering their option (except with the archived filter).
    * @param option : the option of the user.
    * @return a List of all PartnerDto, ordered by id
-   * @throws IllegalArgumentException if the filter is unknown
+   * @throws com.dragomitch.ipl.pae.business.exceptions.BusinessException
+   *         INVALID_PARTNER_FILTER_709 if the filter is unknown
    */
   List<PartnerDto> findAll(String filter, String value, String userRole, String option);
 

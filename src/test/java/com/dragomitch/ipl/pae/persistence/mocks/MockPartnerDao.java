@@ -2,6 +2,8 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 
 import java.util.ArrayList;
@@ -71,7 +73,7 @@ public class MockPartnerDao implements PartnerDao {
         }
         return list;
       }
-    } else {
+    } else if (filter.equals("archived")) {
       if (userRole.equals(UserDto.ROLE_STUDENT)) {
         for (PartnerDto partnerDto : partners) {
           partnerDto.getOptions().forEach(opt -> {
@@ -92,6 +94,8 @@ public class MockPartnerDao implements PartnerDao {
         }
         return list;
       }
+    } else {
+      throw new BusinessException(ErrorFormat.INVALID_PARTNER_FILTER_709);
     }
   }
 

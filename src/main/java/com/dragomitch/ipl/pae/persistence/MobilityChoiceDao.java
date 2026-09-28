@@ -73,6 +73,8 @@ public interface MobilityChoiceDao {
    *        passed, active, canceled, rejected, all. Combinations are NOT possible between the
    *        filters.
    * @return all the mobility choices fitting the filter.
+   * @throws com.dragomitch.ipl.pae.business.exceptions.BusinessException
+   *         INVALID_MOBILITY_CHOICE_FILTER_323 if the filter is not one of those
    */
   List<MobilityChoiceDto> findAll(String filter);
 

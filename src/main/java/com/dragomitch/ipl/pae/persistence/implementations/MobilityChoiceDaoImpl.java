@@ -10,6 +10,8 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -151,19 +153,23 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     List<MobilityChoiceDto> mobilitiesChoices = new ArrayList<MobilityChoiceDto>();
     String queryFilter = "";
     boolean yearParameter = false;
-    if (filter.equals(FILTER_CANCELED_MOBILITIES_CHOICES)) {
+    if (FILTER_ALL_MOBILITIES_CHOICES.equals(filter)) {
+      queryFilter = "";
+    } else if (FILTER_CANCELED_MOBILITIES_CHOICES.equals(filter)) {
       queryFilter += " AND mc." + COLUMN_STUDENT_CANCELLATION_REASON + " IS NOT NULL";
-    } else if (filter.equals(FILTER_REJECTED_MOBILITIES_CHOICES)) {
+    } else if (FILTER_REJECTED_MOBILITIES_CHOICES.equals(filter)) {
       queryFilter += " AND mc." + COLUMN_PROF_DENIAL_REASON + " IS NOT NULL";
-    } else if (filter.equals(FILTER_PASSED_MOBILITIES_CHOICES)) {
+    } else if (FILTER_PASSED_MOBILITIES_CHOICES.equals(filter)) {
       queryFilter += " AND mc." + COLUMN_ACADEMIC_YEAR + " < ?";
       yearParameter = true;
-    } else if (filter.equals(FILTER_ACTIVE_MOBILITIES_CHOICES)) {
+    } else if (FILTER_ACTIVE_MOBILITIES_CHOICES.equals(filter)) {
       queryFilter += " AND mc." + COLUMN_ACADEMIC_YEAR + " = ? AND mc." + COLUMN_PROF_DENIAL_REASON
           + " IS NULL AND mc." + COLUMN_STUDENT_CANCELLATION_REASON + " IS NULL AND" + " mc."
           + COLUMN_ID + " NOT IN (SELECT m." + MobilityDao.COLUMN_ID + " FROM " + SCHEMA_NAME + "."
           + MobilityDao.TABLE_NAME + " m )";
       yearParameter = true;
+    } else {
+      throw new BusinessException(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323);
     }
     try (PreparedStatement findAllStatement =
         dalBackendServices.prepareStatement(SQL_SELECT + queryFilter)) {

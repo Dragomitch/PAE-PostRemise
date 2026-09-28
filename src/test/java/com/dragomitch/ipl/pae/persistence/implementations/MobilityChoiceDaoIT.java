@@ -10,6 +10,8 @@ import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
@@ -24,6 +26,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -156,13 +159,20 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
       "active,    5001;5002",
       "canceled,  5003",
       "rejected,  5004",
-      "passed,    5005",
-      // an unknown filter is not rejected by the DAO: it behaves like "all"
-      "whatever,  5001;5002;5003;5004;5005;5006;5007"})
+      "passed,    5005"})
   void findAllAppliesTheFilter(String filter, String expected) {
     List<MobilityChoiceDto> choices = inTransaction(() -> mobilityChoiceDao.findAll(filter));
 
     assertThat(ids(choices)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"whatever", "ALL", "active "})
+  void findAllRejectsAnUnknownFilter(String filter) {
+    runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.findAll(filter))
+        .isInstanceOfSatisfying(BusinessException.class, ex -> assertThat(
+            ex.getError().getErrorCode()).isEqualTo(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323)));
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")
