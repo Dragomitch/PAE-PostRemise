@@ -86,7 +86,7 @@ public class TestDataValidationUtils {
 
   @Test
   public void testIsAValidIbanTC4() {
-    String iban = "BE96001244289402";
+    String iban = "BE71096123456769";
     assertTrue(DataValidationUtils.isAValidIban(iban));
   }
 
