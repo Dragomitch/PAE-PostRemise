@@ -7,7 +7,7 @@
 
   "120": {
     "errorName": "CONCURRENT_MODIFICATION",
-    "developerMessage": "Invalid input data",
+    "developerMessage": "The data have been modified or deleted in the meantime: reload them and try again",
     "userMessage": null
   },
 

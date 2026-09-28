@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorManager;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -51,7 +52,7 @@ public class ExceptionHandler extends ResponseHandler {
       case IllegalArgumentException e ->
           httpStatusCode = HttpStatus.BAD_REQUEST.value();
       case ConcurrentModificationException e -> {
-          error = new ErrorFormat(ErrorFormat.CONCURRENT_MODIFICATION_120);
+          error = ErrorManager.getError(ErrorFormat.CONCURRENT_MODIFICATION_120);
           httpStatusCode = HttpStatus.BAD_REQUEST.value();
         }
       case BusinessException e -> {
