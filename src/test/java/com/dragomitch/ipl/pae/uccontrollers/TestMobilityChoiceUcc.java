@@ -574,6 +574,25 @@ public class TestMobilityChoiceUcc {
   }
 
   @Test
+  public void confirmLeavesTheAlreadyCancelledChoicesOfTheSameTermAlone() {
+    MobilityChoiceDto cancelled = mockDtoFactory.getMobilityChoice();
+    cancelled.setUser(userStud);
+    cancelled.setCancellationReason(CANCELLATION_REASON);
+    mobilityChoiceDao.create(cancelled);
+    MobilityChoiceDto open = mockDtoFactory.getMobilityChoice();
+    open.setUser(userStud);
+    mobilityChoiceDao.create(open);
+    mobilityChoice.setUser(userStud);
+
+    mobilityChoiceUcc.confirm(mobilityChoice.getId(), userProf.getId());
+
+    assertNotNull(mobilityDao.findById(mobilityChoice.getId()));
+    assertNull(cancelled.getDenialReason(), "the cancelled choice is not rejected on top");
+    assertEquals(CANCELLATION_REASON, cancelled.getCancellationReason());
+    assertNotNull(open.getDenialReason(), "the other open choice of the term is rejected");
+  }
+
+  @Test
   public void testConfirmWithNewPartnerTC1() {
     assertThrows(IllegalArgumentException.class, () -> {
       mobilityChoiceUcc.confirmWithNewPartner(0, partner, userProf.getId(), userProf.getRole());

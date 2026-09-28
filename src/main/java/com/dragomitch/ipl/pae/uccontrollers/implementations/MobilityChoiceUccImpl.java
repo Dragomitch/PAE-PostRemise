@@ -220,7 +220,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.PUT, template = "/mobilitychoices/{id}/confirm")
-  @SuppressWarnings("unused")
   public void confirm(@PathParameter("id") int id, @SessionParameter("userId") int userId) {
     checkPositive(id);
     try {
@@ -243,7 +242,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       mobility.setState(Mobility.STATE_CREATED);
       mobility.setSubmissionDate(LocalDateTime.now());
 
-      UserDto user = userDao.findById(userId);
       mobility.setProfessorInCharge(userDao.findById(userId));
       mobilityDao.create(mobility);
       List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
@@ -253,9 +251,11 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
           UserDto.ROLE_PROFESSOR);
       for (MobilityChoiceDto choice : mobilityChoices) {
+        // the other open choices of the same term are rejected; closed ones are left as they are
         if (choice.getId() != mobilityChoice.getId()
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
-            && choice.getTerm() == mobilityChoice.getTerm()) {
+            && choice.getTerm() == mobilityChoice.getTerm()
+            && choice.getCancellationReason() == null && choice.getDenialReason() == null) {
           reject(choice.getId(), 1);
         }
       }
