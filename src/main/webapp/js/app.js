@@ -1933,7 +1933,6 @@ var debugg = 1;
           confirmSoftwareEncoding);
       $elPayments.on('click', 'button', confirmPayment);
       $el.find('a.export-mobility').on('click', exportCsv);
-      $elPayments.on('click', 'button', confirmPayment);
     }
 
     function unbindAll() {
@@ -1944,6 +1943,8 @@ var debugg = 1;
           confirmDocument);
       $ulSoftwareEncodings.off('change', 'li input[type=checkbox]',
           confirmSoftwareEncoding);
+      $elPayments.off('click', 'button', confirmPayment);
+      $el.find('a.export-mobility').off('click', exportCsv);
     }
 
     function render(mobilityObj) {
@@ -2076,10 +2077,13 @@ var debugg = 1;
                 '<button class="btn btn-primary">Confirmer le deuxième paiement</button>');
             $elPayments.find('#second-payment-status').show();
           }
-        } else if (app.isProfessor()) {
+        } else if (mobility.state === STATE_TO_BE_PAID && app.isProfessor()) {
+          // the first payment is only expected once the departure documents are filled in
           $elPayments.find('#first-payment-status .content').html('' +
               '<button class="btn btn-primary">Confirmer le premier paiement</button>');
           $elPayments.find('#first-payment-status').show();
+        } else {
+          $elPayments.find('#first-payment-status .content').html('Pas encore dû');
         }
         $elPayments.find('#first-payment-status').show();
       }

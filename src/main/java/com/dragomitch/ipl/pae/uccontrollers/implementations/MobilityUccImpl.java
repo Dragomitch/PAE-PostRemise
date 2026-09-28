@@ -139,33 +139,60 @@ class MobilityUccImpl implements MobilityUcc {
     mobilityDao.update(mobility);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>A payment is only accepted when the state machine expects it: the first one in
+   * {@value MobilityDto#STATE_TO_BE_PAID} (the departure documents are filled in), the second one
+   * in {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} (every document is filled in); any other
+   * state is a {@link ErrorCode#PAYMENT_NOT_EXPECTED} conflict. After the first payment the
+   * mobility is {@value MobilityDto#STATE_IN_PROGRESS}, or directly
+   * {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when its return documents were already filled
+   * in (no document would be left to move it on).
+   */
   @Override
-  public MobilityDto confirmPayment(int id,
-      int version) {
+  public MobilityDto confirmPayment(int id, int version) {
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
     mobility.checkNotCancelledAndNotClosed();
+    boolean firstPayment = mobility.getState().equals(Mobility.STATE_TO_BE_PAID)
+        && mobility.getFirstPaymentRequestDate() == null;
+    boolean secondPayment = mobility.getState().equals(Mobility.STATE_BALANCE_TO_BE_PAID)
+        && mobility.getFirstPaymentRequestDate() != null;
+    if (!firstPayment && !secondPayment) {
+      throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
+    }
     NominatedStudent nominatedStudent;
     if ((nominatedStudent = (NominatedStudent) nominatedStudentDao
         .findById(mobility.getNominatedStudent().getId())) == null) {
       throw new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS);
     }
     nominatedStudent.checkBankDetails();
-    if (mobility.getFirstPaymentRequestDate() == null) {
+    if (firstPayment) {
       mobility.setFirstPaymentRequestDate(LocalDateTime.now());
-      mobility.setState(Mobility.STATE_IN_PROGRESS);
-    } else if (mobility.getState().equals(Mobility.STATE_BALANCE_TO_BE_PAID)) {
+      mobility.setDocuments(mobilityDocumentDao.findAllByMobility(mobility.getId()));
+      mobility.setState(mobility.allReturnDocumentsFilledIn()
+          ? Mobility.STATE_BALANCE_TO_BE_PAID : Mobility.STATE_IN_PROGRESS);
+    } else {
       mobility.setSecondPaymentRequestDate(LocalDateTime.now());
       mobility.setState(Mobility.STATE_CLOSED);
-    } else {
-      throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
     }
     mobilityDao.update(mobility);
     return mobility;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>State transitions: {@value MobilityDto#STATE_CREATED} and
+   * {@value MobilityDto#STATE_IN_PREPARATION} become {@value MobilityDto#STATE_TO_BE_PAID} as soon
+   * as every departure document is filled in (also when the first document filled in completes
+   * them), {@value MobilityDto#STATE_IN_PREPARATION} otherwise; {@value MobilityDto#STATE_IN_PROGRESS}
+   * becomes {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when every document is filled in. The
+   * other states do not change (a payment is pending).
+   */
   @Override
   public MobilityDto confirmDocument(int id, int document, int version) {
     Mobility mobility = getMobility(id);
@@ -177,12 +204,10 @@ class MobilityUccImpl implements MobilityUcc {
       return mobility;
     }
     String currentState = mobility.getState();
-    if (currentState.equals(Mobility.STATE_CREATED)) {
-      mobility.setState(Mobility.STATE_IN_PREPARATION);
-    } else if (currentState.equals(Mobility.STATE_IN_PREPARATION)) {
-      if (mobility.allDepartureDocumentsFilledIn()) {
-        mobility.setState(Mobility.STATE_TO_BE_PAID);
-      }
+    if (currentState.equals(Mobility.STATE_CREATED)
+        || currentState.equals(Mobility.STATE_IN_PREPARATION)) {
+      mobility.setState(mobility.allDepartureDocumentsFilledIn()
+          ? Mobility.STATE_TO_BE_PAID : Mobility.STATE_IN_PREPARATION);
     } else if (currentState.equals(Mobility.STATE_IN_PROGRESS)) {
       if (mobility.allDepartureDocumentsFilledIn() && mobility.allReturnDocumentsFilledIn()) {
         mobility.setState(Mobility.STATE_BALANCE_TO_BE_PAID);

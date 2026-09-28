@@ -378,6 +378,9 @@ class MobilityUccImplTest {
       MobilityDto mobility = givenMobility(MobilityDto.STATE_TO_BE_PAID);
       when(nominatedStudentDao.findById(STUDENT_ID))
           .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
+      when(mobilityDocumentDao.findAllByMobility(MOBILITY_ID)).thenReturn(
+          List.of(document(1, DocumentDto.DEPARTURE_DOCUMENT, true),
+              document(3, DocumentDto.RETURN_DOCUMENT, false)));
       givenUpdateSucceeds();
 
       MobilityDto paid = mobilityUcc.confirmPayment(MOBILITY_ID, VERSION);
@@ -408,17 +411,51 @@ class MobilityUccImplTest {
       verify(mobilityDao).update(mobility);
     }
 
+    @Test
+    void theFirstPaymentMakesTheBalanceDueWhenTheReturnDocumentsAreAlreadyFilledIn() {
+      // the return documents may be ticked while the first payment is pending ("A payer"):
+      // "En cours" would then be a dead end, no document being left to fill in
+      MobilityDto mobility = givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      when(nominatedStudentDao.findById(STUDENT_ID))
+          .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
+      when(mobilityDocumentDao.findAllByMobility(MOBILITY_ID)).thenReturn(
+          List.of(document(1, DocumentDto.DEPARTURE_DOCUMENT, true),
+              document(3, DocumentDto.RETURN_DOCUMENT, true)));
+      givenUpdateSucceeds();
+
+      MobilityDto paid = mobilityUcc.confirmPayment(MOBILITY_ID, VERSION);
+
+      assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_BALANCE_TO_BE_PAID);
+      assertThat(paid.getFirstPaymentRequestDate()).isNotNull();
+      assertThat(paid.getSecondPaymentRequestDate()).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {MobilityDto.STATE_CREATED, MobilityDto.STATE_IN_PREPARATION,
+        MobilityDto.STATE_IN_PROGRESS, MobilityDto.STATE_BALANCE_TO_BE_PAID})
+    void noFirstPaymentBeforeTheDepartureDocumentsAreFilledIn(String state) {
+      // the first payment is only expected in "A payer": before, the departure documents are
+      // incomplete; "En cours" and "Solde à payer" without a first payment are inconsistent
+      MobilityDto mobility = givenMobility(state);
+
+      assertThat(Violations.errorCodeOf(() -> mobilityUcc.confirmPayment(MOBILITY_ID, VERSION)))
+          .isEqualTo(ErrorCode.PAYMENT_NOT_EXPECTED);
+      assertThat(mobility.getState()).isEqualTo(state);
+      assertThat(mobility.getFirstPaymentRequestDate()).isNull();
+      verifyNoInteractions(nominatedStudentDao);
+      verify(mobilityDao, never()).update(any());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {MobilityDto.STATE_IN_PROGRESS, MobilityDto.STATE_TO_BE_PAID,
         MobilityDto.STATE_IN_PREPARATION})
     void noSecondPaymentBeforeTheBalanceIsDue(String state) {
       MobilityDto mobility = givenMobility(state);
       mobility.setFirstPaymentRequestDate(LocalDateTime.of(2016, 9, 1, 12, 0));
-      when(nominatedStudentDao.findById(STUDENT_ID))
-          .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
 
       assertThat(Violations.errorCodeOf(() -> mobilityUcc.confirmPayment(MOBILITY_ID, VERSION)))
           .isEqualTo(ErrorCode.PAYMENT_NOT_EXPECTED);
+      verifyNoInteractions(nominatedStudentDao);
       assertThat(mobility.getState()).isEqualTo(state);
       assertThat(mobility.getSecondPaymentRequestDate()).isNull();
       verify(mobilityDao, never()).update(any());
@@ -498,9 +535,11 @@ class MobilityUccImplTest {
      */
     static Stream<Arguments> transitions() {
       return Stream.of(
-          // the first document starts the preparation (legacy: even if it completes it)
+          // the first document starts the preparation...
           Arguments.of(MobilityDto.STATE_CREATED, "----", 1, MobilityDto.STATE_IN_PREPARATION),
-          Arguments.of(MobilityDto.STATE_CREATED, "-X--", 1, MobilityDto.STATE_IN_PREPARATION),
+          // ...or makes the first payment due at once when it completes the departure documents
+          Arguments.of(MobilityDto.STATE_CREATED, "-X--", 1, MobilityDto.STATE_TO_BE_PAID),
+          Arguments.of(MobilityDto.STATE_CREATED, "-XX-", 1, MobilityDto.STATE_TO_BE_PAID),
           Arguments.of(MobilityDto.STATE_CREATED, "----", 3, MobilityDto.STATE_IN_PREPARATION),
           // the last departure document makes the first payment due
           Arguments.of(MobilityDto.STATE_IN_PREPARATION, "X---", 2, MobilityDto.STATE_TO_BE_PAID),
