@@ -63,12 +63,15 @@ public class PartnerController {
     return partnerUcc.edit(id, partner, currentUser.role());
   }
 
-  /** Adds an option to a partner. */
+  /**
+   * Adds an option to a partner: any partner for a professor, only a non-official partner of one
+   * of his own mobility choices or mobilities for a student (403 otherwise).
+   */
   @PostMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public void addOption(@PathVariable @Positive int id,
-      @RequestBody @Valid PartnerOptionDto partnerOption) {
-    partnerUcc.addOption(id, partnerOption);
+      @RequestBody @Valid PartnerOptionDto partnerOption, CurrentUser currentUser) {
+    partnerUcc.addOption(id, partnerOption, currentUser.id(), currentUser.role());
   }
 
   @GetMapping("/partnersOptions/{id}")

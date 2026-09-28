@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerSearch;
@@ -12,6 +13,7 @@ import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionExceptio
 import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
+import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -37,12 +39,13 @@ class PartnerUccImpl implements PartnerUcc {
   private final PartnerDao partnerDao;
   private final PartnerOptionDao partnerOptionDao;
   private final MobilityChoiceDao mobilityChoiceDao;
+  private final MobilityDao mobilityDao;
   private final ProgrammeDao programmeDao;
   private final UserDao userDao;
 
   PartnerUccImpl(AddressDao addressDao, OptionDao optionDao, PartnerDao partnerDao,
       PartnerOptionDao partnerOptionDao, MobilityChoiceDao mobilityChoiceDao,
-      ProgrammeDao programmeDao, UserDao userDao) {
+      MobilityDao mobilityDao, ProgrammeDao programmeDao, UserDao userDao) {
     this.addressDao = addressDao;
     this.optionDao = optionDao;
     this.partnerDao = partnerDao;
@@ -50,6 +53,7 @@ class PartnerUccImpl implements PartnerUcc {
     this.programmeDao = programmeDao;
     this.userDao = userDao;
     this.mobilityChoiceDao = mobilityChoiceDao;
+    this.mobilityDao = mobilityDao;
   }
 
   @Override
@@ -61,7 +65,7 @@ class PartnerUccImpl implements PartnerUcc {
     partner = partnerDao.create(partner);
     List<PartnerOptionDto> options = partner.getOptions();
     for (PartnerOptionDto partnerOption: options) {
-      addOption(partner.getId(), partnerOption);
+      createOption(partner.getId(), partnerOption);
     }
     partner.setProgramme(partner.getAddress().getCountry().getProgramme());
     return partner;
@@ -131,18 +135,50 @@ class PartnerUccImpl implements PartnerUcc {
     partner.setAddress(addressDao.update(partner.getAddress()));
     partner.setVersion((partnerDb.getVersion()));
     for (PartnerOptionDto option : optionsToAdd) {
-      addOption(partner.getId(), option);
+      createOption(partner.getId(), option);
     }
     partner = partnerDao.update(partner);
     return partner;
   }
 
   @Override
-  public void addOption(int id, PartnerOptionDto partnerOption) {
+  public void addOption(int id, PartnerOptionDto partnerOption, int userId, String userRole) {
+    PartnerDto partner = partnerDao.findById(id);
+    if (partner == null) {
+      throw new ResourceNotFoundException();
+    }
+    if (!userRole.equals(UserDto.ROLE_PROFESSOR)
+        && (partner.isOfficial() || !usesPartner(userId, id))) {
+      throw new InsufficientPermissionException();
+    }
+    createOption(id, partnerOption);
+  }
+
+  /** Stores an option of a partner, after checking that the option exists. */
+  private void createOption(int partnerId, PartnerOptionDto partnerOption) {
     if (optionDao.findByCode(partnerOption.getCode()) == null) {
       throw new BusinessException(ErrorCode.UNKNOWN_OPTION, partnerOption.getCode());
     }
-    partnerOptionDao.create(partnerOption, id);
+    partnerOptionDao.create(partnerOption, partnerId);
+  }
+
+  /**
+   * Tells whether the partner is the one of a mobility choice of the student, still open or
+   * already a mobility (the partners table has no creator: a student reaches a non-official
+   * partner through his own choices only).
+   */
+  private boolean usesPartner(int userId, int partnerId) {
+    for (MobilityChoiceDto choice : mobilityChoiceDao.findByUser(userId)) {
+      if (choice.getPartner() != null && choice.getPartner().getId() == partnerId) {
+        return true;
+      }
+    }
+    for (MobilityDto mobility : mobilityDao.findByUser(userId)) {
+      if (mobility.getPartner() != null && mobility.getPartner().getId() == partnerId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

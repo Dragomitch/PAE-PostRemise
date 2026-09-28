@@ -75,14 +75,14 @@ public class TestPartnerUcc {
   public void testAddOptionTC1() {
     assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
-      partnerUcc.addOption(0, option); // L'id doit être > 0
+      partnerUcc.addOption(0, option, 1, User.ROLE_PROFESSOR); // L'id doit être > 0
     });
   }
 
   @Test
   public void testAddOptionTC2() {
     assertThrows(ConstraintViolationException.class, () -> {
-      partnerUcc.addOption(1, null); // Le PartnerOption doit être différent de null
+      partnerUcc.addOption(1, null, 1, User.ROLE_PROFESSOR); // Le PartnerOption doit être différent de null
     });
   }
 
@@ -91,7 +91,7 @@ public class TestPartnerUcc {
     assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
       option.setCode("");
-      partnerUcc.addOption(1, option); // le code doit être une String valide
+      partnerUcc.addOption(1, option, 1, User.ROLE_PROFESSOR); // le code doit être une String valide
     });
   }
 
@@ -100,7 +100,7 @@ public class TestPartnerUcc {
     assertThrows(ConstraintViolationException.class, () -> {
       PartnerOptionDto option = mockDtoFactory.getPartnerOption();
       option.setDepartement("");
-      partnerUcc.addOption(1, option); // le departement doit être une String valide
+      partnerUcc.addOption(1, option, 1, User.ROLE_PROFESSOR); // le departement doit être une String valide
     });
   }
 
@@ -110,7 +110,7 @@ public class TestPartnerUcc {
       PartnerDto partner = partnerDao.create(partnerDto);
       PartnerOptionDto option = partner.getOptions().get(0);
       option.setCode("ZZZ");
-      partnerUcc.addOption(1, option); // Il doit exister une option avec le bon OptionCode
+      partnerUcc.addOption(1, option, 1, User.ROLE_PROFESSOR); // Il doit exister une option avec le bon OptionCode
     }));
   }
 

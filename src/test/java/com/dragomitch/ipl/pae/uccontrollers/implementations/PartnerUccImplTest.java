@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
@@ -23,6 +24,7 @@ import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.business.implementations.EntityFactories;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
+import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -64,6 +66,8 @@ class PartnerUccImplTest {
   @Mock
   private MobilityChoiceDao mobilityChoiceDao;
   @Mock
+  private MobilityDao mobilityDao;
+  @Mock
   private ProgrammeDao programmeDao;
   @Mock
   private UserDao userDao;
@@ -75,7 +79,7 @@ class PartnerUccImplTest {
   @BeforeEach
   void setUp() {
     partnerUcc = new PartnerUccImpl(addressDao, optionDao, partnerDao, partnerOptionDao,
-        mobilityChoiceDao, programmeDao, userDao);
+        mobilityChoiceDao, mobilityDao, programmeDao, userDao);
   }
 
   private PartnerOptionDto option(String code) {
@@ -441,20 +445,100 @@ class PartnerUccImplTest {
     }
 
     @Test
-    void anExistingOptionIsAddedToThePartner() {
+    void aProfessorAddsAnOptionToAnyPartner() {
+      givenStoredPartner(true, false);
       givenOptionsExist("BCH");
       PartnerOptionDto option = option("BCH");
 
-      partnerUcc.addOption(PARTNER_ID, option);
+      partnerUcc.addOption(PARTNER_ID, option, USER_ID, UserDto.ROLE_PROFESSOR);
+
+      verify(partnerOptionDao).create(option, PARTNER_ID);
+      verifyNoInteractions(mobilityChoiceDao, mobilityDao);
+    }
+
+    @Test
+    void aStudentAddsAnOptionToTheUnofficialPartnerOfHisMobilityChoice() {
+      givenStoredPartner(false, false);
+      givenOptionsExist("BCH");
+      when(mobilityChoiceDao.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(PARTNER_ID)));
+      PartnerOptionDto option = option("BCH");
+
+      partnerUcc.addOption(PARTNER_ID, option, USER_ID, UserDto.ROLE_STUDENT);
 
       verify(partnerOptionDao).create(option, PARTNER_ID);
     }
 
     @Test
-    void anUnknownOptionIsNotAdded() {
-      assertThatBusinessException(() -> partnerUcc.addOption(PARTNER_ID, option("XYZ")))
-          .hasErrorCode(ErrorCode.UNKNOWN_OPTION).hasArguments("XYZ");
+    void aStudentAddsAnOptionToTheUnofficialPartnerOfHisMobility() {
+      // a choice confirmed with a new partner is a mobility at once
+      givenStoredPartner(false, false);
+      givenOptionsExist("BCH");
+      when(mobilityChoiceDao.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(0)));
+      when(mobilityDao.findByUser(USER_ID)).thenReturn(List.of(mobilityWithPartner(PARTNER_ID)));
+      PartnerOptionDto option = option("BCH");
+
+      partnerUcc.addOption(PARTNER_ID, option, USER_ID, UserDto.ROLE_STUDENT);
+
+      verify(partnerOptionDao).create(option, PARTNER_ID);
+    }
+
+    @Test
+    void aStudentCannotAddAnOptionToAnOfficialPartner() {
+      givenStoredPartner(true, false);
+
+      assertThatBusinessException(() -> partnerUcc.addOption(PARTNER_ID, option("BCH"), USER_ID,
+          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      verifyNoInteractions(partnerOptionDao, optionDao);
+    }
+
+    @Test
+    void aStudentCannotAddAnOptionToAPartnerHeDoesNotUse() {
+      givenStoredPartner(false, false);
+      when(mobilityChoiceDao.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(0)));
+      when(mobilityDao.findByUser(USER_ID)).thenReturn(List.of(mobilityWithPartner(0),
+          mobilityWithPartner(PARTNER_ID + 1)));
+
+      assertThatBusinessException(() -> partnerUcc.addOption(PARTNER_ID, option("BCH"), USER_ID,
+          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      verifyNoInteractions(partnerOptionDao, optionDao);
+    }
+
+    @Test
+    void anOptionOfAnUnknownPartnerIsNotFound() {
+      assertThatBusinessException(() -> partnerUcc.addOption(PARTNER_ID, option("BCH"), USER_ID,
+          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verifyNoInteractions(partnerOptionDao);
+    }
+
+    @Test
+    void anUnknownOptionIsNotAdded() {
+      givenStoredPartner(true, false);
+
+      assertThatBusinessException(() -> partnerUcc.addOption(PARTNER_ID, option("XYZ"), USER_ID,
+          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.UNKNOWN_OPTION).hasArguments("XYZ");
+      verifyNoInteractions(partnerOptionDao);
+    }
+
+    /** A choice of the student with that partner ({@code 0}: no partner). */
+    private MobilityChoiceDto choiceWithPartner(int partnerId) {
+      MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+      if (partnerId > 0) {
+        PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+        partner.setId(partnerId);
+        choice.setPartner(partner);
+      }
+      return choice;
+    }
+
+    /** A mobility of the student with that partner ({@code 0}: no partner). */
+    private MobilityDto mobilityWithPartner(int partnerId) {
+      MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+      if (partnerId > 0) {
+        PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+        partner.setId(partnerId);
+        mobility.setPartner(partner);
+      }
+      return mobility;
     }
   }
 }

@@ -60,12 +60,22 @@ public interface PartnerUcc {
   PartnerDto restore(@Positive int id, @NotBlank String role);
 
   /**
-   * Add an option to a partner.
-   * 
-   * @param id : the id of the partner for which we want to add an option.
-   * @param partnerOption : the partnerOption of the we want to add.
+   * Adds an option to a partner. A professor may add an option to any partner. A student may only
+   * complete a non-official partner he uses, i.e. the partner of one of his own mobility choices
+   * or mobilities (a student creates such a partner when he confirms a choice with a new
+   * partner); official partners are managed by the professors.
+   *
+   * @param id the id of the partner
+   * @param partnerOption the option to add
+   * @param userId the id of the requester
+   * @param userRole the role of the requester
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if there is no
+   *         such partner (404)
+   * @throws com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException if a
+   *         student may not change that partner (403 {@code ACCESS_DENIED})
    */
-  void addOption(@Positive int id, @NotNull @Valid PartnerOptionDto partnerOption);
+  void addOption(@Positive int id, @NotNull @Valid PartnerOptionDto partnerOption,
+      @Positive int userId, @NotBlank String userRole);
 
   /**
    * Find all options for a partner.

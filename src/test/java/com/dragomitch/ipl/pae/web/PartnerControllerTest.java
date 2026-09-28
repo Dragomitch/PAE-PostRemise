@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 
@@ -80,6 +82,18 @@ class PartnerControllerTest {
   }
 
   @Test
+  void anOptionAddedByAStudentToAPartnerHeMayNotChangeIsForbidden() throws Exception {
+    doThrow(new InsufficientPermissionException()).when(partnerUcc)
+        .addOption(eq(3), any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+
+    mockMvc.perform(post(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.student())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"code\":\"BIN\",\"departement\":\"IT\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+  }
+
+  @Test
   void anUnknownFilterIsAValidationProblem() throws Exception {
     mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=whatever&value=x")
             .with(TestUsers.student()))
@@ -117,7 +131,8 @@ class PartnerControllerTest {
             .content("{\"code\":\"BIN\",\"departement\":\"IT\"}"))
         .andExpect(status().isOk());
     ArgumentCaptor<PartnerOptionDto> captor = ArgumentCaptor.forClass(PartnerOptionDto.class);
-    verify(partnerUcc).addOption(eq(3), captor.capture());
+    verify(partnerUcc).addOption(eq(3), captor.capture(), eq(TestUsers.STUDENT_ID),
+        eq(UserDto.ROLE_STUDENT));
     assertEquals("IT", captor.getValue().getDepartement());
 
     when(partnerUcc.findAllPartnerOption(3)).thenReturn(List.of(captor.getValue()));
