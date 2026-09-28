@@ -105,6 +105,16 @@ public class UserController {
 
 Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`), sharing a thread-bound connection from `DalServices` on top of the Spring Boot `DataSource`. Unit tests replace them with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig`.
 
+DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
+
+- Every statement is closed (try-with-resources) and every SQL failure is a `FatalException` carrying the `SQLException` as cause.
+- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version. `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
+- Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
+- An unknown `findAll` filter is a `BusinessException` (`INVALID_MOBILITY_CHOICE_FILTER_323`, `INVALID_PARTNER_FILTER_709`).
+- A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).
+- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; the API route `PUT /users/{id}/promote` uses the id variant, `PUT /users/by-username/{username}/promote` the username one.
+- Every `ErrorFormat` code must exist in `src/main/resources/errors.json` (`ErrorCatalogueTest`).
+
 ## Testing Strategy
 
 ### Unit Testing
@@ -112,11 +122,13 @@ Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repos
 - Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
 - Test coverage requirements: aim for 80%
 - Test file organization: mirror package structure under `src/test/java`
+- Use-case tests extend `AbstractUccTest`: the mock DAOs (`ResettableMock`) are reset before every test, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
+- Production code never writes to the console (`SourceHygieneTest`); log through `LogManager.getLogger` (SLF4J).
 
 ### Integration Testing
 
-- Test scenarios: repository and controller integration
-- Testing tools: Spring Boot Test with an in-memory database
+- Test scenarios: every DAO method against the real schema (`*IT`, run by Failsafe in `mvn verify`)
+- Testing tools: an embedded PostgreSQL (io.zonky, no Docker) loaded with `SQLRessources/init.sql`; `AbstractDaoIT` runs each test in a transaction that is always rolled back, with the fixtures of `src/test/resources/db/fixtures`
 
 ### End-to-End Testing
 
