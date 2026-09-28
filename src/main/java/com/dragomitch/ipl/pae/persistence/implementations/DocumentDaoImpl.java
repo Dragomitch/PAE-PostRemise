@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
+import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -56,6 +57,9 @@ class DocumentDaoImpl implements DocumentDao {
     document.setId(rs.getInt(1));
     document.setName(rs.getString(2));
     document.setCategory(rs.getString(3).charAt(0));
+    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    programme.setId(rs.getInt(4));
+    document.setProgramme(programme);
     return document;
   }
 

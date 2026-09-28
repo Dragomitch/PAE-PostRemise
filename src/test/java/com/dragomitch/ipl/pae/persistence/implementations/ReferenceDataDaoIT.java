@@ -169,7 +169,7 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
     }
 
     @Test
-    void findAllByProgrammeMapsIdNameAndCategoryButNotTheProgrammeNorTheFilledInFlag() {
+    void findAllByProgrammeMapsIdNameCategoryAndProgramme() {
       List<DocumentDto> documents = inTransaction(() -> documentDao.findAllByProgramme(1));
 
       assertThat(documents).extracting(DocumentDto::getId, DocumentDto::getName,
@@ -178,7 +178,8 @@ class ReferenceDataDaoIT extends AbstractDaoIT {
               tuple(5, "Preuve du passage des tests linguistiques", 'D'),
               tuple(14, "Attestation séjour", 'R'));
       assertThat(documents).allSatisfy(document -> {
-        assertThat(document.getProgramme()).isNull();
+        assertThat(document.getProgramme().getId()).isEqualTo(1);
+        // "filled in" belongs to the document of a mobility (MobilityDocumentDao)
         assertThat(document.isFilledIn()).isFalse();
       });
     }
