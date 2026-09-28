@@ -46,7 +46,7 @@ class DocumentDaoImpl implements DocumentDao {
         }
       }
     } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG);
+      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
     return documents;
   }

@@ -32,6 +32,7 @@ import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,7 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Every DAO method reports a database failure as a {@link FatalException} (the use cases and the
- * presentation layer rely on it to answer 500 and roll back), never as a raw {@code SQLException}.
+ * presentation layer rely on it to answer 500 and roll back), never as a raw {@code SQLException},
+ * which is kept as the cause.
  *
  * <p>The failure is provoked by aborting the transaction first: PostgreSQL then rejects every
  * following statement ("current transaction is aborted"). When the persistence layer moves to
@@ -164,7 +166,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
         partnerOptionDao, paymentDao, programmeDao, userDao, this);
     runInTransaction(() -> {
       abortTransaction();
-      assertThatThrownBy(() -> call.accept(daos)).isInstanceOf(FatalException.class);
+      // the SQL cause is kept for the logs
+      assertThatThrownBy(() -> call.accept(daos)).isInstanceOf(FatalException.class)
+          .hasCauseInstanceOf(SQLException.class);
     });
   }
 

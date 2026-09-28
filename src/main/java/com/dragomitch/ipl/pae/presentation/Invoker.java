@@ -186,15 +186,13 @@ class Invoker {
           Field field = invocationResult.getClass().getDeclaredField(annot.fieldNames()[i]);
           field.setAccessible(true);
           attribute = field.get(invocationResult);
-        } catch (IllegalArgumentException ex) {
-          throw new FatalException();
         } catch (IllegalAccessException ex) {
-          throw new FatalException("Inaccessible field: " + annot.fieldNames()[i]);
+          throw new FatalException("Inaccessible field: " + annot.fieldNames()[i], ex);
         } catch (NoSuchFieldException ex) {
           throw new FatalException("No such field found: " + annot.fieldNames()[i] + " in "
-              + invocationResult.getClass().getName());
-        } catch (SecurityException ex) {
-          throw new FatalException();
+              + invocationResult.getClass().getName(), ex);
+        } catch (IllegalArgumentException | SecurityException ex) {
+          throw new FatalException("Cannot read field: " + annot.fieldNames()[i], ex);
         }
         data.put(attributeName, attribute);
       }

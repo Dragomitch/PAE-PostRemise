@@ -50,7 +50,7 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
       stmt.setString(3, partnerOption.getDepartement());
       stmt.execute();
     } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG);
+      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
     return partnerOption;
   }
