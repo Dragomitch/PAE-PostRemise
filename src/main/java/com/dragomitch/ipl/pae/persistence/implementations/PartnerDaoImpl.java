@@ -83,9 +83,8 @@ class PartnerDaoImpl implements PartnerDao {
   @Override
   public PartnerDto findById(int id) {
     PartnerDto partner = null;
-    try {
-      PreparedStatement stmt =
-          dalBackendServices.prepareStatement(SQL_SELECT + " AND p." + COLUMN_ID + " = ?");
+    try (PreparedStatement stmt =
+        dalBackendServices.prepareStatement(SQL_SELECT + " AND p." + COLUMN_ID + " = ?")) {
       stmt.setInt(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
