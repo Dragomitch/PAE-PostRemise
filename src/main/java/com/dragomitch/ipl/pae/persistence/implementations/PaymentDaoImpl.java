@@ -21,35 +21,29 @@ class PaymentDaoImpl implements PaymentDao {
 
   private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
 
-  private static final String SQL_SELECT = "SELECT mc." + COLUMN_MOBILITY_CHOICE_ID + ", mc."
+  private static final String SQL_COLUMNS = "SELECT mc." + COLUMN_MOBILITY_CHOICE_ID + ", mc."
       + COLUMN_USER_ID + ", u." + COLUMN_FIRST_NAME + ", u." + COLUMN_LAST_NAME + ", mc."
       + COLUMN_MOBILITY_TYPE + ", mc." + COLUMN_ACADEMIC_YEAR + ", mc." + COLUMN_TERM + ", mc."
       + COLUMN_PROGRAMME + ", p." + COLUMN_NAME + ", mc." + COLUMN_COUNTRY + ", c." + COLUMN_NAME
-      + ", mc." + COLUMN_PARTNER + ", pa." + COLUMN_FULL_NAME + ", m."
-      + COLUMN_FIRST_PAYMENT_REQUEST_DATE + " AS payment_date, 'D' AS \"payment_type\" FROM "
-      + SCHEMA_NAME + "." + TABLE_MOBILITY_CHOICES_NAME + " mc, " + SCHEMA_NAME + "."
-      + TABLE_USERS_NAME + " u, " + SCHEMA_NAME + "." + TABLE_MOBILITIES_NAME + " m, " + SCHEMA_NAME
-      + "." + TABLE_PROGRAMMES_NAME + " p, " + SCHEMA_NAME + "." + TABLE_COUNTRIES_NAME + " c, "
-      + SCHEMA_NAME + "." + TABLE_PARTNERS_NAME + " pa WHERE mc." + COLUMN_USER_ID + " = u."
-      + COLUMN_USER_ID + " AND mc." + COLUMN_MOBILITY_CHOICE_ID + " = m."
-      + COLUMN_MOBILITY_CHOICE_ID + " AND mc." + COLUMN_PROGRAMME + " = p." + COLUMN_PROGRAMME_ID
-      + " AND mc." + COLUMN_COUNTRY + " = c." + COLUMN_COUNTRY_CODE + " AND mc." + COLUMN_PARTNER
-      + " = pa." + COLUMN_PARTNER_ID + " AND m." + COLUMN_FIRST_PAYMENT_REQUEST_DATE
-      + " IS NOT NULL UNION SELECT mc." + COLUMN_MOBILITY_CHOICE_ID + ", mc." + COLUMN_USER_ID
-      + ", u." + COLUMN_FIRST_NAME + ", u." + COLUMN_LAST_NAME + ", mc." + COLUMN_MOBILITY_TYPE
-      + ", mc." + COLUMN_ACADEMIC_YEAR + ", mc." + COLUMN_TERM + ", mc." + COLUMN_PROGRAMME + ", p."
-      + COLUMN_NAME + ", mc." + COLUMN_COUNTRY + ", c." + COLUMN_NAME + ", mc." + COLUMN_PARTNER
-      + ", pa." + COLUMN_FULL_NAME + ", m." + COLUMN_SECOND_PAYMENT_REQUEST_DATE
-      + " AS payment_date, 'R' AS \"payment_type\" FROM " + SCHEMA_NAME + "."
-      + TABLE_MOBILITY_CHOICES_NAME + " mc, " + SCHEMA_NAME + "." + TABLE_USERS_NAME + " u, "
-      + SCHEMA_NAME + "." + TABLE_MOBILITIES_NAME + " m, " + SCHEMA_NAME + "."
-      + TABLE_PROGRAMMES_NAME + " p, " + SCHEMA_NAME + "." + TABLE_COUNTRIES_NAME + " c, "
-      + SCHEMA_NAME + "." + TABLE_PARTNERS_NAME + " pa WHERE mc." + COLUMN_USER_ID + " = u."
-      + COLUMN_USER_ID + " AND mc." + COLUMN_MOBILITY_CHOICE_ID + " = m."
-      + COLUMN_MOBILITY_CHOICE_ID + " AND mc." + COLUMN_PROGRAMME + " = p." + COLUMN_PROGRAMME_ID
-      + " AND mc." + COLUMN_COUNTRY + " = c." + COLUMN_COUNTRY_CODE + " AND mc." + COLUMN_PARTNER
-      + " = pa." + COLUMN_PARTNER_ID + " AND m." + COLUMN_SECOND_PAYMENT_REQUEST_DATE
-      + " IS NOT NULL";
+      + ", mc." + COLUMN_PARTNER + ", pa." + COLUMN_FULL_NAME + ", m.";
+
+  /** The choice may have no country and no partner: they are LEFT-joined. */
+  private static final String SQL_FROM = " FROM " + SCHEMA_NAME + "."
+      + TABLE_MOBILITY_CHOICES_NAME + " mc JOIN " + SCHEMA_NAME + "." + TABLE_USERS_NAME + " u ON mc."
+      + COLUMN_USER_ID + " = u." + COLUMN_USER_ID + " JOIN " + SCHEMA_NAME + "."
+      + TABLE_MOBILITIES_NAME + " m ON mc." + COLUMN_MOBILITY_CHOICE_ID + " = m."
+      + COLUMN_MOBILITY_CHOICE_ID + " JOIN " + SCHEMA_NAME + "." + TABLE_PROGRAMMES_NAME
+      + " p ON mc." + COLUMN_PROGRAMME + " = p." + COLUMN_PROGRAMME_ID + " LEFT JOIN "
+      + SCHEMA_NAME + "." + TABLE_COUNTRIES_NAME + " c ON mc." + COLUMN_COUNTRY + " = c."
+      + COLUMN_COUNTRY_CODE + " LEFT JOIN " + SCHEMA_NAME + "." + TABLE_PARTNERS_NAME + " pa ON mc."
+      + COLUMN_PARTNER + " = pa." + COLUMN_PARTNER_ID;
+
+  /** One row per requested payment: 'D' for the first request, 'R' for the second one. */
+  private static final String SQL_SELECT = SQL_COLUMNS + COLUMN_FIRST_PAYMENT_REQUEST_DATE
+      + " AS payment_date, 'D' AS \"payment_type\"" + SQL_FROM + " WHERE m."
+      + COLUMN_FIRST_PAYMENT_REQUEST_DATE + " IS NOT NULL UNION " + SQL_COLUMNS
+      + COLUMN_SECOND_PAYMENT_REQUEST_DATE + " AS payment_date, 'R' AS \"payment_type\""
+      + SQL_FROM + " WHERE m." + COLUMN_SECOND_PAYMENT_REQUEST_DATE + " IS NOT NULL";
 
   private final EntityFactory entityFactory;
   private final DalBackendServices dalBackendServices;
@@ -95,14 +89,20 @@ class PaymentDaoImpl implements PaymentDao {
     programme.setId(rs.getInt(8));
     programme.setProgrammeName(rs.getString(9));
     payment.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(10));
-    country.setName(rs.getString(11));
-    payment.setCountry(country);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-    partner.setId(rs.getInt(12));
-    partner.setFullName(rs.getString(13));
-    payment.setPartner(partner);
+    String countryCode = rs.getString(10);
+    if (countryCode != null) {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(11));
+      payment.setCountry(country);
+    }
+    int partnerId = rs.getInt(12);
+    if (!rs.wasNull()) {
+      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      partner.setId(partnerId);
+      partner.setFullName(rs.getString(13));
+      payment.setPartner(partner);
+    }
     payment.setPaymentDate(rs.getTimestamp(14).toLocalDateTime());
     payment.setPaymentType(rs.getString(15));
     return payment;

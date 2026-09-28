@@ -56,10 +56,10 @@ class MobilityDaoImpl implements MobilityDao {
       + " FROM " + SCHEMA_NAME + "." + MobilityChoiceDao.TABLE_NAME + " mc JOIN " + SCHEMA_NAME
       + "." + TABLE_NAME + " m ON mc." + COLUMN_ID + " = m." + COLUMN_ID + " JOIN " + SCHEMA_NAME
       + "." + UserDao.TABLE_NAME + " u ON mc." + MobilityChoiceDao.COLUMN_USER_ID + " = u."
-      + UserDao.COLUMN_ID + " JOIN " + SCHEMA_NAME + "." + PartnerDao.TABLE_NAME + " pa ON mc."
-      + MobilityChoiceDao.COLUMN_PARTNER + " = pa." + PartnerDao.COLUMN_ID + " JOIN " + SCHEMA_NAME
-      + "." + CountryDao.TABLE_NAME + " c ON " + MobilityChoiceDao.COLUMN_COUNTRY + " = c."
-      + CountryDao.COLUMN_CODE + " JOIN " + SCHEMA_NAME + "." + ProgrammeDao.TABLE_NAME
+      + UserDao.COLUMN_ID + " LEFT JOIN " + SCHEMA_NAME + "." + PartnerDao.TABLE_NAME
+      + " pa ON mc." + MobilityChoiceDao.COLUMN_PARTNER + " = pa." + PartnerDao.COLUMN_ID
+      + " LEFT JOIN " + SCHEMA_NAME + "." + CountryDao.TABLE_NAME + " c ON mc."
+      + MobilityChoiceDao.COLUMN_COUNTRY + " = c." + CountryDao.COLUMN_CODE + " JOIN " + SCHEMA_NAME + "." + ProgrammeDao.TABLE_NAME
       + " p ON mc." + MobilityChoiceDao.COLUMN_PROGRAMME + " = p." + ProgrammeDao.COLUMN_ID
       + " LEFT OUTER JOIN " + SCHEMA_NAME + "." + DenialReasonDao.TABLE_NAME + " dr ON m."
       + COLUMN_PROF_DENIAL_REASON + " = dr." + DenialReasonDao.COLUMN_ID;
@@ -251,14 +251,21 @@ class MobilityDaoImpl implements MobilityDao {
     option.setCode(rs.getString(20));
     nominatedStudent.setOption(option);
     mobility.setNominatedStudent(nominatedStudent);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-    partner.setId(rs.getInt(21));
-    partner.setFullName(rs.getString(22));
-    mobility.setPartner(partner);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(23));
-    country.setName(rs.getString(24));
-    mobility.setCountry(country);
+    // the choice may have no partner and no country (LEFT JOIN): they stay null then
+    int partnerId = rs.getInt(21);
+    if (!rs.wasNull()) {
+      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      partner.setId(partnerId);
+      partner.setFullName(rs.getString(22));
+      mobility.setPartner(partner);
+    }
+    String countryCode = rs.getString(23);
+    if (countryCode != null) {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(24));
+      mobility.setCountry(country);
+    }
     ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
     programme.setId(rs.getInt(25));
     programme.setProgrammeName(rs.getString(26));

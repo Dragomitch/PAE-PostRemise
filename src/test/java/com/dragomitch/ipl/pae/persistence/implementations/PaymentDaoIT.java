@@ -60,6 +60,24 @@ class PaymentDaoIT extends AbstractDaoIT {
   }
 
   @Test
+  void findAllListsThePaymentsOfAMobilityWithoutPartnerNorCountry() {
+    List<PaymentDto> payments = inTransaction(() -> {
+      execute("INSERT INTO student_exchange_tools.mobilities (mobility_choice_id, submission_date, "
+          + "state, first_payment_request_date, version) "
+          + "VALUES (5003, '2025-02-02 10:00:00', 'En cours', '2025-02-03 10:00:00', 1)");
+      return paymentDao.findAll();
+    });
+
+    assertThat(payments).filteredOn(p -> p.getMobilityChoiceId() == 5003).singleElement()
+        .satisfies(payment -> {
+          assertThat(payment.getPaymentType()).isEqualTo("D");
+          assertThat(payment.getPartner()).isNull();
+          assertThat(payment.getCountry()).isNull();
+          assertThat(payment.getUser().getFirstName()).isEqualTo("Alice");
+        });
+  }
+
+  @Test
   void findAllReturnsNothingWhenNoPaymentWasRequested() {
     List<PaymentDto> payments = inTransaction(() -> {
       execute("UPDATE student_exchange_tools.mobilities SET first_payment_request_date = NULL, "
