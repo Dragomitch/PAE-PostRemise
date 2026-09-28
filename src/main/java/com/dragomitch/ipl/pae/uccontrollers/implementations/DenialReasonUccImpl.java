@@ -68,9 +68,12 @@ class DenialReasonUccImpl implements DenialReasonUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.PUT, template = "/denialreasons/{id}")
-  public DenialReasonDto edit(@PathParameter("id") int id, DenialReasonDto denialReason) {
+  public DenialReasonDto edit(@PathParameter("id") int id,
+      @HttpParameter("reason") DenialReasonDto denialReason) {
     checkPositive(id);
     checkObject(denialReason);
+    // the path identifies the reason to update, whatever id the body carries
+    denialReason.setId(id);
     try {
       unitOfWork.startTransaction();
       if (denialReasonDao.findById(id) == null) {

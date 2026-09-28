@@ -140,6 +140,23 @@ public class TestDenialReasonUcc {
   }
 
   @Test
+  public void editUpdatesTheReasonIdentifiedByThePath() {
+    denialReasonUcc.create(denialReason);
+    DenialReasonDto second = mockDtoFactory.getDenialReason();
+    second.setReason("Second");
+    denialReasonUcc.create(second);
+    DenialReasonDto body = mockDtoFactory.getDenialReason();
+    body.setId(1);
+    body.setReason("Edited");
+
+    DenialReasonDto edited = denialReasonUcc.edit(2, body);
+
+    assertEquals(2, edited.getId());
+    assertEquals("no reason whatsoever", denialReasonDao.findById(1).getReason());
+    assertEquals("Edited", denialReasonDao.findById(2).getReason());
+  }
+
+  @Test
   public void testEditTC5() {
     denialReasonUcc.create(denialReason);
     DenialReasonDto reason = denialReasonUcc.edit(1, denialReason);
