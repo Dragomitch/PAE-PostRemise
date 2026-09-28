@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
+
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +96,17 @@ public class TestDenialReasonUcc {
           + "Phasellus lorem massa, placerat ut quam id volutpat.");
       denialReasonUcc.create(denialReason);
     });
+  }
+
+  @Test
+  public void aReasonLongerThanTheColumnIsReportedOnceAsTooLong() {
+    denialReason.setReason("x".repeat(DenialReasonDao.MAX_LENGTH_REASON + 1));
+
+    BusinessException ex =
+        assertThrows(BusinessException.class, () -> denialReasonUcc.create(denialReason));
+    assertEquals(List.of(ErrorFormat.MAX_LENGTH_REASON_OVERFLOW_402),
+        ex.getError().getDetails().stream().map(ErrorFormat::getErrorCode).toList());
+    assertEquals(0, denialReasonUcc.showAll().size());
   }
 
   @Test

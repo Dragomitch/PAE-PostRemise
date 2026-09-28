@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
 import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
@@ -105,11 +104,6 @@ class DenialReasonUccImpl implements DenialReasonUcc {
         violations.add(oneError.getErrorCode());
       }
     }
-    if (isAValidString(denialReason.getReason())
-        && denialReason.getReason().length() > DenialReasonDao.MAX_LENGTH_REASON) {
-      violations.add(ErrorFormat.MAX_LENGTH_REASON_OVERFLOW_402);
-    }
-
     if (violations.size() > 0) {
       throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
     }

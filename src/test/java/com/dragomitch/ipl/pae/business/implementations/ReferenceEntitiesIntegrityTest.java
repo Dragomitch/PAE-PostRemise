@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
 import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.INVALID_REASON_401;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.MAX_LENGTH_REASON_OVERFLOW_402;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,6 +10,8 @@ import com.dragomitch.ipl.pae.business.Country;
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.Option;
 import com.dragomitch.ipl.pae.business.Programme;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -104,13 +107,14 @@ class ReferenceEntitiesIntegrityTest {
     assertThat(Violations.of(reason::checkDataIntegrity)).containsExactly(INVALID_REASON_401);
   }
 
-  @Test
-  void aDenialReasonLongerThanTheColumnIsNotRejectedByTheBusinessCheck() {
-    // documented gap: denial_reasons.reason is VARCHAR(300) but only emptiness is checked, so a
-    // longer text fails in the database (see DenialReasonDaoIT)
+  @ParameterizedTest(name = "{0} characters: {1}")
+  @CsvSource({"299, true", "300, true", "301, false", "1000, false"})
+  void aDenialReasonFitsInTheColumn(int length, boolean valid) {
+    // denial_reasons.reason is VARCHAR(300): a longer text is rejected before reaching the database
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
-    reason.setReason("x".repeat(301));
+    reason.setReason("x".repeat(length));
 
-    assertThat(Violations.of(reason::checkDataIntegrity)).isEmpty();
+    assertThat(Violations.of(reason::checkDataIntegrity))
+        .isEqualTo(valid ? List.of() : List.of(MAX_LENGTH_REASON_OVERFLOW_402));
   }
 }
