@@ -77,9 +77,15 @@ public interface MobilityChoiceDao {
   List<MobilityChoiceDto> findAll(String filter);
 
   /**
-   * Update a mobilityChoice into the DB with the new fields of the MobilityChoice.
-   * 
+   * Update a mobilityChoice into the DB with the new fields of the MobilityChoice, with optimistic
+   * locking; the DTO receives the new version.
+   *
+   * <p>An empty cancellation reason is stored as NULL on purpose: NULL means "not cancelled" for
+   * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an
+   * empty text would turn the choice into a cancelled one without reason.
+   *
    * @param mobilityChoice the mobility choice we are updating.
+   * @throws java.util.ConcurrentModificationException if no choice has that id and version
    */
   void update(MobilityChoiceDto mobilityChoice);
 

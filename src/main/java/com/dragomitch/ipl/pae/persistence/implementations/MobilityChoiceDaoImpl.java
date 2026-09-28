@@ -208,14 +208,11 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       stmt.setInt(11, mobilityChoice.getId());
       stmt.setInt(12, mobilityChoice.getVersion());
       try (ResultSet rs = stmt.executeQuery()) {
-        int res = 0;
-        if (rs.next()) {
-          res = rs.getInt(1);
-        }
-        if (res == 0) {
+        if (!rs.next()) {
           throw new ConcurrentModificationException(
               "The data have been modified before that query");
         }
+        mobilityChoice.setVersion(rs.getInt(1));
       }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);

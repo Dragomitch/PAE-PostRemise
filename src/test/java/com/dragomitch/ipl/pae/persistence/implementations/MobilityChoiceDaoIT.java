@@ -324,13 +324,20 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void updateDoesNotReturnTheNewVersionInTheDto() {
+  void updateSetsTheNewVersionInTheDtoSoThatItCanBeUpdatedAgain() {
     runInTransaction(() -> {
       MobilityChoiceDto choice = mobilityChoiceDao.findById(5001);
       mobilityChoiceDao.update(choice);
 
-      assertThat(choice.getVersion()).as("the DTO keeps the version it was read with").isEqualTo(1);
+      assertThat(choice.getVersion()).isEqualTo(2);
       assertThat(mobilityChoiceDao.findById(5001).getVersion()).isEqualTo(2);
+
+      choice.setTerm(2);
+      mobilityChoiceDao.update(choice);
+
+      assertThat(choice.getVersion()).isEqualTo(3);
+      assertThat(queryForRow(CHOICE_BY_ID, 5001)).containsEntry("term", 2)
+          .containsEntry("version", 3);
     });
   }
 
