@@ -19,11 +19,13 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.logging.LogManager;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -48,6 +50,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 class MobilityChoiceUccImpl implements MobilityChoiceUcc {
+
+  private static final Logger logger = LogManager.getLogger(MobilityChoiceUccImpl.class.getName());
 
   private UserDao userDao;
   private MobilityChoiceDao mobilityChoiceDao;
@@ -438,7 +442,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     } catch (BusinessException ex) {
       List<ErrorFormat> errors = ex.getError().getDetails();
       for (ErrorFormat oneError : errors) {
-        System.out.println("error : " + oneError.getErrorCode() + " " + oneError.getDeveloperMessage());
         violations.add(oneError.getErrorCode());
       }
     }
@@ -462,7 +465,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
     }
     if (violations.size() > 0) {
-      System.out.println("violations : " + violations.get(0));
+      logger.debug("Invalid mobility choice, violations: {}", violations);
       throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
     }
   }

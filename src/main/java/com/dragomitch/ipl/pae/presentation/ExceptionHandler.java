@@ -62,18 +62,17 @@ public class ExceptionHandler extends ResponseHandler {
           logger.error("FatalException", e);
           httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
-      default -> httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+      default -> {
+          logger.error("Unexpected exception", exception);
+          httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        }
     }
-    logger.info("Handling " + exception.getClass().getSimpleName() + ": " + httpStatusCode + " "
-        + HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
+    logger.info("Handling {}: {} {}", exception.getClass().getSimpleName(), httpStatusCode,
+        HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
     if (exception.getMessage() != null) {
-      logger.info("Message: " + exception.getMessage());
+      logger.info("Message: {}", exception.getMessage());
     }
-    if (exception.getCause() != null) {
-      logger.info("Cause: {}", exception.getCause());
-    }
-    // TODO Supprimer cela avant la remise
-    exception.printStackTrace();
+    logger.debug("Stack trace", exception);
     resp.setStatus(httpStatusCode);
     if (error != null) {
       writeResponse(error, "json/application", resp);
