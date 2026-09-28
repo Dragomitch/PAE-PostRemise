@@ -183,6 +183,7 @@ DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow 
 ### Business rules of the use cases
 
 - **Mobility states**: `Créée` -> `En préparation` (a document is filled in) -> `A payer` (every departure document is filled in, also when the first document filled in completes them) -> `En cours` (first payment) -> `Solde à payer` (every document is filled in) -> `Terminée` (second payment); `Annulée` from any state but `Terminée`. `MobilityUcc.confirmPayment` accepts the first payment only in `A payer` and the second only in `Solde à payer`, anything else is a 409 `PAYMENT_NOT_EXPECTED`; when the return documents were already filled in during `A payer`, the first payment moves the mobility straight to `Solde à payer`.
+- **Frozen mobilities**: a cancelled or closed mobility accepts no filled-in document (`confirmDocument`) and no payment: 409 `MOBILITY_CANCELLED` / `MOBILITY_CLOSED`. The software encodings are only refused on a cancelled mobility (a closed one may still be encoded afterwards).
 
 ## Testing Strategy
 

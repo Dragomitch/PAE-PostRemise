@@ -191,7 +191,8 @@ class MobilityUccImpl implements MobilityUcc {
    * as every departure document is filled in (also when the first document filled in completes
    * them), {@value MobilityDto#STATE_IN_PREPARATION} otherwise; {@value MobilityDto#STATE_IN_PROGRESS}
    * becomes {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when every document is filled in. The
-   * other states do not change (a payment is pending).
+   * other states do not change (a payment is pending). The documents of a cancelled or closed
+   * mobility are frozen: {@link ErrorCode#MOBILITY_CANCELLED} / {@link ErrorCode#MOBILITY_CLOSED}.
    */
   @Override
   public MobilityDto confirmDocument(int id, int document, int version) {
@@ -199,6 +200,7 @@ class MobilityUccImpl implements MobilityUcc {
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
+    mobility.checkNotCancelledAndNotClosed();
     mobility.setDocuments(mobilityDocumentDao.findAllByMobility(mobility.getId()));
     if (!mobility.fillInDocument(document)) {
       return mobility;

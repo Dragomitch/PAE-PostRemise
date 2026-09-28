@@ -602,6 +602,18 @@ class MobilityUccImplTest {
       verify(mobilityDao, never()).update(any());
     }
 
+    @ParameterizedTest
+    @MethodSource("com.dragomitch.ipl.pae.uccontrollers.implementations.MobilityUccImplTest$ConfirmPayment#closedStates")
+    void theDocumentsOfACancelledOrClosedMobilityAreFrozen(String state, ErrorCode expected) {
+      MobilityDto mobility = givenMobility(state);
+
+      assertThat(Violations.errorCodeOf(() -> mobilityUcc.confirmDocument(MOBILITY_ID, 1,
+          VERSION))).isEqualTo(expected);
+      assertThat(mobility.getState()).isEqualTo(state);
+      verifyNoInteractions(mobilityDocumentDao);
+      verify(mobilityDao, never()).update(any());
+    }
+
     @Test
     void aDocumentThatIsNotRequiredByTheMobilityIsUnknown() {
       givenMobility(MobilityDto.STATE_IN_PREPARATION);
