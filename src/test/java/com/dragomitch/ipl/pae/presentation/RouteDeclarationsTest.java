@@ -9,6 +9,7 @@ import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
 import com.dragomitch.ipl.pae.presentation.annotations.Route;
 import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
+import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -74,6 +75,24 @@ class RouteDeclarationsTest {
     }
 
     assertThat(unbound).isEmpty();
+  }
+
+  @Test
+  void everySessionParameterIsAnAttributeTheSessionHolds() {
+    // signin stores exactly these two attributes (see SessionUcc)
+    List<String> unknown = new ArrayList<>();
+    for (Method method : routeMethods()) {
+      for (Parameter parameter : method.getParameters()) {
+        SessionParameter session = parameter.getAnnotation(SessionParameter.class);
+        if (session != null && !List.of(SessionUcc.USER_ID, SessionUcc.USER_ROLE)
+            .contains(session.value())) {
+          unknown.add(method.getDeclaringClass().getSimpleName() + "." + method.getName() + ": "
+              + session.value());
+        }
+      }
+    }
+
+    assertThat(unknown).isEmpty();
   }
 
   @Test

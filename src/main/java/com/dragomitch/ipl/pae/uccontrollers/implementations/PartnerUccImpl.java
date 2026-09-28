@@ -233,7 +233,8 @@ class PartnerUccImpl implements PartnerUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
   @Route(method = HttpMethod.PUT, template = "/partners/{id}/restore")
-  public PartnerDto restore(@PathParameter("id") int id, @SessionParameter("role") String role) {
+  public PartnerDto restore(@PathParameter("id") int id,
+      @SessionParameter(SessionUcc.USER_ROLE) String role) {
     checkPositive(id);
     PartnerDto partner = null;
     try {
