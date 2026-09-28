@@ -113,6 +113,7 @@ class EndpointAuthorizationTest {
         Arguments.of("GET", "/users", null, Access.PROFESSOR),
         Arguments.of("PUT", "/users/3/promote", null, Access.PROFESSOR),
         Arguments.of("PUT", "/users/edit", TestBodies.USER, Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("PUT", "/users/by-username/alice/promote", null, Access.PROFESSOR),
         // countries
         Arguments.of("GET", "/countries", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/countries/BE", null, Access.PROFESSOR_OR_STUDENT),

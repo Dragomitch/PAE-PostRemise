@@ -71,7 +71,7 @@ public class MockPartnerDao implements PartnerDao, ResettableMock {
         }
         return list;
       }
-    } else {
+    } else if (filter.equals("archived")) {
       if (userRole.equals(UserDto.ROLE_STUDENT)) {
         for (PartnerDto partnerDto : partners) {
           partnerDto.getOptions().forEach(opt -> {
@@ -92,6 +92,8 @@ public class MockPartnerDao implements PartnerDao, ResettableMock {
         }
         return list;
       }
+    } else {
+      throw new IllegalArgumentException("Unknown partner filter: " + filter);
     }
   }
 

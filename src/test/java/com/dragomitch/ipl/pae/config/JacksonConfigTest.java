@@ -65,6 +65,19 @@ class JacksonConfigTest {
   }
 
   @Test
+  void absentPropertiesAreLeftOut() throws Exception {
+    MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+    choice.setMobilityType("SMS");
+
+    String json = mapper.writeValueAsString(choice);
+
+    // the legacy web UI tests some optional properties with "=== undefined"
+    assertTrue(json.contains("\"mobilityType\":\"SMS\""), json);
+    assertFalse(json.contains("partner"), json);
+    assertFalse(json.contains("null"), json);
+  }
+
+  @Test
   void datesAreIsoStrings() throws Exception {
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
     user.setRegistrationDate(LocalDateTime.of(2024, 2, 1, 10, 15, 30));

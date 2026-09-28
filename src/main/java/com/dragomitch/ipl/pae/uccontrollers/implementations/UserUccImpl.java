@@ -68,11 +68,25 @@ class UserUccImpl implements UserUcc {
       throw new ResourceNotFoundException();
     }
     if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+      // the id is what the route gives: promote by id, with the version just read. Only the role
+      // and the version are written; a stale version throws a ConcurrentModificationException
+      // (the transaction then rolls back). A professor is left untouched.
+      user.setVersion(userDao.promoteToProfessor(user.getId(), user.getVersion()));
       user.setRole(UserDto.ROLE_PROFESSOR);
-      // optimistic locking: the DAO only updates the row if its version is still user.getVersion()
-      // and throws a ConcurrentModificationException otherwise (the transaction then rolls back)
-      userDao.update(user);
     }
+  }
+
+  @Override
+  public UserDto promoteToProfessorByUsername(String username) {
+    UserDto user = userDao.findBy(UserDao.COLUMN_USERNAME, username);
+    if (user == null) {
+      throw new ResourceNotFoundException();
+    }
+    if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+      user.setVersion(userDao.promoteToProfessor(username, user.getVersion()));
+      user.setRole(UserDto.ROLE_PROFESSOR);
+    }
+    return user;
   }
 
   @Override

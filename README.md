@@ -69,7 +69,7 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 
 | Code | Status | Meaning | Former numeric codes |
 |------|--------|---------|----------------------|
-| `VALIDATION_FAILED` | 400 | Constraints broken, listed in `errors` | 110, 130 and every field code (132-140, 201-216, 302-316, 401-402, 601-619, 701-708, 800-810, 323, 508, 709) |
+| `VALIDATION_FAILED` | 400 | Constraints broken, listed in `errors` | 110, 130 and every field code (132-141, 201-216, 302-316, 401-402, 601-619, 701-708, 800-810, 323, 508, 709) |
 | `MALFORMED_REQUEST` | 400 | Unreadable JSON, missing or wrongly typed parameter | - |
 | `UNAUTHENTICATED` | 401 | No, invalid or expired session | 101 |
 | `INVALID_CREDENTIALS` | 401 | Wrong username or password at sign-in | 101 |
@@ -119,7 +119,7 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and their constraints in the `business` package.
 3. Examine the controllers in `web` for the available API endpoints and their roles (`@PreAuthorize`).
-4. Review the SQL scripts under `SQLRessources` to understand the schema.
+4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
 ## Building

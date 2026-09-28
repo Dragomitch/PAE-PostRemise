@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
@@ -30,8 +31,11 @@ import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -42,12 +46,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Every DAO method reports a database failure as a {@link FatalException} (the use cases and the
- * presentation layer rely on it to answer 500 and roll back), never as a raw {@code SQLException}.
+ * presentation layer rely on it to answer 500 and roll back), never as a raw {@code SQLException},
+ * which is kept as the cause.
  *
  * <p>The failure is provoked by aborting the transaction first: PostgreSQL then rejects every
  * following statement ("current transaction is aborted"). When the persistence layer moves to
  * Spring, this contract becomes "a {@code DataAccessException} is thrown" and only the expected
  * type below changes.
+ *
+ * <p>The same calls also check that no DAO method leaks a JDBC statement.
  */
 class DaoErrorHandlingIT extends AbstractDaoIT {
 
@@ -59,6 +66,8 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
       ProgrammeDao programme, UserDao user, DaoErrorHandlingIT test) {
   }
 
+  @Autowired
+  private StatementRecordingDataSource recordingDataSource;
   @Autowired
   private AddressDao addressDao;
   @Autowired
@@ -140,7 +149,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
         call("UserDao.findAll", d -> d.user().findAll()),
         call("UserDao.findBy", d -> d.user().findBy("username", "alice")),
         call("UserDao.update", d -> d.user().update(d.test().user())),
-        call("UserDao.promoteToProfessor", d -> d.user().promoteToProfessor(1)),
+        call("UserDao.promoteToProfessor(id)", d -> d.user().promoteToProfessor(1, 1)),
+        call("UserDao.promoteToProfessor(username)",
+            d -> d.user().promoteToProfessor("alice", 1)),
         call("UserDao.isEmpty", d -> d.user().isEmpty()));
   }
 
@@ -156,8 +167,46 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
         partnerOptionDao, paymentDao, programmeDao, userDao, this);
     runInTransaction(() -> {
       abortTransaction();
-      assertThatThrownBy(() -> call.accept(daos)).isInstanceOf(FatalException.class);
+      // the SQL cause is kept for the logs
+      assertThatThrownBy(() -> call.accept(daos)).isInstanceOf(FatalException.class)
+          .hasCauseInstanceOf(SQLException.class);
     });
+  }
+
+  /**
+   * Every statement a DAO prepares is closed before the method returns, whether it succeeds,
+   * fails in the database or throws a business exception (e.g. a stale version), and no DAO takes
+   * a connection of its own: it works on the one of the caller's transaction. The data source of
+   * {@link DaoItConfig} records the statements created on its connections (whether by a Spring
+   * Data repository or by {@code JdbcClient}) and the connections it hands out.
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("daoCalls")
+  void everyPreparedStatementIsClosed(Consumer<Daos> call) {
+    Daos daos = new Daos(addressDao, countryDao, denialReasonDao, documentDao, mobilityChoiceDao,
+        mobilityDao, mobilityDocumentDao, nominatedStudentDao, optionDao, partnerDao,
+        partnerOptionDao, paymentDao, programmeDao, userDao, this);
+    for (boolean aborted : new boolean[] {false, true}) {
+      runInTransaction(() -> {
+        if (aborted) {
+          abortTransaction();
+        }
+        recordingDataSource.startRecording();
+        try {
+          call.accept(daos);
+        } catch (RuntimeException expected) {
+          // failures are fine here: only the statement lifecycle is checked
+        } finally {
+          recordingDataSource.stopRecording();
+        }
+        List<Statement> statements = recordingDataSource.statements();
+        assertThat(statements).as("statements prepared").isNotEmpty();
+        assertThat(statements).allSatisfy(
+            stmt -> assertThat(stmt.isClosed()).as("closed: %s", stmt).isTrue());
+        assertThat(recordingDataSource.connections())
+            .as("connections taken outside the transaction").isEmpty();
+      });
+    }
   }
 
   private void abortTransaction() {

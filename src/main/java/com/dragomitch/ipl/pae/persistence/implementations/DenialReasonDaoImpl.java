@@ -6,13 +6,15 @@ import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.jdbc.entity.DenialReasonEntity;
 import com.dragomitch.ipl.pae.persistence.jdbc.repository.DenialReasonRepository;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
 /**
  * {@link DenialReasonDao} on top of the Spring Data {@link DenialReasonRepository}. Denial
- * reasons have no version: an update is not checked and an unknown id is silently ignored.
+ * reasons have no version (the last write wins), but an update matching no row is reported as a
+ * {@link ConcurrentModificationException}, like the other DAOs.
  */
 @Repository
 class DenialReasonDaoImpl implements DenialReasonDao {
@@ -45,7 +47,13 @@ class DenialReasonDaoImpl implements DenialReasonDao {
 
   @Override
   public DenialReasonDto update(DenialReasonDto denialReason) {
-    DataAccess.run(() -> reasons.updateReason(denialReason.getId(), denialReason.getReason()));
+    int updated = DataAccess.call(
+        () -> reasons.updateReason(denialReason.getId(), denialReason.getReason()));
+    if (updated == 0) {
+      // denial_reasons has no version column: an update can only miss a deleted/unknown row
+      throw new ConcurrentModificationException(
+          "Denial reason " + denialReason.getId() + " does not exist (any more)");
+    }
     return denialReason;
   }
 

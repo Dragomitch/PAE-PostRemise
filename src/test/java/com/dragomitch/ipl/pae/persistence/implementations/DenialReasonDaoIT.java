@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** Denial reasons: init.sql inserts reason 1; no fixture needed. Denial reasons have no version. */
+/**
+ * Denial reasons: init.sql inserts reason 1; no fixture needed. Denial reasons have no version
+ * column, hence no optimistic locking, but an update of an unknown id fails like in the other DAOs.
+ */
 class DenialReasonDaoIT extends AbstractDaoIT {
 
   private static final String INITIAL_REASON = "L'étudiant part en mobilité pour ce semestre.";
@@ -82,13 +86,15 @@ class DenialReasonDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void updateOfAnUnknownIdIsSilentlyIgnored() {
+  void updateOfAnUnknownIdFailsAndWritesNothing() {
     runInTransaction(() -> {
       DenialReasonDto ghost = reason("ghost");
       ghost.setId(31337);
 
-      assertThat(denialReasonDao.update(ghost)).isSameAs(ghost);
-      assertThat(denialReasonDao.findAll()).hasSize(1);
+      assertThatThrownBy(() -> denialReasonDao.update(ghost))
+          .isInstanceOf(ConcurrentModificationException.class).hasMessageContaining("31337");
+      assertThat(denialReasonDao.findAll()).extracting(DenialReasonDto::getReason)
+          .doesNotContain("ghost").hasSize(1);
     });
   }
 }

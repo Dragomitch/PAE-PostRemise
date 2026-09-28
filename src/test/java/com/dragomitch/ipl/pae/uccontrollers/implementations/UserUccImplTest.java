@@ -2,8 +2,11 @@ package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
 import static com.dragomitch.ipl.pae.business.exceptions.BusinessExceptionAssert.assertThatBusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -23,6 +26,7 @@ import com.dragomitch.ipl.pae.uccontrollers.MockDtoFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -148,14 +152,18 @@ class UserUccImplTest {
   class PromoteToProfessor {
 
     @Test
-    void aStudentBecomesAProfessor() {
+    void aStudentBecomesAProfessorWithTheVersionOfTheDao() {
       UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      student.setVersion(4);
       when(userDao.findById(USER_ID)).thenReturn(student);
+      when(userDao.promoteToProfessor(USER_ID, 4)).thenReturn(5);
 
       userUcc.promoteToProfessor(USER_ID);
 
       assertThat(student.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
-      verify(userDao).update(student);
+      assertThat(student.getVersion()).isEqualTo(5);
+      verify(userDao).promoteToProfessor(USER_ID, 4);
+      verify(userDao, never()).update(any());
     }
 
     @Test
@@ -164,6 +172,7 @@ class UserUccImplTest {
 
       userUcc.promoteToProfessor(PROFESSOR_ID);
 
+      verify(userDao, never()).promoteToProfessor(anyInt(), anyInt());
       verify(userDao, never()).update(any());
     }
 
@@ -171,7 +180,66 @@ class UserUccImplTest {
     void anUnknownUserIsNotFound() {
       assertThatBusinessException(() -> userUcc.promoteToProfessor(USER_ID))
           .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
-      verify(userDao, never()).update(any());
+      verify(userDao, never()).promoteToProfessor(anyInt(), anyInt());
+    }
+
+    @Test
+    void aStaleVersionIsAConcurrentModification() {
+      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      when(userDao.findById(USER_ID)).thenReturn(student);
+      when(userDao.promoteToProfessor(USER_ID, student.getVersion()))
+          .thenThrow(new ConcurrentModificationException());
+
+      assertThatThrownBy(() -> userUcc.promoteToProfessor(USER_ID))
+          .isInstanceOf(ConcurrentModificationException.class);
+      assertThat(student.getRole()).isEqualTo(UserDto.ROLE_STUDENT);
+    }
+  }
+
+  @Nested
+  class PromoteToProfessorByUsername {
+
+    private static final String USERNAME = "alice";
+
+    @Test
+    void aStudentBecomesAProfessorAndIsReturned() {
+      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      student.setVersion(2);
+      when(userDao.findBy(UserDao.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      when(userDao.promoteToProfessor(USERNAME, 2)).thenReturn(3);
+
+      UserDto promoted = userUcc.promoteToProfessorByUsername(USERNAME);
+
+      assertThat(promoted).isSameAs(student);
+      assertThat(promoted.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      assertThat(promoted.getVersion()).isEqualTo(3);
+    }
+
+    @Test
+    void aProfessorIsReturnedUnchanged() {
+      UserDto professor = user(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      when(userDao.findBy(UserDao.COLUMN_USERNAME, USERNAME)).thenReturn(professor);
+
+      assertThat(userUcc.promoteToProfessorByUsername(USERNAME)).isSameAs(professor);
+      verify(userDao, never()).promoteToProfessor(anyString(), anyInt());
+    }
+
+    @Test
+    void anUnknownUsernameIsNotFound() {
+      assertThatBusinessException(() -> userUcc.promoteToProfessorByUsername(USERNAME))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      verify(userDao, never()).promoteToProfessor(anyString(), anyInt());
+    }
+
+    @Test
+    void aStaleVersionIsAConcurrentModification() {
+      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      when(userDao.findBy(UserDao.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      when(userDao.promoteToProfessor(USERNAME, student.getVersion()))
+          .thenThrow(new ConcurrentModificationException());
+
+      assertThatThrownBy(() -> userUcc.promoteToProfessorByUsername(USERNAME))
+          .isInstanceOf(ConcurrentModificationException.class);
     }
   }
 

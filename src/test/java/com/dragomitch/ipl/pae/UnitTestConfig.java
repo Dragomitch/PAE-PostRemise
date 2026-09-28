@@ -29,8 +29,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * Spring context for the unit tests: the real business objects and use-case controllers, wired
  * to the in-memory mock DAOs instead of the JDBC implementations. The context is cached by the
- * Spring TestContext framework and shared by every test class using it, so the tests empty the
- * mocks they fill.
+ * Spring TestContext framework and shared by every test class using it, so the stateful mocks
+ * ({@code ResettableMock}) are emptied before every test method by {@code MockDaoResetListener}.
  *
  * <p>As in the application, the use cases are validated ({@code @Validated}: method validation by
  * Spring Boot's validator, whose messages come from the {@code i18n/messages} bundle of

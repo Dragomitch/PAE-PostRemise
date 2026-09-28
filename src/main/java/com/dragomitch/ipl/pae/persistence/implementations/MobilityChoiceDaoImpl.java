@@ -25,8 +25,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * {@link MobilityChoiceDao} with Spring's {@link JdbcClient}. Mobility choices are read joined
- * with the student and their option, the programme and, when set, the country, the denial reason
- * and the partner. The filters of {@link #findAll(String)} and the "active" queries compare the
+ * with the student and their option, the programme and, when set, the country (code and name),
+ * the denial reason (id and text) and the partner. The filters of {@link #findAll(String)} and the "active" queries compare the
  * academic year with the current year. Updates check the version.
  */
 @Repository
@@ -36,7 +36,8 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       SELECT mc.mobility_choice_id, mc.user_id, u.last_name, u.first_name, op.option_code,
              op.name, mc.preference_order, mc.mobility_type, mc.academic_year, mc.term,
              mc.programme, p.name, mc.country, mc.submission_date, mc.prof_denial_reason,
-             mc.student_cancellation_reason, mc.partner, pa.full_name, mc.version
+             mc.student_cancellation_reason, mc.partner, pa.full_name, mc.version, c.name,
+             dr.reason
         FROM student_exchange_tools.mobility_choices mc
         JOIN student_exchange_tools.users u ON u.user_id = mc.user_id
         JOIN student_exchange_tools.options op ON u.option = op.option_code
@@ -55,13 +56,13 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
 
   /**
    * Current-year choices of a partner, neither denied nor cancelled, excluding those whose
-   * mobility is both denied and cancelled.
+   * mobility was cancelled (denied by a professor or cancelled by the student).
    */
   private static final String ACTIVE_FOR_PARTNER = " AND mc.partner = ? AND mc.academic_year = ?"
       + " AND mc.prof_denial_reason IS NULL AND mc.student_cancellation_reason IS NULL"
       + " AND mc.mobility_choice_id NOT IN (SELECT m.mobility_choice_id"
       + " FROM student_exchange_tools.mobilities m WHERE m.prof_denial_reason IS NOT NULL"
-      + " AND m.student_cancellation_reason IS NOT NULL)";
+      + " OR m.student_cancellation_reason IS NOT NULL)";
 
   private static final String SQL_INSERT = """
       INSERT INTO student_exchange_tools.mobility_choices
@@ -102,7 +103,7 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
         .param(mobilityChoice.getProgramme().getId())
         .param(DataAccess.typed(Types.VARCHAR, country == null ? null : country.getCountryCode()))
         .param(DataAccess.typed(Types.INTEGER, denialReason == null ? null : denialReason.getId()))
-        .param(DataAccess.typed(Types.VARCHAR, mobilityChoice.getCancellationReason()))
+        .param(DataAccess.typed(Types.VARCHAR, cancellationReason(mobilityChoice)))
         .param(DataAccess.typed(Types.INTEGER, partnerId))
         .query(rs -> {
           mobilityChoice.setId(rs.getInt(1));
@@ -118,21 +119,32 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
         .param(mobilityChoiceId).query(this::toDto).list().stream().findFirst().orElse(null));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
+   *         (a programming error: the API rejects an unknown filter before, with a 400
+   *         {@code VALIDATION_FAILED} problem)
+   */
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
-    String condition = "";
+    String condition;
     boolean currentYear = false;
-    if (filter.equals(FILTER_CANCELED_MOBILITIES_CHOICES)) {
+    if (FILTER_ALL_MOBILITIES_CHOICES.equals(filter)) {
+      condition = "";
+    } else if (FILTER_CANCELED_MOBILITIES_CHOICES.equals(filter)) {
       condition = " AND mc.student_cancellation_reason IS NOT NULL";
-    } else if (filter.equals(FILTER_REJECTED_MOBILITIES_CHOICES)) {
+    } else if (FILTER_REJECTED_MOBILITIES_CHOICES.equals(filter)) {
       condition = " AND mc.prof_denial_reason IS NOT NULL";
-    } else if (filter.equals(FILTER_PASSED_MOBILITIES_CHOICES)) {
+    } else if (FILTER_PASSED_MOBILITIES_CHOICES.equals(filter)) {
       condition = " AND mc.academic_year < ?";
       currentYear = true;
-    } else if (filter.equals(FILTER_ACTIVE_MOBILITIES_CHOICES)) {
+    } else if (FILTER_ACTIVE_MOBILITIES_CHOICES.equals(filter)) {
       condition = " AND mc.academic_year = ? AND mc.prof_denial_reason IS NULL"
           + " AND mc.student_cancellation_reason IS NULL" + NOT_A_MOBILITY;
       currentYear = true;
+    } else {
+      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
     }
     JdbcClient.StatementSpec statement = jdbcClient.sql(SQL_SELECT + condition);
     JdbcClient.StatementSpec query =
@@ -142,9 +154,8 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
 
   @Override
   public void update(MobilityChoiceDto mobilityChoice) {
+    CountryDto country = mobilityChoice.getCountry();
     DenialReasonDto denialReason = mobilityChoice.getDenialReason();
-    String cancellationReason = isAValidString(mobilityChoice.getCancellationReason())
-        ? mobilityChoice.getCancellationReason() : null;
     PartnerDto partner = mobilityChoice.getPartner();
     int version = DataAccess.call(() -> jdbcClient.sql(SQL_UPDATE)
         .param(mobilityChoice.getPreferenceOrder())
@@ -152,17 +163,26 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
         .param(mobilityChoice.getAcademicYear())
         .param(mobilityChoice.getTerm())
         .param(mobilityChoice.getProgramme().getId())
-        .param(mobilityChoice.getCountry().getCountryCode())
+        .param(DataAccess.typed(Types.VARCHAR, country == null ? null : country.getCountryCode()))
         .param(Timestamp.valueOf(mobilityChoice.getSubmissionDate()))
         .param(DataAccess.typed(Types.INTEGER, denialReason == null ? null : denialReason.getId()))
-        .param(DataAccess.typed(Types.VARCHAR, cancellationReason))
+        .param(DataAccess.typed(Types.VARCHAR, cancellationReason(mobilityChoice)))
         .param(DataAccess.typed(Types.INTEGER, partner == null ? null : partner.getId()))
         .param(mobilityChoice.getId())
         .param(mobilityChoice.getVersion())
-        .query(Integer.class).optional().orElse(0));
-    if (version == 0) {
-      throw new ConcurrentModificationException("The data have been modified before that query");
-    }
+        .query(Integer.class).optional()
+        .orElseThrow(() -> new ConcurrentModificationException(
+            "The data have been modified before that query")));
+    mobilityChoice.setVersion(version);
+  }
+
+  /**
+   * The cancellation reason to store: an empty one is stored as NULL, which means "not
+   * cancelled" for the filters (see {@link MobilityChoiceDao#update}).
+   */
+  private static String cancellationReason(MobilityChoiceDto mobilityChoice) {
+    String reason = mobilityChoice.getCancellationReason();
+    return isAValidString(reason) ? reason : null;
   }
 
   @Override
@@ -214,14 +234,22 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     programme.setId(rs.getInt(11));
     programme.setProgrammeName(rs.getString(12));
     mobilityChoice.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(13));
-    mobilityChoice.setCountry(country);
+    // the country is optional (LEFT JOIN): no country object without a country code
+    String countryCode = rs.getString(13);
+    if (countryCode == null) {
+      mobilityChoice.setCountry(null);
+    } else {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(20));
+      mobilityChoice.setCountry(country);
+    }
     mobilityChoice.setSubmissionDate(rs.getTimestamp(14).toLocalDateTime());
     int denialReasonId = rs.getInt(15);
     if (denialReasonId > 0) {
       DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
       denialReason.setId(denialReasonId);
+      denialReason.setReason(rs.getString(21));
       mobilityChoice.setDenialReason(denialReason);
     } else {
       mobilityChoice.setDenialReason(null);

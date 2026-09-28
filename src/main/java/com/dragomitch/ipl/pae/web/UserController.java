@@ -6,7 +6,9 @@ import com.dragomitch.ipl.pae.security.CurrentUser;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -42,10 +44,22 @@ public class UserController {
     return new DataResponse<>(userUcc.showAll());
   }
 
+  /** Promotes the user having that id (the users list of the UI); a professor is unchanged. */
   @PutMapping("/{id}/promote")
   @PreAuthorize(ApiPaths.PROFESSOR)
   public void promoteToProfessor(@PathVariable @Positive int id) {
     userUcc.promoteToProfessor(id);
+  }
+
+  /**
+   * Promotes the user having that (case-sensitive) username, when only the login is known, and
+   * returns it with its new role and version; a professor is unchanged.
+   */
+  @PutMapping("/by-username/{username}/promote")
+  @PreAuthorize(ApiPaths.PROFESSOR)
+  public UserDto promoteToProfessorByUsername(
+      @PathVariable @NotBlank @Size(max = UserDto.USERNAME_MAX_LENGTH) String username) {
+    return userUcc.promoteToProfessorByUsername(username);
   }
 
   @PutMapping("/edit")

@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -54,7 +55,12 @@ class MobilityDocumentDaoImpl implements MobilityDocumentDao {
 
   @Override
   public void fillInDocument(int document, int mobility) {
-    DataAccess.run(() -> jdbcClient.sql(SQL_FILL_IN).param(document).param(mobility).update());
+    int updated = DataAccess.call(
+        () -> jdbcClient.sql(SQL_FILL_IN).param(document).param(mobility).update());
+    if (updated == 0) {
+      throw new ConcurrentModificationException(
+          "Document " + document + " is not linked to mobility " + mobility);
+    }
   }
 
   private DocumentDto toDto(ResultSet rs, int rowNum) throws SQLException {

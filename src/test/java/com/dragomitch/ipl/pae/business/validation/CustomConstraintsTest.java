@@ -37,7 +37,10 @@ class CustomConstraintsTest {
   @ParameterizedTest
   @ValueSource(strings = {
       "BE68539007547034",                 // 16, Belgium
-      "FR1420041010050500013M02606",      // 27, France
+      "BE71096123456769",                 // 16, Belgium (the fixture IBAN of the tests)
+      "NO9386011117947",                  // 15, the shortest IBANs
+      "DE89370400440532013000",           // 22, Germany
+      "FR1420041010050500013M02606",      // 27, France, letter in the account number
       "MT84MALT011000012345MTLCAST001S",  // 31
       "LC55HEMM000100010012001200023015", // 32, Saint Lucia
       "be68539007547034"})                // lower case is accepted
@@ -59,6 +62,11 @@ class CustomConstraintsTest {
       "1E68539007547034",                   // country code must be letters
       "BEXX539007547034",                   // check digits must be digits
       "BE6853900754",                       // too short
+      "NO938601111794",                     // 14 characters: shorter than any IBAN
+      "BE86539007547034",                   // wrong check digits (swapped)
+      "DE89370400440532013001",             // wrong check digits (account changed)
+      "BE96001244289402",                   // the former fixture IBAN, wrong check digits
+      "BE68-5390",                          // forbidden character, too short
       "LC55HEMM000100010012001200023015123", // 35 characters: longer than any IBAN
       "BE9?001244289402"})                  // forbidden character
   void invalidIbans(String iban) {

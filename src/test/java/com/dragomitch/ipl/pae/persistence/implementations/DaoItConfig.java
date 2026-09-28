@@ -59,8 +59,12 @@ public class DaoItConfig {
         .start();
   }
 
+  /**
+   * The pool, wrapped in a {@link StatementRecordingDataSource} (closing it closes the pool) so
+   * that {@code DaoErrorHandlingIT} can check that the DAOs close every statement they create.
+   */
   @Bean(destroyMethod = "close")
-  DataSource dataSource(EmbeddedPostgres postgres) {
+  StatementRecordingDataSource dataSource(EmbeddedPostgres postgres) {
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl(postgres.getJdbcUrl("postgres", "postgres"));
     config.setUsername("postgres");
@@ -73,7 +77,7 @@ public class DaoItConfig {
     populator.addScript(new FileSystemResource(initSql()));
     populator.addScript(new ClassPathResource("db/it-setup.sql"));
     populator.execute(dataSource);
-    return dataSource;
+    return new StatementRecordingDataSource(dataSource);
   }
 
   @Bean

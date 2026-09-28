@@ -99,6 +99,15 @@ public class TestDenialReasonUcc {
   }
 
   @Test
+  public void aReasonLongerThanTheColumnIsReportedOnceAsTooLong() {
+    denialReason.setReason("x".repeat(DenialReasonDto.REASON_MAX_LENGTH + 1));
+
+    assertEquals(List.of("create.denialReason.reason:Size"),
+        Violations.thrownBy(() -> denialReasonUcc.create(denialReason)));
+    assertEquals(0, denialReasonUcc.showAll().size());
+  }
+
+  @Test
   public void testEditTC1() {
     assertThrows(ConstraintViolationException.class, () -> {
       denialReasonUcc.edit(0, denialReason);
@@ -126,6 +135,23 @@ public class TestDenialReasonUcc {
     denialReason.setReason(newOne);
     denialReasonUcc.edit(1, denialReason);
     assertEquals(newOne, denialReasonUcc.showAll().get(0).getReason(), "The update is not correctly done for the field reason");
+  }
+
+  @Test
+  public void editUpdatesTheReasonIdentifiedByThePath() {
+    denialReasonUcc.create(denialReason);
+    DenialReasonDto second = mockDtoFactory.getDenialReason();
+    second.setReason("Second");
+    denialReasonUcc.create(second);
+    DenialReasonDto body = mockDtoFactory.getDenialReason();
+    body.setId(1);
+    body.setReason("Edited");
+
+    DenialReasonDto edited = denialReasonUcc.edit(2, body);
+
+    assertEquals(2, edited.getId());
+    assertEquals("no reason whatsoever", denialReasonDao.findById(1).getReason());
+    assertEquals("Edited", denialReasonDao.findById(2).getReason());
   }
 
   @Test

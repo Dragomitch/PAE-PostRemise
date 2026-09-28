@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Mobilities (see db/fixtures/mobilities.sql). A mobility shares its id with the mobility choice
- * it comes from; the queries inner-join the choice's partner and country.
+ * it comes from; the choice's partner and country are optional (LEFT-joined, null when absent).
  */
 class MobilityDaoIT extends AbstractDaoIT {
 
@@ -187,13 +187,30 @@ class MobilityDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void aMobilityWhoseChoiceHasNoPartnerIsStoredButInvisibleToTheQueries() {
+  void aMobilityWhoseChoiceHasNoPartnerIsFoundWithANullPartner() {
     runInTransaction(() -> {
       mobilityDao.create(newMobility(5002));
 
-      assertThat(query(MOBILITY_BY_ID, 5002)).hasSize(1);
-      assertThat(mobilityDao.findById(5002)).isNull();
-      assertThat(mobilityDao.findByUser(1001)).isEmpty();
+      MobilityDto found = mobilityDao.findById(5002);
+      assertThat(found.getPartner()).isNull();
+      assertThat(found.getCountry().getCountryCode()).isEqualTo("BE");
+      assertThat(found.getCountry().getName()).isEqualTo("Belgique");
+      assertThat(found.getNominatedStudent().getId()).isEqualTo(1001);
+      assertThat(mobilityDao.findByUser(1001)).extracting(MobilityDto::getId).containsExactly(5002);
+      assertThat(mobilityDao.findAll()).extracting(MobilityDto::getId)
+          .containsExactlyInAnyOrder(5002, 5006, 5007);
+    });
+  }
+
+  @Test
+  void aMobilityWhoseChoiceHasNeitherPartnerNorCountryIsFoundWithNullsForBoth() {
+    runInTransaction(() -> {
+      mobilityDao.create(newMobility(5003));
+
+      MobilityDto found = mobilityDao.findById(5003);
+      assertThat(found.getPartner()).isNull();
+      assertThat(found.getCountry()).isNull();
+      assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
     });
   }
 

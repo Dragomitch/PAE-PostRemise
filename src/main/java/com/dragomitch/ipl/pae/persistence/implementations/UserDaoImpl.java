@@ -10,6 +10,7 @@ import com.dragomitch.ipl.pae.persistence.jdbc.entity.UserEntity;
 import com.dragomitch.ipl.pae.persistence.jdbc.repository.OptionRepository;
 import com.dragomitch.ipl.pae.persistence.jdbc.repository.UserRepository;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,8 +96,29 @@ class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public void promoteToProfessor(int id) {
-    DataAccess.run(() -> users.updateRole(id, UserDto.ROLE_PROFESSOR));
+  public int promoteToProfessor(int userId, int expectedVersion) {
+    return promoted(DataAccess.call(
+        () -> users.updateRoleById(userId, UserDto.ROLE_PROFESSOR, expectedVersion)),
+        userId, expectedVersion);
+  }
+
+  @Override
+  public int promoteToProfessor(String username, int expectedVersion) {
+    return promoted(DataAccess.call(
+        () -> users.updateRoleByUsername(username, UserDto.ROLE_PROFESSOR, expectedVersion)),
+        username, expectedVersion);
+  }
+
+  /**
+   * The new version after a promotion: the update matched {@code version = expectedVersion} and
+   * incremented it, so 0 rows means an unknown user or a stale version.
+   */
+  private static int promoted(int updatedRows, Object user, int expectedVersion) {
+    if (updatedRows == 0) {
+      throw new ConcurrentModificationException(
+          "User " + user + " with version " + expectedVersion + " not found");
+    }
+    return expectedVersion + 1;
   }
 
   @Override

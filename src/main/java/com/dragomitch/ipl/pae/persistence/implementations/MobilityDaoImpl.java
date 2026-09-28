@@ -25,8 +25,9 @@ import org.springframework.stereotype.Repository;
 
 /**
  * {@link MobilityDao} with Spring's {@link JdbcClient}. A mobility extends an accepted mobility
- * choice (same id) and is read joined with the choice, the student, the partner, the country, the
- * programme and the optional denial reason. Updates check the version.
+ * choice (same id) and is read joined with the choice, the student, the programme and, when set,
+ * the partner, the country and the denial reason (a choice may have no partner and no country:
+ * they are LEFT-joined and stay null in the DTO). Updates check the version.
  */
 @Repository
 class MobilityDaoImpl implements MobilityDao {
@@ -49,8 +50,8 @@ class MobilityDaoImpl implements MobilityDao {
         FROM student_exchange_tools.mobility_choices mc
         JOIN student_exchange_tools.mobilities m ON mc.mobility_choice_id = m.mobility_choice_id
         JOIN student_exchange_tools.users u ON mc.user_id = u.user_id
-        JOIN student_exchange_tools.partners pa ON mc.partner = pa.partner_id
-        JOIN student_exchange_tools.countries c ON mc.country = c.country_code
+        LEFT JOIN student_exchange_tools.partners pa ON mc.partner = pa.partner_id
+        LEFT JOIN student_exchange_tools.countries c ON mc.country = c.country_code
         JOIN student_exchange_tools.programmes p ON mc.programme = p.programme_id
         LEFT OUTER JOIN student_exchange_tools.denial_reasons dr
           ON m.prof_denial_reason = dr.reason_id""";
@@ -172,14 +173,21 @@ class MobilityDaoImpl implements MobilityDao {
     option.setCode(rs.getString(20));
     nominatedStudent.setOption(option);
     mobility.setNominatedStudent(nominatedStudent);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-    partner.setId(rs.getInt(21));
-    partner.setFullName(rs.getString(22));
-    mobility.setPartner(partner);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(23));
-    country.setName(rs.getString(24));
-    mobility.setCountry(country);
+    // the choice may have no partner and no country (LEFT JOIN): they stay null then
+    int partnerId = rs.getInt(21);
+    if (!rs.wasNull()) {
+      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      partner.setId(partnerId);
+      partner.setFullName(rs.getString(22));
+      mobility.setPartner(partner);
+    }
+    String countryCode = rs.getString(23);
+    if (countryCode != null) {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(24));
+      mobility.setCountry(country);
+    }
     ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
     programme.setId(rs.getInt(25));
     programme.setProgrammeName(rs.getString(26));

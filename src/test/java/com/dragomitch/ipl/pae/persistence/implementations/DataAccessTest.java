@@ -68,6 +68,17 @@ class DataAccessTest {
   }
 
   @Test
+  void theSqlExceptionOfTheDriverIsKeptAsTheCause() {
+    SQLException sql = new SQLException("current transaction is aborted", "25P02");
+    DbActionExecutionException failure = new DbActionExecutionException(null,
+        new DataIntegrityViolationException("insert failed", sql));
+
+    assertThatThrownBy(() -> callInTransaction(() -> {
+      throw failure;
+    })).isInstanceOf(FatalException.class).hasCause(sql);
+  }
+
+  @Test
   void aFailedInsertOrUpdateOfSpringDataIsFatal() {
     DbActionExecutionException failure =
         new DbActionExecutionException(null, new IllegalStateException("boom"));

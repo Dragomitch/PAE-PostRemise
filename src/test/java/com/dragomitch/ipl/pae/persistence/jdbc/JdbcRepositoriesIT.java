@@ -102,12 +102,28 @@ class JdbcRepositoriesIT extends AbstractDaoIT {
     }
 
     @Test
-    void updateRoleChangesTheRoleButNotTheVersion() {
+    void updateRoleByIdChecksAndIncrementsTheVersion() {
       runInTransaction(() -> {
-        assertThat(users.updateRole(1004, "Professor")).isEqualTo(1);
-        assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Professor")
+        assertThat(users.updateRoleById(1004, "Professor", 1)).isZero();
+        assertThat(users.updateRoleById(424242, "Professor", 2)).isZero();
+        assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Student")
             .containsEntry("version", 2);
-        assertThat(users.updateRole(424242, "Professor")).isZero();
+
+        assertThat(users.updateRoleById(1004, "Professor", 2)).isEqualTo(1);
+        assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Professor")
+            .containsEntry("version", 3);
+      });
+    }
+
+    @Test
+    void updateRoleByUsernameChecksAndIncrementsTheVersion() {
+      runInTransaction(() -> {
+        assertThat(users.updateRoleByUsername("david", "Professor", 1)).isZero();
+        assertThat(users.updateRoleByUsername("David", "Professor", 2)).isZero();
+
+        assertThat(users.updateRoleByUsername("david", "Professor", 2)).isEqualTo(1);
+        assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Professor")
+            .containsEntry("version", 3);
       });
     }
   }

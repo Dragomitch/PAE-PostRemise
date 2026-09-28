@@ -90,7 +90,10 @@ class MobilityUccImpl implements MobilityUcc {
     if (student != null) {
       mobility.setNominatedStudent(student);
     }
-    mobility.setPartner(partnerUcc.showOne(mobility.getPartner().getId()));
+    // the choice may have had no partner, and the professor in charge may be unknown
+    if (mobility.getPartner() != null) {
+      mobility.setPartner(partnerUcc.showOne(mobility.getPartner().getId()));
+    }
     mobility.setProgramme(programmeUcc.showOne(mobility.getProgramme().getId()));
     // a mobility confirmed with a new partner has no professor in charge
     if (mobility.getProfessorInCharge() != null) {
@@ -295,7 +298,7 @@ class MobilityUccImpl implements MobilityUcc {
     PartnerDto partner = mobility.getPartner();
     entries[0] = user.getLastName();
     entries[1] = user.getFirstName();
-    entries[2] = partner.getFullName();
+    entries[2] = partner == null ? "" : partner.getFullName();
     entries[3] = mobility.getMobilityType();
     entries[4] = mobility.getProgramme().getProgrammeName();
     entries[5] = mobility.getTerm() + "";

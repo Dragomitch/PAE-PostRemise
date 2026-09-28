@@ -9,6 +9,8 @@ import com.dragomitch.ipl.pae.business.Programme;
 import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.validation.ValidationGroups.Reference;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -131,15 +133,14 @@ class ReferenceEntitiesIntegrityTest {
     assertThat(Violations.of(reason)).containsExactly("reason:NotBlank");
   }
 
-  @Test
-  void aDenialReasonCannotBeLongerThanTheColumn() {
-    // formerly a documented gap (only emptiness was checked): denial_reasons.reason is
-    // VARCHAR(300), a longer text is now refused before reaching the database
+  @ParameterizedTest(name = "{0} characters: {1}")
+  @CsvSource({"299, true", "300, true", "301, false", "1000, false"})
+  void aDenialReasonFitsInTheColumn(int length, boolean valid) {
+    // denial_reasons.reason is VARCHAR(300): a longer text is rejected before reaching the database
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
-    reason.setReason("x".repeat(300));
-    assertThat(Violations.of(reason)).isEmpty();
+    reason.setReason("x".repeat(length));
 
-    reason.setReason("x".repeat(301));
-    assertThat(Violations.of(reason)).containsExactly("reason:Size");
+    assertThat(Violations.of(reason))
+        .isEqualTo(valid ? List.of() : List.of("reason:Size"));
   }
 }

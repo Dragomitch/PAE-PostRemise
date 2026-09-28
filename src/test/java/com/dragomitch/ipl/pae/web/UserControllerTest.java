@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -17,9 +18,11 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
 import java.time.LocalDateTime;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -127,6 +130,74 @@ class UserControllerTest {
             .with(TestUsers.professor()))
         .andExpect(status().isOk());
     verify(userUcc).promoteToProfessor(3);
+  }
+
+  @Test
+  void aConcurrentPromotionIsAConflictProblem() throws Exception {
+    doThrow(new ConcurrentModificationException()).when(userUcc).promoteToProfessor(3);
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf())
+            .with(TestUsers.professor()).header("Accept-Language", "en"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()))
+        .andExpect(jsonPath("$.detail").isNotEmpty());
+  }
+
+  @Test
+  void aConcurrentPromotionByUsernameIsAConflictProblem() throws Exception {
+    when(userUcc.promoteToProfessorByUsername("bob"))
+        .thenThrow(new ConcurrentModificationException());
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()));
+  }
+
+  @Test
+  void promotingAnUnknownUsernameIsANotFoundProblem() throws Exception {
+    when(userUcc.promoteToProfessorByUsername("nobody"))
+        .thenThrow(new ResourceNotFoundException());
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/nobody/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.name()));
+  }
+
+  @Test
+  void promotingATooLongUsernameIsAValidationProblem() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/" + "x".repeat(21) + "/promote")
+            .with(csrf()).with(TestUsers.professor()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.name()))
+        .andExpect(jsonPath("$.errors[0].field").value("username"))
+        .andExpect(jsonPath("$.errors[0].code").value("Size"));
+    verifyNoInteractions(userUcc);
+  }
+
+  @Test
+  void promoteByUsernameTakesTheUsernameFromThePathAndReturnsTheUser() throws Exception {
+    UserDto promoted = user(4, "Bob.Dupont");
+    promoted.setRole(UserDto.ROLE_PROFESSOR);
+    promoted.setVersion(2);
+    when(userUcc.promoteToProfessorByUsername("Bob.Dupont")).thenReturn(promoted);
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/Bob.Dupont/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(4))
+        .andExpect(jsonPath("$.role").value(UserDto.ROLE_PROFESSOR))
+        .andExpect(jsonPath("$.version").value(2))
+        .andExpect(jsonPath("$.password").doesNotExist());
+    verify(userUcc).promoteToProfessorByUsername("Bob.Dupont");
+  }
+
+  @Test
+  void promoteByUsernameNeedsTheCsrfToken() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote")
+            .with(TestUsers.professor()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

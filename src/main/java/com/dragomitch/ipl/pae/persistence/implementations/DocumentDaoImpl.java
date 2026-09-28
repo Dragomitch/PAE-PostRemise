@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
+import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.jdbc.entity.DocumentEntity;
 import com.dragomitch.ipl.pae.persistence.jdbc.repository.DocumentRepository;
@@ -29,12 +30,15 @@ class DocumentDaoImpl implements DocumentDao {
         .stream().map(this::toDto).toList());
   }
 
-  /** The programme and the filled-in flag are left unset, as they always were. */
+  /** The document carries its programme (id only); the filled-in flag is left unset. */
   private DocumentDto toDto(DocumentEntity entity) {
     DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
     document.setId(entity.id());
     document.setName(entity.name());
     document.setCategory(entity.category().charAt(0));
+    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    programme.setId(entity.programme().getId());
+    document.setProgramme(programme);
     return document;
   }
 }

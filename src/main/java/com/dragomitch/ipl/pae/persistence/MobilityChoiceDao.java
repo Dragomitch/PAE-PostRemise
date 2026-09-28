@@ -59,7 +59,9 @@ public interface MobilityChoiceDao {
   List<MobilityChoiceDto> findByPartner(int partnerId);
 
   /**
-   * Return the partners currently selected for a mobility or a mobilityChoice.
+   * Return the choices of the current academic year that select that partner and are neither
+   * denied nor cancelled, including those that became a mobility unless that mobility was
+   * cancelled (by the student or by a professor). A partner with such choices cannot be archived.
    * 
    * @param partnerId the partner's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified partner
@@ -73,13 +75,21 @@ public interface MobilityChoiceDao {
    *        passed, active, canceled, rejected, all. Combinations are NOT possible between the
    *        filters.
    * @return all the mobility choices fitting the filter.
+   * @throws IllegalArgumentException if the filter is unknown (the use cases only pass the filters
+   *         allowed by their {@code @Pattern} constraints)
    */
   List<MobilityChoiceDto> findAll(String filter);
 
   /**
-   * Update a mobilityChoice into the DB with the new fields of the MobilityChoice.
-   * 
+   * Update a mobilityChoice into the DB with the new fields of the MobilityChoice, with optimistic
+   * locking; the DTO receives the new version.
+   *
+   * <p>An empty cancellation reason is stored as NULL on purpose: NULL means "not cancelled" for
+   * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an
+   * empty text would turn the choice into a cancelled one without reason.
+   *
    * @param mobilityChoice the mobility choice we are updating.
+   * @throws java.util.ConcurrentModificationException if no choice has that id and version
    */
   void update(MobilityChoiceDto mobilityChoice);
 

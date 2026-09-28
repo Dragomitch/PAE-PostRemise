@@ -24,6 +24,11 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock 
 
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
+    if (!List.of(FILTER_ALL_MOBILITIES_CHOICES, FILTER_ACTIVE_MOBILITIES_CHOICES,
+        FILTER_CANCELED_MOBILITIES_CHOICES, FILTER_REJECTED_MOBILITIES_CHOICES,
+        FILTER_PASSED_MOBILITIES_CHOICES).contains(filter)) {
+      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
+    }
     return mobilityChoices;
   }
 
@@ -80,6 +85,6 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock 
         mobilityChoicesForPartner.add(mobilityChoices);
       }
     }
-    return null;
+    return mobilityChoicesForPartner;
   }
 }

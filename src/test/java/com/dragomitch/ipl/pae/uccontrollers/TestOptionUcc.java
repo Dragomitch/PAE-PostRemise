@@ -59,13 +59,9 @@ public class TestOptionUcc {
 
   @Test
   public void testShowAllTC2() {
-    List<OptionDto> options = optionUcc.showAll();
-    assertEquals("BIN", options.get(0).getCode());
-    assertEquals("BCH", options.get(1).getCode());
-    assertEquals("BDI", options.get(2).getCode());
-    assertEquals("BIM", options.get(3).getCode());
-    assertEquals("BBM", options.get(4).getCode());
-    assertEquals(5, optionUcc.showAll().size());
+    // the mock keeps the options in a HashMap: no order to rely on
+    List<String> codes = optionUcc.showAll().stream().map(OptionDto::getCode).sorted().toList();
+    assertEquals(List.of("BBM", "BCH", "BDI", "BIM", "BIN"), codes);
   }
 
   @Test

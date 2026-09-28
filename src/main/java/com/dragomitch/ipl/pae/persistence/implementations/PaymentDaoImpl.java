@@ -18,7 +18,8 @@ import org.springframework.stereotype.Repository;
 /**
  * {@link PaymentDao} with Spring's {@link JdbcClient}. Payments are not a table but a read model
  * over mobility choices and mobilities (one row per requested payment: 'D' for the first request,
- * 'R' for the second), so there is no aggregate to map: the query stays plain SQL. JdbcClient
+ * 'R' for the second), so there is no aggregate to map: the query stays plain SQL. The choice may
+ * have no country and no partner: they are LEFT-joined and stay null in the DTO. JdbcClient
  * runs on the connection of the current transaction, like the Spring Data repositories.
  */
 @Repository
@@ -32,8 +33,8 @@ class PaymentDaoImpl implements PaymentDao {
         JOIN student_exchange_tools.users u ON mc.user_id = u.user_id
         JOIN student_exchange_tools.mobilities m ON mc.mobility_choice_id = m.mobility_choice_id
         JOIN student_exchange_tools.programmes p ON mc.programme = p.programme_id
-        JOIN student_exchange_tools.countries c ON mc.country = c.country_code
-        JOIN student_exchange_tools.partners pa ON mc.partner = pa.partner_id
+        LEFT JOIN student_exchange_tools.countries c ON mc.country = c.country_code
+        LEFT JOIN student_exchange_tools.partners pa ON mc.partner = pa.partner_id
        WHERE m.%1$s_payment_request_date IS NOT NULL
       """;
 
@@ -68,14 +69,20 @@ class PaymentDaoImpl implements PaymentDao {
     programme.setId(rs.getInt(8));
     programme.setProgrammeName(rs.getString(9));
     payment.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(10));
-    country.setName(rs.getString(11));
-    payment.setCountry(country);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-    partner.setId(rs.getInt(12));
-    partner.setFullName(rs.getString(13));
-    payment.setPartner(partner);
+    String countryCode = rs.getString(10);
+    if (countryCode != null) {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(11));
+      payment.setCountry(country);
+    }
+    int partnerId = rs.getInt(12);
+    if (!rs.wasNull()) {
+      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      partner.setId(partnerId);
+      partner.setFullName(rs.getString(13));
+      payment.setPartner(partner);
+    }
     payment.setPaymentDate(rs.getTimestamp(14).toLocalDateTime());
     payment.setPaymentType(rs.getString(15));
     return payment;

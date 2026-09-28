@@ -144,7 +144,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   }
 
   @Override
-  @SuppressWarnings("unused")
   public void confirm(int id, int userId) {
     MobilityChoiceDto mobilityChoice = mobilityChoiceDao.findById(id);
     if (mobilityChoice == null) {
@@ -164,7 +163,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     mobility.setState(Mobility.STATE_CREATED);
     mobility.setSubmissionDate(LocalDateTime.now());
 
-    UserDto user = userDao.findById(userId);
     mobility.setProfessorInCharge(userDao.findById(userId));
     mobilityDao.create(mobility);
     List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
@@ -174,6 +172,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
         UserDto.ROLE_PROFESSOR);
     for (MobilityChoiceDto choice : mobilityChoices) {
+      // the other open choices of the same term are rejected; closed ones are left as they are
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
           && choice.getTerm() == mobilityChoice.getTerm()
