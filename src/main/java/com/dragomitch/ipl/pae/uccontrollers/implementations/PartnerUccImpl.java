@@ -95,15 +95,23 @@ class PartnerUccImpl implements PartnerUcc {
   @Route(method = HttpMethod.GET, template = "/partners/{id}")
   public PartnerDto showOne(@PathParameter("id") int id) {
     checkPositive(id);
-    unitOfWork.startTransaction();
-    PartnerDto partner = partnerDao.findById(id);
-    partner.setAddress(addressDao.findById(partner.getAddress().getId()));
-    partner.setProgramme(programmeDao.findById(partner.getProgramme().getId()));
-    partner.setOptions(partnerOptionDao.findAllOptionsByPartner(id));
-    List<MobilityChoiceDto> mobilityChoices = mobilityChoiceDao.findByActivePartner(id);
-    partner.setArchivable(mobilityChoices.size() > 0 ? false : true);
-    unitOfWork.commit();
-    return partner;
+    try {
+      unitOfWork.startTransaction();
+      PartnerDto partner = partnerDao.findById(id);
+      if (partner == null) {
+        throw new RessourceNotFoundException();
+      }
+      partner.setAddress(addressDao.findById(partner.getAddress().getId()));
+      partner.setProgramme(programmeDao.findById(partner.getProgramme().getId()));
+      partner.setOptions(partnerOptionDao.findAllOptionsByPartner(id));
+      List<MobilityChoiceDto> mobilityChoices = mobilityChoiceDao.findByActivePartner(id);
+      partner.setArchivable(mobilityChoices.isEmpty());
+      unitOfWork.commit();
+      return partner;
+    } catch (Exception ex) {
+      unitOfWork.rollback();
+      throw ex;
+    }
   }
 
   /**

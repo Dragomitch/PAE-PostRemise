@@ -81,4 +81,12 @@ class ConnectionHandlingTest {
   void theOptionsOfAnUnknownPartnerReleaseTheConnection() {
     assertFails(() -> partnerUcc.findAllPartnerOption(42), RessourceNotFoundException.class);
   }
+
+  @Test
+  void anUnknownPartnerIsNotFoundAndTheTransactionIsRolledBack() {
+    assertFails(() -> partnerUcc.showOne(42), RessourceNotFoundException.class);
+
+    assertThat(dal().getRollbacks()).isEqualTo(1);
+    assertThat(dal().getCommits()).isZero();
+  }
 }
