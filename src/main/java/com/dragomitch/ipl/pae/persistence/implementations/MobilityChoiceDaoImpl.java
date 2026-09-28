@@ -272,7 +272,7 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
         + COLUMN_PROF_DENIAL_REASON + " IS NULL AND mc." + COLUMN_STUDENT_CANCELLATION_REASON
         + " IS NULL AND mc." + COLUMN_ID + " NOT IN ( SELECT m." + MobilityDao.COLUMN_ID + " FROM "
         + SCHEMA_NAME + "." + MobilityDao.TABLE_NAME + " m WHERE m."
-        + MobilityDao.COLUMN_PROF_DENIAL_REASON + " IS NOT NULL AND m."
+        + MobilityDao.COLUMN_PROF_DENIAL_REASON + " IS NOT NULL OR m."
         + MobilityDao.COLUMN_STUDENT_CANCELLATION_REASON + " IS NOT NULL)")) {
       stmt.setInt(1, partnerId);
       stmt.setInt(2, LocalDate.now().getYear());

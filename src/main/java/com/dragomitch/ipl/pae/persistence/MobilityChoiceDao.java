@@ -59,7 +59,9 @@ public interface MobilityChoiceDao {
   List<MobilityChoiceDto> findByPartner(int partnerId);
 
   /**
-   * Return the partners currently selected for a mobility or a mobilityChoice.
+   * Return the choices of the current academic year that select that partner and are neither
+   * denied nor cancelled, including those that became a mobility unless that mobility was
+   * cancelled (by the student or by a professor). A partner with such choices cannot be archived.
    * 
    * @param partnerId the partner's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified partner

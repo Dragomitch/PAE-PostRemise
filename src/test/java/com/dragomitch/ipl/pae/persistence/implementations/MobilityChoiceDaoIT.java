@@ -194,8 +194,8 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
 
   /**
    * Current-year choices of the partner that are neither denied nor cancelled. Choices that became
-   * mobilities are kept, unless the mobility is both cancelled by the student AND denied by a
-   * professor (5007): this is what makes a partner non-archivable.
+   * mobilities are kept unless the mobility was cancelled, by the student (cancellation reason) or
+   * by a professor (denial reason), like 5007: this is what makes a partner non-archivable.
    */
   @ParameterizedTest(name = "partner {0} -> {1}")
   @CsvSource({"3001, 5001;5006", "3004, ''", "3003, ''"})
@@ -206,11 +206,25 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
     assertThat(ids(choices)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
   }
 
-  @Test
-  void findByActivePartnerKeepsAMobilityThatIsOnlyCancelled() {
+  @ParameterizedTest(name = "mobility cancelled with only its {0} set")
+  @ValueSource(strings = {"student_cancellation_reason", "prof_denial_reason"})
+  void findByActivePartnerExcludesAMobilityCancelledByTheStudentOrByAProfessor(String kept) {
+    String cleared = kept.equals("prof_denial_reason") ? "student_cancellation_reason"
+        : "prof_denial_reason";
     List<MobilityChoiceDto> choices = inTransaction(() -> {
-      execute("UPDATE student_exchange_tools.mobilities SET prof_denial_reason = NULL "
+      execute("UPDATE student_exchange_tools.mobilities SET " + cleared + " = NULL "
           + "WHERE mobility_choice_id = 5007");
+      return mobilityChoiceDao.findByActivePartner(3004);
+    });
+
+    assertThat(choices).isEmpty();
+  }
+
+  @Test
+  void findByActivePartnerKeepsAMobilityThatIsNotCancelled() {
+    List<MobilityChoiceDto> choices = inTransaction(() -> {
+      execute("UPDATE student_exchange_tools.mobilities SET prof_denial_reason = NULL, "
+          + "student_cancellation_reason = NULL WHERE mobility_choice_id = 5007");
       return mobilityChoiceDao.findByActivePartner(3004);
     });
 
