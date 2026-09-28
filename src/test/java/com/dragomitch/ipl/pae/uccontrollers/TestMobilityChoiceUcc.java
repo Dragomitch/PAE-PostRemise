@@ -672,11 +672,40 @@ public class TestMobilityChoiceUcc {
 
   @Test
   public void testConfirmWithNewPartnerWithOption() {
-    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // id 0, one BIN option, in GB
     newPartner.setStatus(false);
+    mobilityChoice.setCountry(country); // GB, the country of the partner
     mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
         userProf.getRole());
     assertNotNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must be confirmed");
+    assertEquals(newPartner.getId(), mobilityChoice.getPartner().getId());
+  }
+
+  @Test
+  public void confirmWithNewPartnerRefusesAPartnerOutsideTheChosenCountry() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // in GB
+    newPartner.setStatus(false);
+    mobilityChoice.setCountry(mockDtoFactory.getCountry()); // IE
+
+    BusinessException ex = assertThrows(BusinessException.class,
+        () -> mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner,
+            userProf.getId(), userProf.getRole()));
+    assertEquals(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320, ex.getError().getErrorCode());
+    assertNull(mobilityDao.findById(mobilityChoice.getId()), "The mobility choice must stay unconfirmed");
+    assertEquals("IE", mobilityChoice.getCountry().getCountryCode());
+  }
+
+  @Test
+  public void confirmWithNewPartnerGivesAChoiceWithoutCountryThePartnerCountry() {
+    PartnerDto newPartner = mockDtoFactory.getPartner(); // in GB
+    newPartner.setStatus(false);
+    mobilityChoice.setCountry(null);
+
+    mobilityChoiceUcc.confirmWithNewPartner(mobilityChoice.getId(), newPartner, userProf.getId(),
+        userProf.getRole());
+
+    assertEquals("GB", mobilityChoice.getCountry().getCountryCode());
+    assertNotNull(mobilityDao.findById(mobilityChoice.getId()));
   }
 
 }

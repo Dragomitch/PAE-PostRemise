@@ -10,6 +10,7 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
+import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
@@ -290,16 +291,18 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityDao.findById(id) != null) {
         throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_321);
       }
-      mobilityChoice.setCountry(partner.getAddress().getCountry());
-      if (!mobilityChoice.getCountry().getCountryCode()
-          .equals(partner.getAddress().getCountry().getCountryCode())) {
-        throw new BusinessException(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320);
-      }
       if (!isPositive(partner.getId())) {
         partner = partnerUcc.create(partner, userRole);
       } else {
         partner = partnerUcc.restore(partner.getId(), userRole);
       }
+      // the partner must be in the country the student chose, if any
+      CountryDto partnerCountry = partner.getAddress().getCountry();
+      if (mobilityChoice.getCountry() != null && !mobilityChoice.getCountry().getCountryCode()
+          .equals(partnerCountry.getCountryCode())) {
+        throw new BusinessException(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320);
+      }
+      mobilityChoice.setCountry(partnerCountry);
       MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
       mobility.setId(id);
       mobility.setState(Mobility.STATE_CREATED);
