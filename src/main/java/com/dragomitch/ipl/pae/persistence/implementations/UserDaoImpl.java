@@ -44,8 +44,16 @@ class UserDaoImpl implements UserDao {
       + OptionDao.TABLE_NAME + " op " + "WHERE op." + OptionDao.COLUMN_CODE + " = u."
       + UserDao.COLUMN_OPTION;
 
-  private static final String PROMOTE_QUERY =
-      "UPDATE student_exchange_tools.users SET role = ? WHERE user_id = ?";
+  private static final String PROMOTE_QUERY = "UPDATE " + SCHEMA_NAME + "." + UserDao.TABLE_NAME
+      + " SET (" + UserDao.COLUMN_ROLE + ", " + UserDao.COLUMN_VERSION + ") = (?, "
+      + UserDao.COLUMN_VERSION + " + 1) WHERE %s = ? AND " + UserDao.COLUMN_VERSION
+      + " = ? RETURNING " + UserDao.COLUMN_VERSION;
+
+  private static final String PROMOTE_BY_ID_QUERY =
+      String.format(PROMOTE_QUERY, UserDao.COLUMN_ID);
+
+  private static final String PROMOTE_BY_USERNAME_QUERY =
+      String.format(PROMOTE_QUERY, UserDao.COLUMN_USERNAME);
 
   private static final String IS_EMPTY_QUERY = "SELECT 1 FROM student_exchange_tools.users";
 
@@ -158,16 +166,31 @@ class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public void promoteToProfessor(int id) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(PROMOTE_QUERY)) {
+  public int promoteToProfessor(int userId, int expectedVersion) {
+    return promote(PROMOTE_BY_ID_QUERY, userId, expectedVersion);
+  }
+
+  @Override
+  public int promoteToProfessor(String username, int expectedVersion) {
+    return promote(PROMOTE_BY_USERNAME_QUERY, username, expectedVersion);
+  }
+
+  private int promote(String query, Object user, int expectedVersion) {
+    try (PreparedStatement stmt = dalBackendServices.prepareStatement(query)) {
       stmt.setString(1, UserDto.ROLE_PROFESSOR);
-      stmt.setInt(2, id);
-      stmt.execute();
+      stmt.setObject(2, user);
+      stmt.setInt(3, expectedVersion);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (!rs.next()) {
+          throw new ConcurrentModificationException(
+              "User " + user + " with version " + expectedVersion + " not found");
+        }
+        return rs.getInt(1);
+      }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
   }
-
 
   @Override
   public boolean isEmpty() {

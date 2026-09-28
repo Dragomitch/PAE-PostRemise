@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class MockUserDao implements UserDao {
@@ -52,12 +53,22 @@ public class MockUserDao implements UserDao {
   }
 
   @Override
-  public void promoteToProfessor(int id) {
-    if (id > 0 || id <= users.size()) {
-      UserDto user = null;
-      user = users.get(id);
-      user.setRole(UserDto.ROLE_PROFESSOR);
+  public int promoteToProfessor(int userId, int expectedVersion) {
+    return promote(findById(userId), expectedVersion);
+  }
+
+  @Override
+  public int promoteToProfessor(String username, int expectedVersion) {
+    return promote(findBy(COLUMN_USERNAME, username), expectedVersion);
+  }
+
+  private int promote(UserDto user, int expectedVersion) {
+    if (user == null || user.getVersion() != expectedVersion) {
+      throw new ConcurrentModificationException();
     }
+    user.setRole(UserDto.ROLE_PROFESSOR);
+    user.setVersion(expectedVersion + 1);
+    return expectedVersion + 1;
   }
 
   @Override

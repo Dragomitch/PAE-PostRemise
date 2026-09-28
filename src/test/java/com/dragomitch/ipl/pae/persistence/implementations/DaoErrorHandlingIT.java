@@ -150,7 +150,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
         call("UserDao.findAll", d -> d.user().findAll()),
         call("UserDao.findBy", d -> d.user().findBy("username", "alice")),
         call("UserDao.update", d -> d.user().update(d.test().user())),
-        call("UserDao.promoteToProfessor", d -> d.user().promoteToProfessor(1)),
+        call("UserDao.promoteToProfessor(id)", d -> d.user().promoteToProfessor(1, 1)),
+        call("UserDao.promoteToProfessor(username)",
+            d -> d.user().promoteToProfessor("alice", 1)),
         call("UserDao.isEmpty", d -> d.user().isEmpty()));
   }
 
