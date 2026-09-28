@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
+import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import org.springframework.stereotype.Repository;
@@ -20,7 +21,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 class PartnerDaoImpl implements PartnerDao {
@@ -34,19 +37,35 @@ class PartnerDaoImpl implements PartnerDao {
       + COLUMN_STATUS_OFFICIAL + ", " + COLUMN_ARCHIVE + ", version) "
       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false, 1) RETURNING partner_id";
 
-  private static final String SQL_SELECT = "SELECT DISTINCT p." + COLUMN_ID + ", p."
-      + COLUMN_LEGAL_NAME + ", p." + COLUMN_BUSINESS_NAME + ", p." + COLUMN_FULL_NAME + ", p."
+  /**
+   * Partners with their address country, programme and options. The options are LEFT-joined so
+   * that a partner without any option is still found (with an empty option list); a partner with
+   * several options comes back as several rows that {@link #readPartners(ResultSet)} merges.
+   */
+  private static final String SQL_SELECT = "SELECT p." + COLUMN_ID + ", p." + COLUMN_LEGAL_NAME
+      + ", p." + COLUMN_BUSINESS_NAME + ", p." + COLUMN_FULL_NAME + ", p."
       + COLUMN_ORGANISATION_TYPE + ", p." + COLUMN_EMPLOYEE_COUNT + ", p." + COLUMN_ADDRESS + ", p."
       + COLUMN_EMAIL + ", p." + COLUMN_WEBSITE + ", p." + COLUMN_PHONE_NUMBER + ", p."
       + COLUMN_STATUS_OFFICIAL + ", p." + COLUMN_ARCHIVE + ", p." + COLUMN_VERSION
-      + ", pr.programme_id, pr.name," + " c.country_code, c.name FROM " + SCHEMA + "." + TABLE_NAME
-      + " p, " + SCHEMA + "." + AddressDao.TABLE_NAME + " a, " + SCHEMA + "."
-      + PartnerOptionDao.TABLE_NAME + " po, " + SCHEMA + "." + OptionDao.TABLE_NAME + " o, "
-      + SCHEMA + "." + CountryDao.TABLE_NAME + " c, " + SCHEMA + "." + ProgrammeDao.TABLE_NAME
-      + " pr " + "WHERE p." + COLUMN_ADDRESS + " = a." + AddressDao.COLUMN_ID + " AND a."
-      + AddressDao.COLUMN_COUNTRY + " = c." + CountryDao.COLUMN_CODE + " " + "AND c."
-      + CountryDao.COLUMN_PROGRAMME_ID + " = pr." + ProgrammeDao.COLUMN_ID
-      + " AND po.partner_id = p.partner_id " + "AND po.option_code = o.option_code";
+      + ", pr.programme_id, pr.name, c.country_code, c.name, po."
+      + PartnerOptionDao.COLUMN_OPTION_CODE + ", po." + PartnerOptionDao.COLUMN_DEPARTEMENT + ", o."
+      + OptionDao.COLUMN_NAME + " FROM " + SCHEMA + "." + TABLE_NAME + " p JOIN " + SCHEMA + "."
+      + AddressDao.TABLE_NAME + " a ON p." + COLUMN_ADDRESS + " = a." + AddressDao.COLUMN_ID
+      + " JOIN " + SCHEMA + "." + CountryDao.TABLE_NAME + " c ON a." + AddressDao.COLUMN_COUNTRY
+      + " = c." + CountryDao.COLUMN_CODE + " JOIN " + SCHEMA + "." + ProgrammeDao.TABLE_NAME
+      + " pr ON c." + CountryDao.COLUMN_PROGRAMME_ID + " = pr." + ProgrammeDao.COLUMN_ID
+      + " LEFT JOIN " + SCHEMA + "." + PartnerOptionDao.TABLE_NAME + " po ON po."
+      + PartnerOptionDao.COLUMN_PARTNER_ID + " = p." + COLUMN_ID + " LEFT JOIN " + SCHEMA + "."
+      + OptionDao.TABLE_NAME + " o ON o." + OptionDao.COLUMN_CODE + " = po."
+      + PartnerOptionDao.COLUMN_OPTION_CODE;
+
+  private static final String SQL_ORDER = " ORDER BY p." + COLUMN_ID + ", po."
+      + PartnerOptionDao.COLUMN_OPTION_CODE;
+
+  /** Restricts a query to the partners offering the option bound to the parameter. */
+  private static final String HAS_OPTION = "EXISTS (SELECT 1 FROM " + SCHEMA + "."
+      + PartnerOptionDao.TABLE_NAME + " f WHERE f." + PartnerOptionDao.COLUMN_PARTNER_ID + " = p."
+      + COLUMN_ID + " AND f." + PartnerOptionDao.COLUMN_OPTION_CODE + " = ?)";
 
   private static final String SQL_UPDATE = "UPDATE " + SCHEMA + "." + TABLE_NAME + " p SET ("
       + COLUMN_LEGAL_NAME + ", " + COLUMN_BUSINESS_NAME + ", " + COLUMN_FULL_NAME + ", "
@@ -82,65 +101,59 @@ class PartnerDaoImpl implements PartnerDao {
 
   @Override
   public PartnerDto findById(int id) {
-    PartnerDto partner = null;
-    try (PreparedStatement stmt =
-        dalBackendServices.prepareStatement(SQL_SELECT + " AND p." + COLUMN_ID + " = ?")) {
+    try (PreparedStatement stmt = dalBackendServices
+        .prepareStatement(SQL_SELECT + " WHERE p." + COLUMN_ID + " = ?" + SQL_ORDER)) {
       stmt.setInt(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          partner = populatePartnerDto(rs);
-        }
+        List<PartnerDto> partners = readPartners(rs);
+        return partners.isEmpty() ? null : partners.get(0);
       }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
-    return partner;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Professors see every partner matching the filter. Students only see official, non-archived
+   * partners offering their option ({@code "all"} and {@code "country"} filters).
+   *
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
+   */
   @Override
   public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
-    List<PartnerDto> partners = new ArrayList<PartnerDto>();
-    String queryFilter = "";
-    if (filter.equals(FILTER_ALL_PARTNERS)) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        queryFilter += " AND p." + COLUMN_ARCHIVE + "= FALSE AND p." + COLUMN_STATUS_OFFICIAL
-            + "= TRUE AND po." + PartnerOptionDao.COLUMN_OPTION_CODE + "=?";
-      }
-    } else if (filter.equals(FILTER_COUNTRY)) {
-      queryFilter += " AND c." + CountryDao.COLUMN_CODE + " = ?";
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        queryFilter +=
-            " AND p." + COLUMN_ARCHIVE + " = FALSE AND po." + PartnerOptionDao.COLUMN_OPTION_CODE
-                + " = ? AND p." + COLUMN_STATUS_OFFICIAL + "=TRUE";
-      }
-    } else if (filter.equals(FILTER_ARCHIVED_PARTNERS)) {
-      queryFilter +=
-          " AND p." + COLUMN_ARCHIVE + " = TRUE AND lower(p." + COLUMN_FULL_NAME + ") LIKE ?";
+    boolean student = UserDto.ROLE_STUDENT.equals(userRole);
+    List<String> conditions = new ArrayList<String>();
+    List<String> parameters = new ArrayList<String>();
+    if (FILTER_COUNTRY.equals(filter)) {
+      conditions.add("c." + CountryDao.COLUMN_CODE + " = ?");
+      parameters.add(value);
+    } else if (FILTER_ARCHIVED_PARTNERS.equals(filter)) {
+      conditions.add("p." + COLUMN_ARCHIVE + " = TRUE");
+      conditions.add("lower(p." + COLUMN_FULL_NAME + ") LIKE ?");
+      parameters.add("%" + value.toLowerCase() + "%");
+    } else if (!FILTER_ALL_PARTNERS.equals(filter)) {
+      throw new IllegalArgumentException("Unknown partner filter: " + filter);
     }
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT + queryFilter)) {
-      if (!filter.equals(FILTER_ALL_PARTNERS)) {
-        if (filter.equals(FILTER_COUNTRY)) {
-          stmt.setString(1, value);
-          if (userRole.equals(UserDto.ROLE_STUDENT)) {
-            stmt.setString(2, option);
-          }
-        } else {
-          stmt.setString(1, "%" + value.toLowerCase() + "%");
-        }
-      } else {
-        if (userRole.equals(UserDto.ROLE_STUDENT)) {
-          stmt.setString(1, option);
-        }
+    if (student && !FILTER_ARCHIVED_PARTNERS.equals(filter)) {
+      conditions.add("p." + COLUMN_ARCHIVE + " = FALSE");
+      conditions.add("p." + COLUMN_STATUS_OFFICIAL + " = TRUE");
+      conditions.add(HAS_OPTION);
+      parameters.add(option);
+    }
+    String where = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
+    try (PreparedStatement stmt =
+        dalBackendServices.prepareStatement(SQL_SELECT + where + SQL_ORDER)) {
+      for (int i = 0; i < parameters.size(); i++) {
+        stmt.setString(i + 1, parameters.get(i));
       }
       try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          partners.add(populatePartnerDto(rs));
-        }
+        return readPartners(rs);
       }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
-    return partners;
   }
 
   @Override
@@ -177,6 +190,34 @@ class PartnerDaoImpl implements PartnerDao {
       ps.setInt(12, partner.getId());
       ps.setInt(13, partner.getVersion());
     }
+  }
+
+  /**
+   * Reads the rows of {@link #SQL_SELECT} (ordered by partner): one partner per id, with the
+   * options of its rows.
+   *
+   * @param rs the rows
+   * @return the partners, in the order of the rows
+   */
+  private List<PartnerDto> readPartners(ResultSet rs) throws SQLException {
+    Map<Integer, PartnerDto> partners = new LinkedHashMap<Integer, PartnerDto>();
+    while (rs.next()) {
+      PartnerDto partner = partners.get(rs.getInt(1));
+      if (partner == null) {
+        partner = populatePartnerDto(rs);
+        partner.setOptions(new ArrayList<PartnerOptionDto>());
+        partners.put(partner.getId(), partner);
+      }
+      String optionCode = rs.getString(18);
+      if (optionCode != null) {
+        PartnerOptionDto option = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+        option.setCode(optionCode);
+        option.setDepartement(rs.getString(19));
+        option.setName(rs.getString(20));
+        partner.getOptions().add(option);
+      }
+    }
+    return new ArrayList<PartnerDto>(partners.values());
   }
 
   /**

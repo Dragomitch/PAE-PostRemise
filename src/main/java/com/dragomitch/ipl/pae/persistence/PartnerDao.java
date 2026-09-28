@@ -37,18 +37,23 @@ public interface PartnerDao {
    * Queries the database for a partner based on it's partner_id.
    * 
    * @param id : the partner_id of the partner we want to find
-   * @return the PartnerDto containing the data we were looking for
+   * @return the PartnerDto containing the data we were looking for, with all its options (an empty
+   *         list if it has none), or null if there is no such partner
    */
   PartnerDto findById(int id);
 
   /**
-   * Queries the database for all partners.
+   * Queries the database for all partners matching a filter, each with all its options.
    * 
-   * @param filter : the filter we want to apply.
+   * @param filter : the filter we want to apply: {@link #FILTER_ALL_PARTNERS},
+   *        {@link #FILTER_COUNTRY} (country code {@code value}) or {@link #FILTER_ARCHIVED_PARTNERS}
+   *        (archived partners whose full name contains {@code value}, case-insensitively).
    * @param value : the value of the filter.
-   * @param userRole : the role of the user.
+   * @param userRole : the role of the user; students only get the official, non-archived partners
+   *        offering their option (except with the archived filter).
    * @param option : the option of the user.
-   * @return a List of all PartnerDto
+   * @return a List of all PartnerDto, ordered by id
+   * @throws IllegalArgumentException if the filter is unknown
    */
   List<PartnerDto> findAll(String filter, String value, String userRole, String option);
 
