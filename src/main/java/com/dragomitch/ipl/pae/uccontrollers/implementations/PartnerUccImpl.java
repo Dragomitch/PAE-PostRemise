@@ -77,7 +77,7 @@ class PartnerUccImpl implements PartnerUcc {
     partner.setProgramme(programmeDao.findById(partner.getProgramme().getId()));
     partner.setOptions(partnerOptionDao.findAllOptionsByPartner(id));
     List<MobilityChoiceDto> mobilityChoices = mobilityChoiceDao.findByActivePartner(id);
-    partner.setArchivable(mobilityChoices.size() > 0 ? false : true);
+    partner.setArchivable(mobilityChoices.isEmpty());
     return partner;
   }
 

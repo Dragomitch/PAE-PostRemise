@@ -16,6 +16,8 @@ import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 
@@ -75,6 +77,18 @@ class PartnerControllerTest {
             .with(TestUsers.student()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(2));
+  }
+
+  @Test
+  void anUnknownFilterIs400WithItsCatalogueError() throws Exception {
+    when(partnerUcc.showAll("whatever", "x", UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
+        .thenThrow(new BusinessException(ErrorFormat.INVALID_PARTNER_FILTER_709));
+
+    mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=whatever&value=x")
+            .with(TestUsers.student()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(709))
+        .andExpect(jsonPath("$.developerMessage").isNotEmpty());
   }
 
   @Test

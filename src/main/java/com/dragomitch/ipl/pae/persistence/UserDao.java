@@ -57,11 +57,27 @@ public interface UserDao {
   UserDto findBy(String columnName, String columnValue);
 
   /**
-   * Changes the user's role to 'professor' in the database.
-   * 
-   * @param id the user id
+   * Changes the role of the user having that id to 'professor' and increments its version, with
+   * optimistic locking. Only the role and the version are written: prefer it to
+   * {@link #update(UserDto)} when the id is known (e.g. from the API path).
+   *
+   * @param userId the user id
+   * @param expectedVersion the version the caller read
+   * @return the new version of the user
+   * @throws java.util.ConcurrentModificationException if no user has that id and version
    */
-  void promoteToProfessor(int id); // update(UserDto user) ?
+  int promoteToProfessor(int userId, int expectedVersion);
+
+  /**
+   * Same as {@link #promoteToProfessor(int, int)} for a user known by its (unique) username, e.g.
+   * the login a professor gives to promote a colleague.
+   *
+   * @param username the username (case-sensitive)
+   * @param expectedVersion the version the caller read
+   * @return the new version of the user
+   * @throws java.util.ConcurrentModificationException if no user has that username and version
+   */
+  int promoteToProfessor(String username, int expectedVersion);
 
   /**
    * Updates the user data in the database with the contents of the UserDto's fields.

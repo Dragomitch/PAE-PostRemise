@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -19,6 +20,7 @@ import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
 import java.time.LocalDateTime;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -111,6 +113,42 @@ class UserControllerTest {
             .with(TestUsers.professor()))
         .andExpect(status().isOk());
     verify(userUcc).promoteToProfessor(3);
+  }
+
+  @Test
+  void aConcurrentPromotionIs400WithTheCatalogueMessage() throws Exception {
+    doThrow(new ConcurrentModificationException()).when(userUcc).promoteToProfessor(3);
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(ErrorFormat.CONCURRENT_MODIFICATION_120))
+        .andExpect(jsonPath("$.developerMessage")
+            .value(org.hamcrest.Matchers.containsString("modified or deleted in the meantime")));
+  }
+
+  @Test
+  void promoteByUsernameTakesTheUsernameFromThePathAndReturnsTheUser() throws Exception {
+    UserDto promoted = user(4, "Bob.Dupont");
+    promoted.setRole(UserDto.ROLE_PROFESSOR);
+    promoted.setVersion(2);
+    when(userUcc.promoteToProfessorByUsername("Bob.Dupont")).thenReturn(promoted);
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/Bob.Dupont/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(4))
+        .andExpect(jsonPath("$.role").value(UserDto.ROLE_PROFESSOR))
+        .andExpect(jsonPath("$.version").value(2))
+        .andExpect(jsonPath("$.password").doesNotExist());
+    verify(userUcc).promoteToProfessorByUsername("Bob.Dupont");
+  }
+
+  @Test
+  void promoteByUsernameNeedsTheCsrfToken() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote")
+            .with(TestUsers.professor()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

@@ -24,8 +24,9 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
       VALUES (?, ?, ?)""";
 
   private static final String SQL_SELECT = """
-      SELECT po.option_code, po.partner_id, po.departement
-        FROM student_exchange_tools.partner_options po""";
+      SELECT po.option_code, po.partner_id, po.departement, o.name
+        FROM student_exchange_tools.partner_options po
+        JOIN student_exchange_tools.options o ON o.option_code = po.option_code""";
 
   private final EntityFactory entityFactory;
   private final JdbcClient jdbcClient;
@@ -54,11 +55,12 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
         .param(partnerId).query(this::toPartnerOptionDto).list());
   }
 
-  /** The option code and the department; the partner is the one queried. */
+  /** The option code, its name and the department; the partner is the one queried. */
   private PartnerOptionDto toPartnerOptionDto(ResultSet rs, int rowNum) throws SQLException {
     PartnerOptionDto partnerOption = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
     partnerOption.setCode(rs.getString(1));
     partnerOption.setDepartement(rs.getString(3));
+    partnerOption.setName(rs.getString(4));
     return partnerOption;
   }
 

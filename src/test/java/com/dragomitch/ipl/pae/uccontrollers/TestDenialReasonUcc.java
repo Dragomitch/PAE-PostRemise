@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
+
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +99,17 @@ public class TestDenialReasonUcc {
   }
 
   @Test
+  public void aReasonLongerThanTheColumnIsReportedOnceAsTooLong() {
+    denialReason.setReason("x".repeat(DenialReasonDao.MAX_LENGTH_REASON + 1));
+
+    BusinessException ex =
+        assertThrows(BusinessException.class, () -> denialReasonUcc.create(denialReason));
+    assertEquals(List.of(ErrorFormat.MAX_LENGTH_REASON_OVERFLOW_402),
+        ex.getError().getDetails().stream().map(ErrorFormat::getErrorCode).toList());
+    assertEquals(0, denialReasonUcc.showAll().size());
+  }
+
+  @Test
   public void testEditTC1() {
     assertThrows(IllegalArgumentException.class, () -> {
       denialReasonUcc.edit(0, denialReason);
@@ -123,6 +137,23 @@ public class TestDenialReasonUcc {
     denialReason.setReason(newOne);
     denialReasonUcc.edit(1, denialReason);
     assertEquals(newOne, denialReasonUcc.showAll().get(0).getReason(), "The update is not correctly done for the field reason");
+  }
+
+  @Test
+  public void editUpdatesTheReasonIdentifiedByThePath() {
+    denialReasonUcc.create(denialReason);
+    DenialReasonDto second = mockDtoFactory.getDenialReason();
+    second.setReason("Second");
+    denialReasonUcc.create(second);
+    DenialReasonDto body = mockDtoFactory.getDenialReason();
+    body.setId(1);
+    body.setReason("Edited");
+
+    DenialReasonDto edited = denialReasonUcc.edit(2, body);
+
+    assertEquals(2, edited.getId());
+    assertEquals("no reason whatsoever", denialReasonDao.findById(1).getReason());
+    assertEquals("Edited", denialReasonDao.findById(2).getReason());
   }
 
   @Test

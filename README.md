@@ -38,7 +38,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and validation logic in the `business` package.
 3. Examine the controllers in `web` for the available API endpoints and their roles (`@PreAuthorize`).
-4. Review the SQL scripts under `SQLRessources` to understand the schema.
+4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
 ## Building

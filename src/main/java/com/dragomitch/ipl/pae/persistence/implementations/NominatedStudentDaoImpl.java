@@ -60,15 +60,13 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
   /**
    * {@inheritDoc}
    *
-   * <p>Legacy behaviour kept: the row is inserted with the version of the DTO (usually 0) while
-   * the returned DTO has version 1.
+   * <p>The row is inserted with the version of the DTO (the user's), which the DTO keeps.
    */
   @Override
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent) {
     DataAccess.run(() -> bindColumns(jdbcClient.sql(SQL_INSERT).param(nominatedStudent.getId()),
         nominatedStudent).param(nominatedStudent.getAddress().getId())
         .param(nominatedStudent.getVersion()).update());
-    nominatedStudent.setVersion(1);
     return nominatedStudent;
   }
 

@@ -10,8 +10,10 @@ public final class DataValidationUtils {
   private static final String REGEX_EMAIL = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
       + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
   private static final String REGEX_PHONE_NUMBER = "^\\+?[0-9\\.\\/]+$";
-  private static final String REGEX_IBAN =
-      "^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$";
+  /** Country code, 2 check digits, then the national account number (letters and digits). */
+  private static final String REGEX_IBAN = "^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]+$";
+  /** The shortest IBANs (Norway) have 15 characters. */
+  private static final int IBAN_MIN_LENGTH = 15;
   private static final String REGEX_BIC =
       "^([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?)$";
 
@@ -47,17 +49,28 @@ public final class DataValidationUtils {
   }
 
   /**
-   * Checks if the given iban respects the correct format.
+   * Checks if the given iban is valid (ISO 13616): country code, check digits and account number,
+   * between 15 characters and {@link NominatedStudentDao#IBAN_MAX_LENGTH} (the column size), whose
+   * check digits verify (ISO 7064 MOD 97-10). Letters may be lower case; spaces are not allowed.
    * 
    * @param iban the iban String to check, may be null
    * @return true if the String is a valid iban
    */
   public static boolean isAValidIban(String iban) {
-    if (!isAValidString(iban)) {
+    if (!isAValidString(iban) || iban.length() < IBAN_MIN_LENGTH
+        || iban.length() > NominatedStudentDao.IBAN_MAX_LENGTH
+        || !stringMatchesRegex(iban, REGEX_IBAN)) {
       return false;
     }
-    return stringMatchesRegex(iban, REGEX_IBAN)
-        && (iban.length() <= NominatedStudentDao.IBAN_MAX_LENGTH);
+    // move the country code and the check digits to the end, read letters as 10..35, mod 97
+    String rearranged = iban.substring(4) + iban.substring(0, 4);
+    int remainder = 0;
+    for (char character : rearranged.toCharArray()) {
+      int value = Character.getNumericValue(character);
+      remainder = (value > 9 ? remainder * 100 : remainder * 10) + value;
+      remainder %= 97;
+    }
+    return remainder == 1;
   }
 
   /**

@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 
+import java.sql.SQLException;
 import java.util.ConcurrentModificationException;
 import java.util.function.Supplier;
 
@@ -24,7 +25,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  *       {@code @Version} aggregates) is a {@link ConcurrentModificationException};</li>
  *   <li>any other database error is a {@link FatalException}, including the
  *       {@link DbActionExecutionException} in which Spring Data wraps the failure of an insert or
- *       an update.</li>
+ *       an update. Its cause is the {@link SQLException} reported by the driver when there is one
+ *       (as with the former hand-written JDBC DAOs), otherwise the Spring exception itself.</li>
  * </ul>
  */
 final class DataAccess {
@@ -51,8 +53,21 @@ final class DataAccess {
       stale.initCause(ex);
       throw stale;
     } catch (DataAccessException | DbActionExecutionException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
+      throw new FatalException(FatalException.DATABASE_ERROR_MSG, sqlCause(ex));
     }
+  }
+
+  /**
+   * The first {@link SQLException} in the cause chain of a Spring exception, the exception itself
+   * if there is none.
+   */
+  private static Throwable sqlCause(RuntimeException ex) {
+    for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+      if (cause instanceof SQLException) {
+        return cause;
+      }
+    }
+    return ex;
   }
 
   /**

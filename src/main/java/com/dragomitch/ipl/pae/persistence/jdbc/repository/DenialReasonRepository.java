@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 public interface DenialReasonRepository extends ListCrudRepository<DenialReasonEntity, Integer> {
 
   /**
-   * Replaces the text of a reason. Unlike {@code save}, which throws when no row is updated, an
-   * unknown id is silently ignored (the contract of {@code DenialReasonDao.update}).
+   * Replaces the text of a reason. The caller reports an unknown id (0 rows) itself, as a
+   * {@code ConcurrentModificationException} (the contract of {@code DenialReasonDao.update}).
    *
    * @param id the reason id
    * @param reason the new text

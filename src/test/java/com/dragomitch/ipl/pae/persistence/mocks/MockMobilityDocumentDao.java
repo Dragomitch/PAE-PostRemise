@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.persistence.DocumentDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class MockMobilityDocumentDao implements MobilityDocumentDao, ResettableMock {
@@ -45,8 +46,10 @@ public class MockMobilityDocumentDao implements MobilityDocumentDao, ResettableM
       if (mobilityDocument.getDocumentId() == documentId
           && mobilityDocument.getMobilityId() == mobilityId) {
         mobilityDocument.fillIn();
+        return;
       }
     }
+    throw new ConcurrentModificationException();
   }
 
   @Override
