@@ -469,6 +469,17 @@ public class TestMobilityChoiceUcc {
   }
 
   @Test
+  public void aChoiceWithADenialReasonCannotBeRejectedAgainWhateverTheReasonText() {
+    DenialReasonDto withoutText = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    withoutText.setId(denialReason.getId());
+    mobilityChoice.setDenialReason(withoutText);
+
+    BusinessException ex = assertThrows(BusinessException.class,
+        () -> mobilityChoiceUcc.reject(mobilityChoice.getId(), denialReason.getId()));
+    assertEquals(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317, ex.getError().getErrorCode());
+  }
+
+  @Test
   public void testRejectTC5() {
     assertThrows(BusinessException.class, () -> {
       mobilityChoice.setCancellationReason(CANCELLATION_REASON);

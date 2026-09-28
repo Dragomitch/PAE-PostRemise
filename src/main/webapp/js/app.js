@@ -579,7 +579,7 @@ var debugg = 1;
             {
               mData: function (o, type) {
                 var $cellContents = '';
-                if (o.country.countryCode !== undefined) {
+                if (o.country !== undefined) {
                   $cellContents = '<img src="/images/flags/'
                       + o.country.countryCode
                       + '.png" alt="Drapeau" class="flags">';
@@ -661,7 +661,7 @@ var debugg = 1;
             {
               mData: function (o, type) {
                 var $cellContents = '';
-                if (o.country.countryCode !== undefined) {
+                if (o.country !== undefined) {
                   $cellContents = '<img src="/images/flags/'
                       + o.country.countryCode
                       + '.png" alt="Drapeau" class="flags">';

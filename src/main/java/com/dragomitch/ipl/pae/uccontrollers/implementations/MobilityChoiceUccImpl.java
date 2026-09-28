@@ -195,8 +195,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityChoice == null) {
         throw new RessourceNotFoundException();
       }
-      if (mobilityChoice.getCancellationReason() != null || (mobilityChoice.getDenialReason() != null
-          && mobilityChoice.getDenialReason().getReason() != null)) {
+      if (mobilityChoice.getCancellationReason() != null
+          || mobilityChoice.getDenialReason() != null) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       DenialReasonDto denialReason = denialReasonDao.findById(reason);
@@ -317,7 +317,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
             && choice.getTerm() == mobilityChoice.getTerm()
             && choice.getCancellationReason() == null
-            && (choice.getDenialReason() == null || choice.getDenialReason().getReason() == null)) {
+            && choice.getDenialReason() == null) {
           reject(choice.getId(), 1);
         }
       }

@@ -45,7 +45,8 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       + ", mc." + COLUMN_PROGRAMME + ", p." + ProgrammeDao.COLUMN_NAME + ", mc." + COLUMN_COUNTRY
       + ", mc." + COLUMN_SUBMISSION_DATE + ", mc." + COLUMN_PROF_DENIAL_REASON + ", mc."
       + COLUMN_STUDENT_CANCELLATION_REASON + ", mc." + COLUMN_PARTNER + ", pa."
-      + PartnerDao.COLUMN_FULL_NAME + ", mc.version" + " FROM " + SCHEMA_NAME + "."
+      + PartnerDao.COLUMN_FULL_NAME + ", mc.version, c." + CountryDao.COLUMN_NAME + ", dr."
+      + DenialReasonDao.COLUMN_REASON + " FROM " + SCHEMA_NAME + "."
       + UserDao.TABLE_NAME + " u, " + SCHEMA_NAME + "." + OptionDao.TABLE_NAME + " op, "
       + SCHEMA_NAME + "." + ProgrammeDao.TABLE_NAME + " p, " + SCHEMA_NAME + "." + TABLE_NAME
       + " mc " + " LEFT OUTER JOIN " + SCHEMA_NAME + "." + CountryDao.TABLE_NAME + " c ON mc."
@@ -183,7 +184,11 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       stmt.setInt(3, mobilityChoice.getAcademicYear());
       stmt.setInt(4, mobilityChoice.getTerm());
       stmt.setInt(5, mobilityChoice.getProgramme().getId());
-      stmt.setString(6, mobilityChoice.getCountry().getCountryCode());
+      if (mobilityChoice.getCountry() == null) {
+        stmt.setNull(6, java.sql.Types.CHAR);
+      } else {
+        stmt.setString(6, mobilityChoice.getCountry().getCountryCode());
+      }
       stmt.setTimestamp(7, Timestamp.valueOf(mobilityChoice.getSubmissionDate()));
       if (mobilityChoice.getDenialReason() == null) {
         stmt.setNull(8, java.sql.Types.INTEGER);
@@ -303,13 +308,21 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     programme.setId(rs.getInt(11));
     programme.setProgrammeName(rs.getString(12));
     mobilityChoice.setProgramme(programme);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    country.setCountryCode(rs.getString(13));
-    mobilityChoice.setCountry(country);
+    // the country is optional (LEFT JOIN): no country object without a country code
+    String countryCode = rs.getString(13);
+    if (countryCode == null) {
+      mobilityChoice.setCountry(null);
+    } else {
+      CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+      country.setCountryCode(countryCode);
+      country.setName(rs.getString(20));
+      mobilityChoice.setCountry(country);
+    }
     mobilityChoice.setSubmissionDate(rs.getTimestamp(14).toLocalDateTime());
     if (rs.getInt(15) > 0) {
       DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
       denialReason.setId(rs.getInt(15));
+      denialReason.setReason(rs.getString(21));
       mobilityChoice.setDenialReason(denialReason);
     } else {
       mobilityChoice.setDenialReason(null);

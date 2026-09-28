@@ -95,7 +95,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void findByIdMapsEveryFieldAndJoinsUserOptionProgrammeAndPartner() {
+  void findByIdMapsEveryFieldAndJoinsUserOptionProgrammeCountryAndPartner() {
     MobilityChoiceDto choice = inTransaction(() -> mobilityChoiceDao.findById(5001));
 
     assertThat(choice.getId()).isEqualTo(5001);
@@ -112,7 +112,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
     assertThat(choice.getProgramme().getId()).isEqualTo(1);
     assertThat(choice.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
     assertThat(choice.getCountry().getCountryCode()).isEqualTo("FR");
-    assertThat(choice.getCountry().getName()).as("country name is not joined").isNull();
+    assertThat(choice.getCountry().getName()).isEqualTo("France");
     assertThat(choice.getSubmissionDate()).isEqualTo(LocalDateTime.of(2025, 1, 5, 10, 0));
     assertThat(choice.getDenialReason()).isNull();
     assertThat(choice.getCancellationReason()).isNull();
@@ -122,20 +122,19 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   }
 
   @Test
-  void findByIdMapsAbsentPartnerCountryAndPresentDenialAndCancellation() {
+  void findByIdMapsAbsentPartnerAndCountryAndJoinsTheDenialReason() {
     runInTransaction(() -> {
       assertThat(mobilityChoiceDao.findById(5002).getPartner()).isNull();
 
       MobilityChoiceDto canceled = mobilityChoiceDao.findById(5003);
-      // a country object is always built, with a null code when the choice has no country
-      assertThat(canceled.getCountry()).isNotNull();
-      assertThat(canceled.getCountry().getCountryCode()).isNull();
+      assertThat(canceled.getCountry()).as("no country").isNull();
       assertThat(canceled.getCancellationReason()).isEqualTo("Changed my mind");
       assertThat(canceled.getVersion()).isEqualTo(2);
 
       MobilityChoiceDto rejected = mobilityChoiceDao.findById(5004);
       assertThat(rejected.getDenialReason().getId()).isEqualTo(4001);
-      assertThat(rejected.getDenialReason().getReason()).as("reason text is not joined").isNull();
+      assertThat(rejected.getDenialReason().getReason()).isEqualTo("Dossier incomplet");
+      assertThat(rejected.getCountry().getName()).isEqualTo("Canada");
       assertThat(rejected.getUser().getOption().getCode()).isEqualTo("BCH");
     });
   }
@@ -301,13 +300,26 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
     runInTransaction(() -> {
       MobilityChoiceDto choice = mobilityChoiceDao.findById(5003);
       choice.setCancellationReason(cancellation);
-      choice.getCountry().setCountryCode("FR");
+      choice.setCountry(country("FR"));
 
       mobilityChoiceDao.update(choice);
 
       assertThat(queryForRow(CHOICE_BY_ID, 5003)).containsEntry("student_cancellation_reason", null)
           .containsEntry("prof_denial_reason", null).containsEntry("partner", null)
-          .containsEntry("version", 3);
+          .containsEntry("country", "FR").containsEntry("version", 3);
+    });
+  }
+
+  @Test
+  void updateOfAChoiceWithoutCountryKeepsTheCountryNull() {
+    runInTransaction(() -> {
+      MobilityChoiceDto canceled = mobilityChoiceDao.findById(5003);
+      canceled.setTerm(2);
+
+      mobilityChoiceDao.update(canceled);
+
+      assertThat(queryForRow(CHOICE_BY_ID, 5003)).containsEntry("country", null)
+          .containsEntry("term", 2);
     });
   }
 
