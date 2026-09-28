@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class MockMobilityDocumentDao implements MobilityDocumentDao {
+public class MockMobilityDocumentDao implements MobilityDocumentDao, ResettableMock {
 
   private List<MobilityDocument> mobilityDocuments;
   private DocumentDao documentDao;
@@ -50,6 +50,11 @@ public class MockMobilityDocumentDao implements MobilityDocumentDao {
       }
     }
     throw new ConcurrentModificationException();
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {

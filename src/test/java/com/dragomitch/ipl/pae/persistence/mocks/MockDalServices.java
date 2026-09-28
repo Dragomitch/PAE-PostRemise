@@ -7,7 +7,7 @@ import com.dragomitch.ipl.pae.persistence.DalServices;
  * {@code openConnection}/{@code closeConnection} and of the transactions is tracked so that the
  * tests can check that a use case always releases what it took, also when it fails.
  */
-public class MockDalServices implements DalServices {
+public class MockDalServices implements DalServices, ResettableMock {
 
   private int openConnections;
   private int openTransactions;
@@ -60,6 +60,7 @@ public class MockDalServices implements DalServices {
   }
 
   /** Forgets everything (a previous test may have left an unbalanced state on purpose). */
+  @Override
   public void reset() {
     openConnections = 0;
     openTransactions = 0;

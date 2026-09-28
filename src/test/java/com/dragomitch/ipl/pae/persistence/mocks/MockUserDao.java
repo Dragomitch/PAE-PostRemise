@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class MockUserDao implements UserDao {
+public class MockUserDao implements UserDao, ResettableMock {
 
   private List<UserDto> users;
 
@@ -80,6 +80,11 @@ public class MockUserDao implements UserDao {
   @Override
   public boolean isEmpty() {
     return users.isEmpty();
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {

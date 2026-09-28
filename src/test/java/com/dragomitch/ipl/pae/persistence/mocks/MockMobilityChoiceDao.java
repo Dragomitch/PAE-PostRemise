@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockMobilityChoiceDao implements MobilityChoiceDao {
+public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock {
 
   private List<MobilityChoiceDto> mobilityChoices;
 
@@ -46,6 +46,11 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
   public void update(MobilityChoiceDto mobilityChoice) {
     mobilityChoices.set(mobilityChoice.getId() - 1, mobilityChoice);
     mobilityChoice.setVersion(mobilityChoice.getVersion() + 1);
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {
@@ -86,6 +91,6 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
         mobilityChoicesForPartner.add(mobilityChoices);
       }
     }
-    return null;
+    return mobilityChoicesForPartner;
   }
 }

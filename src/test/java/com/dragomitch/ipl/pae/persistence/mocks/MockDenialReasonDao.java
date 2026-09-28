@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class MockDenialReasonDao implements DenialReasonDao {
+public class MockDenialReasonDao implements DenialReasonDao, ResettableMock {
   private List<DenialReasonDto> denialReasons;
 
   public MockDenialReasonDao() {
@@ -42,6 +42,11 @@ public class MockDenialReasonDao implements DenialReasonDao {
     denialReasonDto.setVersion(denialReasons.get(denialReasonDto.getId() - 1).getVersion() + 1);
     denialReasons.set(denialReasonDto.getId() - 1, denialReasonDto);
     return denialReasonDto;
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {

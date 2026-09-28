@@ -3,33 +3,23 @@ package com.dragomitch.ipl.pae.uccontrollers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DalServices;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDalServices;
-import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
-import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
 import com.dragomitch.ipl.pae.presentation.exceptions.UnauthenticatedUserException;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * A use case releases the connection (and the transaction) it opened, also when it fails.
  */
-@SpringJUnitConfig(UnitTestConfig.class)
-class ConnectionHandlingTest {
+class ConnectionHandlingTest extends AbstractUccTest {
 
   @Autowired
   private DalServices dalServices;
-  @Autowired
-  private MockUserDao userDao;
-  @Autowired
-  private MockPartnerDao partnerDao;
   @Autowired
   private OptionUcc optionUcc;
   @Autowired
@@ -41,13 +31,6 @@ class ConnectionHandlingTest {
 
   private MockDalServices dal() {
     return (MockDalServices) dalServices;
-  }
-
-  @BeforeEach
-  void reset() {
-    dal().reset();
-    userDao.empty();
-    partnerDao.empty();
   }
 
   @AfterEach

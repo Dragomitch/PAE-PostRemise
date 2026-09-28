@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestPartnerUcc {
+public class TestPartnerUcc extends AbstractUccTest {
 
   @Autowired
   private ApplicationContext context;

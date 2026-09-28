@@ -16,7 +16,7 @@ import java.util.Map;
  * id of its user (primary key), is stored with the version carried by the DTO, and is updated
  * with optimistic locking.
  */
-public class MockNominatedStudentDao implements NominatedStudentDao {
+public class MockNominatedStudentDao implements NominatedStudentDao, ResettableMock {
 
   private Map<Integer, NominatedStudentDto> nominatedStudents;
   // the stored versions, kept apart because the stored DTO is shared with the callers
@@ -60,6 +60,11 @@ public class MockNominatedStudentDao implements NominatedStudentDao {
     nominatedStudents.put(nominatedStudent.getId(), nominatedStudent);
     versions.put(nominatedStudent.getId(), stored + 1);
     return nominatedStudent;
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {

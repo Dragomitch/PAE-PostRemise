@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestDenialReasonUcc {
+public class TestDenialReasonUcc extends AbstractUccTest {
 
   @Autowired
   private ApplicationContext context;
