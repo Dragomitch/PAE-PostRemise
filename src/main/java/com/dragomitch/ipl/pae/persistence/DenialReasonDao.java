@@ -38,9 +38,14 @@ public interface DenialReasonDao {
   /**
    * Update an row in the Database with the data provided by the denialReason Object. The id of the
    * row affected is the one into the denialReason object.
+   *
+   * <p>The denial_reasons table has no version column, so there is no optimistic locking: the last
+   * write wins. Like the other DAOs, an update that matches no row is reported as a
+   * {@link java.util.ConcurrentModificationException}.
    * 
    * @param denialReasonDto the new data we want to set for the id
    * @return the denialReasonDto containing the updated data
+   * @throws java.util.ConcurrentModificationException if no denial reason has that id
    */
   DenialReasonDto update(DenialReasonDto denialReasonDto);
 
