@@ -104,7 +104,7 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 Reproduce locally with `mvn verify` and `cd frontend && npm run test:ci`.
 
 ## Roadmap
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the CI/CD proposals, the Spring / Spring Boot improvements and the open behaviour decisions.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the CI/CD proposals, the Spring / Spring Boot improvements and the behaviour decisions.
 
 ## Upgrade tasks
 See [UPGRADE_TASKS.md](UPGRADE_TASKS.md) for the Spring migration status.

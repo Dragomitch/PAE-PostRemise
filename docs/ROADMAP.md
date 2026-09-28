@@ -62,20 +62,20 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S29 | Serve the Angular build from the backend or retire the legacy jQuery UI once the Angular app covers its screens | Two UIs to maintain; legacy one is French-only | One i18n'd UI | 💡 |
 | S30 | Spring Modulith (or ArchUnit) tests to enforce the layering web → service → persistence | Layering by convention | Build fails on violations | 💡 |
 
-## 3. Behaviour decisions to take
+## 3. Behaviour decisions
 
-The new tests pin these behaviours without changing them, because changing them is a product
-decision. Each one is documented next to the test that pins it.
+The DAO and use-case tests pinned these behaviours. All but D10 have since been decided and fixed,
+each in its own `fix:` commit with the test that proves it.
 
-| # | Behaviour | Where |
+| # | Behaviour | Status |
 |---|---|---|
-| D1 | A partner with no option is invisible to every partner query (inner join on `partner_options`). | `PartnerDaoImpl` |
-| D2 | A mobility whose choice has no partner is invisible to every mobility query. | `MobilityDaoImpl` |
-| D3 | `confirmPayment` accepts the first payment whatever the mobility state, not only "A payer"; the first filled-in document always moves a mobility to "En préparation". | `MobilityUccImpl` |
-| D4 | `confirmDocument` does not refuse a cancelled or closed mobility. | `MobilityUccImpl` |
-| D5 | `POST /partners/{id}` (add an option) has no ownership check: any authenticated user can add options to any partner. | `PartnerController` / `PartnerUccImpl` |
-| D6 | `PartnerUcc.edit` answers 500 when the option list contains a `null` element (add `List<@NotNull …>`). | `PartnerDto` |
-| D7 | `DenialReasonDao.update` has no optimistic locking; `NominatedStudent.create` stores the DTO's version but returns 1. | DAO ITs |
-| D8 | The demo IBAN in `SQLRessources/demo.sql` fails the MOD-97 check introduced by `@Iban`. | `demo.sql` |
-| D9 | The `countries` table uses retired codes (CS, AN) and lacks RS, ME, SS, CW, SX, BQ, BL, GG, JE (flags already exist). | `init.sql` |
-| D10 | Legacy UI (`src/main/webapp`) is French-only; only server messages are localized. Porting its screens to the Angular app (S29) removes the need to translate it. | `app.js` |
+| D1 | A partner with no option was invisible to every partner query (inner join on `partner_options`). | Fixed in #89: LEFT JOIN, `EXISTS` for the student filter |
+| D2 | A mobility whose choice has no partner was invisible to every mobility (and payment) query. | Fixed in #89 |
+| D3 | `confirmPayment` accepted a payment whatever the mobility state. | Fixed in #92: only in "A payer" / "Solde à payer", 409 `PAYMENT_NOT_EXPECTED` otherwise; a programme without departure document starts "A payer" |
+| D4 | `confirmDocument` did not refuse a cancelled or closed mobility. | Fixed in #92 |
+| D5 | `POST /partners/{id}` (add an option) had no ownership check. | Fixed in #92: professors any partner, students only a non-official partner of their own choices |
+| D6 | `PartnerUcc.edit` answered 500 when the option list contained a `null` element. | Fixed in #92: `List<@NotNull @Valid PartnerOptionDto>` |
+| D7 | `DenialReasonDao.update` ignored an unknown id; `NominatedStudent.create` stored the DTO's version but returned 1. | Fixed in #89: 0 rows → `ConcurrentModificationException` (no version column added); `create` returns the stored version |
+| D8 | IBANs in `demo.sql` and the fixtures failed the MOD-97 check. | Fixed in #89 |
+| D9 | The `countries` table lacked RS, ME, SS, CW, SX, BQ, BL, GG, JE. | Fixed in #89 (`init.sql` and `SQLRessources/add-missing-countries.sql`); CS and AN kept |
+| D10 | Legacy UI (`src/main/webapp`) is French-only; only server messages are localized. Porting its screens to the Angular app (S29) removes the need to translate it. | Open |
