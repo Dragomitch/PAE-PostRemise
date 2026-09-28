@@ -30,10 +30,12 @@ public class ProgrammeUccImpl implements ProgrammeUcc {
   @Route(method = HttpMethod.GET, template = "/programmes/{id}")
   public ProgrammeDto showOne(@PathParameter("id") int id) {
     DataValidationUtils.checkPositive(id);
-    dalServices.openConnection();//TODO Improve with the unitOfWork
-    ProgrammeDto programme = programmeDao.findById(id);
-    dalServices.closeConnection();
-    return programme;
+    dalServices.openConnection();
+    try {
+      return programmeDao.findById(id);
+    } finally {
+      dalServices.closeConnection();
+    }
   }
 
   @Override
@@ -41,9 +43,11 @@ public class ProgrammeUccImpl implements ProgrammeUcc {
   @Route(method = HttpMethod.GET, template = "/programmes")
   public List<ProgrammeDto> showAll() {
     dalServices.openConnection();
-    List<ProgrammeDto> programmes = programmeDao.findAll();
-    dalServices.closeConnection();
-    return programmes;
+    try {
+      return programmeDao.findAll();
+    } finally {
+      dalServices.closeConnection();
+    }
   }
 
 }

@@ -1,0 +1,84 @@
+package com.dragomitch.ipl.pae.uccontrollers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.persistence.DalServices;
+import com.dragomitch.ipl.pae.persistence.mocks.MockDalServices;
+import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
+import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
+import com.dragomitch.ipl.pae.presentation.exceptions.UnauthenticatedUserException;
+
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+/**
+ * A use case releases the connection (and the transaction) it opened, also when it fails.
+ */
+@SpringJUnitConfig(UnitTestConfig.class)
+class ConnectionHandlingTest {
+
+  @Autowired
+  private DalServices dalServices;
+  @Autowired
+  private MockUserDao userDao;
+  @Autowired
+  private MockPartnerDao partnerDao;
+  @Autowired
+  private OptionUcc optionUcc;
+  @Autowired
+  private ProgrammeUcc programmeUcc;
+  @Autowired
+  private SessionUcc sessionUcc;
+  @Autowired
+  private PartnerUcc partnerUcc;
+
+  private MockDalServices dal() {
+    return (MockDalServices) dalServices;
+  }
+
+  @BeforeEach
+  void reset() {
+    dal().reset();
+    userDao.empty();
+    partnerDao.empty();
+  }
+
+  @AfterEach
+  void everythingWasReleased() {
+    assertThat(dal().getOpenConnections()).as("open connections").isZero();
+    assertThat(dal().getOpenTransactions()).as("open transactions").isZero();
+  }
+
+  private void assertFails(ThrowingCallable call, Class<? extends Throwable> expected) {
+    assertThatThrownBy(call).isInstanceOf(expected);
+  }
+
+  @Test
+  void anUnknownOptionReleasesTheConnection() {
+    assertFails(() -> optionUcc.findAllPartnersByOption("XXX"), RessourceNotFoundException.class);
+  }
+
+  @Test
+  void aSuccessfulReadReleasesTheConnection() {
+    assertThat(optionUcc.showAll()).hasSize(5);
+    assertThat(programmeUcc.showAll()).isNotEmpty();
+    assertThat(programmeUcc.showOne(1).getProgrammeName()).isEqualTo("Erasmus+");
+  }
+
+  @Test
+  void aFailedSigninReleasesTheConnection() {
+    assertFails(() -> sessionUcc.signin("nobody", "secret"), UnauthenticatedUserException.class);
+  }
+
+  @Test
+  void theOptionsOfAnUnknownPartnerReleaseTheConnection() {
+    assertFails(() -> partnerUcc.findAllPartnerOption(42), RessourceNotFoundException.class);
+  }
+}

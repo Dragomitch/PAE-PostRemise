@@ -35,10 +35,12 @@ class OptionUccImpl implements OptionUcc {
   @Override
   @Route(method = HttpMethod.GET, template = "/options")
   public List<OptionDto> showAll() {
-    dalServices.openConnection();//TODO Use unit Of Work ?
-    List<OptionDto> optionList = optionDao.findAll();
-    dalServices.closeConnection();
-    return optionList;
+    dalServices.openConnection();
+    try {
+      return optionDao.findAll();
+    } finally {
+      dalServices.closeConnection();
+    }
   }
 
   @Override
@@ -47,14 +49,14 @@ class OptionUccImpl implements OptionUcc {
   public List<PartnerDto> findAllPartnersByOption(@PathParameter("optionCode") String optionCode) {
     checkString(optionCode);
     dalServices.openConnection();
-    if (optionDao.findByCode(optionCode) == null) {
+    try {
+      if (optionDao.findByCode(optionCode) == null) {
+        throw new RessourceNotFoundException();
+      }
+      return partnerOptionDao.findAllPartnersByOption(optionCode);
+    } finally {
       dalServices.closeConnection();
-      throw new RessourceNotFoundException();
     }
-    List<PartnerDto> partner = null;
-    partner = partnerOptionDao.findAllPartnersByOption(optionCode);
-    dalServices.closeConnection();
-    return partner;
   }
 
 }

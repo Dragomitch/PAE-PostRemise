@@ -220,14 +220,15 @@ class PartnerUccImpl implements PartnerUcc {
   @Route(method = HttpMethod.GET, template = "/partners/partnersOptions/{id}")
   public List<PartnerOptionDto> findAllPartnerOption(@PathParameter("id") int partnerId) {
     checkPositive(partnerId);
-    dalServices.openConnection();//TODO Use UnitOfWork ?
-    if (partnerDao.findById(partnerId) == null) {
+    dalServices.openConnection();
+    try {
+      if (partnerDao.findById(partnerId) == null) {
+        throw new RessourceNotFoundException();
+      }
+      return partnerOptionDao.findAllOptionsByPartner(partnerId);
+    } finally {
       dalServices.closeConnection();
-      throw new RessourceNotFoundException();
     }
-    List<PartnerOptionDto> partnerOptions = partnerOptionDao.findAllOptionsByPartner(partnerId);
-    dalServices.closeConnection();
-    return partnerOptions;
   }
 
   @Override
