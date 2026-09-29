@@ -181,6 +181,9 @@ INSERT INTO student_exchange_tools.programmes
 VALUES (DEFAULT, 'FAME', 'Mobi-FAME');
 
 -- Inserts countries
+-- programme_id: 1 = Erasmus+ programme countries, 2 = Belgium (Erabel), 3 = FAME (all others).
+-- CS (Serbia and Montenegro) and AN (Netherlands Antilles) no longer exist but are kept, as data
+-- may reference them; their successors RS, ME, CW, SX and BQ are listed too.
 
 INSERT INTO student_exchange_tools.countries VALUES
   ('AF', 'Afghanistan', 3, 1),
@@ -423,6 +426,15 @@ INSERT INTO student_exchange_tools.countries VALUES
   ('WS', 'Samoa', 3, 1),
   ('YE', 'Yémen', 3, 1),
   ('CS', 'Serbie-et-Monténégro', 3, 1),
+  ('RS', 'Serbie', 1, 1),
+  ('ME', 'Monténégro', 3, 1),
+  ('SS', 'Soudan du Sud', 3, 1),
+  ('CW', 'Curaçao', 3, 1),
+  ('SX', 'Saint-Martin (partie néerlandaise)', 3, 1),
+  ('BQ', 'Bonaire, Saint-Eustache et Saba', 3, 1),
+  ('BL', 'Saint-Barthélemy', 3, 1),
+  ('GG', 'Guernesey', 3, 1),
+  ('JE', 'Jersey', 3, 1),
   ('ZM', 'Zambie', 3, 1);
 
 -- Inserts departure documents

@@ -56,13 +56,18 @@ public class Route implements Comparable<Route> {
     return contentType;
   }
 
+  /**
+   * Orders the routes by HTTP method, then by template. As '{' sorts after letters and digits, a
+   * literal segment comes before a placeholder at the same position, so that "/x/count" is tried
+   * before "/x/{id}".
+   */
   @Override
   public int compareTo(Route that) {
     int compare;
     if ((compare = this.httpMethod.getWeight() - that.httpMethod.getWeight()) != 0) {
       return compare;
     }
-    return this.pathTemplate.toString().compareTo(that.toString());
+    return this.pathTemplate.toString().compareTo(that.pathTemplate.toString());
   }
 
   @Override

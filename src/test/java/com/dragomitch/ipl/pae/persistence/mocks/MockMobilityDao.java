@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MockMobilityDao implements MobilityDao {
+public class MockMobilityDao implements MobilityDao, ResettableMock {
 
   private MobilityChoiceDao mobilityChoiceDao;
   private EntityFactory entityFactory;
@@ -68,6 +68,11 @@ public class MockMobilityDao implements MobilityDao {
   public MobilityDto update(MobilityDto mobility) {
     mobility.setVersion(mobility.getVersion() + 1);
     return mobility;
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {

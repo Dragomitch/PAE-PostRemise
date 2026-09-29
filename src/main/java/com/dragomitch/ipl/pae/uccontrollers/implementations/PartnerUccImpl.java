@@ -95,15 +95,23 @@ class PartnerUccImpl implements PartnerUcc {
   @Route(method = HttpMethod.GET, template = "/partners/{id}")
   public PartnerDto showOne(@PathParameter("id") int id) {
     checkPositive(id);
-    unitOfWork.startTransaction();
-    PartnerDto partner = partnerDao.findById(id);
-    partner.setAddress(addressDao.findById(partner.getAddress().getId()));
-    partner.setProgramme(programmeDao.findById(partner.getProgramme().getId()));
-    partner.setOptions(partnerOptionDao.findAllOptionsByPartner(id));
-    List<MobilityChoiceDto> mobilityChoices = mobilityChoiceDao.findByActivePartner(id);
-    partner.setArchivable(mobilityChoices.size() > 0 ? false : true);
-    unitOfWork.commit();
-    return partner;
+    try {
+      unitOfWork.startTransaction();
+      PartnerDto partner = partnerDao.findById(id);
+      if (partner == null) {
+        throw new RessourceNotFoundException();
+      }
+      partner.setAddress(addressDao.findById(partner.getAddress().getId()));
+      partner.setProgramme(programmeDao.findById(partner.getProgramme().getId()));
+      partner.setOptions(partnerOptionDao.findAllOptionsByPartner(id));
+      List<MobilityChoiceDto> mobilityChoices = mobilityChoiceDao.findByActivePartner(id);
+      partner.setArchivable(mobilityChoices.isEmpty());
+      unitOfWork.commit();
+      return partner;
+    } catch (Exception ex) {
+      unitOfWork.rollback();
+      throw ex;
+    }
   }
 
   /**
@@ -220,20 +228,22 @@ class PartnerUccImpl implements PartnerUcc {
   @Route(method = HttpMethod.GET, template = "/partners/partnersOptions/{id}")
   public List<PartnerOptionDto> findAllPartnerOption(@PathParameter("id") int partnerId) {
     checkPositive(partnerId);
-    dalServices.openConnection();//TODO Use UnitOfWork ?
-    if (partnerDao.findById(partnerId) == null) {
+    dalServices.openConnection();
+    try {
+      if (partnerDao.findById(partnerId) == null) {
+        throw new RessourceNotFoundException();
+      }
+      return partnerOptionDao.findAllOptionsByPartner(partnerId);
+    } finally {
       dalServices.closeConnection();
-      throw new RessourceNotFoundException();
     }
-    List<PartnerOptionDto> partnerOptions = partnerOptionDao.findAllOptionsByPartner(partnerId);
-    dalServices.closeConnection();
-    return partnerOptions;
   }
 
   @Override
   @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
   @Route(method = HttpMethod.PUT, template = "/partners/{id}/restore")
-  public PartnerDto restore(@PathParameter("id") int id, @SessionParameter("role") String role) {
+  public PartnerDto restore(@PathParameter("id") int id,
+      @SessionParameter(SessionUcc.USER_ROLE) String role) {
     checkPositive(id);
     PartnerDto partner = null;
     try {

@@ -74,7 +74,6 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
       stmt.setInt(12, nominatedStudent.getAddress().getId());
       stmt.setInt(13, nominatedStudent.getVersion());
       stmt.execute();
-      nominatedStudent.setVersion(1);
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }

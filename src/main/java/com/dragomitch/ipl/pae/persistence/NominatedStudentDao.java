@@ -30,9 +30,15 @@ public interface NominatedStudentDao {
 
   /**
    * Inserts a nominatedStudent into the database.
+   *
+   * <p>A nominated student is the student part of a user (same id) and shares the version of that
+   * user: {@code NominatedStudentUcc.edit} updates both rows with the same expected version. The
+   * row is therefore stored with the version carried by the DTO (the user's), which is also the
+   * version of the returned DTO.
    * 
-   * @param nominatedStudent , the nominatedStudent to be inserted in the database.
-   * @return the nominatedStudent inserted in the database
+   * @param nominatedStudent , the nominatedStudent to be inserted in the database, carrying the id
+   *        and the version of its user.
+   * @return the nominatedStudent inserted in the database, with the stored version
    */
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent);
 

@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorManager;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
@@ -51,7 +52,7 @@ public class ExceptionHandler extends ResponseHandler {
       case IllegalArgumentException e ->
           httpStatusCode = HttpStatus.BAD_REQUEST.value();
       case ConcurrentModificationException e -> {
-          error = new ErrorFormat(ErrorFormat.CONCURRENT_MODIFICATION_120);
+          error = ErrorManager.getError(ErrorFormat.CONCURRENT_MODIFICATION_120);
           httpStatusCode = HttpStatus.BAD_REQUEST.value();
         }
       case BusinessException e -> {
@@ -62,18 +63,17 @@ public class ExceptionHandler extends ResponseHandler {
           logger.error("FatalException", e);
           httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
-      default -> httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+      default -> {
+          logger.error("Unexpected exception", exception);
+          httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        }
     }
-    logger.info("Handling " + exception.getClass().getSimpleName() + ": " + httpStatusCode + " "
-        + HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
+    logger.info("Handling {}: {} {}", exception.getClass().getSimpleName(), httpStatusCode,
+        HttpStatus.valueOf(httpStatusCode).getReasonPhrase());
     if (exception.getMessage() != null) {
-      logger.info("Message: " + exception.getMessage());
+      logger.info("Message: {}", exception.getMessage());
     }
-    if (exception.getCause() != null) {
-      logger.info("Cause: {}", exception.getCause());
-    }
-    // TODO Supprimer cela avant la remise
-    exception.printStackTrace();
+    logger.debug("Stack trace", exception);
     resp.setStatus(httpStatusCode);
     if (error != null) {
       writeResponse(error, "json/application", resp);

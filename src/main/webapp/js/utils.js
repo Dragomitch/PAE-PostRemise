@@ -94,8 +94,29 @@ var Utils = (function() {
     }
 
     // Public API
+    // A mobility (or payment) may come from a choice without country or partner: the API then
+    // leaves the property out.
+    function flag(country) {
+        if (country === undefined || country.countryCode === undefined) {
+            return '';
+        }
+        return '<img src="/images/flags/' + country.countryCode + '.png" class="flags" alt="'
+            + (country.name === undefined ? 'Drapeau' : country.name) + '">';
+    }
+
+    function countryName(country) {
+        return (country === undefined || country.name === undefined) ? '' : country.name;
+    }
+
+    function partnerName(partner) {
+        return (partner === undefined || partner.fullName === undefined) ? '' : partner.fullName;
+    }
+
     return {
         animate: animate,
+        flag: flag,
+        countryName: countryName,
+        partnerName: partnerName,
         serializeForm: serializeForm,
         populateForm: populateForm,
         departureStr: departureStr,

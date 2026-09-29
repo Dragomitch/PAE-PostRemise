@@ -43,8 +43,13 @@ class SessionUccImpl implements SessionUcc {
       @HttpParameter("password") String password) {
     checkString(username);
     checkString(password);
-    dalServices.openConnection();//TODO Use Unit Of Work ?
-    User user = (User) userDao.findBy(UserDao.COLUMN_USERNAME, username);
+    User user;
+    dalServices.openConnection();
+    try {
+      user = (User) userDao.findBy(UserDao.COLUMN_USERNAME, username);
+    } finally {
+      dalServices.closeConnection();
+    }
     if (user == null) {
       logger.info("User not found in database");
       throw new UnauthenticatedUserException();
@@ -53,7 +58,6 @@ class SessionUccImpl implements SessionUcc {
       logger.info("Wrong password");
       throw new UnauthenticatedUserException();
     }
-    dalServices.closeConnection();
     return user;
   }
 
@@ -62,9 +66,11 @@ class SessionUccImpl implements SessionUcc {
   @Route(method = HttpMethod.GET)
   public UserDto showAuthenticatedUser(@SessionParameter(USER_ID) int id) {
     dalServices.openConnection();
-    UserDto currentUser = userDao.findById(id);
-    dalServices.closeConnection();
-    return currentUser;
+    try {
+      return userDao.findById(id);
+    } finally {
+      dalServices.closeConnection();
+    }
   }
 
   @Override

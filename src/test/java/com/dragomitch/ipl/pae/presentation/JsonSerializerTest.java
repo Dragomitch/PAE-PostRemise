@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +51,19 @@ class JsonSerializerTest {
 
     assertFalse(json.contains("secret123"), json);
     assertFalse(json.contains("\"password\""), json);
+  }
+
+  @Test
+  void leavesAbsentPropertiesOut() {
+    MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+    choice.setMobilityType("SMS");
+
+    String json = serializer.serialize(choice);
+
+    // the legacy web UI tests optional properties with "=== undefined"
+    assertTrue(json.contains("\"mobilityType\":\"SMS\""), json);
+    assertFalse(json.contains("partner"), json);
+    assertFalse(json.contains("null"), json);
   }
 
   @Test

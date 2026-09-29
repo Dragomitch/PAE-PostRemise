@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.presentation;
 
+import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.logging.LogManager;
 import com.dragomitch.ipl.pae.presentation.annotations.ApiCollection;
 import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
@@ -37,7 +38,10 @@ class RouteResolver {
           PathTemplate pathTemplate = new PathTemplate(endpoint + annotRoute.template());
           Route route = new Route(annotRoute.method(), pathTemplate, ucc.getClass(), ucc, method,
               annotRoute.contentType());
-          routes.add(route);
+          if (!routes.add(route)) {
+            throw new FatalException("Duplicate route: " + route.getHttpMethod() + " "
+                + pathTemplate + " (" + route + ")");
+          }
         }
       }
     }

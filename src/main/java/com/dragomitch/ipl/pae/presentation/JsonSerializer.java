@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.presentation;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -22,6 +23,9 @@ public class JsonSerializer {
     this.mapper = new ObjectMapper();
     this.mapper.registerModule(new JavaTimeModule());
     this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    // Absent values are left out, as the legacy serializer did: the web UI tests optional
+    // properties (partner, country, denialReason...) with "=== undefined".
+    this.mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     this.mapper.registerModule(abstractTypesModule(entityFactory));
   }
 

@@ -30,7 +30,7 @@ public class TestNominatedStudent {
   private static final String PHONE_NUMBER = "+32493";
   private static final String GENDER = "M";
   private static final int NBR_PASSED_YEARS = 2;
-  private static final String IBAN = "BE92732143130176";
+  private static final String IBAN = "BE68539007547034";
   private static final String CARD_HOLDER = "Card holder";
   private static final String BANK_NAME = "KBC";
   private static final String BIC = "KREDBEBB";

@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 @Repository
@@ -85,7 +86,11 @@ class DenialReasonDaoImpl implements DenialReasonDao {
     try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_UPDATE)) {
       stmt.setString(1, denialReason.getReason());
       stmt.setInt(2, denialReason.getId());
-      stmt.execute();
+      if (stmt.executeUpdate() == 0) {
+        // denial_reasons has no version column: an update can only miss a deleted/unknown row
+        throw new ConcurrentModificationException(
+            "Denial reason " + denialReason.getId() + " does not exist (any more)");
+      }
     } catch (SQLException ex) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }

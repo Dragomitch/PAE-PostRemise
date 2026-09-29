@@ -1,13 +1,15 @@
 package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockMobilityChoiceDao implements MobilityChoiceDao {
+public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock {
 
   private List<MobilityChoiceDto> mobilityChoices;
 
@@ -24,6 +26,11 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
 
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
+    if (!List.of(FILTER_ALL_MOBILITIES_CHOICES, FILTER_ACTIVE_MOBILITIES_CHOICES,
+        FILTER_CANCELED_MOBILITIES_CHOICES, FILTER_REJECTED_MOBILITIES_CHOICES,
+        FILTER_PASSED_MOBILITIES_CHOICES).contains(filter)) {
+      throw new BusinessException(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323);
+    }
     return mobilityChoices;
   }
 
@@ -39,6 +46,11 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
   public void update(MobilityChoiceDto mobilityChoice) {
     mobilityChoices.set(mobilityChoice.getId() - 1, mobilityChoice);
     mobilityChoice.setVersion(mobilityChoice.getVersion() + 1);
+  }
+
+  @Override
+  public void reset() {
+    empty();
   }
 
   public void empty() {
@@ -79,6 +91,6 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao {
         mobilityChoicesForPartner.add(mobilityChoices);
       }
     }
-    return null;
+    return mobilityChoicesForPartner;
   }
 }

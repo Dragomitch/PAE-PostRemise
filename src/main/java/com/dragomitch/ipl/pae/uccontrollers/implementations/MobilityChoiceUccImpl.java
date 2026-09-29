@@ -10,6 +10,7 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
+import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
@@ -19,11 +20,13 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.logging.LogManager;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -48,6 +51,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 class MobilityChoiceUccImpl implements MobilityChoiceUcc {
+
+  private static final Logger logger = LogManager.getLogger(MobilityChoiceUccImpl.class.getName());
 
   private UserDao userDao;
   private MobilityChoiceDao mobilityChoiceDao;
@@ -191,8 +196,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityChoice == null) {
         throw new RessourceNotFoundException();
       }
-      if (mobilityChoice.getCancellationReason() != null || (mobilityChoice.getDenialReason() != null
-          && mobilityChoice.getDenialReason().getReason() != null)) {
+      if (mobilityChoice.getCancellationReason() != null
+          || mobilityChoice.getDenialReason() != null) {
         throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
       }
       DenialReasonDto denialReason = denialReasonDao.findById(reason);
@@ -215,7 +220,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   @Role({UserDto.ROLE_PROFESSOR})
   @Route(method = HttpMethod.PUT, template = "/mobilitychoices/{id}/confirm")
-  @SuppressWarnings("unused")
   public void confirm(@PathParameter("id") int id, @SessionParameter("userId") int userId) {
     checkPositive(id);
     try {
@@ -238,7 +242,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       mobility.setState(Mobility.STATE_CREATED);
       mobility.setSubmissionDate(LocalDateTime.now());
 
-      UserDto user = userDao.findById(userId);
       mobility.setProfessorInCharge(userDao.findById(userId));
       mobilityDao.create(mobility);
       List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
@@ -248,9 +251,11 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
           UserDto.ROLE_PROFESSOR);
       for (MobilityChoiceDto choice : mobilityChoices) {
+        // the other open choices of the same term are rejected; closed ones are left as they are
         if (choice.getId() != mobilityChoice.getId()
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
-            && choice.getTerm() == mobilityChoice.getTerm()) {
+            && choice.getTerm() == mobilityChoice.getTerm()
+            && choice.getCancellationReason() == null && choice.getDenialReason() == null) {
           reject(choice.getId(), 1);
         }
       }
@@ -286,16 +291,18 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (mobilityDao.findById(id) != null) {
         throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_321);
       }
-      mobilityChoice.setCountry(partner.getAddress().getCountry());
-      if (!mobilityChoice.getCountry().getCountryCode()
-          .equals(partner.getAddress().getCountry().getCountryCode())) {
-        throw new BusinessException(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320);
-      }
       if (!isPositive(partner.getId())) {
         partner = partnerUcc.create(partner, userRole);
       } else {
         partner = partnerUcc.restore(partner.getId(), userRole);
       }
+      // the partner must be in the country the student chose, if any
+      CountryDto partnerCountry = partner.getAddress().getCountry();
+      if (mobilityChoice.getCountry() != null && !mobilityChoice.getCountry().getCountryCode()
+          .equals(partnerCountry.getCountryCode())) {
+        throw new BusinessException(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320);
+      }
+      mobilityChoice.setCountry(partnerCountry);
       MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
       mobility.setId(id);
       mobility.setState(Mobility.STATE_CREATED);
@@ -313,7 +320,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
             && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
             && choice.getTerm() == mobilityChoice.getTerm()
             && choice.getCancellationReason() == null
-            && (choice.getDenialReason() == null || choice.getDenialReason().getReason() == null)) {
+            && choice.getDenialReason() == null) {
           reject(choice.getId(), 1);
         }
       }
@@ -438,7 +445,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     } catch (BusinessException ex) {
       List<ErrorFormat> errors = ex.getError().getDetails();
       for (ErrorFormat oneError : errors) {
-        System.out.println("error : " + oneError.getErrorCode() + " " + oneError.getDeveloperMessage());
         violations.add(oneError.getErrorCode());
       }
     }
@@ -462,7 +468,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
     }
     if (violations.size() > 0) {
-      System.out.println("violations : " + violations.get(0));
+      logger.debug("Invalid mobility choice, violations: {}", violations);
       throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
     }
   }

@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
+import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
 import java.sql.PreparedStatement;
@@ -25,7 +26,9 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
 
   private static final String SQL_SELECT =
       "SELECT po." + COLUMN_OPTION_CODE + ", po." + COLUMN_PARTNER_ID + ", po." + COLUMN_DEPARTEMENT
-          + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " po";
+          + ", o." + OptionDao.COLUMN_NAME + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " po JOIN "
+          + SCHEMA_NAME + "." + OptionDao.TABLE_NAME + " o ON o." + OptionDao.COLUMN_CODE + " = po."
+          + COLUMN_OPTION_CODE;
 
   private final EntityFactory entityFactory;
   private final DalBackendServices dalBackendServices;
@@ -50,7 +53,7 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
       stmt.setString(3, partnerOption.getDepartement());
       stmt.execute();
     } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG);
+      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
     }
     return partnerOption;
   }
@@ -100,6 +103,7 @@ class PartnerOptionDaoImpl implements PartnerOptionDao {
     PartnerOptionDto partnerOption = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
     partnerOption.setCode(rs.getString(1));
     partnerOption.setDepartement(rs.getString(3));
+    partnerOption.setName(rs.getString(4));
     return partnerOption;
   }
 

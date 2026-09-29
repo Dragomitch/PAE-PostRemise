@@ -107,10 +107,34 @@ public class UserUccImpl implements UserUcc {
         throw new RessourceNotFoundException();
       }
       if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+        // the id is what the route gives: promote by id, with the version just read
+        user.setVersion(userDao.promoteToProfessor(user.getId(), user.getVersion()));
         user.setRole(UserDto.ROLE_PROFESSOR);
-        unitOfWork.update(user);
       }
       unitOfWork.commit();
+    } catch (Exception ex) {
+      unitOfWork.rollback();
+      throw ex;
+    }
+  }
+
+  @Override
+  @Role({UserDto.ROLE_PROFESSOR})
+  @Route(method = HttpMethod.PUT, template = "/by-username/{username}/promote")
+  public UserDto promoteToProfessorByUsername(@PathParameter("username") String username) {
+    DataValidationUtils.checkString(username);
+    try {
+      unitOfWork.startTransaction();
+      UserDto user = userDao.findBy(UserDao.COLUMN_USERNAME, username);
+      if (user == null) {
+        throw new RessourceNotFoundException();
+      }
+      if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+        user.setVersion(userDao.promoteToProfessor(username, user.getVersion()));
+        user.setRole(UserDto.ROLE_PROFESSOR);
+      }
+      unitOfWork.commit();
+      return user;
     } catch (Exception ex) {
       unitOfWork.rollback();
       throw ex;
