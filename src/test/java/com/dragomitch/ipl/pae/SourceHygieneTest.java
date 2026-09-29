@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Guards against diagnostics that bypass the logging configuration: production code logs through
- * SLF4J ({@code LogManager.getLogger}), never to the console.
+ * SLF4J ({@code LoggerFactory.getLogger}), never to the console.
  */
 class SourceHygieneTest {
 

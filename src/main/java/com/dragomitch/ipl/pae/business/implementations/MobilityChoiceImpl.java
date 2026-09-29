@@ -12,15 +12,12 @@ import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
-@DaoClass(MobilityChoiceDao.class)
 class MobilityChoiceImpl implements MobilityChoice, Serializable {
 
   private static final long serialVersionUID = 1L;
