@@ -1,61 +1,61 @@
 # Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.2.
+Angular 20 client of the Erasmus Management Application. See [`AGENTS.md`](AGENTS.md) for the
+full development guide.
 
 ## Development server
 
-To start a local development server, run:
-
 ```bash
-ng serve
+npm ci
+npm start          # French UI (source locale) on http://localhost:4200/
+npm run start:en   # English UI
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+API calls go to relative `/api/...` URLs; the dev server forwards them to the backend on
+`http://localhost:8080` through `proxy.conf.json`, so start the backend first. In Docker Compose,
+`nginx.conf` does the same towards the `backend` service. Angular's built-in XSRF support sends
+the `XSRF-TOKEN` cookie back as the `X-XSRF-TOKEN` header on mutating requests (Spring Security
+SPA setup); keep URLs relative for it to work.
 
-API calls go to relative `/api/...` URLs; the dev server forwards them to the backend on `http://localhost:8080` through `proxy.conf.json`, so start the backend first. In Docker Compose, `nginx.conf` does the same towards the `backend` service.
+## Internationalization
 
-## Code scaffolding
+The UI uses Angular's built-in, compile-time i18n (`@angular/localize`). French (`fr`) is the
+source locale, English (`en`) is a translation (`src/locale/messages.en.xlf`). A missing
+translation fails the build (`i18nMissingTranslation: "error"`).
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+To add or change a string:
 
-```bash
-ng generate component component-name
-```
+1. Mark it with a stable id: `<p i18n="@@feature.element">Texte en français</p>`,
+   `i18n-<attribute>="@@..."` for attributes, or `` $localize`:@@feature.element:Texte` `` in TypeScript.
+2. `npm run i18n:extract` updates `src/locale/messages.xlf`.
+3. Add the English `<target>` for the id in `src/locale/messages.en.xlf`.
+4. `npm run i18n:check` verifies that the catalog is up to date and every translation is
+   present and current (it also runs in `npm run test:ci`).
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Error handling
 
-```bash
-ng generate --help
-```
+Every backend error is an RFC 9457 `application/problem+json` body (`type`, `title`, `status`,
+`detail`, `instance`, a stable `code` such as `USERNAME_TAKEN`, and `errors[]` for validation),
+localized from the `Accept-Language` header that the app sets from its locale.
+`ApiService` turns every failure into an `ApiProblem` (`src/app/core/api-problem.ts`): the
+backend's localized `detail` is shown when present; otherwise the app shows its own localized
+message (known codes, then network/timeout/server categories). Raw responses are never displayed.
 
 ## Building
 
-To build the project run:
-
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/frontend/browser/` directory. By default, the production build optimizes your application for performance and speed.
+The production build is localized: it writes `dist/frontend/browser/fr/` and
+`dist/frontend/browser/en/`, each with its own `<base href>`. Nginx redirects `/` to the
+preferred language (`Accept-Language`, default French).
 
 ## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
 ```bash
-ng test
+npm test          # interactive Karma
+npm run test:ci   # i18n check + headless run, JUnit and coverage reports, coverage thresholds
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Headless Chrome may need `CHROME_BIN` pointing to a Chrome/Chromium binary.

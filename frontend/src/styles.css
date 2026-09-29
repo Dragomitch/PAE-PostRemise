@@ -1,1 +1,53 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles shared by the pages. */
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+}
+
+.card {
+  max-width: 28rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.notification {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.notification p {
+  margin: 0;
+}
+
+.notification-danger {
+  background: #fdecea;
+  color: #8a1c14;
+}
+
+.notification-success {
+  background: #e7f5ea;
+  color: #1d5b2c;
+}
+
+.field-error {
+  margin: 0;
+  color: #a4251b;
+  font-size: 0.875rem;
+}
+
+.input[aria-invalid='true'] {
+  border-color: #a4251b;
+}
+
+button[disabled] {
+  cursor: progress;
+  opacity: 0.7;
+}
