@@ -1,25 +1,99 @@
 <div class="card">
-  <h2>Inscription</h2>
-  <form (ngSubmit)="submit()">
+  <h1 i18n="@@signup.title">Inscription</h1>
+
+  @if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      @if (otherErrors().length) {
+        <ul>
+          @for (message of otherErrors(); track $index) {
+            <li>{{ message }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <div class="form-group">
-      <input type="text" class="form-control input" name="lastName" [(ngModel)]="form.lastName" placeholder="Nom">
+      <label for="signup-lastName" i18n="@@signup.lastName.label">Nom</label>
+      <input id="signup-lastName" type="text" class="form-control input" formControlName="lastName"
+             autocomplete="family-name" [attr.aria-invalid]="!!errorFor('lastName')"
+             [attr.aria-describedby]="errorFor('lastName') ? 'signup-lastName-error' : null">
+      @if (errorFor('lastName'); as message) {
+        <p class="field-error" id="signup-lastName-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="text" class="form-control input" name="firstName" [(ngModel)]="form.firstName" placeholder="Prénom">
+      <label for="signup-firstName" i18n="@@signup.firstName.label">Prénom</label>
+      <input id="signup-firstName" type="text" class="form-control input" formControlName="firstName"
+             autocomplete="given-name" [attr.aria-invalid]="!!errorFor('firstName')"
+             [attr.aria-describedby]="errorFor('firstName') ? 'signup-firstName-error' : null">
+      @if (errorFor('firstName'); as message) {
+        <p class="field-error" id="signup-firstName-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="text" class="form-control input" name="username" [(ngModel)]="form.username" placeholder="Nom d'utilisateur">
+      <label for="signup-username" i18n="@@signup.username.label">Nom d'utilisateur</label>
+      <input id="signup-username" type="text" class="form-control input" formControlName="username"
+             autocomplete="username" [attr.aria-invalid]="!!errorFor('username')"
+             [attr.aria-describedby]="errorFor('username') ? 'signup-username-error' : null">
+      @if (errorFor('username'); as message) {
+        <p class="field-error" id="signup-username-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="password" class="form-control input" name="password" [(ngModel)]="form.password" placeholder="Mot de passe">
+      <label for="signup-password" i18n="@@signup.password.label">Mot de passe</label>
+      <input id="signup-password" type="password" class="form-control input" formControlName="password"
+             autocomplete="new-password" [attr.aria-invalid]="!!errorFor('password')"
+             [attr.aria-describedby]="errorFor('password') ? 'signup-password-error' : null">
+      @if (errorFor('password'); as message) {
+        <p class="field-error" id="signup-password-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="password" class="form-control input" name="reenterPassword" [(ngModel)]="form.reenterPassword" placeholder="Retapez le mot de passe">
+      <label for="signup-reenterPassword" i18n="@@signup.reenterPassword.label">Retapez le mot de passe</label>
+      <input id="signup-reenterPassword" type="password" class="form-control input" formControlName="reenterPassword"
+             autocomplete="new-password" [attr.aria-invalid]="!!errorFor('reenterPassword')"
+             [attr.aria-describedby]="errorFor('reenterPassword') ? 'signup-reenterPassword-error' : null">
+      @if (errorFor('reenterPassword'); as message) {
+        <p class="field-error" id="signup-reenterPassword-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="email" class="form-control input" name="email" [(ngModel)]="form.email" placeholder="Email">
+      <label for="signup-email" i18n="@@signup.email.label">Adresse e-mail</label>
+      <input id="signup-email" type="email" class="form-control input" formControlName="email"
+             autocomplete="email" [attr.aria-invalid]="!!errorFor('email')"
+             [attr.aria-describedby]="errorFor('email') ? 'signup-email-error' : null">
+      @if (errorFor('email'); as message) {
+        <p class="field-error" id="signup-email-error">{{ message }}</p>
+      }
     </div>
-    <button type="submit" class="btn btn-default btn-lg">S'enregistrer</button>
+    <div class="form-group">
+      <label for="signup-option" i18n="@@signup.option.label">Option</label>
+      <select id="signup-option" class="form-control input" formControlName="option"
+              [attr.aria-invalid]="!!errorFor('option')"
+              [attr.aria-describedby]="errorFor('option') ? 'signup-option-error' : null">
+        <option value="" disabled i18n="@@signup.option.placeholder">Choisissez votre option</option>
+        @for (option of options; track option.code) {
+          <option [value]="option.code">{{ option.label }}</option>
+        }
+      </select>
+      @if (errorFor('option'); as message) {
+        <p class="field-error" id="signup-option-error">{{ message }}</p>
+      }
+    </div>
+    <button type="submit" class="btn btn-default btn-lg" [disabled]="submitting()" [attr.aria-busy]="submitting()">
+      @if (submitting()) {
+        <ng-container i18n="@@signup.submitting">Inscription en cours…</ng-container>
+      } @else {
+        <ng-container i18n="@@signup.submit">S'enregistrer</ng-container>
+      }
+    </button>
   </form>
-  <div class="bottom">Vous avez déjà un compte? <a routerLink="/signin">Connectez-vous</a></div>
+
+  <p class="bottom">
+    <ng-container i18n="@@signup.hasAccount">Vous avez déjà un compte ?</ng-container>
+    <a routerLink="/signin" i18n="@@signup.signinLink">Connectez-vous</a>
+  </p>
 </div>

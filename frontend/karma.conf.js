@@ -26,6 +26,11 @@ module.exports = function (config) {
         { type: 'cobertura', file: 'cobertura-coverage.xml' },
         { type: 'text-summary' },
       ],
+      // Regression guard: coverage of src/app is 100% today; dropping below these fails the run
+      // (and CI). Raise them when coverage goes up, never lower them to make a build pass.
+      check: {
+        global: { statements: 97, branches: 95, functions: 97, lines: 97 },
+      },
     },
     junitReporter: {
       outputDir: require('path').join(__dirname, './reports/junit'),

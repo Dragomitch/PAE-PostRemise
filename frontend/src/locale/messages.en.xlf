@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="fr" target-language="en" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="route.signin.title" datatype="html">
+        <source>Connexion - EMA</source>
+        <target state="translated">Sign in - EMA</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="route.signup.title" datatype="html">
+        <source>Inscription - EMA</source>
+        <target state="translated">Sign up - EMA</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.invalidCredentials" datatype="html">
+        <source>Nom d&apos;utilisateur et/ou mot de passe incorrect.</source>
+        <target state="translated">Incorrect username and/or password.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.usernameTaken" datatype="html">
+        <source>Ce nom d&apos;utilisateur est déjà utilisé.</source>
+        <target state="translated">This username is already taken.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">87</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.emailTaken" datatype="html">
+        <source>Cette adresse e-mail est déjà utilisée.</source>
+        <target state="translated">This email address is already in use.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">89</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.validationFailed" datatype="html">
+        <source>Certaines informations sont invalides. Corrigez les champs indiqués.</source>
+        <target state="translated">Some information is invalid. Please correct the highlighted fields.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.accessDenied" datatype="html">
+        <source>Vous n&apos;avez pas les droits nécessaires pour effectuer cette action.</source>
+        <target state="translated">You do not have permission to perform this action.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">93</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.code.unauthenticated" datatype="html">
+        <source>Votre session a expiré. Veuillez vous reconnecter.</source>
+        <target state="translated">Your session has expired. Please sign in again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">95</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.network" datatype="html">
+        <source>Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.</source>
+        <target state="translated">Unable to reach the server. Check your connection and try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.notFound" datatype="html">
+        <source>La ressource demandée est introuvable.</source>
+        <target state="translated">The requested resource could not be found.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.unavailable" datatype="html">
+        <source>Le service est momentanément indisponible. Réessayez dans quelques instants.</source>
+        <target state="translated">The service is temporarily unavailable. Please try again in a moment.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">127</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.server" datatype="html">
+        <source>Une erreur est survenue sur le serveur. Réessayez plus tard.</source>
+        <target state="translated">Something went wrong on the server. Please try again later.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">133</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.timeout" datatype="html">
+        <source>Le serveur a mis trop de temps à répondre. Réessayez.</source>
+        <target state="translated">The server took too long to respond. Please try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="problem.fallback.unknown" datatype="html">
+        <source>Une erreur inattendue est survenue. Réessayez.</source>
+        <target state="translated">An unexpected error occurred. Please try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/api-problem.ts</context>
+          <context context-type="linenumber">149</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="form.error.required" datatype="html">
+        <source>Ce champ est obligatoire.</source>
+        <target state="translated">This field is required.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/form-errors.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="form.error.email" datatype="html">
+        <source>Saisissez une adresse e-mail valide.</source>
+        <target state="translated">Enter a valid email address.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/form-errors.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="form.error.passwordMismatch" datatype="html">
+        <source>Les mots de passe ne correspondent pas.</source>
+        <target state="translated">Passwords do not match.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/form-errors.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="form.error.invalid" datatype="html">
+        <source>Valeur invalide.</source>
+        <target state="translated">Invalid value.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/form-errors.ts</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="languageSwitcher.ariaLabel" datatype="html">
+        <source>Choix de la langue</source>
+        <target state="translated">Language selection</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/language-switcher/language-switcher.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.title" datatype="html">
+        <source>Bienvenue à bord</source>
+        <target state="translated">Welcome aboard</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.registered" datatype="html">
+        <source> Votre compte a été créé. Vous pouvez maintenant vous connecter. </source>
+        <target state="translated"> Your account has been created. You can now sign in. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">6,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.success" datatype="html">
+        <source> Vous êtes connecté en tant que <x id="NAME" equiv-text="{{ u.firstName || u.username // i18n(ph=&quot;NAME&quot;) }}"/>. </source>
+        <target state="translated"> You are signed in as <x id="NAME" equiv-text="{{ u.firstName || u.username // i18n(ph=&quot;NAME&quot;) }}"/>. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.username.label" datatype="html">
+        <source>Nom d&apos;utilisateur</source>
+        <target state="translated">Username</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">31,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.password.label" datatype="html">
+        <source>Mot de passe</source>
+        <target state="translated">Password</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">40,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.submitting" datatype="html">
+        <source>Connexion en cours…</source>
+        <target state="translated">Signing in…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">50,52</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.submit" datatype="html">
+        <source>Se connecter</source>
+        <target state="translated">Sign in</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">52,54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.noAccount" datatype="html">
+        <source>Vous n&apos;avez pas encore de compte ?</source>
+        <target state="translated">Don&apos;t have an account yet?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">58,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signin.signupLink" datatype="html">
+        <source>Inscrivez-vous</source>
+        <target state="translated">Sign up</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
+          <context context-type="linenumber">59,62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.title" datatype="html">
+        <source>Inscription</source>
+        <target state="translated">Sign up</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.lastName.label" datatype="html">
+        <source>Nom</source>
+        <target state="translated">Last name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">19,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.firstName.label" datatype="html">
+        <source>Prénom</source>
+        <target state="translated">First name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">28,29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.username.label" datatype="html">
+        <source>Nom d&apos;utilisateur</source>
+        <target state="translated">Username</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">37,38</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.password.label" datatype="html">
+        <source>Mot de passe</source>
+        <target state="translated">Password</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">46,47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.reenterPassword.label" datatype="html">
+        <source>Retapez le mot de passe</source>
+        <target state="translated">Confirm password</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">55,56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.email.label" datatype="html">
+        <source>Adresse e-mail</source>
+        <target state="translated">Email address</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">64,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.option.label" datatype="html">
+        <source>Option</source>
+        <target state="translated">Programme</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">73,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.option.placeholder" datatype="html">
+        <source>Choisissez votre option</source>
+        <target state="translated">Choose your programme</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">77,78</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.submitting" datatype="html">
+        <source>Inscription en cours…</source>
+        <target state="translated">Signing up…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">88,90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.submit" datatype="html">
+        <source>S&apos;enregistrer</source>
+        <target state="translated">Sign up</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">90,92</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.hasAccount" datatype="html">
+        <source>Vous avez déjà un compte ?</source>
+        <target state="translated">Already have an account?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">96,97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signup.signinLink" datatype="html">
+        <source>Connectez-vous</source>
+        <target state="translated">Sign in</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.html</context>
+          <context context-type="linenumber">97,100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="option.BIN" datatype="html">
+        <source>Bachelier en informatique de gestion</source>
+        <target state="translated">Bachelor in Business Computing</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="option.BBM" datatype="html">
+        <source>Bachelier en biologie médicale</source>
+        <target state="translated">Bachelor in Biomedical Sciences</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="option.BCH" datatype="html">
+        <source>Bachelier en chimie</source>
+        <target state="translated">Bachelor in Chemistry</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.ts</context>
+          <context context-type="linenumber">38</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="option.BDI" datatype="html">
+        <source>Bachelier en diététique</source>
+        <target state="translated">Bachelor in Dietetics</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.ts</context>
+          <context context-type="linenumber">39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="option.BIM" datatype="html">
+        <source>Bachelier en imagerie médicale</source>
+        <target state="translated">Bachelor in Medical Imaging</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/sign-up/sign-up.ts</context>
+          <context context-type="linenumber">40</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
