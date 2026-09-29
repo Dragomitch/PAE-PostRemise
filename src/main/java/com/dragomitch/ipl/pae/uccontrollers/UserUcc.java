@@ -1,34 +1,45 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.business.validation.ValidationGroups.OnCreate;
 
-import java.util.Map;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.groups.Default;
+import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface UserUcc {
 
 
   /**
    * Return a list of all stored users.
    * 
-   * @return a list of denial reason
+   * @return a list of users
    */
-  Map<String, Object> showAll();
+  List<UserDto> showAll();
 
   /**
    * Registers a new user.
    * 
    * @param user the user to create
    */
-  UserDto signup(UserDto user);
+  @Validated({Default.class, OnCreate.class})
+  UserDto signup(@NotNull @Valid UserDto user);
 
   /**
    * Changes the role of the user to professor.
    * 
    * @param userId the id of the user to promote
-   * @throws com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException if there is no
-   *         such user
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if there is no
+   *         such user (404)
+   * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
-  void promoteToProfessor(int userId);
+  void promoteToProfessor(@Positive int userId);
 
   /**
    * Changes the role of the user having that username to professor. This is the natural entry
@@ -37,10 +48,12 @@ public interface UserUcc {
    *
    * @param username the username of the user to promote
    * @return the user, with its new role and version
-   * @throws com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException if there is no
-   *         such user
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if there is no
+   *         such user (404)
+   * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
-  UserDto promoteToProfessorByUsername(String username);
+  UserDto promoteToProfessorByUsername(
+      @NotBlank @Size(max = UserDto.USERNAME_MAX_LENGTH) String username);
 
   /**
    * Updates the user's information. Note: This method should not be called explicitly.
@@ -50,6 +63,6 @@ public interface UserUcc {
    * @param role the role of the currently signed in user
    * @return the updated UserDto container.
    */
-  UserDto edit(UserDto user, int userId, String role);
+  UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotBlank String role);
 
 }

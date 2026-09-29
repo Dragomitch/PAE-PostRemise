@@ -1,16 +1,11 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.Programme;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 
-@DaoClass(ProgrammeDao.class)
 public class ProgrammeImpl implements Programme, Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -62,13 +57,5 @@ public class ProgrammeImpl implements Programme, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    if (id < 0) {
-      throw new IllegalArgumentException();
-    }
-    checkString(programName);
-    checkString(externalSoftName);
-  }
 
 }

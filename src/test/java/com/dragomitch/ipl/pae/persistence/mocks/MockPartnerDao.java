@@ -2,8 +2,6 @@ package com.dragomitch.ipl.pae.persistence.mocks;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 
 import java.util.ArrayList;
@@ -95,7 +93,7 @@ public class MockPartnerDao implements PartnerDao, ResettableMock {
         return list;
       }
     } else {
-      throw new BusinessException(ErrorFormat.INVALID_PARTNER_FILTER_709);
+      throw new IllegalArgumentException("Unknown partner filter: " + filter);
     }
   }
 
@@ -107,10 +105,6 @@ public class MockPartnerDao implements PartnerDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     partners = new ArrayList<PartnerDto>();
   }

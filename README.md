@@ -6,27 +6,119 @@ This repository contains a web application for managing Erasmus mobilities. It w
 
 ## General structure
 - **src/main/java**
-  - `business` – entity interfaces and implementations (`User`, `Mobility`, …) with validation logic and DTO definitions.
-  - `persistence` – DAO interfaces and their JDBC implementations.
-  - `uccontrollers` – use case controllers that orchestrate business logic and expose API routes.
-  - `presentation` – a lightweight HTTP layer with a custom routing system (`RoutingServlet`).
-  - `config` – Spring configuration (security/JWT, web UI routing).
-  - additional packages include `logging`, `exceptions` and `utils`; `Application` is the Spring Boot entry point.
-- **src/main/resources** contains `application.properties` (Spring configuration) and `errors.json` (error catalogue).
+  - `business` – entity interfaces and implementations (`User`, `Mobility`, …), the DTO interfaces carrying the Bean Validation constraints, the custom constraints (`business/validation`) and the error catalogue (`business/exceptions/ErrorCode`).
+  - `persistence` – DAO interfaces and their implementations: Spring Data JDBC aggregates and repositories (`persistence/jdbc`) behind thin DAO adapters, `JdbcClient` for the join-heavy DAOs.
+  - `uccontrollers` – use cases (`@Service`, `@Transactional`) that orchestrate the business logic and the DAOs.
+  - `web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, and `ApiExceptionHandler` which renders every API error.
+  - `security` – session JWT cookie, current user, CSRF helpers used by the security chain.
+  - `config` – Spring configuration (security chain, JSON mapping, CORS, web UI routing).
+  - additional packages include `exceptions` and `utils`; `Application` is the Spring Boot entry point.
+- **src/main/resources** contains `application.properties` (Spring configuration) and the message bundles `i18n/messages*.properties` (error titles and details, validation messages, in French and English).
 - **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
-- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); `ApplicationTests` boots the whole application without a database.
+- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); the `web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*IT` DAO and repository tests run against an embedded PostgreSQL.
 
 ## Key design aspects
-- **Dependency injection**: Spring (constructor injection). Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation.
-- **Servlet routing**: controllers expose routes through custom annotations that are processed at start-up; `RoutingServlet` serves them under `/api/1.0/*`.
-- **Sessions**: a signed JWT cookie (`session`) backs the HTTP session; authorization is enforced per route with `@Role`.
+- **Layers**: controllers (`web`) → use cases (`uccontrollers`) → DAOs (`persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
+- **REST API**: thin `@RestController`s bind the request (JSON body, path and query parameters, `CurrentUser`), call a use case and return its result. Paths are matched case-insensitively (as the former router did). Lists read by DataTables are wrapped in `{"data": [...]}`; exports are `text/csv`.
+- **Transactions**: every use-case service is `@Transactional` (read-only for queries). The Spring Data repositories and `JdbcClient` run on the connection of the current Spring transaction (`DataSourceUtils`), and the DAOs refuse to run outside one. Updates check the entity version (`@Version`, or `WHERE ... AND version = ?`) and throw a `ConcurrentModificationException`, rendered as a 409 `CONCURRENT_MODIFICATION` problem, on a stale version.
+- **Persistence** (Spring Data JDBC, chosen over JPA because it maps the hand-written schema as it is, with no session, lazy loading or second transaction manager):
+  - `persistence/jdbc/entity`: immutable records mapped with `@Table(schema = "student_exchange_tools", name = ...)`, `@Id`, `@Column` and `@Version`; other aggregates are referenced by id (`AggregateReference`).
+  - `persistence/jdbc/repository`: `ListCrudRepository` interfaces with derived queries and `@Query`/`@Modifying` methods. `JdbcPersistenceConfig` enables them for the application and the integration tests alike.
+  - `persistence/implementations`: the DAO interfaces used by the use cases, implemented by thin adapters that map entities to the DTOs built by `EntityFactory`. `DataAccess` keeps their contract: a transaction is required, a stale version is a `ConcurrentModificationException`, and any other database error is a `FatalException`.
+  - Migrated: options, programmes, countries, documents, denial reasons, addresses and users. Payments (a read model) and the join-heavy DAOs (mobility choices, mobilities, mobility documents, nominated students, partners, partner options) use `JdbcClient`. The migration checklist and the plan for each remaining DAO are in [`backend/AGENTS.md`](backend/AGENTS.md).
+- **Security** (Spring Security, stateless, see `SecurityConfig`):
+  - `POST /api/1.0/session` with `{"username", "password"}` issues an HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the `session` cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when `APP_SESSION_COOKIE_SECURE=true`, valid `APP_SESSION_VALIDITY` (12h). `GET` returns the current user, `DELETE` expires the cookie. No HTTP session is created.
+  - The OAuth2 resource server validates the token from the cookie (or an `Authorization: Bearer` header); the `role` claim becomes `ROLE_PROFESSOR` / `ROLE_STUDENT`, checked by `@PreAuthorize` on the controllers. Every `/api/**` endpoint requires a session except sign-in, sign-up (`POST /users`) and the option list (`GET /options`).
+  - CSRF: the `XSRF-TOKEN` cookie (readable by JavaScript) is issued on every response and must be echoed in the `X-XSRF-TOKEN` header of every `POST`/`PUT`/`DELETE`, sign-in included (Angular does it natively, `app.js` in `$.ajaxSetup`). Requests authenticated by an `Authorization` header are exempt.
+  - Errors (401, 403 included) are RFC 9457 problem details, see [Error contract](#error-contract-rfc-9457-problem-details).
 - **Entry point**: `Application` (Spring Boot, embedded Tomcat).
-- **Validation helpers**: common checks are centralised in `DataValidationUtils`.
+- **Validation**: Bean Validation constraints on the DTOs, the request parameters and the use-case methods, see [Validation conventions](#validation-conventions).
+- **i18n**: French (default) and English messages, chosen from `Accept-Language`, see [Translations](#translations-i18n).
+
+## Error contract (RFC 9457 problem details)
+Every API error, whatever its origin (business rule, validation, Spring MVC, Spring Security, database, unexpected exception), is answered by `ApiExceptionHandler` with `Content-Type: application/problem+json`:
+
+```json
+{
+  "type": "urn:pae:problem:validation-failed",
+  "title": "Données invalides",
+  "status": 400,
+  "detail": "Certaines informations sont invalides. Corrigez les champs indiqués.",
+  "instance": "/api/1.0/users",
+  "code": "VALIDATION_FAILED",
+  "errors": [
+    { "field": "email", "code": "Email", "message": "doit être une adresse e-mail valide" },
+    { "field": "username", "code": "Size", "message": "doit contenir au plus 20 caractères" }
+  ],
+  "timestamp": "2026-09-27T21:41:52.039Z"
+}
+```
+
+| Member | Content |
+|--------|---------|
+| `type` | `urn:pae:problem:<kebab-case code>` |
+| `title`, `detail` | Localized from `Accept-Language` (French by default, English); the detail may name the value (`Le nom d’utilisateur « stud » est déjà utilisé.`) |
+| `status` | The HTTP status |
+| `instance` | The path of the request |
+| `code` | Always present: the stable machine key (`ErrorCode`) clients branch on, never the text |
+| `errors` | Only for `VALIDATION_FAILED`: `field` (path in the body or parameter name, e.g. `address.city`, `options[0].code`, `id`), `code` (constraint name), `message` (localized) |
+| `timestamp` | When the error occurred |
+| `errorId` | Only for 5xx: the reference written in the error log with the stack trace. A 5xx never describes the failure (no SQL, no stack trace) |
+
+Status policy: 400 validation / malformed request, 401/403 security, 404 unknown resource of the URL, 409 conflict with the current state (uniqueness, state of a mobility or choice, stale version), 422 business rule broken by a well-formed request (unknown referenced entity...), 5xx server failures.
+
+| Code | Status | Meaning | Former numeric codes |
+|------|--------|---------|----------------------|
+| `VALIDATION_FAILED` | 400 | Constraints broken, listed in `errors` | 110, 130 and every field code (132-141, 201-216, 302-316, 401-402, 601-619, 701-708, 800-810, 323, 508, 709) |
+| `MALFORMED_REQUEST` | 400 | Unreadable JSON, missing or wrongly typed parameter | - |
+| `UNAUTHENTICATED` | 401 | No, invalid or expired session | 101 |
+| `INVALID_CREDENTIALS` | 401 | Wrong username or password at sign-in | 101 |
+| `ACCESS_DENIED` | 403 | Role, ownership or CSRF check failed (e.g. a student adding an option to a partner that is not a non-official partner of his own choices) | 103 |
+| `RESOURCE_NOT_FOUND` | 404 | Unknown resource of the URL, unknown route | 104 |
+| `METHOD_NOT_ALLOWED` / `NOT_ACCEPTABLE` / `UNSUPPORTED_MEDIA_TYPE` / `PAYLOAD_TOO_LARGE` | 405 / 406 / 415 / 413 | HTTP-level errors | - |
+| `CONCURRENT_MODIFICATION` | 409 | Stale version (optimistic locking) | 120 (was a 400) |
+| `DATA_CONFLICT` | 409 | Database constraint refused the change | - |
+| `USERNAME_TAKEN` / `EMAIL_TAKEN` | 409 | Uniqueness of the account | 204 / 207 |
+| `MOBILITY_CHOICE_ALREADY_CONFIRMED` | 409 | Choice already turned into a mobility | 301, 321 |
+| `MOBILITY_CHOICE_CLOSED` | 409 | Choice already cancelled or rejected | 317 |
+| `PARTNER_REQUIRED_TO_CONFIRM` | 409 | Confirmation without partner | 324 |
+| `MOBILITY_CANCELLED` / `MOBILITY_CLOSED` | 409 | State of the mobility (no document filled in, no payment) | 501 / 502 |
+| `DEPARTURE_DOCUMENTS_INCOMPLETE` / `RETURN_DOCUMENTS_INCOMPLETE` / `DOCUMENTS_INCOMPLETE` | 409 | Documents not filled in | 503 / 504 / 507 |
+| `INCOMPLETE_BANK_DETAILS` | 409 | Payment without IBAN/BIC/bank | 506 |
+| `PAYMENT_NOT_EXPECTED` | 409 | No payment expected in this state (first payment only in `A payer`, second only in `Solde à payer`) | 110 (confirmPayment) |
+| `ALREADY_NOMINATED` | 409 | Personal data already recorded | 618 |
+| `PARTNER_HAS_MOBILITY_CHOICES` / `PARTNER_NOT_ARCHIVED` | 409 | Archive / restore a partner | 710 / 711 |
+| `UNKNOWN_USER` / `UNKNOWN_OPTION` / `UNKNOWN_COUNTRY` / `UNKNOWN_PROGRAMME` / `UNKNOWN_DENIAL_REASON` / `UNKNOWN_DOCUMENT` | 422 | The body references an entity that does not exist | 200 / 210 / 900 / 1000 / 134, 400 / 505 |
+| `PROFESSOR_CANNOT_APPLY` | 422 | A professor applies for himself | 322 |
+| `COUNTRY_CHANGE_NOT_ALLOWED` | 422 | Partner outside the country of the choice | 320 |
+| `PARTNER_OPTION_REQUIRED` | 422 | A partner keeps at least one option | 712 |
+| `DENIAL_REASON_REQUIRED` / `CANCELLATION_REASON_REQUIRED` | 422 | Reason missing to cancel a mobility (professor / student) | 130 |
+| `INTERNAL_ERROR` / `SERVICE_UNAVAILABLE` | 500 / 503 | Server failure, with an `errorId` | 100 |
+
+### Adding an error code
+1. Add a constant to `ErrorCode` with its status (see the policy above).
+2. Add `problem.<CODE>.title` and `problem.<CODE>.detail` to `src/main/resources/i18n/messages.properties` (French) **and** `messages_en.properties`. The detail may use the arguments of the exception (`{0}`, `{1}`); use the typographic apostrophe (`’`), a plain `'` is a quote in these MessageFormat patterns.
+3. Throw `new BusinessException(ErrorCode.MY_CODE, arg0, ...)` from the use case (`ResourceNotFoundException`, `InsufficientPermissionException` and `InvalidCredentialsException` exist for the common cases).
+4. `MessageBundlesTest` fails the build if a translation is missing.
+
+### Translations (i18n)
+- Bundles: `i18n/messages.properties` (French, product language and fallback: an unsupported language gets French, never the server locale) and `i18n/messages_en.properties`, UTF-8 (`spring.messages.*` in `application.properties`).
+- They hold the problem texts (`problem.<CODE>.*`), the texts of the Spring MVC errors (Spring's own message codes `problemDetail.title.<exception class>` / `problemDetail.<exception class>`) and the Bean Validation messages (standard `jakarta.validation.constraints.*.message` keys and the application's `pae.validation.*` keys): Spring Boot's validator resolves the `{key}` templates from the same `MessageSource`.
+- The language is negotiated from `Accept-Language` among `fr` and `en` (`AcceptLanguageLocaleResolver`), for the 401/403 of the security filters too. Both web UIs send the header.
+- To add a language: add `messages_<lang>.properties` with every key, add the locale to `WebConfig.SUPPORTED_LOCALES` and to `MessageBundlesTest`.
+
+## Validation conventions
+- Rules on the data are Bean Validation constraints declared on the **getters of the DTO interfaces** (`business/dto`), e.g. `@NotBlank @Size(max = USERNAME_MAX_LENGTH) String getUsername()`; the lengths are those of the database columns. Custom constraints live in `business/validation`: `@Iban` (format and MOD 97 check digits), `@Bic`, `@PhoneNumber` and the class-level `@FilterValueRequired` (cross-field rule of `PartnerSearch`). Empty values are only reported by `@NotBlank`.
+- Groups (`ValidationGroups`): `Default` for an entity sent in full; `OnCreate` for the extra rules of a creation (password at sign-up, at least one partner option), validated with `@Validated({Default.class, OnCreate.class})`; `Reference` for an entity referenced by another one (`option` of a user, `country` of an address, `user` and `programme` of a mobility choice): the referencing getter uses `@Valid @ConvertGroup(from = Default.class, to = Reference.class)` and only the identifier is checked.
+- Web layer: `@Valid` (or `@Validated(groups)`) on every `@RequestBody`, constraints on `@PathVariable` / `@RequestParam` (`@Positive int id`, `@Pattern` filters). Controllers are not annotated `@Validated`: Spring MVC 6.1 validates the method parameters itself (`HandlerMethodValidationException`).
+- Use-case layer: every `*Ucc` interface is `@Validated` and declares the constraints of its parameters (`@NotNull @Valid`, `@Positive`, `@NotBlank`...), so the rules hold whoever calls the use case (a `ConstraintViolationException`, also answered with `VALIDATION_FAILED`). Parameter constraints are declared on the interface only (Bean Validation forbids redefining them in the implementation).
+- Rules that need the database or the state (uniqueness, existence of a referenced entity, state of a mobility...) stay in the use cases and throw a `BusinessException` with an `ErrorCode`.
+- Tests: `Violations.of(dto)` / `Violations.onCreate(dto)` list the broken constraints as `"field:Constraint"`, `Violations.thrownBy(() -> ucc.call(...))` those of a use case.
 
 ## Getting started
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
-2. Explore the DTOs and validation logic in the `business` package.
-3. Examine the controllers in `uccontrollers` for available API endpoints (look for `@Route`).
+2. Explore the DTOs and their constraints in the `business` package.
+3. Examine the controllers in `web` for the available API endpoints and their roles (`@PreAuthorize`).
 4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
@@ -40,7 +132,7 @@ mvn package
 to compile the sources, run the tests and assemble the final JAR.
 
 ## Suggestions for further learning
-- Dive into the custom annotation-based routing system.
+- Follow a request from a `@RestController` to its `@Transactional` use case, the DAO adapter and the Spring Data repository.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 
@@ -86,6 +178,9 @@ The backend reads the following environment variables:
 | `DB_USERNAME` | Database user | _(empty)_ |
 | `DB_PASSWORD` | Database password | _(empty)_ |
 | `JWT_SECRET` | Secret signing the session cookie, 32+ bytes | random per start (dev only) |
+| `APP_SESSION_VALIDITY` | Lifetime of a session (JWT `exp` and cookie `Max-Age`), e.g. `12h`, `30m` | `12h` |
+| `APP_SESSION_COOKIE_SECURE` | Adds `Secure` to the `session` and `XSRF-TOKEN` cookies (set it behind HTTPS) | `false` |
+| `APP_CORS_ALLOWED_ORIGINS` | Origins allowed to call the API with credentials (comma-separated) | `http://localhost:4200` |
 
 They are resolved in `src/main/resources/application.properties`. Always set `JWT_SECRET` outside local development, otherwise every restart logs everyone out.
 

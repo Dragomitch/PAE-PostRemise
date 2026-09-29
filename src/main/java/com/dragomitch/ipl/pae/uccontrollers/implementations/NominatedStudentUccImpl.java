@@ -1,180 +1,131 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositiveOrZero;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-
-import com.dragomitch.ipl.pae.business.NominatedStudent;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import java.util.LinkedList;
-import java.util.List;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.presentation.annotations.ApiCollection;
-import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.Role;
-import com.dragomitch.ipl.pae.presentation.annotations.Route;
-import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
-import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
-import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
+
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-@ApiCollection(name = "Nominated students", endpoint = "/nominatedStudents")
+/**
+ * Personal data of the nominated students. Their format is checked by the constraints of
+ * {@link NominatedStudentDto}; this class checks the rules that need the database or the
+ * requester.
+ */
 @Service
-public class NominatedStudentUccImpl implements NominatedStudentUcc {
+@Transactional
+class NominatedStudentUccImpl implements NominatedStudentUcc {
 
-  private NominatedStudentDao nominatedStudentDao;
-  private AddressDao addressDao;
-  private AddressUcc addressUcc;
-  private CountryDao countryDao;
-  private UserDao userDao;
-  private UserUcc userUcc;
-  private UnitOfWork unitOfWork;
+  private final NominatedStudentDao nominatedStudentDao;
+  private final AddressDao addressDao;
+  private final AddressUcc addressUcc;
+  private final CountryDao countryDao;
+  private final UserDao userDao;
+  private final UserUcc userUcc;
 
   NominatedStudentUccImpl(NominatedStudentDao nominatedStudentDao, AddressDao addressDao,
-      AddressUcc addressUcc, CountryDao countryDao, UserDao userDao, UserUcc userUcc,
-      UnitOfWork unitOfWork) {
+      AddressUcc addressUcc, CountryDao countryDao, UserDao userDao, UserUcc userUcc) {
     this.nominatedStudentDao = nominatedStudentDao;
     this.addressDao = addressDao;
     this.addressUcc = addressUcc;
     this.countryDao = countryDao;
     this.userDao = userDao;
     this.userUcc = userUcc;
-    this.unitOfWork = unitOfWork;
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
-  @Route(method = HttpMethod.POST)
-  public NominatedStudentDto create(@HttpParameter("data") NominatedStudentDto nominatedStudent,
-      @SessionParameter("userId") int userId, @SessionParameter("userRole") String userRole) {
-    checkObject(nominatedStudent);
+  public NominatedStudentDto create(NominatedStudentDto nominatedStudent, int userId,
+      String userRole) {
     if (userRole.equals(UserDto.ROLE_STUDENT) && userId != nominatedStudent.getId()) {
       throw new InsufficientPermissionException();
     }
-    try {
-      unitOfWork.startTransaction();
-      checkDataIntegrity(nominatedStudent);
-      UserDto user;
-      if ((user = userDao.findById(nominatedStudent.getId())) == null) {
-        // user doesn't exist
-        throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
-      }
-      if (nominatedStudentDao.findById(nominatedStudent.getId()) != null) {
-        // student already exists
-        throw new BusinessException(ErrorFormat.ALREADY_NOMINATED_STUDENT_618);
-      }
-      nominatedStudent.setVersion(user.getVersion());
-      nominatedStudent.setAddress(addressDao.create(nominatedStudent.getAddress()));
-      nominatedStudent = nominatedStudentDao.create(nominatedStudent);
-      unitOfWork.commit();
-      return nominatedStudent;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    checkCountriesExist(nominatedStudent);
+    UserDto user;
+    if ((user = userDao.findById(nominatedStudent.getId())) == null) {
+      // user doesn't exist
+      throw new BusinessException(ErrorCode.UNKNOWN_USER, nominatedStudent.getId());
     }
-
+    if (nominatedStudentDao.findById(nominatedStudent.getId()) != null) {
+      // student already exists
+      throw new BusinessException(ErrorCode.ALREADY_NOMINATED);
+    }
+    defaultCardHolder(nominatedStudent);
+    nominatedStudent.setVersion(user.getVersion());
+    nominatedStudent.setAddress(addressDao.create(nominatedStudent.getAddress()));
+    return nominatedStudentDao.create(nominatedStudent);
   }
 
   @Override
-  @Role({UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.GET, template = "/{id}")
-  public NominatedStudentDto showOne(@PathParameter("id") int id,
-      @SessionParameter("userId") int userId, @SessionParameter("userRole") String role) {
-    checkPositiveOrZero(id);
+  @Transactional(readOnly = true)
+  public NominatedStudentDto showOne(int id, int userId, String role) {
     if (!role.equals(UserDto.ROLE_PROFESSOR) && id != userId) {
       throw new InsufficientPermissionException();
     }
-    try {
-      unitOfWork.startTransaction();
-      NominatedStudentDto nominatedStudent;
-      if ((nominatedStudent = nominatedStudentDao.findById(id)) == null) {
-        throw new RessourceNotFoundException();
-      }
-      AddressDto address = addressDao.findById(nominatedStudent.getAddress().getId());
-      nominatedStudent.setAddress(address);
-      unitOfWork.commit();
-      return nominatedStudent;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    NominatedStudentDto nominatedStudent;
+    if ((nominatedStudent = nominatedStudentDao.findById(id)) == null) {
+      throw new ResourceNotFoundException();
     }
+    AddressDto address = addressDao.findById(nominatedStudent.getAddress().getId());
+    nominatedStudent.setAddress(address);
+    return nominatedStudent;
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.GET)
+  @Transactional(readOnly = true)
   public List<NominatedStudentDto> showAll() {
-    try {
-      unitOfWork.startTransaction();
-      List<NominatedStudentDto> nominatedStudList = nominatedStudentDao.findAll();
-      unitOfWork.commit();
-      return nominatedStudList;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
-    }
+    return nominatedStudentDao.findAll();
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
-  @Route(method = HttpMethod.PUT, template = "/{id}")
-  public NominatedStudentDto edit(@HttpParameter("data") NominatedStudentDto nominatedStudent,
-      @SessionParameter("userId") int userId, @SessionParameter("userRole") String userRole) {
-    checkObject(nominatedStudent);
+  public NominatedStudentDto edit(NominatedStudentDto nominatedStudent, int userId,
+      String userRole) {
     if (userRole.equals(UserDto.ROLE_STUDENT) && userId != ((UserDto) nominatedStudent).getId()) {
       throw new InsufficientPermissionException();
     }
-    try {
-      unitOfWork.startTransaction();
-      checkDataIntegrity(nominatedStudent);
+    checkCountriesExist(nominatedStudent);
+    NominatedStudentDto tempStud = nominatedStudentDao.findById(nominatedStudent.getId());
+    if (tempStud == null) {
+      throw new ResourceNotFoundException();
+    }
+    defaultCardHolder(nominatedStudent);
+    nominatedStudent.getAddress().setId(tempStud.getAddress().getId());
+    nominatedStudent = nominatedStudentDao.update(nominatedStudent);
+    nominatedStudent.setVersion(nominatedStudent.getVersion() - 1);
+    userUcc.edit(nominatedStudent, userId, userRole);
+    AddressDto updatedAddress = addressUcc.edit(nominatedStudent.getAddress());
+    nominatedStudent.getAddress().setVersion(updatedAddress.getVersion());
+    return nominatedStudent;
+  }
 
-      NominatedStudentDto tempStud = nominatedStudentDao.findById(nominatedStudent.getId());
-      if (tempStud == null) {
-        throw new RessourceNotFoundException();
+  /** The nationality and the country of the address must exist. */
+  private void checkCountriesExist(NominatedStudentDto nominatedStudent) {
+    for (String countryCode : List.of(nominatedStudent.getNationality().getCountryCode(),
+        nominatedStudent.getAddress().getCountry().getCountryCode())) {
+      if (countryDao.findById(countryCode) == null) {
+        throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY, countryCode);
       }
-      nominatedStudent.getAddress().setId(tempStud.getAddress().getId());
-      nominatedStudent = nominatedStudentDao.update(nominatedStudent);
-      nominatedStudent.setVersion(nominatedStudent.getVersion() - 1);
-      userUcc.edit(nominatedStudent, userId, userRole);
-      AddressDto updatedAddress = addressUcc.edit(nominatedStudent.getAddress());
-      nominatedStudent.getAddress().setVersion(updatedAddress.getVersion());
-      unitOfWork.commit();
-      return nominatedStudent;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
     }
   }
 
-  private void checkDataIntegrity(NominatedStudentDto nominatedStudent) {
-    List<Integer> violations = new LinkedList<Integer>();
-    try {
-      ((NominatedStudent) nominatedStudent).checkDataIntegrity();
-    } catch (BusinessException ex) {
-      List<ErrorFormat> errors = ex.getError().getDetails();
-      for (ErrorFormat oneError : errors) {
-        violations.add(oneError.getErrorCode());
-      }
-    }
-    if (isAValidObject(nominatedStudent.getNationality())
-        && countryDao.findById(nominatedStudent.getNationality().getCountryCode()) == null) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_CODE_900);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
+  /** The bank account belongs to the student himself when no card holder is given. */
+  private static void defaultCardHolder(NominatedStudentDto nominatedStudent) {
+    if (!StringUtils.hasText(nominatedStudent.getCardHolder())) {
+      String holder = nominatedStudent.getFirstName() + " " + nominatedStudent.getLastName();
+      nominatedStudent.setCardHolder(holder.length() > NominatedStudentDto.CARD_HOLDER_MAX_LENGTH
+          ? holder.substring(0, NominatedStudentDto.CARD_HOLDER_MAX_LENGTH) : holder);
     }
   }
 }

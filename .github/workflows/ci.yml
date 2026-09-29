@@ -120,6 +120,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: reports
+          # only our reports: the docker job also uploads *.dockerbuild build records
+          pattern: '*-reports'
       - name: Publish test results
         uses: mikepenz/action-junit-report@v5
         with:

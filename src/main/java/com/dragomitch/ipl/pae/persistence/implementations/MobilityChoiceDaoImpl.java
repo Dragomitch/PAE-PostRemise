@@ -10,296 +10,214 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
-import com.dragomitch.ipl.pae.persistence.CountryDao;
-import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
-import com.dragomitch.ipl.pae.persistence.MobilityDao;
-import com.dragomitch.ipl.pae.persistence.OptionDao;
-import com.dragomitch.ipl.pae.persistence.PartnerDao;
-import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
-import com.dragomitch.ipl.pae.persistence.UserDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link MobilityChoiceDao} with Spring's {@link JdbcClient}. Mobility choices are read joined
+ * with the student and their option, the programme and, when set, the country (code and name),
+ * the denial reason (id and text) and the partner. The filters of {@link #findAll(String)} and the "active" queries compare the
+ * academic year with the current year. Updates check the version.
+ */
 @Repository
 class MobilityChoiceDaoImpl implements MobilityChoiceDao {
 
-  private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private static final String SQL_SELECT = """
+      SELECT mc.mobility_choice_id, mc.user_id, u.last_name, u.first_name, op.option_code,
+             op.name, mc.preference_order, mc.mobility_type, mc.academic_year, mc.term,
+             mc.programme, p.name, mc.country, mc.submission_date, mc.prof_denial_reason,
+             mc.student_cancellation_reason, mc.partner, pa.full_name, mc.version, c.name,
+             dr.reason
+        FROM student_exchange_tools.mobility_choices mc
+        JOIN student_exchange_tools.users u ON u.user_id = mc.user_id
+        JOIN student_exchange_tools.options op ON u.option = op.option_code
+        JOIN student_exchange_tools.programmes p ON p.programme_id = mc.programme
+        LEFT OUTER JOIN student_exchange_tools.countries c ON mc.country = c.country_code
+        LEFT OUTER JOIN student_exchange_tools.denial_reasons dr
+          ON dr.reason_id = mc.prof_denial_reason
+        LEFT OUTER JOIN student_exchange_tools.partners pa ON pa.partner_id = mc.partner
+        LEFT OUTER JOIN student_exchange_tools.mobilities m
+          ON m.mobility_choice_id = mc.mobility_choice_id
+       WHERE TRUE""";
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
-
-  private static final String SQL_SELECT = "SELECT mc." + COLUMN_ID + ", mc." + COLUMN_USER_ID
-      + ", u." + UserDao.COLUMN_LAST_NAME + ", u." + UserDao.COLUMN_FIRST_NAME + ", op."
-      + OptionDao.COLUMN_CODE + ", op." + OptionDao.COLUMN_NAME + ", mc." + COLUMN_PREFERENCE_ORDER
-      + ", mc." + COLUMN_MOBILITY_TYPE + ", " + "mc." + COLUMN_ACADEMIC_YEAR + ", mc." + COLUMN_TERM
-      + ", mc." + COLUMN_PROGRAMME + ", p." + ProgrammeDao.COLUMN_NAME + ", mc." + COLUMN_COUNTRY
-      + ", mc." + COLUMN_SUBMISSION_DATE + ", mc." + COLUMN_PROF_DENIAL_REASON + ", mc."
-      + COLUMN_STUDENT_CANCELLATION_REASON + ", mc." + COLUMN_PARTNER + ", pa."
-      + PartnerDao.COLUMN_FULL_NAME + ", mc.version, c." + CountryDao.COLUMN_NAME + ", dr."
-      + DenialReasonDao.COLUMN_REASON + " FROM " + SCHEMA_NAME + "."
-      + UserDao.TABLE_NAME + " u, " + SCHEMA_NAME + "." + OptionDao.TABLE_NAME + " op, "
-      + SCHEMA_NAME + "." + ProgrammeDao.TABLE_NAME + " p, " + SCHEMA_NAME + "." + TABLE_NAME
-      + " mc " + " LEFT OUTER JOIN " + SCHEMA_NAME + "." + CountryDao.TABLE_NAME + " c ON mc."
-      + COLUMN_COUNTRY + " = c." + CountryDao.COLUMN_CODE + " LEFT OUTER JOIN " + SCHEMA_NAME + "."
-      + DenialReasonDao.TABLE_NAME + " dr ON " + "dr." + DenialReasonDao.COLUMN_ID + "= mc."
-      + COLUMN_PROF_DENIAL_REASON + " LEFT OUTER JOIN " + SCHEMA_NAME + "." + PartnerDao.TABLE_NAME
-      + " pa ON pa." + PartnerDao.COLUMN_ID + " = mc." + COLUMN_PARTNER + " LEFT OUTER JOIN "
-      + SCHEMA_NAME + "." + MobilityDao.TABLE_NAME + " m ON m." + MobilityDao.COLUMN_ID + " = mc."
-      + COLUMN_ID + " WHERE u." + UserDao.COLUMN_ID + " = mc." + COLUMN_USER_ID + " AND u."
-      + UserDao.COLUMN_OPTION + " = op. " + OptionDao.COLUMN_CODE + " AND p."
-      + ProgrammeDao.COLUMN_ID + "= mc." + COLUMN_PROGRAMME;
-
-  private static final String SQL_CREATE = "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + " ( "
-      + COLUMN_USER_ID + ", " + COLUMN_PREFERENCE_ORDER + ", " + COLUMN_MOBILITY_TYPE + ", "
-      + COLUMN_ACADEMIC_YEAR + ", " + COLUMN_TERM + ", " + COLUMN_PROGRAMME + ", " + COLUMN_COUNTRY
-      + ", " + COLUMN_SUBMISSION_DATE + ", " + COLUMN_PROF_DENIAL_REASON + " ,"
-      + COLUMN_STUDENT_CANCELLATION_REASON + ", " + COLUMN_PARTNER + ", version )"
-      + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, 1) RETURNING " + COLUMN_ID + ", "
-      + COLUMN_SUBMISSION_DATE;
-
-  private static final String SQL_UPDATE =
-      "UPDATE " + SCHEMA_NAME + "." + TABLE_NAME + " mc SET ( " + COLUMN_PREFERENCE_ORDER + ", "
-          + COLUMN_MOBILITY_TYPE + ", " + COLUMN_ACADEMIC_YEAR + ", " + COLUMN_TERM + ", "
-          + COLUMN_PROGRAMME + ", " + COLUMN_COUNTRY + ", " + COLUMN_SUBMISSION_DATE + ", "
-          + COLUMN_PROF_DENIAL_REASON + ", " + COLUMN_STUDENT_CANCELLATION_REASON + ", "
-          + COLUMN_PARTNER + ", version) = (?,?,?,?,?,?,?,?,?,?, version+1)" + "WHERE mc."
-          + COLUMN_ID + " = ? AND mc.version = ? RETURNING version";
+  /** Choices that did not become a mobility. */
+  private static final String NOT_A_MOBILITY = " AND mc.mobility_choice_id NOT IN"
+      + " (SELECT m.mobility_choice_id FROM student_exchange_tools.mobilities m)";
 
   /**
-   * Sole constructor for explicit invocations.
-   * 
-   * @param entityFactory an on-demand object dispenser.
-   * @param dalBackendServices backend services.
+   * Current-year choices of a partner, neither denied nor cancelled, excluding those whose
+   * mobility was cancelled (denied by a professor or cancelled by the student).
    */
-  public MobilityChoiceDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  private static final String ACTIVE_FOR_PARTNER = " AND mc.partner = ? AND mc.academic_year = ?"
+      + " AND mc.prof_denial_reason IS NULL AND mc.student_cancellation_reason IS NULL"
+      + " AND mc.mobility_choice_id NOT IN (SELECT m.mobility_choice_id"
+      + " FROM student_exchange_tools.mobilities m WHERE m.prof_denial_reason IS NOT NULL"
+      + " OR m.student_cancellation_reason IS NOT NULL)";
+
+  private static final String SQL_INSERT = """
+      INSERT INTO student_exchange_tools.mobility_choices
+        (user_id, preference_order, mobility_type, academic_year, term, programme, country,
+         submission_date, prof_denial_reason, student_cancellation_reason, partner, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, 1)
+      RETURNING mobility_choice_id, submission_date""";
+
+  private static final String SQL_UPDATE = """
+      UPDATE student_exchange_tools.mobility_choices mc
+         SET (preference_order, mobility_type, academic_year, term, programme, country,
+              submission_date, prof_denial_reason, student_cancellation_reason, partner, version)
+           = (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, version + 1)
+       WHERE mc.mobility_choice_id = ? AND mc.version = ?
+      RETURNING version""";
+
+  private final EntityFactory entityFactory;
+  private final JdbcClient jdbcClient;
+
+  MobilityChoiceDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.jdbcClient = jdbcClient;
   }
 
   @Override
   public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_CREATE)) {
-      stmt.setInt(1, mobilityChoice.getUser().getId());
-      stmt.setInt(2, mobilityChoice.getPreferenceOrder());
-      stmt.setString(3, mobilityChoice.getMobilityType());// CHAR(3)
-      stmt.setInt(4, mobilityChoice.getAcademicYear());
-      stmt.setInt(5, mobilityChoice.getTerm());
-      stmt.setInt(6, mobilityChoice.getProgramme().getId());
-      if (mobilityChoice.getCountry() == null) {
-        stmt.setNull(7, java.sql.Types.CHAR);
-      } else {
-        stmt.setString(7, mobilityChoice.getCountry().getCountryCode());// CHAR(2)
-      }
-      if (mobilityChoice.getDenialReason() == null) {
-        stmt.setNull(8, java.sql.Types.INTEGER);
-      } else {
-        stmt.setInt(8, mobilityChoice.getDenialReason().getId());
-      }
-      // as in update(): an empty reason is no cancellation
-      if (isAValidString(mobilityChoice.getCancellationReason())) {
-        stmt.setString(9, mobilityChoice.getCancellationReason());
-      } else {
-        stmt.setNull(9, java.sql.Types.VARCHAR);
-      }
-      if (mobilityChoice.getPartner() != null && mobilityChoice.getPartner().getId() != -1) {
-        stmt.setInt(10, mobilityChoice.getPartner().getId());
-      } else {
-        stmt.setNull(10, java.sql.Types.INTEGER);
-      }
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
+    CountryDto country = mobilityChoice.getCountry();
+    DenialReasonDto denialReason = mobilityChoice.getDenialReason();
+    PartnerDto partner = mobilityChoice.getPartner();
+    // -1 is the "no partner" of the web UI
+    Integer partnerId = partner != null && partner.getId() != -1 ? partner.getId() : null;
+    DataAccess.run(() -> jdbcClient.sql(SQL_INSERT)
+        .param(mobilityChoice.getUser().getId())
+        .param(mobilityChoice.getPreferenceOrder())
+        .param(mobilityChoice.getMobilityType())
+        .param(mobilityChoice.getAcademicYear())
+        .param(mobilityChoice.getTerm())
+        .param(mobilityChoice.getProgramme().getId())
+        .param(DataAccess.typed(Types.VARCHAR, country == null ? null : country.getCountryCode()))
+        .param(DataAccess.typed(Types.INTEGER, denialReason == null ? null : denialReason.getId()))
+        .param(DataAccess.typed(Types.VARCHAR, cancellationReason(mobilityChoice)))
+        .param(DataAccess.typed(Types.INTEGER, partnerId))
+        .query(rs -> {
           mobilityChoice.setId(rs.getInt(1));
           mobilityChoice.setSubmissionDate(rs.getTimestamp(2).toLocalDateTime());
-        }
-      }
-      mobilityChoice.setVersion(1);
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+        }));
+    mobilityChoice.setVersion(1);
     return mobilityChoice;
   }
 
   @Override
   public MobilityChoiceDto findById(int mobilityChoiceId) {
-    MobilityChoiceDto mobilityChoice = null;
-    try (PreparedStatement stmt = dalBackendServices
-        .prepareStatement(SQL_SELECT + " AND mc." + MobilityChoiceDao.COLUMN_ID + "= ?")) {
-      stmt.setInt(1, mobilityChoiceId);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          mobilityChoice = populateMobilityChoice(rs);
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return mobilityChoice;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " AND mc.mobility_choice_id = ?")
+        .param(mobilityChoiceId).query(this::toDto).list().stream().findFirst().orElse(null));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
+   *         (a programming error: the API rejects an unknown filter before, with a 400
+   *         {@code VALIDATION_FAILED} problem)
+   */
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
-    List<MobilityChoiceDto> mobilitiesChoices = new ArrayList<MobilityChoiceDto>();
-    String queryFilter = "";
-    boolean yearParameter = false;
+    String condition;
+    boolean currentYear = false;
     if (FILTER_ALL_MOBILITIES_CHOICES.equals(filter)) {
-      queryFilter = "";
+      condition = "";
     } else if (FILTER_CANCELED_MOBILITIES_CHOICES.equals(filter)) {
-      queryFilter += " AND mc." + COLUMN_STUDENT_CANCELLATION_REASON + " IS NOT NULL";
+      condition = " AND mc.student_cancellation_reason IS NOT NULL";
     } else if (FILTER_REJECTED_MOBILITIES_CHOICES.equals(filter)) {
-      queryFilter += " AND mc." + COLUMN_PROF_DENIAL_REASON + " IS NOT NULL";
+      condition = " AND mc.prof_denial_reason IS NOT NULL";
     } else if (FILTER_PASSED_MOBILITIES_CHOICES.equals(filter)) {
-      queryFilter += " AND mc." + COLUMN_ACADEMIC_YEAR + " < ?";
-      yearParameter = true;
+      condition = " AND mc.academic_year < ?";
+      currentYear = true;
     } else if (FILTER_ACTIVE_MOBILITIES_CHOICES.equals(filter)) {
-      queryFilter += " AND mc." + COLUMN_ACADEMIC_YEAR + " = ? AND mc." + COLUMN_PROF_DENIAL_REASON
-          + " IS NULL AND mc." + COLUMN_STUDENT_CANCELLATION_REASON + " IS NULL AND" + " mc."
-          + COLUMN_ID + " NOT IN (SELECT m." + MobilityDao.COLUMN_ID + " FROM " + SCHEMA_NAME + "."
-          + MobilityDao.TABLE_NAME + " m )";
-      yearParameter = true;
+      condition = " AND mc.academic_year = ? AND mc.prof_denial_reason IS NULL"
+          + " AND mc.student_cancellation_reason IS NULL" + NOT_A_MOBILITY;
+      currentYear = true;
     } else {
-      throw new BusinessException(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323);
+      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
     }
-    try (PreparedStatement findAllStatement =
-        dalBackendServices.prepareStatement(SQL_SELECT + queryFilter)) {
-      if (yearParameter) {
-        findAllStatement.setInt(1, LocalDate.now().getYear());
-      }
-      try (ResultSet rs = findAllStatement.executeQuery()) {
-        while (rs.next()) {
-          mobilitiesChoices.add(populateMobilityChoice(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return mobilitiesChoices;
+    JdbcClient.StatementSpec statement = jdbcClient.sql(SQL_SELECT + condition);
+    JdbcClient.StatementSpec query =
+        currentYear ? statement.param(LocalDate.now().getYear()) : statement;
+    return DataAccess.call(() -> query.query(this::toDto).list());
   }
 
   @Override
   public void update(MobilityChoiceDto mobilityChoice) {
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_UPDATE)) {
-      stmt.setInt(1, mobilityChoice.getPreferenceOrder());
-      stmt.setString(2, mobilityChoice.getMobilityType());
-      stmt.setInt(3, mobilityChoice.getAcademicYear());
-      stmt.setInt(4, mobilityChoice.getTerm());
-      stmt.setInt(5, mobilityChoice.getProgramme().getId());
-      if (mobilityChoice.getCountry() == null) {
-        stmt.setNull(6, java.sql.Types.CHAR);
-      } else {
-        stmt.setString(6, mobilityChoice.getCountry().getCountryCode());
-      }
-      stmt.setTimestamp(7, Timestamp.valueOf(mobilityChoice.getSubmissionDate()));
-      if (mobilityChoice.getDenialReason() == null) {
-        stmt.setNull(8, java.sql.Types.INTEGER);
-      } else {
-        stmt.setInt(8, mobilityChoice.getDenialReason().getId());
-      }
-      if (isAValidString(mobilityChoice.getCancellationReason())) {
-        stmt.setString(9, mobilityChoice.getCancellationReason());
-      } else {
-        stmt.setNull(9, java.sql.Types.VARCHAR);
-      }
-      if (mobilityChoice.getPartner() == null) {
-        stmt.setNull(10, java.sql.Types.INTEGER);
-      } else {
-        stmt.setInt(10, mobilityChoice.getPartner().getId());
-      }
-      stmt.setInt(11, mobilityChoice.getId());
-      stmt.setInt(12, mobilityChoice.getVersion());
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (!rs.next()) {
-          throw new ConcurrentModificationException(
-              "The data have been modified before that query");
-        }
-        mobilityChoice.setVersion(rs.getInt(1));
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    CountryDto country = mobilityChoice.getCountry();
+    DenialReasonDto denialReason = mobilityChoice.getDenialReason();
+    PartnerDto partner = mobilityChoice.getPartner();
+    int version = DataAccess.call(() -> jdbcClient.sql(SQL_UPDATE)
+        .param(mobilityChoice.getPreferenceOrder())
+        .param(mobilityChoice.getMobilityType())
+        .param(mobilityChoice.getAcademicYear())
+        .param(mobilityChoice.getTerm())
+        .param(mobilityChoice.getProgramme().getId())
+        .param(DataAccess.typed(Types.VARCHAR, country == null ? null : country.getCountryCode()))
+        .param(Timestamp.valueOf(mobilityChoice.getSubmissionDate()))
+        .param(DataAccess.typed(Types.INTEGER, denialReason == null ? null : denialReason.getId()))
+        .param(DataAccess.typed(Types.VARCHAR, cancellationReason(mobilityChoice)))
+        .param(DataAccess.typed(Types.INTEGER, partner == null ? null : partner.getId()))
+        .param(mobilityChoice.getId())
+        .param(mobilityChoice.getVersion())
+        .query(Integer.class).optional()
+        .orElseThrow(() -> new ConcurrentModificationException(
+            "The data have been modified before that query")));
+    mobilityChoice.setVersion(version);
   }
 
   /**
-   * Queries the database to find mobilities choices where the columnName is columnValue.
-   * 
-   * @param columnName the column name we are going to look into
-   * @param columnValue the value of the columnName we are looking for
-   * @return a list of results were the columnName have columnValue as value
+   * The cancellation reason to store: an empty one is stored as NULL, which means "not
+   * cancelled" for the filters (see {@link MobilityChoiceDao#update}).
    */
-  private List<MobilityChoiceDto> findBy(String columnName, Object columnValue) {
-    List<MobilityChoiceDto> mobilitiesChoices = new ArrayList<MobilityChoiceDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT + " AND mc."
-        + columnName + " = ?" + " AND mc." + COLUMN_ID + " NOT IN (SELECT m."
-        + MobilityDao.COLUMN_ID + " FROM " + SCHEMA_NAME + "." + MobilityDao.TABLE_NAME + " m )")) {
-      stmt.setObject(1, columnValue.getClass().cast(columnValue));
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          mobilitiesChoices.add(populateMobilityChoice(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return mobilitiesChoices;
+  private static String cancellationReason(MobilityChoiceDto mobilityChoice) {
+    String reason = mobilityChoice.getCancellationReason();
+    return isAValidString(reason) ? reason : null;
   }
 
   @Override
   public List<MobilityChoiceDto> findByUser(int userId) {
-    return findBy(COLUMN_USER_ID, userId);
+    return findNotYetMobilityBy("mc.user_id", userId);
   }
 
   @Override
   public List<MobilityChoiceDto> findByPartner(int partnerId) {
-    return findBy(COLUMN_PARTNER, partnerId);
+    return findNotYetMobilityBy("mc.partner", partnerId);
   }
 
   @Override
   public List<MobilityChoiceDto> findByActivePartner(int partnerId) {
-    List<MobilityChoiceDto> mobilitiesChoices = new ArrayList<MobilityChoiceDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT + " AND mc."
-        + COLUMN_PARTNER + " = ?" + " AND mc." + COLUMN_ACADEMIC_YEAR + " = ? AND mc."
-        + COLUMN_PROF_DENIAL_REASON + " IS NULL AND mc." + COLUMN_STUDENT_CANCELLATION_REASON
-        + " IS NULL AND mc." + COLUMN_ID + " NOT IN ( SELECT m." + MobilityDao.COLUMN_ID + " FROM "
-        + SCHEMA_NAME + "." + MobilityDao.TABLE_NAME + " m WHERE m."
-        + MobilityDao.COLUMN_PROF_DENIAL_REASON + " IS NOT NULL OR m."
-        + MobilityDao.COLUMN_STUDENT_CANCELLATION_REASON + " IS NOT NULL)")) {
-      stmt.setInt(1, partnerId);
-      stmt.setInt(2, LocalDate.now().getYear());
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          mobilitiesChoices.add(populateMobilityChoice(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return mobilitiesChoices;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + ACTIVE_FOR_PARTNER)
+        .param(partnerId).param(LocalDate.now().getYear()).query(this::toDto).list());
   }
 
   /**
-   * construct a MobilityChoiceDto from a ResultSet which contain a valid row for a MobilityChoice.
-   * The ResultSet need to contain a full row from the DB, as in the 'FIND_BY' Query.
-   * 
-   * @param rs the resulSet retrieved by the DataBase.
-   * @return the MobilityChoiceDto corresponding the row given.
+   * The choices, not (yet) a mobility, whose column has the given value.
+   *
+   * @param column the qualified column (a constant of this class, never user input)
+   * @param value its value
+   * @return the matching choices
    */
-  private MobilityChoiceDto populateMobilityChoice(ResultSet rs) throws SQLException {
+  private List<MobilityChoiceDto> findNotYetMobilityBy(String column, int value) {
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " AND " + column + " = ?"
+        + NOT_A_MOBILITY).param(value).query(this::toDto).list());
+  }
+
+  private MobilityChoiceDto toDto(ResultSet rs, int rowNum) throws SQLException {
     MobilityChoiceDto mobilityChoice =
         (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
-
     mobilityChoice.setId(rs.getInt(1));
+    UserDto user = (UserDto) entityFactory.build(UserDto.class);
     user.setId(rs.getInt(2));
     user.setLastName(rs.getString(3));
     user.setFirstName(rs.getString(4));
@@ -327,18 +245,20 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
       mobilityChoice.setCountry(country);
     }
     mobilityChoice.setSubmissionDate(rs.getTimestamp(14).toLocalDateTime());
-    if (rs.getInt(15) > 0) {
+    int denialReasonId = rs.getInt(15);
+    if (denialReasonId > 0) {
       DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
-      denialReason.setId(rs.getInt(15));
+      denialReason.setId(denialReasonId);
       denialReason.setReason(rs.getString(21));
       mobilityChoice.setDenialReason(denialReason);
     } else {
       mobilityChoice.setDenialReason(null);
     }
     mobilityChoice.setCancellationReason(rs.getString(16));
-    if (rs.getInt(17) > 0) {
+    int partnerId = rs.getInt(17);
+    if (partnerId > 0) {
       PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-      partner.setId(rs.getInt(17));
+      partner.setId(partnerId);
       partner.setFullName(rs.getString(18));
       mobilityChoice.setPartner(partner);
     } else {
@@ -346,8 +266,5 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     }
     mobilityChoice.setVersion(rs.getInt(19));
     return mobilityChoice;
-
   }
-
-
 }

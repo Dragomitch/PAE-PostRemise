@@ -1,19 +1,19 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
@@ -24,13 +24,17 @@ import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityUcc;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+
+import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestMobilityUcc extends AbstractUccTest {
+public class TestMobilityUcc {
 
   @Autowired
   private ApplicationContext context;
@@ -82,7 +86,7 @@ public class TestMobilityUcc extends AbstractUccTest {
 
   @Test
   public void testConfirmProEcoEncodingTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityUcc.confirmProEcoEncoding(-1, 1);
     });
   }
@@ -105,14 +109,14 @@ public class TestMobilityUcc extends AbstractUccTest {
 
   @Test
   public void testConfirmProEcoEncodingTC4() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       mobilityUcc.confirmProEcoEncoding(99, 1);
     });
   }
 
   @Test
   public void testConfirmSecondSoftwareEncodingTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityUcc.confirmSecondSoftwareEncoding(0, 1);
     });
   }
@@ -135,42 +139,42 @@ public class TestMobilityUcc extends AbstractUccTest {
 
   @Test
   public void testConfirmSecondSoftwareEncodingTC4() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       mobilityUcc.confirmSecondSoftwareEncoding(99, 1);
     });
   }
 
   @Test
   public void testCancelTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityUcc.cancel(-1, 1, null, 1, 1, UserDto.ROLE_PROFESSOR);
     });
   }
 
   @Test
   public void testCancelTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertEquals(ErrorCode.DENIAL_REASON_REQUIRED, Violations.errorCodeOf(() -> {
       mobilityUcc.cancel(1, 1, null, -1, 1, UserDto.ROLE_PROFESSOR);
-    });
+    }));
   }
 
   @Test
   public void testCancelTC3() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertEquals(ErrorCode.CANCELLATION_REASON_REQUIRED, Violations.errorCodeOf(() -> {
       mobilityUcc.cancel(1, 1, null, 1, 1, UserDto.ROLE_STUDENT);
-    });
+    }));
   }
 
   @Test
   public void testCancelTC4() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityUcc.cancel(1, 1, null, 1, -1, UserDto.ROLE_PROFESSOR);
     });
   }
 
   @Test
   public void testCancelTC5() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       mobilityUcc.cancel(1, 1, null, 1, 1, null);
     });
   }

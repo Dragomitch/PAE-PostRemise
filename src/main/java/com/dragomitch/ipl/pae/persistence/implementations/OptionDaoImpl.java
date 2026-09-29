@@ -2,69 +2,40 @@ package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
+import com.dragomitch.ipl.pae.persistence.jdbc.entity.OptionEntity;
+import com.dragomitch.ipl.pae.persistence.jdbc.repository.OptionRepository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
+/** {@link OptionDao} on top of the Spring Data {@link OptionRepository}. */
 @Repository
 class OptionDaoImpl implements OptionDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
-
-  private static final String SQL_SELECT = "SELECT o." + COLUMN_CODE + ", o." + COLUMN_NAME
-      + " FROM " + SCHEMA_NAME + "." + TABLE_NAME + " o";
-
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final OptionRepository options;
 
-  public OptionDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  OptionDaoImpl(EntityFactory entityFactory, OptionRepository options) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.options = options;
   }
 
   @Override
   public OptionDto findByCode(String code) {
-    OptionDto option = null;
-    try (PreparedStatement stmt =
-        dalBackendServices.prepareStatement(SQL_SELECT + " WHERE " + COLUMN_CODE + " = ?")) {
-      stmt.setString(1, code);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          option = populateOptionDto(rs);
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return option;
+    return DataAccess.call(() -> options.findById(code).map(this::toDto).orElse(null));
   }
 
   @Override
   public List<OptionDto> findAll() {
-    List<OptionDto> options = new ArrayList<OptionDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT)) {
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          options.add(populateOptionDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return options;
+    return DataAccess.call(() -> options.findAll().stream().map(this::toDto).toList());
   }
 
-  private OptionDto populateOptionDto(ResultSet rs) throws SQLException {
+  private OptionDto toDto(OptionEntity entity) {
     OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
-    option.setCode(rs.getString(1));
-    option.setName(rs.getString(2));
+    option.setCode(entity.code());
+    option.setName(entity.name());
     return option;
   }
-
 }

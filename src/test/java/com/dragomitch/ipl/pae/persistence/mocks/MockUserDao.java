@@ -83,10 +83,6 @@ public class MockUserDao implements UserDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     users = new ArrayList<UserDto>();
   }

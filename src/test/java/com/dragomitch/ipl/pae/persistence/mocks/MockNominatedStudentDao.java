@@ -63,10 +63,6 @@ public class MockNominatedStudentDao implements NominatedStudentDao, ResettableM
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     nominatedStudents = new LinkedHashMap<Integer, NominatedStudentDto>();
     versions = new HashMap<Integer, Integer>();

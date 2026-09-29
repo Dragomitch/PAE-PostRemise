@@ -1,26 +1,29 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
+import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 
+import jakarta.validation.ConstraintViolationException;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestAddressUcc extends AbstractUccTest {
+public class TestAddressUcc {
 
   @Autowired
   private ApplicationContext context;
@@ -60,53 +63,55 @@ public class TestAddressUcc extends AbstractUccTest {
 
   @Test
   public void testCreateTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       addressUcc.create(null);
     });
   }
 
   @Test
   public void testCreateTC3() {
-    assertThrows(BusinessException.class, () -> {
-      address.setNumber("The Number of the beast");
-      addressUcc.create(address);
-    });
+    assertEquals(List.of("create.address.number:Size"),
+        Violations.thrownBy(() -> {
+          address.setNumber("The Number of the beast");
+          addressUcc.create(address);
+        }));
   }
 
   @Test
   public void testCreateTC4() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertEquals(ErrorCode.UNKNOWN_COUNTRY, Violations.errorCodeOf(() -> {
       address.getCountry().setCountryCode("ZZ");
       addressUcc.create(address);
-    });
+    }));
   }
 
   @Test
   public void testEditTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       addressUcc.edit(null);
     });
   }
 
   @Test
   public void testEditTC2() {
-    assertThrows(BusinessException.class, () -> {
-      address.setNumber("V for Vendetta");
-      addressUcc.edit(address);
-    });
+    assertEquals(List.of("edit.address.number:Size"),
+        Violations.thrownBy(() -> {
+          address.setNumber("V for Vendetta");
+          addressUcc.edit(address);
+        }));
   }
 
   @Test
   public void testEditTC3() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertEquals(ErrorCode.UNKNOWN_COUNTRY, Violations.errorCodeOf(() -> {
       address.getCountry().setCountryCode("ZZ");
       addressUcc.edit(address);
-    });
+    }));
   }
 
   @Test
   public void testEditTC4() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       address.setId(69);
       addressUcc.edit(address);
     });

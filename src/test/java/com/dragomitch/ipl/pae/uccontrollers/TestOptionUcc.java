@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestOptionUcc extends AbstractUccTest {
+public class TestOptionUcc {
 
   @Autowired
   private ApplicationContext context;

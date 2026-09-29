@@ -3,9 +3,22 @@ package com.dragomitch.ipl.pae.uccontrollers;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 
-import java.util.Map;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface MobilityChoiceUcc {
+
+  /** Filters of the mobility choice lists: all, active (default), canceled, rejected, passed. */
+  String FILTER_REGEXP = "all|active|canceled|rejected|passed";
+  /** Message of an unknown filter. */
+  String FILTER_MESSAGE = "{pae.validation.MobilityChoiceUcc.filter.message}";
 
   /**
    * Creates a new MobilityChoice with the parameters received from the user.
@@ -15,7 +28,8 @@ public interface MobilityChoiceUcc {
    * @param userRole the role of the user who's sending the request.
    * @return the new MobilityChoiceDto for the object created in DataBase.
    */
-  MobilityChoiceDto create(MobilityChoiceDto mobilityChoice, int userId, String userRole);
+  MobilityChoiceDto create(@NotNull @Valid MobilityChoiceDto mobilityChoice, @Positive int userId,
+      @NotBlank String userRole);
 
   /**
    * Returns a list with all the mobilityChoices stocked in DataBase.
@@ -25,18 +39,20 @@ public interface MobilityChoiceUcc {
    * @param filter a filter for the mobility choices to display
    * @return A list with all the mobilityChoices in DataBase as mobilityChoicesDto's.
    */
-  Map<String, Object> showAll(int userId, String userRole, String filter);
+  List<MobilityChoiceDto> showAll(@Positive int userId, @NotBlank String userRole,
+      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
 
 
   /**
-   * Returns a list with all the mobilityChoices stocked in DataBase AND the number of results.
+   * Counts the mobility choices {@link #showAll} would return.
    * 
    * @param userId the id of the user connected.
    * @param userRole the role of the user who's sending the request.
    * @param filter a filter for the mobility choices to display
-   * @return A list with all the mobilityChoices as mobilityChoicesDto's and their count.
+   * @return the number of mobility choices
    */
-  Map<String, Object> countAll(int userId, String userRole, String filter);
+  int countAll(@Positive int userId, @NotBlank String userRole,
+      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
 
   /**
    * Confirms the mobility choice which bears the given id.
@@ -44,7 +60,7 @@ public interface MobilityChoiceUcc {
    * @param mobilityChoiceId the mobility choice id
    * @param userId the userId of the professor confirming the mobility choice
    */
-  void confirm(int mobilityChoiceId, int userId);
+  void confirm(@Positive int mobilityChoiceId, @Positive int userId);
 
   /**
    * Confirms the mobility choice which bears the given id with a new partner.
@@ -54,7 +70,8 @@ public interface MobilityChoiceUcc {
    * @param userId the userId of the student or professor confirming the mobility choice
    * @param userRole the role of the currently signed in user
    */
-  void confirmWithNewPartner(int mobilityChoiceId, PartnerDto partner, int userId, String userRole);
+  void confirmWithNewPartner(@Positive int mobilityChoiceId, @NotNull @Valid PartnerDto partner,
+      @Positive int userId, @NotBlank String userRole);
 
   /**
    * Cancels a MobilityChoice specified by mobilityChoiceId.
@@ -63,7 +80,8 @@ public interface MobilityChoiceUcc {
    * @param userId the id of the user connected.
    * @param reason the reason provided by the user for canceling the MobilityChoice.
    */
-  void cancel(int mobilityChoiceId, int userId, String reason);
+  void cancel(@Positive int mobilityChoiceId, @Positive int userId,
+      @NotBlank @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH) String reason);
 
   /**
    * Reject a MobilityChoice specified by mobilityChoiceId.
@@ -72,7 +90,7 @@ public interface MobilityChoiceUcc {
    * @param reasonId the id of the reason provided by the professor for rejecting the
    *        MobilityChoice.
    */
-  void reject(int mobilityChoiceId, int reasonId);
+  void reject(@Positive int mobilityChoiceId, @Positive int reasonId);
 
   /**
    * Create a CSV file as a string with the specified type of mobility Choices
@@ -82,13 +100,14 @@ public interface MobilityChoiceUcc {
    * @param filter a filter for the mobility choices to export
    * @return the string representing the CSV file.
    */
-  String exportAll(int userId, String userRole, String filter);
+  String exportAll(@Positive int userId, @NotBlank String userRole,
+      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
 
   /**
    * Check if there is a mobilityChoice attached to a partner.
    * 
    * @param partnerId the id of the partner for which we want to check.
    */
-  boolean findByPartner(int partnerId);
+  boolean findByPartner(@Positive int partnerId);
 
 }

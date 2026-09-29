@@ -1,16 +1,11 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.Option;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.OptionDao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 
-@DaoClass(OptionDao.class)
 class OptionImpl implements Option, Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -51,10 +46,5 @@ class OptionImpl implements Option, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    checkString(code);
-    checkString(name);
-  }
 
 }

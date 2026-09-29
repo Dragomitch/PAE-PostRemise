@@ -1,21 +1,37 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
+import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 
-import java.util.Map;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface MobilityUcc {
+
+  /**
+   * Filters of the document export: departure documents (D), filled-in departure documents (DF),
+   * return documents (R), filled-in return documents (RF); every document without a filter.
+   */
+  String DOCUMENT_FILTER_REGEXP = "D|DF|R|RF";
+  /** Message of an unknown document filter. */
+  String DOCUMENT_FILTER_MESSAGE = "{pae.validation.MobilityUcc.documentFilter.message}";
 
   /**
    * Return a list of all stored mobilities.
    * 
    * @param userId the id of the requester
    * @param userRole the role of the requester
+   * @return every mobility for a professor, the requester's own ones for a student
    */
-  Map<String, Object> showAll(int userId, String userRole);
+  List<MobilityDto> showAll(@Positive int userId, @NotBlank String userRole);
 
   /**
    * Return the requested mobility.
@@ -24,29 +40,29 @@ public interface MobilityUcc {
    * @param role the role of the requester
    * @param user the id of the requester
    * @return the requested mobility
-   * @throws RessourceNotFoundException when the requested mobility does not exist
+   * @throws ResourceNotFoundException when the requested mobility does not exist
    * @throws InsufficientPermissionException when the requester is not a professor and does not own
    *         the requested mobility
    */
-  MobilityDto showOne(int id, String role, int user);
+  MobilityDto showOne(@Positive int id, @NotBlank String role, @Positive int user);
 
   /**
    * Confirm the encoding in Pro Eco software.
    *
    * @param id the mobility to be updated
    * @param version the current version of the mobility to update
-   * @throws RessourceNotFoundException if the mobility does not exist
+   * @throws ResourceNotFoundException if the mobility does not exist
    */
-  void confirmProEcoEncoding(int id, int version);
+  void confirmProEcoEncoding(@Positive int id, int version);
 
   /**
    * Confirm the encoding in Second software.
    *
    * @param id the mobility to be updated
    * @param version the current version of the mobility to update
-   * @throws RessourceNotFoundException if the mobility does not exist
+   * @throws ResourceNotFoundException if the mobility does not exist
    */
-  void confirmSecondSoftwareEncoding(int id, int version);
+  void confirmSecondSoftwareEncoding(@Positive int id, int version);
 
   /**
    * Confirm a payment.
@@ -54,10 +70,10 @@ public interface MobilityUcc {
    * @param id the mobility to update
    * @param version the current version of the mobility to update
    * @return the updated mobility
-   * @throws RessourceNotFoundException if the mobility does not exist
+   * @throws ResourceNotFoundException if the mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto confirmPayment(int id, int version);
+  MobilityDto confirmPayment(@Positive int id, int version);
 
   /**
    * Confirm the retrieval of a document.
@@ -65,10 +81,10 @@ public interface MobilityUcc {
    * @param id the mobility to update
    * @param document the retrieved document document
    * @return the updated mobility
-   * @throws RessourceNotFoundException if this mobility does not exist
+   * @throws ResourceNotFoundException if this mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto confirmDocument(int id, int document, int version);
+  MobilityDto confirmDocument(@Positive int id, @Positive int document, int version);
 
   /**
    * Cancel a mobility. If the requester is a professor, he can cancel a mobility using a reusable
@@ -80,11 +96,12 @@ public interface MobilityUcc {
    * @param userId the requester id
    * @param userRole the requester role
    * @return the updated mobility
-   * @throws RessourceNotFoundException if this mobility does not exist
+   * @throws ResourceNotFoundException if this mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto cancel(int id, int version, String cancellationReason, int denialReasonId, int userId,
-      String userRole);
+  MobilityDto cancel(@Positive int id, int version,
+      @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH) String cancellationReason,
+      int denialReasonId, @Positive int userId, @NotBlank String userRole);
 
   /**
    * Create a CSV file as a String with the specified type of documents, for the mobility specified.
@@ -93,6 +110,7 @@ public interface MobilityUcc {
    * @param filter a filter for the documents to export
    * @return the string representing the CSV file.
    */
-  String exportDocuments(int mobilityId, String filter);
+  String exportDocuments(@Positive int mobilityId,
+      @Pattern(regexp = DOCUMENT_FILTER_REGEXP, message = DOCUMENT_FILTER_MESSAGE) String filter);
 
 }

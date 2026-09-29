@@ -1,0 +1,2 @@
+org.springframework.test.context.TestExecutionListener=\
+  com.dragomitch.ipl.pae.persistence.mocks.MockDaoResetListener

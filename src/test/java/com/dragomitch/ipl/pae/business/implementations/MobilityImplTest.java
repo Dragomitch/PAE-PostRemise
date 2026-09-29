@@ -1,23 +1,24 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.ALL_DEPARTURE_DOCUMENTS_NOT_FILLED_IN_503;
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.ALL_DOCUMENTS_NOT_FILLED_IN_507;
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.ALL_RETURN_DOCUMENTS_NOT_FILLED_IN_504;
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.EXISTENCE_VIOLATION_DOCUMENT_505;
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.INVALID_CANCELED_MOBILITY_STATE_501;
-import static com.dragomitch.ipl.pae.business.exceptions.ErrorFormat.INVALID_CLOSED_MOBILITY_STATE_502;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.DEPARTURE_DOCUMENTS_INCOMPLETE;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.DOCUMENTS_INCOMPLETE;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.MOBILITY_CANCELLED;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.MOBILITY_CLOSED;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.RETURN_DOCUMENTS_INCOMPLETE;
+import static com.dragomitch.ipl.pae.business.exceptions.ErrorCode.UNKNOWN_DOCUMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.business.Mobility;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,14 +63,15 @@ class MobilityImplTest {
     assertThat(mobility.allDocumentsFilledIn()).isEqualTo(all);
     assertThat(mobility.allDepartureDocumentsFilledIn()).isEqualTo(departure);
     assertThat(mobility.allReturnDocumentsFilledIn()).isEqualTo(ret);
-    assertOutcome(mobility::checkAllDocumentsFilledIn, all, ALL_DOCUMENTS_NOT_FILLED_IN_507);
+    assertOutcome(mobility::checkAllDocumentsFilledIn, all, DOCUMENTS_INCOMPLETE);
     assertOutcome(mobility::checkAllDepartureDocumentsFilledIn, departure,
-        ALL_DEPARTURE_DOCUMENTS_NOT_FILLED_IN_503);
+        DEPARTURE_DOCUMENTS_INCOMPLETE);
     assertOutcome(mobility::checkAllReturnDocumentsFilledIn, ret,
-        ALL_RETURN_DOCUMENTS_NOT_FILLED_IN_504);
+        RETURN_DOCUMENTS_INCOMPLETE);
   }
 
-  private static void assertOutcome(ThrowingCallable check, boolean passes, int errorCode) {
+  private static void assertOutcome(ThrowingCallable check, boolean passes,
+      ErrorCode errorCode) {
     if (passes) {
       assertThatCode(check).doesNotThrowAnyException();
     } else {
@@ -104,16 +106,17 @@ class MobilityImplTest {
     Mobility mobility = mobility("D");
 
     assertThat(Violations.errorCodeOf(() -> mobility.fillInDocument(9)))
-        .isEqualTo(EXISTENCE_VIOLATION_DOCUMENT_505);
+        .isEqualTo(UNKNOWN_DOCUMENT);
   }
 
   @ParameterizedTest
   @ValueSource(ints = {0, -1})
-  void fillInDocumentRejectsANonPositiveId(int id) {
+  void aNonPositiveIdIsAnUnknownDocument(int id) {
+    // the use case rejects it before (@Positive document of MobilityUcc.confirmDocument)
     Mobility mobility = mobility("D");
 
-    assertThatThrownBy(() -> mobility.fillInDocument(id))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThat(Violations.errorCodeOf(() -> mobility.fillInDocument(id)))
+        .isEqualTo(UNKNOWN_DOCUMENT);
   }
 
   @ParameterizedTest(name = "state {0}: notCancelled={1} notClosed={2}")
@@ -129,10 +132,10 @@ class MobilityImplTest {
     Mobility mobility = (Mobility) factory.build(Mobility.class);
     mobility.setState(state);
 
-    assertOutcome(mobility::checkNotCancelled, notCancelled, INVALID_CANCELED_MOBILITY_STATE_501);
-    assertOutcome(mobility::checkNotClosed, notClosed, INVALID_CLOSED_MOBILITY_STATE_502);
-    int combinedError = !notCancelled ? INVALID_CANCELED_MOBILITY_STATE_501
-        : INVALID_CLOSED_MOBILITY_STATE_502;
+    assertOutcome(mobility::checkNotCancelled, notCancelled, MOBILITY_CANCELLED);
+    assertOutcome(mobility::checkNotClosed, notClosed, MOBILITY_CLOSED);
+    ErrorCode combinedError = !notCancelled ? MOBILITY_CANCELLED
+        : MOBILITY_CLOSED;
     assertOutcome(mobility::checkNotCancelledAndNotClosed, notCancelled && notClosed,
         combinedError);
   }
