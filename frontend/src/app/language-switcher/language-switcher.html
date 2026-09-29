@@ -1,0 +1,5 @@
+<nav class="language-switcher" aria-label="Choix de la langue" i18n-aria-label="@@languageSwitcher.ariaLabel">
+  @for (link of links(); track link.code) {
+    <a [href]="link.href" [attr.hreflang]="link.code" [attr.lang]="link.code">{{ link.label }}</a>
+  }
+</nav>

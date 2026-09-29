@@ -4,10 +4,13 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:en": "ng serve --configuration=development-en",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage"
+    "test:ci": "npm run i18n:check && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage",
+    "i18n:extract": "ng extract-i18n",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "private": true,
   "dependencies": {
@@ -25,6 +28,7 @@
     "@angular/build": "^20.0.2",
     "@angular/cli": "^20.3.16",
     "@angular/compiler-cli": "^20.3.16",
+    "@angular/localize": "^20.3.16",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
