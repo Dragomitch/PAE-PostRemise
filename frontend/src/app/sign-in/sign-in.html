@@ -1,16 +1,61 @@
 <div class="card">
-  <h2>Bienvenue à bord</h2>
-  <div class="notification notification-danger" *ngIf="error">
-    Nom d'utilisateur et/ou mot de passe incorrect.
-  </div>
-  <form (ngSubmit)="submit()">
+  <h1 i18n="@@signin.title">Bienvenue à bord</h1>
+
+  @if (registered() && !user()) {
+    <div class="notification notification-success" role="status" i18n="@@signin.registered">
+      Votre compte a été créé. Vous pouvez maintenant vous connecter.
+    </div>
+  }
+
+  @if (user(); as u) {
+    <div class="notification notification-success" role="status" i18n="@@signin.success">
+      Vous êtes connecté en tant que {{ u.firstName || u.username // i18n(ph="NAME") }}.
+    </div>
+  }
+
+  @if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      @if (otherErrors().length) {
+        <ul>
+          @for (message of otherErrors(); track $index) {
+            <li>{{ message }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <div class="form-group">
-      <input type="text" class="form-control input" name="username" [(ngModel)]="username" placeholder="Nom d'utilisateur">
+      <label for="signin-username" i18n="@@signin.username.label">Nom d'utilisateur</label>
+      <input id="signin-username" type="text" class="form-control input" formControlName="username"
+             autocomplete="username" [attr.aria-invalid]="!!errorFor('username')"
+             [attr.aria-describedby]="errorFor('username') ? 'signin-username-error' : null">
+      @if (errorFor('username'); as message) {
+        <p class="field-error" id="signin-username-error">{{ message }}</p>
+      }
     </div>
     <div class="form-group">
-      <input type="password" class="form-control input" name="password" [(ngModel)]="password" placeholder="Mot de passe">
+      <label for="signin-password" i18n="@@signin.password.label">Mot de passe</label>
+      <input id="signin-password" type="password" class="form-control input" formControlName="password"
+             autocomplete="current-password" [attr.aria-invalid]="!!errorFor('password')"
+             [attr.aria-describedby]="errorFor('password') ? 'signin-password-error' : null">
+      @if (errorFor('password'); as message) {
+        <p class="field-error" id="signin-password-error">{{ message }}</p>
+      }
     </div>
-    <button type="submit" class="btn btn-default btn-lg">Se connecter</button>
+    <button type="submit" class="btn btn-default btn-lg" [disabled]="submitting()" [attr.aria-busy]="submitting()">
+      @if (submitting()) {
+        <ng-container i18n="@@signin.submitting">Connexion en cours…</ng-container>
+      } @else {
+        <ng-container i18n="@@signin.submit">Se connecter</ng-container>
+      }
+    </button>
   </form>
-  <div class="bottom">Vous n'avez pas encore de compte? <a routerLink="/signup">Inscrivez-vous</a></div>
+
+  <p class="bottom">
+    <ng-container i18n="@@signin.noAccount">Vous n'avez pas encore de compte ?</ng-container>
+    <a routerLink="/signup" i18n="@@signin.signupLink">Inscrivez-vous</a>
+  </p>
 </div>
