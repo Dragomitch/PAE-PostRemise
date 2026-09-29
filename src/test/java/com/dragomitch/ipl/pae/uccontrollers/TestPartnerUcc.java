@@ -24,7 +24,7 @@ import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockPartnerOptionDao;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringJUnitConfig(UnitTestConfig.class)
-public class TestPartnerUcc extends AbstractUccTest {
+public class TestPartnerUcc {
 
   @Autowired
   private ApplicationContext context;

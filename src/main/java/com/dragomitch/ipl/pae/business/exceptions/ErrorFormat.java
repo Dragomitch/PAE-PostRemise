@@ -10,6 +10,10 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorFormat {
 
+  public static final int INTERNAL_ERROR_100 = 100;
+  public static final int UNAUTHENTICATED_101 = 101;
+  public static final int ACCESS_DENIED_103 = 103;
+  public static final int RESOURCE_NOT_FOUND_104 = 104;
   public static final int INVALID_INPUT_DATA_110 = 110;
   public static final int CONCURRENT_MODIFICATION_120 = 120;
   public static final int INVALID_PARAMETERS_130 = 130;

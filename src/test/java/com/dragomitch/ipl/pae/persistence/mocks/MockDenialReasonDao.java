@@ -45,10 +45,6 @@ public class MockDenialReasonDao implements DenialReasonDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     denialReasons = new ArrayList<DenialReasonDto>();
   }

@@ -12,7 +12,6 @@ import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -21,7 +20,6 @@ import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 
-@DaoClass(NominatedStudentDao.class)
 class NominatedStudentImpl extends UserImpl implements NominatedStudent {
   private static final long serialVersionUID = 1L;
 

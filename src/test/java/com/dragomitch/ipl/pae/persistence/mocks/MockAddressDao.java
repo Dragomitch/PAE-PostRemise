@@ -37,10 +37,6 @@ public class MockAddressDao implements AddressDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     addresses = new ArrayList<AddressDto>();
   }

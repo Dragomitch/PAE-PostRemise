@@ -95,21 +95,22 @@ var Utils = (function() {
 
     // Public API
     // A mobility (or payment) may come from a choice without country or partner: the API then
-    // leaves the property out.
+    // leaves the property out (null properties are not serialized). "== null" also covers an
+    // explicit null.
     function flag(country) {
-        if (country === undefined || country.countryCode === undefined) {
+        if (country == null || country.countryCode == null) {
             return '';
         }
         return '<img src="/images/flags/' + country.countryCode + '.png" class="flags" alt="'
-            + (country.name === undefined ? 'Drapeau' : country.name) + '">';
+            + (country.name == null ? 'Drapeau' : country.name) + '">';
     }
 
     function countryName(country) {
-        return (country === undefined || country.name === undefined) ? '' : country.name;
+        return (country == null || country.name == null) ? '' : country.name;
     }
 
     function partnerName(partner) {
-        return (partner === undefined || partner.fullName === undefined) ? '' : partner.fullName;
+        return (partner == null || partner.fullName == null) ? '' : partner.fullName;
     }
 
     return {

@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface PartnerUcc {
 
@@ -34,7 +33,7 @@ public interface PartnerUcc {
    * @param userRole : the role of the user who wants to edit a partner.
    * @return a list of all the partnerDto found in the database
    */
-  Map<String, Object> showAll(String filter, String value, String userRole, int userId);
+  List<PartnerDto> showAll(String filter, String value, String userRole, int userId);
 
   /**
    * Edit a partner.

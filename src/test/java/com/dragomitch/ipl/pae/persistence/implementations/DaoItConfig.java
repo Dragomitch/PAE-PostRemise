@@ -17,12 +17,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Spring context of the DAO integration tests: the <em>real</em> persistence beans (every JDBC
- * DAO, {@code DalServicesImpl}) and the real {@code EntityFactory}, on top of a throw-away
- * PostgreSQL 16 server started in-process by zonky's embedded-postgres (no Docker needed).
+ * DAO, {@code DalBackendServicesImpl}), the real {@code EntityFactory} and a
+ * {@code DataSourceTransactionManager}, on top of a throw-away PostgreSQL 16 server started
+ * in-process by zonky's embedded-postgres (no Docker needed).
  *
  * <p>The Spring TestContext framework caches this context, so the server is started and
  * {@code SQLRessources/init.sql} is loaded <strong>once per test JVM</strong>; the server is
@@ -66,6 +69,11 @@ public class DaoItConfig {
     populator.addScript(new ClassPathResource("db/it-setup.sql"));
     populator.execute(dataSource);
     return dataSource;
+  }
+
+  @Bean
+  PlatformTransactionManager transactionManager(DataSource dataSource) {
+    return new DataSourceTransactionManager(dataSource);
   }
 
   /**
