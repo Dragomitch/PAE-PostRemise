@@ -8,7 +8,6 @@ import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
-@DaoClass(UserDao.class)
 class UserImpl implements User, Serializable {
 
   private static final long serialVersionUID = 1L;

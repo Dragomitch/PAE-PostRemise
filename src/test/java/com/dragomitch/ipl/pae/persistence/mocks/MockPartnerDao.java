@@ -107,10 +107,6 @@ public class MockPartnerDao implements PartnerDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     partners = new ArrayList<PartnerDto>();
   }

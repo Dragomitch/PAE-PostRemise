@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae;
 
 import com.dragomitch.ipl.pae.persistence.mocks.MockAddressDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockCountryDao;
-import com.dragomitch.ipl.pae.persistence.mocks.MockDalServices;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDocumentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockMobilityChoiceDao;
@@ -26,8 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * Spring context for the unit tests: the real business objects and use-case controllers, wired
  * to the in-memory mock DAOs instead of the JDBC implementations. The context is cached by the
- * Spring TestContext framework and shared by every test class using it, so the tests empty the
- * mocks they fill.
+ * Spring TestContext framework and shared by every test class using it, so the stateful mocks
+ * ({@code ResettableMock}) are emptied before every test method by {@code MockDaoResetListener}.
  *
  * <p>It is a {@link TestConfiguration} so that {@code @SpringBootTest} component scanning of the
  * application ignores it.
@@ -38,7 +37,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Import({
     MockAddressDao.class,
     MockCountryDao.class,
-    MockDalServices.class,
     MockDenialReasonDao.class,
     MockDocumentDao.class,
     MockMobilityChoiceDao.class,

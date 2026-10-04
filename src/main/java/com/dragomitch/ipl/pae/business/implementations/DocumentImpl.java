@@ -2,12 +2,9 @@ package com.dragomitch.ipl.pae.business.implementations;
 
 import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.DocumentDao;
 
 import java.io.Serializable;
 
-@DaoClass(DocumentDao.class)
 class DocumentImpl implements Document, Serializable {
 
   private static final long serialVersionUID = 1614430064652187814L;

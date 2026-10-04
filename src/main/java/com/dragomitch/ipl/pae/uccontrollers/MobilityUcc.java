@@ -3,9 +3,9 @@ package com.dragomitch.ipl.pae.uccontrollers;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.presentation.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 
-import java.util.Map;
+import java.util.List;
 
 public interface MobilityUcc {
 
@@ -14,8 +14,9 @@ public interface MobilityUcc {
    * 
    * @param userId the id of the requester
    * @param userRole the role of the requester
+   * @return every mobility for a professor, the requester's own ones for a student
    */
-  Map<String, Object> showAll(int userId, String userRole);
+  List<MobilityDto> showAll(int userId, String userRole);
 
   /**
    * Return the requested mobility.

@@ -18,13 +18,12 @@ import org.springframework.web.filter.CorsFilter;
  * Cross-origin configuration for the API, so the Angular dev server (http://localhost:4200 by
  * default) can call the backend directly.
  *
- * <p>The API is served both by Spring MVC controllers and by the legacy {@code RoutingServlet},
- * so CORS is applied by a servlet {@link CorsFilter} registered ahead of every other filter
+ * <p>CORS is applied by a servlet {@link CorsFilter} registered ahead of every other filter
  * (Spring Security included): preflight requests are answered there and never reach the
- * authentication filters (Spring Boot's default security chain has no CORS support of its own
- * and would answer them with 401). The source is also exposed as the
+ * authentication or CSRF filters. The source is also exposed as the
  * {@code corsConfigurationSource} bean, the name Spring Security's {@code http.cors()} looks up,
- * so a custom security chain that enables CORS later reuses the same policy.
+ * so the security chain ({@link SecurityConfig}) applies the same policy. Every request header is
+ * allowed, {@code X-XSRF-TOKEN} (CSRF token of the web UIs) included.
  *
  * <p>Allowed origins come from the {@code app.cors.allowed-origins} property (comma-separated),
  * which can be overridden with the {@code APP_CORS_ALLOWED_ORIGINS} environment variable or a

@@ -87,23 +87,29 @@ mvn spring-boot:run
 
 ### Feature Module 1
 
-Business logic is organised in use case controllers located under `src/main/java/com/dragomitch/ipl/pae/uccontrollers`. Each controller exposes REST endpoints using Spring MVC annotations.
+Requests flow through three layers, all Spring beans:
+
+1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind the request (JSON `@RequestBody`, `@PathVariable`, `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only.
+2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
+3. **DAOs** (`persistence`): see below.
 
 ```java
-// Example code
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(ApiPaths.BASE + "/users")
 public class UserController {
   @GetMapping
-  public List<UserDto> listUsers() {
-    // Implementation logic
+  @PreAuthorize(ApiPaths.PROFESSOR)
+  public DataResponse<UserDto> showAll() {
+    return new DataResponse<>(userUcc.showAll());
   }
 }
 ```
 
+Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1.0/session`, JSON `{username, password}`) issues a signed HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the HttpOnly, SameSite=Lax `session` cookie (`app.session.validity`, default 12h; `app.session.cookie-secure`, default false). The OAuth2 resource server validates it from the cookie or an `Authorization: Bearer` header. `/api/**` requires authentication except `POST /session`, `POST /users` and `GET /options`. CSRF uses the SPA recipe: the `XSRF-TOKEN` cookie must be echoed in the `X-XSRF-TOKEN` header of every state-changing request (`csrf()` in MockMvc tests).
+
 ### Feature Module 2
 
-Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`), sharing a thread-bound connection from `DalServices` on top of the Spring Boot `DataSource`. Unit tests replace them with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig`.
+Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with error 120) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
 
 DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
 
@@ -112,8 +118,9 @@ DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow 
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
 - An unknown `findAll` filter is a `BusinessException` (`INVALID_MOBILITY_CHOICE_FILTER_323`, `INVALID_PARTNER_FILTER_709`).
 - A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).
-- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; the API route `PUT /users/{id}/promote` uses the id variant, `PUT /users/by-username/{username}/promote` the username one.
-- Every `ErrorFormat` code must exist in `src/main/resources/errors.json` (`ErrorCatalogueTest`).
+- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged).
+- Every `ErrorFormat` code must exist in `src/main/resources/errors.json` (`ErrorCatalogueTest`): `ApiExceptionHandler` answers a `BusinessException` (e.g. an unknown filter, 323/709) and a `ConcurrentModificationException` (120, "reload the data") with 400 and the catalogue entry.
+- The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`.
 
 ## Testing Strategy
 
@@ -122,8 +129,8 @@ DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow 
 - Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
 - Test coverage requirements: aim for 80%
 - Test file organization: mirror package structure under `src/test/java`
-- Use-case tests extend `AbstractUccTest`: the mock DAOs (`ResettableMock`) are reset before every test, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
-- Production code never writes to the console (`SourceHygieneTest`); log through `LogManager.getLogger` (SLF4J).
+- The stateful mock DAOs implement `ResettableMock`; `MockDaoResetListener` (registered for every Spring test in `src/test/resources/META-INF/spring.factories`) empties them before every test method, before the test's own `@BeforeEach`, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
+- Production code never writes to the console (`SourceHygieneTest`); log through SLF4J (`LoggerFactory.getLogger`).
 
 ### Integration Testing
 
@@ -158,6 +165,10 @@ DB_PORT=
 DB_NAME=
 DB_USERNAME=
 DB_PASSWORD=
+JWT_SECRET=                  # 32+ bytes, signs the session JWT
+APP_SESSION_VALIDITY=12h     # session lifetime
+APP_SESSION_COOKIE_SECURE=false  # true behind HTTPS
+APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 ```
 
 ## Performance Optimization
@@ -178,9 +189,10 @@ DB_PASSWORD=
 
 ### Authentication & Authorization
 
-- Spring Security manages authentication
-- Roles determine access to endpoints
-- JWT tokens are used for stateless sessions
+- Spring Security manages authentication (stateless JWT in the `session` cookie, OAuth2 resource server)
+- `@PreAuthorize` role checks on every controller method (`ROLE_PROFESSOR`, `ROLE_STUDENT`)
+- CSRF protection with the `XSRF-TOKEN` cookie / `X-XSRF-TOKEN` header
+- 401 and 403 are rendered by `ApiExceptionHandler`, like every other API error
 
 ## Monitoring and Logging
 
@@ -204,7 +216,7 @@ DB_PASSWORD=
 
 ### Issue 2: Tests fail due to context loading
 
-**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (mock DAOs, no database). `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
+**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (mock DAOs, no database). Controller tests use `@WebMvcTest` with `@Import(WebTestConfig.class)` (real security chain, JSON mapping) and `@MockBean` use cases; authenticate with `TestUsers.professor()` / `student()` and add `csrf()` to state-changing requests. `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
 
 ## Reference Resources
 

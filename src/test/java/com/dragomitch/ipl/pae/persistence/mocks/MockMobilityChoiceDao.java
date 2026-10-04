@@ -49,10 +49,6 @@ public class MockMobilityChoiceDao implements MobilityChoiceDao, ResettableMock 
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     mobilityChoices = new ArrayList<MobilityChoiceDto>();
   }
