@@ -3,7 +3,9 @@ package com.dragomitch.ipl.pae.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -15,10 +17,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.business.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 
 import java.util.List;
@@ -57,8 +59,7 @@ class PartnerControllerTest {
 
     mockMvc.perform(post(ApiPaths.BASE + "/partners").with(csrf()).with(TestUsers.student())
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"fullName\":\"ACME\",\"official\":false,\"employeeCount\":\"12\","
-                + "\"options\":[{\"code\":\"BIN\",\"departement\":\"IT\"}]}"))
+            .content(TestBodies.PARTNER))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(8));
 
@@ -70,7 +71,8 @@ class PartnerControllerTest {
 
   @Test
   void showAllPassesTheFilterAndIsWrappedInData() throws Exception {
-    when(partnerUcc.showAll("country", "FR", UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
+    when(partnerUcc.showAll(new PartnerSearch("country", "FR"), UserDto.ROLE_STUDENT,
+        TestUsers.STUDENT_ID))
         .thenReturn(List.of(partner(1), partner(2)));
 
     mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=country&value=FR")
@@ -80,24 +82,47 @@ class PartnerControllerTest {
   }
 
   @Test
-  void anUnknownFilterIs400WithItsCatalogueError() throws Exception {
-    when(partnerUcc.showAll("whatever", "x", UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
-        .thenThrow(new BusinessException(ErrorFormat.INVALID_PARTNER_FILTER_709));
+  void anOptionAddedByAStudentToAPartnerHeMayNotChangeIsForbidden() throws Exception {
+    doThrow(new InsufficientPermissionException()).when(partnerUcc)
+        .addOption(eq(3), any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
 
+    mockMvc.perform(post(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.student())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"code\":\"BIN\",\"departement\":\"IT\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+  }
+
+  @Test
+  void aNullOptionInAnEditIsAValidationProblem() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.professor())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(TestBodies.PARTNER.replace("\"options\":[", "\"options\":[null,")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+        .andExpect(jsonPath("$.errors[0].field").value("options[0]"))
+        .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+    verifyNoInteractions(partnerUcc);
+  }
+
+  @Test
+  void anUnknownFilterIsAValidationProblem() throws Exception {
     mockMvc.perform(get(ApiPaths.BASE + "/partners?filter=whatever&value=x")
             .with(TestUsers.student()))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errorCode").value(709))
-        .andExpect(jsonPath("$.developerMessage").isNotEmpty());
+        .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+        .andExpect(jsonPath("$.errors[0].field").value("filter"))
+        .andExpect(jsonPath("$.errors[0].code").value("Pattern"));
+    verifyNoInteractions(partnerUcc);
   }
 
   @Test
   void anUnknownPartnerIs404() throws Exception {
-    when(partnerUcc.showOne(99)).thenThrow(new RessourceNotFoundException());
+    when(partnerUcc.showOne(99)).thenThrow(new ResourceNotFoundException());
 
     mockMvc.perform(get(ApiPaths.BASE + "/partners/99").with(TestUsers.student()))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.errorCode").value(104));
+        .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
   }
 
   @Test
@@ -105,7 +130,8 @@ class PartnerControllerTest {
     when(partnerUcc.edit(eq(3), any(), eq(UserDto.ROLE_PROFESSOR))).thenReturn(partner(3));
 
     mockMvc.perform(put(ApiPaths.BASE + "/partners/3").with(csrf()).with(TestUsers.professor())
-            .contentType(MediaType.APPLICATION_JSON).content("{\"archived\":true,\"version\":2}"))
+            .contentType(MediaType.APPLICATION_JSON).content(TestBodies.PARTNER.replace("\"official\":false",
+                "\"official\":false,\"archived\":true,\"version\":2")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.fullName").value("ACME"));
   }
@@ -117,7 +143,8 @@ class PartnerControllerTest {
             .content("{\"code\":\"BIN\",\"departement\":\"IT\"}"))
         .andExpect(status().isOk());
     ArgumentCaptor<PartnerOptionDto> captor = ArgumentCaptor.forClass(PartnerOptionDto.class);
-    verify(partnerUcc).addOption(eq(3), captor.capture());
+    verify(partnerUcc).addOption(eq(3), captor.capture(), eq(TestUsers.STUDENT_ID),
+        eq(UserDto.ROLE_STUDENT));
     assertEquals("IT", captor.getValue().getDepartement());
 
     when(partnerUcc.findAllPartnerOption(3)).thenReturn(List.of(captor.getValue()));

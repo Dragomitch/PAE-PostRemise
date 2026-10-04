@@ -1,19 +1,18 @@
 package com.dragomitch.ipl.pae.business;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -108,151 +107,115 @@ public class TestUser {
 
   @Test
   public void testCheckDataIntegrityTC1() {
-    assertThrows(BusinessException.class, () -> {
-      user.setUsername(null);
-      user.checkDataIntegrity();
-    });
+    user.setUsername(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC2() {
-    assertThrows(BusinessException.class, () -> {
-      user.setUsername("");
-      user.checkDataIntegrity();
-    });
+    user.setUsername("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC3() {
-    assertThrows(BusinessException.class, () -> {
-      user.setUsername(LONG_STRING_21);
-      user.checkDataIntegrity();
-    });
+    user.setUsername(LONG_STRING_21);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC4() {
-    assertThrows(BusinessException.class, () -> {
-      user.setLastName(null);
-      user.checkDataIntegrity();
-    });
+    user.setLastName(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC5() {
-    assertThrows(BusinessException.class, () -> {
-      user.setLastName("");
-      user.checkDataIntegrity();
-    });
+    user.setLastName("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC6() {
-    assertThrows(BusinessException.class, () -> {
-      user.setLastName(LONG_STRING_36);
-      user.checkDataIntegrity();
-    });
+    user.setLastName(LONG_STRING_36);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC7() {
-    assertThrows(BusinessException.class, () -> {
-      user.setFirstName(null);
-      user.checkDataIntegrity();
-    });
+    user.setFirstName(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC8() {
-    assertThrows(BusinessException.class, () -> {
-      user.setFirstName("");
-      user.checkDataIntegrity();
-    });
+    user.setFirstName("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC9() {
-    assertThrows(BusinessException.class, () -> {
-      user.setFirstName(LONG_STRING_36);
-      user.checkDataIntegrity();
-    });
+    user.setFirstName(LONG_STRING_36);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC10() {
-    assertThrows(BusinessException.class, () -> {
-      user.setPassword(null);
-      user.checkDataIntegrity();
-    });
+    user.setPassword(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC11() {
-    assertThrows(BusinessException.class, () -> {
-      user.setPassword("");
-      user.checkDataIntegrity();
-    });
+    user.setPassword("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC12() {
-    assertThrows(BusinessException.class, () -> {
-      user.setPassword(LONG_STRING_256);
-      user.checkDataIntegrity();
-    });
+    user.setPassword(LONG_STRING_256);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC13() {
-    assertThrows(BusinessException.class, () -> {
-      user.setEmail(null);
-      user.checkDataIntegrity();
-    });
+    user.setEmail(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC14() {
-    assertThrows(BusinessException.class, () -> {
-      user.setEmail("");
-      user.checkDataIntegrity();
-    });
+    user.setEmail("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC15() {
-    assertThrows(BusinessException.class, () -> {
-      user.setEmail(LONG_STRING_256);
-      user.checkDataIntegrity();
-    });
+    user.setEmail(LONG_STRING_256);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC16() {
-    assertThrows(BusinessException.class, () -> {
-      user.setOption(null);
-      user.checkDataIntegrity();
-    });
+    user.setOption(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC17() {
-    assertThrows(BusinessException.class, () -> {
-      user.getOption().setCode(null);
-      user.checkDataIntegrity();
-    });
+    user.getOption().setCode(null);
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC18() {
-    assertThrows(BusinessException.class, () -> {
-      user.getOption().setCode("");
-      user.checkDataIntegrity();
-    });
+    user.getOption().setCode("");
+    assertNotEquals(List.of(), Violations.onCreate(user));
   }
 
   @Test
   public void testCheckDataIntegrityTC19() {
-    user.checkDataIntegrity();
+    assertEquals(List.of(), Violations.onCreate(user));
   }
 
   private User setUpCorrectUser() {

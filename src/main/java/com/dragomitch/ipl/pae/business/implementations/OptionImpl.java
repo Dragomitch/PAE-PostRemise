@@ -1,7 +1,5 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.Option;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -48,10 +46,5 @@ class OptionImpl implements Option, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    checkString(code);
-    checkString(name);
-  }
 
 }

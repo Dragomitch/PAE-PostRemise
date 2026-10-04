@@ -1,21 +1,24 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
+import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
+import jakarta.validation.ConstraintViolationException;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -64,7 +67,7 @@ public class TestUserUcc {
 
   @Test
   public void testCreateTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       userUcc.signup(null);
       prof.setId(1);
       assertEquals(prof.getId(), (userDao.findById(prof.getId())).getId());
@@ -80,12 +83,13 @@ public class TestUserUcc {
 
   @Test
   public void testCreateTC4() {
-    assertThrows(BusinessException.class, () -> {
-      OptionDto option = mockDtoFactory.getOption();
-      option.setCode("Wrong Code Man");
-      stud.setOption(option);
-      userUcc.signup(stud);
-    });
+    assertEquals(List.of("signup.user.option.code:Size"),
+        Violations.thrownBy(() -> {
+          OptionDto option = mockDtoFactory.getOption();
+          option.setCode("Wrong Code Man");
+          stud.setOption(option);
+          userUcc.signup(stud);
+        }));
   }
 
   @Test
@@ -132,7 +136,7 @@ public class TestUserUcc {
 
   @Test
   public void testPromoteToProfessorTC2() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       userUcc.signup(stud);
       userUcc.promoteToProfessor(69);
     });
@@ -140,7 +144,7 @@ public class TestUserUcc {
 
   @Test
   public void testPromoteToProfessorTC3() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       userUcc.signup(stud);
       userUcc.promoteToProfessor(-1);
     });
@@ -205,20 +209,23 @@ public class TestUserUcc {
   public void promoteToProfessorByUsernameOfAnUnknownUserIsNotFound() {
     signUpProfessorThenStudent();
 
-    assertThrows(RessourceNotFoundException.class,
+    assertThrows(ResourceNotFoundException.class,
         () -> userUcc.promoteToProfessorByUsername("nobody"));
   }
 
   @Test
   public void promoteToProfessorByUsernameNeedsAUsername() {
-    assertThrows(IllegalArgumentException.class, () -> userUcc.promoteToProfessorByUsername(""));
-    assertThrows(IllegalArgumentException.class,
-        () -> userUcc.promoteToProfessorByUsername(null));
+    assertEquals(List.of("promoteToProfessorByUsername.username:NotBlank"),
+        Violations.thrownBy(() -> userUcc.promoteToProfessorByUsername("")));
+    assertEquals(List.of("promoteToProfessorByUsername.username:NotBlank"),
+        Violations.thrownBy(() -> userUcc.promoteToProfessorByUsername(null)));
+    assertEquals(List.of("promoteToProfessorByUsername.username:Size"),
+        Violations.thrownBy(() -> userUcc.promoteToProfessorByUsername("x".repeat(21))));
   }
 
   @Test
   public void testEditTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       userUcc.signup(stud);
       userUcc.edit(null, 1, UserDto.ROLE_STUDENT);
     });
@@ -226,7 +233,7 @@ public class TestUserUcc {
 
   @Test
   public void testEditTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       userUcc.signup(stud);
       userUcc.edit(stud, -1, UserDto.ROLE_STUDENT);
     });
@@ -234,7 +241,7 @@ public class TestUserUcc {
 
   @Test
   public void testEditTC3() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       userUcc.signup(stud);
       userUcc.edit(stud, -1, "");
     });
@@ -251,7 +258,7 @@ public class TestUserUcc {
 
   @Test
   public void testEditTC5() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       userUcc.signup(prof);
       prof.setUsername("chikiBriki");
       prof.setEmail("MamyFaitDesBlagues@joke.be");

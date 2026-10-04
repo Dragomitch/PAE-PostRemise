@@ -1,23 +1,22 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockDenialReasonDao;
+import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
 
+import jakarta.validation.ConstraintViolationException;
 import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -68,7 +67,7 @@ public class TestDenialReasonUcc {
 
   @Test
   public void testCreateTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       denialReasonUcc.create(null);
     });
   }
@@ -88,44 +87,43 @@ public class TestDenialReasonUcc {
 
   @Test
   public void testCreateTC4() {
-    assertThrows(BusinessException.class, () -> {
-      denialReason.setReason("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-          + "Fusce quam orci, pharetra finibus porttitor vel, consequat vel arcu. "
-          + "Cras tempus consequat lectus id imperdiet. "
-          + "Sed tincidunt finibus odio eu condimentum. " + "Pellentesque aliquam placerat risus. "
-          + "Phasellus lorem massa, placerat ut quam id volutpat.");
-      denialReasonUcc.create(denialReason);
-    });
+    assertEquals(List.of("create.denialReason.reason:Size"),
+        Violations.thrownBy(() -> {
+          denialReason.setReason("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+              + "Fusce quam orci, pharetra finibus porttitor vel, consequat vel arcu. "
+              + "Cras tempus consequat lectus id imperdiet. "
+              + "Sed tincidunt finibus odio eu condimentum. " + "Pellentesque aliquam placerat risus. "
+              + "Phasellus lorem massa, placerat ut quam id volutpat.");
+          denialReasonUcc.create(denialReason);
+        }));
   }
 
   @Test
   public void aReasonLongerThanTheColumnIsReportedOnceAsTooLong() {
-    denialReason.setReason("x".repeat(DenialReasonDao.MAX_LENGTH_REASON + 1));
+    denialReason.setReason("x".repeat(DenialReasonDto.REASON_MAX_LENGTH + 1));
 
-    BusinessException ex =
-        assertThrows(BusinessException.class, () -> denialReasonUcc.create(denialReason));
-    assertEquals(List.of(ErrorFormat.MAX_LENGTH_REASON_OVERFLOW_402),
-        ex.getError().getDetails().stream().map(ErrorFormat::getErrorCode).toList());
+    assertEquals(List.of("create.denialReason.reason:Size"),
+        Violations.thrownBy(() -> denialReasonUcc.create(denialReason)));
     assertEquals(0, denialReasonUcc.showAll().size());
   }
 
   @Test
   public void testEditTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       denialReasonUcc.edit(0, denialReason);
     });
   }
 
   @Test
   public void testEditTC2() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       denialReasonUcc.edit(1, null);
     });
   }
 
   @Test
   public void testEditTC3() {
-    assertThrows(RessourceNotFoundException.class, () -> {
+    assertThrows(ResourceNotFoundException.class, () -> {
       denialReasonUcc.edit(1, denialReason);
     });
   }

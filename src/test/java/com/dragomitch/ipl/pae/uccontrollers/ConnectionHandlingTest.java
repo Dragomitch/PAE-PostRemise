@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import com.dragomitch.ipl.pae.business.exceptions.UnauthenticatedUserException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.InvalidCredentialsException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -64,7 +64,7 @@ class ConnectionHandlingTest {
   @Test
   void anUnknownOptionReleasesTheConnection() throws SQLException {
     assertFailsAndReleasesTheConnection(() -> optionUcc.findAllPartnersByOption("XXX"),
-        RessourceNotFoundException.class);
+        ResourceNotFoundException.class);
   }
 
   @Test
@@ -82,18 +82,18 @@ class ConnectionHandlingTest {
   @Test
   void aFailedSigninReleasesTheConnection() throws SQLException {
     assertFailsAndReleasesTheConnection(() -> sessionUcc.signin("nobody", "secret"),
-        UnauthenticatedUserException.class);
+        InvalidCredentialsException.class);
   }
 
   @Test
   void theOptionsOfAnUnknownPartnerReleaseTheConnection() throws SQLException {
     assertFailsAndReleasesTheConnection(() -> partnerUcc.findAllPartnerOption(42),
-        RessourceNotFoundException.class);
+        ResourceNotFoundException.class);
   }
 
   @Test
   void anUnknownPartnerIsNotFoundAndTheTransactionIsRolledBack() throws SQLException {
     assertFailsAndReleasesTheConnection(() -> partnerUcc.showOne(42),
-        RessourceNotFoundException.class);
+        ResourceNotFoundException.class);
   }
 }

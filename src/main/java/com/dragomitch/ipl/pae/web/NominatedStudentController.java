@@ -4,6 +4,8 @@ import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.security.CurrentUser;
 import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,14 +31,15 @@ public class NominatedStudentController {
 
   @PostMapping
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public NominatedStudentDto create(@RequestBody NominatedStudentDto nominatedStudent,
+  public NominatedStudentDto create(@RequestBody @Valid NominatedStudentDto nominatedStudent,
       CurrentUser currentUser) {
     return nominatedStudentUcc.create(nominatedStudent, currentUser.id(), currentUser.role());
   }
 
   @GetMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public NominatedStudentDto showOne(@PathVariable int id, CurrentUser currentUser) {
+  public NominatedStudentDto showOne(@PathVariable @Positive int id,
+      CurrentUser currentUser) {
     return nominatedStudentUcc.showOne(id, currentUser.id(), currentUser.role());
   }
 
@@ -49,8 +52,8 @@ public class NominatedStudentController {
   /** Updates the data of the student identified by the path (the id of the body is ignored). */
   @PutMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public NominatedStudentDto edit(@PathVariable int id,
-      @RequestBody NominatedStudentDto nominatedStudent, CurrentUser currentUser) {
+  public NominatedStudentDto edit(@PathVariable @Positive int id,
+      @RequestBody @Valid NominatedStudentDto nominatedStudent, CurrentUser currentUser) {
     nominatedStudent.setId(id);
     return nominatedStudentUcc.edit(nominatedStudent, currentUser.id(), currentUser.role());
   }

@@ -7,8 +7,6 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 
 import java.sql.ResultSet;
@@ -102,8 +100,9 @@ class PartnerDaoImpl implements PartnerDao {
    * <p>Professors see every partner matching the filter. Students only see official, non-archived
    * partners offering their option ({@code "all"} and {@code "country"} filters).
    *
-   * @throws BusinessException INVALID_PARTNER_FILTER_709 if the filter is not one of the
-   *         {@code FILTER_*} constants
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
+   *         (a programming error: the API rejects an unknown filter before, with a 400
+   *         {@code VALIDATION_FAILED} problem)
    */
   @Override
   public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
@@ -118,7 +117,7 @@ class PartnerDaoImpl implements PartnerDao {
       conditions.add("lower(p.full_name) LIKE ?");
       params.add("%" + value.toLowerCase() + "%");
     } else if (!FILTER_ALL_PARTNERS.equals(filter)) {
-      throw new BusinessException(ErrorFormat.INVALID_PARTNER_FILTER_709);
+      throw new IllegalArgumentException("Unknown partner filter: " + filter);
     }
     if (student && !FILTER_ARCHIVED_PARTNERS.equals(filter)) {
       conditions.add("p.is_archived = FALSE");

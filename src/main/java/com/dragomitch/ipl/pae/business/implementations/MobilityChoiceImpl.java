@@ -1,22 +1,14 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
-
 import com.dragomitch.ipl.pae.business.MobilityChoice;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
 
 class MobilityChoiceImpl implements MobilityChoice, Serializable {
 
@@ -166,40 +158,4 @@ class MobilityChoiceImpl implements MobilityChoice, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    List<Integer> violations = new LinkedList<Integer>();
-    if (!isPositive(preferenceOrder)) {
-      violations.add(ErrorFormat.INVALID_PREFERENCE_ORDER_302);
-    } else if (preferenceOrder > MobilityChoice.MAX_ORDER_CHOICE) {
-      violations.add(ErrorFormat.INVALID_PREFERENCE_ORDER_VALUE_303);
-    }
-    if (!isAValidString(mobilityType)) {
-      violations.add(ErrorFormat.INVALID_MOBILITY_TYPE_304);
-    } else if (!mobilityType.equals(MobilityChoice.MOBILITY_TYPE_SMS)
-        && !mobilityType.equals(MobilityChoice.MOBILITY_TYPE_SMP)) {
-      violations.add(ErrorFormat.INVALID_MOBILITY_TYPE_VALUE_306);
-    }
-    if (!isPositive(academicYear)) {
-      violations.add(ErrorFormat.INVALID_ACADEMIC_YEAR_307);
-    }
-    if (!isPositive(term)) {
-      violations.add(ErrorFormat.INVALID_TERM_308);
-    } else if (term > MobilityChoice.MAX_TERM_CHOICE) {
-      violations.add(ErrorFormat.INVALID_TERM_VALUE_309);
-    }
-    if (!isAValidObject(user)) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_NULL_132);
-    } else if (!isPositive(user.getId())) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
-    }
-    if (!isAValidObject(programme)) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_PROGRAMME_NULL_140);
-    } else if (!isPositive(programme.getId())) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_PROGRAMME_ID_1000);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
-    }
-  }
 }

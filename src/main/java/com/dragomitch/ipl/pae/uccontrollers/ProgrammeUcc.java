@@ -2,8 +2,11 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 
+import jakarta.validation.constraints.Positive;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface ProgrammeUcc {
 
   /**
@@ -11,8 +14,10 @@ public interface ProgrammeUcc {
    * 
    * @param id : the id of the programme we want to find
    * @return the progrmmeDto corresponding to the id
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if no programme
+   *         has this id
    */
-  ProgrammeDto showOne(int id);
+  ProgrammeDto showOne(@Positive int id);
 
   /**
    * Return the list of all programmes.

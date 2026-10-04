@@ -5,6 +5,8 @@ import com.dragomitch.ipl.pae.security.CurrentUser;
 import com.dragomitch.ipl.pae.security.SessionCookieService;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +30,7 @@ public class SessionController {
    * @param username the username
    * @param password the password
    */
-  public record SignInRequest(String username, String password) {
+  public record SignInRequest(@NotBlank String username, @NotBlank String password) {
   }
 
   private final SessionUcc sessionUcc;
@@ -41,7 +43,7 @@ public class SessionController {
 
   /** Public. Checks the credentials and opens a session (sets the {@code session} cookie). */
   @PostMapping
-  public ResponseEntity<UserDto> signin(@RequestBody SignInRequest credentials) {
+  public ResponseEntity<UserDto> signin(@RequestBody @Valid SignInRequest credentials) {
     UserDto user = sessionUcc.signin(credentials.username(), credentials.password());
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, sessionCookieService.sessionCookie(user).toString())
