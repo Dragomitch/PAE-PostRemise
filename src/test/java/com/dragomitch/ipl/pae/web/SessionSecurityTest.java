@@ -18,10 +18,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.UnauthenticatedUserException;
+import com.dragomitch.ipl.pae.business.exceptions.InvalidCredentialsException;
 import com.dragomitch.ipl.pae.security.CurrentUser;
 import com.dragomitch.ipl.pae.security.SessionCookieService;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
+
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import jakarta.servlet.http.Cookie;
@@ -150,11 +151,11 @@ class SessionSecurityTest {
 
   @Test
   void wrongCredentialsAre401() throws Exception {
-    when(sessionUcc.signin(any(), any())).thenThrow(new UnauthenticatedUserException());
+    when(sessionUcc.signin(any(), any())).thenThrow(new InvalidCredentialsException());
     mockMvc.perform(post(ApiPaths.BASE + "/session").with(csrf())
             .contentType(MediaType.APPLICATION_JSON).content(SIGNIN_BODY))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.errorCode").value(101))
+        .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
         .andExpect(cookie().doesNotExist("session"));
   }
 
@@ -162,7 +163,7 @@ class SessionSecurityTest {
   void withoutSessionTheCurrentUserIs401() throws Exception {
     mockMvc.perform(get(ApiPaths.BASE + "/session"))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.errorCode").value(101))
+        .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"))
         .andExpect(header().doesNotExist(HttpHeaders.WWW_AUTHENTICATE));
   }
 
@@ -183,7 +184,7 @@ class SessionSecurityTest {
         past, past.plus(1, ChronoUnit.HOURS));
     mockMvc.perform(get(ApiPaths.BASE + "/session").cookie(new Cookie("session", expired)))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.errorCode").value(101));
+        .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
   }
 
   @Test

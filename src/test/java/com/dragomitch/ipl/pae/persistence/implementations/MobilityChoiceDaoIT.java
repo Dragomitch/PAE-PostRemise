@@ -10,8 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
@@ -171,8 +169,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   @ValueSource(strings = {"whatever", "ALL", "active "})
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.findAll(filter))
-        .isInstanceOfSatisfying(BusinessException.class, ex -> assertThat(
-            ex.getError().getErrorCode()).isEqualTo(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323)));
+        .isInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")

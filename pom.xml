@@ -27,13 +27,16 @@
         <!-- Filled in by jacoco:prepare-agent; declared empty so @{argLine} always resolves -->
         <argLine></argLine>
         <!-- JaCoCo regression gates on the merged unit + integration coverage (jacoco:check in
-             verify). Set just below the level reached when they were introduced (lines 78.4%,
-             branches 67.8%; JDBC DAOs 98.5% / 98.1%). Raise them as coverage grows; do not lower
-             them to get a change merged. Nothing is excluded from the analysis. -->
-        <jacoco.minimum.line>0.78</jacoco.minimum.line>
-        <jacoco.minimum.branch>0.67</jacoco.minimum.branch>
+             verify). Set just below the level reached (lines 99.1%, branches 91.7% with the unit
+             tests of the use-case services; JDBC DAOs 100% / 98.4%; use cases 99.5% / 97.8%).
+             Raise them as coverage grows; do not lower them to get a change merged. Nothing is
+             excluded from the analysis. -->
+        <jacoco.minimum.line>0.98</jacoco.minimum.line>
+        <jacoco.minimum.branch>0.91</jacoco.minimum.branch>
         <jacoco.minimum.persistence.line>0.98</jacoco.minimum.persistence.line>
         <jacoco.minimum.persistence.branch>0.98</jacoco.minimum.persistence.branch>
+        <jacoco.minimum.usecases.line>0.98</jacoco.minimum.usecases.line>
+        <jacoco.minimum.usecases.branch>0.97</jacoco.minimum.usecases.branch>
         <!-- Fixed locale/time zone for every forked test JVM (unit and integration) -->
         <test.jvm.args>-Duser.timezone=UTC -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</test.jvm.args>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -81,9 +84,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- Spring Data JDBC (includes spring-boot-starter-jdbc: HikariCP, JdbcTemplate/JdbcClient,
+             DataSourceTransactionManager). Repositories and aggregates live in persistence.jdbc;
+             the remaining hand-written DAOs share the same transaction-bound connection. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+        </dependency>
+        <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <!-- Real PostgreSQL (no Docker) for the DAO integration tests -->
         <dependency>
@@ -165,8 +176,11 @@
                         </goals>
                         <configuration>
                             <!-- Thresholds: jacoco.minimum.* properties above. The second rule
-                                 guards the JDBC DAOs (covered by the *IT tests) while they are
-                                 migrated; move it to the new repositories' package then. -->
+                                 guards every persistence package (covered by the *IT tests): the
+                                 DAO implementations, JDBC or Spring Data adapters, and the Spring
+                                 Data JDBC configuration and aggregates (persistence.jdbc*). The
+                                 third one guards the business rules of the use-case services
+                                 (covered by the unit tests). -->
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -187,6 +201,8 @@
                                     <element>PACKAGE</element>
                                     <includes>
                                         <include>com.dragomitch.ipl.pae.persistence.implementations</include>
+                                        <!-- Spring Data JDBC setup and aggregates -->
+                                        <include>com.dragomitch.ipl.pae.persistence.jdbc*</include>
                                     </includes>
                                     <limits>
                                         <limit>
@@ -198,6 +214,24 @@
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>${jacoco.minimum.persistence.branch}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                                <rule>
+                                    <element>PACKAGE</element>
+                                    <includes>
+                                        <include>com.dragomitch.ipl.pae.uccontrollers.implementations</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.minimum.usecases.line}</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.minimum.usecases.branch}</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

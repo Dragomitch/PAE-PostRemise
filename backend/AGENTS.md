@@ -23,6 +23,7 @@ List the main technologies and tools used in the project:
 - **Database**: PostgreSQL
 - **Build Tool**: Maven
 - **Deployment**: Docker/Docker Compose
+- **Persistence**: Spring Data JDBC repositories and `JdbcClient` on PostgreSQL (schema in `SQLRessources/init.sql`)
 - **Testing**: JUnit 5 (Jupiter) with Mockito and Spring Boot Test
 
 ## Project Structure
@@ -89,8 +90,8 @@ mvn spring-boot:run
 
 Requests flow through three layers, all Spring beans:
 
-1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind the request (JSON `@RequestBody`, `@PathVariable`, `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only.
-2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
+1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind and validate the request (JSON `@Valid @RequestBody`, constrained `@PathVariable` / `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only, as RFC 9457 problems.
+2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Their interfaces are `@Validated` and declare the constraints of the parameters. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
 3. **DAOs** (`persistence`): see below.
 
 ```java
@@ -109,25 +110,90 @@ Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1
 
 ### Feature Module 2
 
-Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with error 120) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
+Persistence (`persistence`) is being migrated from hand-written JDBC to **Spring Data JDBC**. The use cases only see the DAO interfaces (`persistence/*Dao`), whose signatures and behaviour do not change; the `*IT` tests describe that behaviour and must keep passing unchanged.
+
+**Why Spring Data JDBC rather than JPA.** The schema is hand-written SQL (`SQLRessources/init.sql`) and the DAOs return detached DTOs built by `EntityFactory`. Spring Data JDBC maps such a schema as it is (explicit `@Table`/`@Column`, no DDL generation), runs one SQL statement per call, and has no persistence context, lazy loading, dirty checking or flush timing. It runs on the same `DataSource` and `DataSourceTransactionManager` as the remaining SQL, so a use case can mix both in one transaction. JPA would need a `JpaTransactionManager` for everything and bring proxies that fail outside the session and entity-graph tuning, for no gain: the DTOs are copied anyway.
+
+Target architecture:
+
+```
+persistence/
+├── XxxDao.java                  # contract used by the use cases (unchanged)
+├── implementations/XxxDaoImpl   # @Repository adapter: repository or JdbcClient -> DTO
+│   └── DataAccess               # wraps every DAO call: transaction required, exception contract
+└── jdbc/
+    ├── JdbcPersistenceConfig    # AbstractJdbcConfiguration + @EnableJdbcRepositories, PostgreSQL dialect
+    ├── entity/XxxEntity         # immutable records: @Table(schema = SCHEMA, name), @Id, @Column, @Version,
+    │                            #   other aggregates referenced by id (AggregateReference)
+    └── repository/XxxRepository # ListCrudRepository + derived queries, @Query/@Modifying for the rest
+```
+
+- **Transactions**: repositories and `JdbcClient` run on the `NamedParameterJdbcTemplate`, i.e. on the connection that `DataSourceUtils` binds to the Spring transaction opened by `@Transactional` on the use case. `DataAccess.call` rejects a DAO call outside a transaction (`IllegalStateException`). `SharedTransactionIT` checks that Spring Data and `JdbcClient` run in the same PostgreSQL transaction, see each other's uncommitted rows, and that the rollback undoes both.
+- **Exceptions**: `DataAccess.call` keeps the DAO contract. `OptimisticLockingFailureException` becomes `ConcurrentModificationException` (409 `CONCURRENT_MODIFICATION` problem). Any other `DataAccessException`, and Spring Data's `DbActionExecutionException`, becomes `FatalException`, whose cause is the driver's `SQLException` (found in the cause chain) or, without one, the Spring exception. A 0-row partial update (`@Modifying @Query` or `JdbcClient.update()`) is reported by the adapter itself as `ConcurrentModificationException`.
+- **Optimistic locking**: tables with a `version` column map it to a primitive `@Version int version`. Spring Data inserts 1 and updates with `WHERE id = ? AND version = ?`, incrementing it. Adapters call `JdbcAggregateOperations.insert`/`update` explicitly rather than `save`, which guesses from the version, and copy the new version back into the DTO. Read-only reference tables (countries, documents) do not map their unused version column.
+- **Mapping**: entity <-> DTO mapping lives in the adapter (`toDto`/`toEntity`, a few lines). Names of referenced aggregates are read from that aggregate's repository instead of a join (the option name of a user, the country name of an address, the programme of a country): one extra query, or one `findAll` for a list.
+- **Configuration**: `JdbcPersistenceConfig` replaces Spring Boot's Spring Data JDBC auto-configuration. The application and `DaoItConfig` (the IT context, which has no Boot auto-configuration) therefore use the same setup. The dialect is declared, so the application starts without a database.
+
+| DAO | Implementation | Notes |
+|---|---|---|
+| Option, Programme, Country, Document | Spring Data repositories | read-only reference data; derived queries (`findAllByOrderByNameAsc`, `findByProgramme(AggregateReference)`) |
+| DenialReason | Spring Data repository | no version: update is a `@Modifying @Query`; 0 rows (unknown id) is a `ConcurrentModificationException` |
+| Address, User | Spring Data repositories + `JdbcAggregateOperations` | `@Version`; the user registration date is `@InsertOnlyProperty`; `promoteToProfessor` (by id or by username) is a `@Modifying @Query` `SET role, version = version + 1 WHERE ... AND version = :expectedVersion`: 1 row gives the new version `expectedVersion + 1`, 0 rows a `ConcurrentModificationException`; `findBy(column, value)` resolves the column through the mapping instead of concatenating it into the SQL |
+| Payment | `JdbcClient` | read model (UNION over mobilities), not an aggregate; country and partner LEFT-joined |
+| MobilityChoice, Mobility, MobilityDocument, NominatedStudent, Partner, PartnerOption | `JdbcClient` + `RowMapper` (a `ResultSetExtractor` for the partners: one row per option, merged per partner) | SQL kept (text blocks, explicit joins, LEFT JOIN for optional relations); `UPDATE ... WHERE version = ? RETURNING version` |
+
+**Migrating the next DAO (checklist)**
+
+1. Read its `*IT` (the contract, including the legacy behaviours it pins) and its table in `init.sql`.
+2. Add `persistence/jdbc/entity/XxxEntity`: a record with `@Table(schema = JdbcPersistenceConfig.SCHEMA, name = ...)` and `@Id`. Add `@Column` for names that are not the snake_case of the property, a primitive `@Version int version` if the table has a version column, `AggregateReference` for foreign keys to other aggregates, and `@InsertOnlyProperty` for columns the old UPDATE did not write.
+3. Add `persistence/jdbc/repository/XxxRepository extends ListCrudRepository<XxxEntity, Id>`. Prefer derived queries. Use `@Query` (schema spelled out) for joins and projections, and `@Modifying @Query` for partial updates that must not touch the version.
+4. Rewrite `XxxDaoImpl` as an adapter: inject the repository through the constructor, plus `JdbcAggregateOperations` for version-checked writes. Wrap **every** method body in `DataAccess.call`/`run`, map with small `toDto`/`toEntity` methods, and use `DataAccess.reference(id)` for nullable references.
+5. Run `mvn verify`. The DAO's `*IT`, `DaoErrorHandlingIT` (a `FatalException` with its `SQLException` cause from every method; no statement left open and no connection taken outside the transaction, as recorded by the `StatementRecordingDataSource` of `DaoItConfig`) and `SharedTransactionIT` must pass **unchanged**. Add repository-level tests to `JdbcRepositoriesIT` for new `@Query`/derived methods and `@Version` behaviour. The JaCoCo rule (0.98 lines/branches) covers `persistence.implementations` and `persistence.jdbc*`.
+6. If a legacy behaviour must change, change the IT in the same commit, with a comment explaining why.
+
+**What remains (on `JdbcClient`) and the plan for each**
+
+- **Partner + PartnerOption**: one aggregate. `PartnerEntity` has a `@Version` and an `AggregateReference` to the address. It owns a `@MappedCollection(idColumn = "partner_id", keyColumn = "option_code") Map<String, PartnerOptionEntity>`, which handles the composite key of `partner_options`. Caveat: Spring Data rewrites the collection on every save and bumps the partner version, so `PartnerOptionDao.create` would increment the partner version. Decide that with the use-case owner, or keep that insert on `JdbcClient`. The filtered list (joins to address/country/programme, options LEFT-joined so that a partner without option is listed, the student option filter as an `EXISTS`) becomes a `@Query` returning a `PartnerView` record.
+- **MobilityDocument**: composite key (document_id, mobility_id) with its own version. It can become a `@MappedCollection(idColumn = "mobility_id")` of the Mobility aggregate. The cleaner option is an entity with an embedded composite `@Id`, supported by Spring Data Relational 3.5 (Spring Boot 3.5) according to its release notes (check before relying on it): migrate it after that upgrade.
+- **NominatedStudent**: shares its primary key with `users` (an assigned id, not generated): an entity with `@Id Integer userId`, written with `JdbcAggregateOperations.insert`. Its create stores and returns the DTO's version (the user's), which conflicts with `@Version` (which inserts 1): keep a `@Modifying @Query` insert. Reads join users/options/countries: a `@Query` into a `NominatedStudentView` record.
+- **Mobility**: the primary key is `mobility_choice_id` (assigned), with a `@Version` and optional references to the denial reason and the professor (nullable `AggregateReference`s). Reads join six tables: a `@Query` into a `MobilityView` record, and `findByUser` as a second `@Query`.
+- **MobilityChoice**: generated id and `@Version`. The database sets `submission_date` (`NOW()`) on insert, but update writes it. It needs a custom insert (`@Modifying @Query ... RETURNING`), or the date set in Java (a behaviour change). The filters ("active" and "passed" compare with the current year, "not yet a mobility") become `@Query` methods that take the year as a parameter, which also makes them testable without the clock.
+
+Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`). The `*IT` tests run the real DAOs, repositories and `JdbcClient` against an embedded PostgreSQL (`DaoItConfig`, with the rolled-back transactions of `AbstractDaoIT`).
 
 DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
 
-- Every statement is closed (try-with-resources) and every SQL failure is a `FatalException` carrying the `SQLException` as cause.
+- Every statement is closed (by the `JdbcTemplate` under the repositories and `JdbcClient`; `DaoErrorHandlingIT` checks it through the recording data source) and every SQL failure is a `FatalException` carrying the `SQLException` as cause.
 - An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version. `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
-- An unknown `findAll` filter is a `BusinessException` (`INVALID_MOBILITY_CHOICE_FILTER_323`, `INVALID_PARTNER_FILTER_709`).
+- An unknown `findAll` filter is an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
 - A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).
-- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged).
-- Every `ErrorFormat` code must exist in `src/main/resources/errors.json` (`ErrorCatalogueTest`): `ApiExceptionHandler` answers a `BusinessException` (e.g. an unknown filter, 323/709) and a `ConcurrentModificationException` (120, "reload the data") with 400 and the catalogue entry.
+- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged). An unknown id or username is a 404 `RESOURCE_NOT_FOUND` problem, a stale version a 409 `CONCURRENT_MODIFICATION`, a blank or too long username a 400 `VALIDATION_FAILED`.
 - The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`.
+
+### Errors, validation and messages
+
+- **Errors** are RFC 9457 problems (`application/problem+json`) rendered by `web/ApiExceptionHandler` (a `ResponseEntityExceptionHandler`, the only place that formats errors; Spring Boot's own handler is disabled with `spring.mvc.problemdetails.enabled=false`). Members: `type` (`urn:pae:problem:<code>`), localized `title`/`detail`, `status`, `instance`, `code` (always, an `ErrorCode` name), `timestamp`, `errors` for `VALIDATION_FAILED`, `errorId` for 5xx (never any exception text). The full contract and the code table are in the README.
+- **Business errors**: `throw new BusinessException(ErrorCode.X, args...)` (an `ErrorResponseException`). Adding a code: enum constant with its status (400 validation, 404 unknown URL resource, 409 state conflict, 422 business rule), then `problem.X.title` / `problem.X.detail` in **both** `i18n/messages.properties` (French, fallback) and `i18n/messages_en.properties`. Use `’`, not `'`, in messages taking arguments.
+- **Persistence exceptions** are mapped by the handler, never caught in the use cases: `java.util.ConcurrentModificationException` and Spring Data's `OptimisticLockingFailureException` -> 409 `CONCURRENT_MODIFICATION`, `DataIntegrityViolationException` -> 409 `DATA_CONFLICT`, `EmptyResultDataAccessException` -> 404.
+- **Validation**: constraints on the getters of the DTO interfaces (`business/dto`), custom ones in `business/validation`, groups `Default` / `OnCreate` / `Reference` (`ValidationGroups`). Controllers: `@Valid` bodies, constraints on path/query parameters (no class-level `@Validated`: Spring MVC 6.1 method validation). Use cases: `@Validated` interfaces with parameter constraints (declared on the interface only). Only rules needing the database or the state stay as code in the use cases.
+- **i18n**: `MessageSource` basename `i18n/messages`, `fallback-to-system-locale=false`; Bean Validation messages resolve from it (`{key}` templates). Locale from `Accept-Language` (fr, en; default fr) via `AcceptLanguageLocaleResolver`, also applied by `ExceptionResolverSecurityHandler` to the 401/403 of the filters.
+- **Tests**: `ProblemDetailsTest` (full problem bodies in fr/en), `MessageBundlesTest` (every key in both languages, every `ErrorCode` translated, every constraint message key translated), `MethodValidationTest` (use cases validated outside the web layer), `Violations` helper for the constraint tests.
+
+### Business rules of the use cases
+
+- **Mobility states**: `Créée` -> `En préparation` (a document is filled in) -> `A payer` (every departure document is filled in, also when the first document filled in completes them) -> `En cours` (first payment) -> `Solde à payer` (every document is filled in) -> `Terminée` (second payment); `Annulée` from any state but `Terminée`. `MobilityUcc.confirmPayment` accepts the first payment only in `A payer` and the second only in `Solde à payer`, anything else is a 409 `PAYMENT_NOT_EXPECTED`; when the return documents were already filled in during `A payer`, the first payment moves the mobility straight to `Solde à payer`.
+- **Frozen mobilities**: a cancelled or closed mobility accepts no filled-in document (`confirmDocument`) and no payment: 409 `MOBILITY_CANCELLED` / `MOBILITY_CLOSED`. The software encodings are only refused on a cancelled mobility (a closed one may still be encoded afterwards).
+- **Options of a partner** (`POST /api/1.0/partners/{id}`, `PartnerUcc.addOption`): a professor may add an option to any partner; a student only to a **non-official** partner that is the partner of one of his own mobility choices or mobilities (the `partners` table has no creator column; a student creates a non-official partner when he confirms a choice with a new partner). Anything else is a 403 `ACCESS_DENIED`, an unknown partner a 404 `RESOURCE_NOT_FOUND`. Official partners are managed by the professors only (as for `create`/`edit`).
+- **Lists of a DTO** constrain their elements: `List<@NotNull @Valid PartnerOptionDto> getOptions()` reports a `null` option as `options[i]` / `NotNull` in a 400 `VALIDATION_FAILED` (at creation and at edition), so the use cases never see a `null` element.
 
 ## Testing Strategy
 
 ### Unit Testing
 
 - Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
-- Test coverage requirements: aim for 80%
+- Test coverage requirements: the JaCoCo gates of `pom.xml` (`mvn verify`): overall 0.98 lines / 0.91 branches, persistence 0.98 / 0.98, use cases (`uccontrollers.implementations`) 0.98 / 0.97. Raise them as coverage grows, never lower them.
+- Use cases: `*UccImplTest` test the business rules of a service with Mockito DAOs answering as their `*IT` contract says and the real business objects (`EntityFactories.create()`); `Test*Ucc` run the use cases in the `UnitTestConfig` context on the in-memory mock DAOs (emptied before each test by `MockDaoResetListener`). Assert on the returned DTO, the DAO writes and the exact error (`BusinessExceptionAssert`: `ErrorCode` and problem arguments).
 - Test file organization: mirror package structure under `src/test/java`
 - The stateful mock DAOs implement `ResettableMock`; `MockDaoResetListener` (registered for every Spring test in `src/test/resources/META-INF/spring.factories`) empties them before every test method, before the test's own `@BeforeEach`, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
 - Production code never writes to the console (`SourceHygieneTest`); log through SLF4J (`LoggerFactory.getLogger`).
@@ -183,8 +249,9 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Data Security
 
-- Validate all input data
-- Use prepared statements to avoid SQL injection
+- Validate all input data with Bean Validation constraints (DTOs, request parameters, use-case methods)
+- Never put exception messages, SQL or stack traces in an error response: 5xx problems only carry an `errorId`
+- Bind parameters (Spring Data, `JdbcClient`) to avoid SQL injection; never concatenate input into SQL
 - Sanitize user-facing output
 
 ### Authentication & Authorization
@@ -192,7 +259,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 - Spring Security manages authentication (stateless JWT in the `session` cookie, OAuth2 resource server)
 - `@PreAuthorize` role checks on every controller method (`ROLE_PROFESSOR`, `ROLE_STUDENT`)
 - CSRF protection with the `XSRF-TOKEN` cookie / `X-XSRF-TOKEN` header
-- 401 and 403 are rendered by `ApiExceptionHandler`, like every other API error
+- 401 and 403 are rendered by `ApiExceptionHandler`, like every other API error (`UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `ACCESS_DENIED` problems)
 
 ## Monitoring and Logging
 

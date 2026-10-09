@@ -1,10 +1,8 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 import com.dragomitch.ipl.pae.uccontrollers.OptionUcc;
@@ -32,9 +30,8 @@ class OptionUccImpl implements OptionUcc {
 
   @Override
   public List<PartnerDto> findAllPartnersByOption(String optionCode) {
-    checkString(optionCode);
     if (optionDao.findByCode(optionCode) == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     return partnerOptionDao.findAllPartnersByOption(optionCode);
   }

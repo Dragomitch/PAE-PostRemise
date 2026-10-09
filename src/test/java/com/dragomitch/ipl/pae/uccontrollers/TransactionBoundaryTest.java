@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import java.sql.Connection;
@@ -113,7 +113,7 @@ class TransactionBoundaryTest {
   void aUseCaseThatThrowsRollsBack() throws SQLException {
     when(userDao.findById(5)).thenReturn(null);
 
-    assertThrows(RessourceNotFoundException.class, () -> userUcc.promoteToProfessor(5));
+    assertThrows(ResourceNotFoundException.class, () -> userUcc.promoteToProfessor(5));
 
     verify(connection).rollback();
     verify(connection, never()).commit();

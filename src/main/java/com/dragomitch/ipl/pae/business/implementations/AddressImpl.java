@@ -1,16 +1,9 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
-
 import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
 
 class AddressImpl implements Address, Serializable {
 
@@ -105,32 +98,5 @@ class AddressImpl implements Address, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    List<Integer> violations = new LinkedList<Integer>();
-    if (!isAValidString(street)) {
-      violations.add(ErrorFormat.INVALID_STREET_801);
-    }
-    if (!isAValidString(number)) {
-      violations.add(ErrorFormat.INVALID_STREET_NUMBER_802);
-    }
-    if (!isAValidObject(country)) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_NULL_139);
-    } else if (!isAValidString(country.getCountryCode())) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_CODE_900);
-    }
-    if (!isAValidString(city)) {
-      violations.add(ErrorFormat.INVALID_CITY_803);
-    }
-    if (!isAValidString(postalCode)) {
-      violations.add(ErrorFormat.INVALID_POSTAL_CODE_804);
-    }
-    if (!isAValidObject(region)) {
-      violations.add(ErrorFormat.INVALID_REGION_805);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
-    }
-  }
 
 }

@@ -1,12 +1,6 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isPositive;
-
+import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.MobilityChoice;
@@ -18,11 +12,9 @@ import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
@@ -31,20 +23,18 @@ import com.dragomitch.ipl.pae.persistence.MobilityDao;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.utils.CsvStringBuilder;
-import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
-import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
 import com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.dragomitch.ipl.pae.uccontrollers.PartnerUcc;
+import com.dragomitch.ipl.pae.utils.CsvStringBuilder;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 class MobilityChoiceUccImpl implements MobilityChoiceUcc {
-
-  private static final Logger logger = LoggerFactory.getLogger(MobilityChoiceUccImpl.class);
 
   private final UserDao userDao;
   private final MobilityChoiceDao mobilityChoiceDao;
@@ -75,16 +65,16 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice, int userId,
       String userRole) {
-    checkDataIntegrity(mobilityChoice);
+    checkReferencesExist(mobilityChoice);
     if (userRole.equals(UserDto.ROLE_STUDENT) && mobilityChoice.getUser().getId() != userId) {
       throw new InsufficientPermissionException();
     }
     if (userRole.equals(UserDto.ROLE_PROFESSOR) && mobilityChoice.getUser().getId() == userId) {
-      throw new BusinessException(ErrorFormat.INVALID_PROFESSOR_MOBILITY_CHOICE_CREATION_322);
+      throw new BusinessException(ErrorCode.PROFESSOR_CANNOT_APPLY);
     }
     UserDto userDto;
     if ((userDto = userDao.findById(mobilityChoice.getUser().getId())) == null) {
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
+      throw new BusinessException(ErrorCode.UNKNOWN_USER, mobilityChoice.getUser().getId());
     }
     mobilityChoice.setUser(userDto);
     return mobilityChoiceDao.create(mobilityChoice);
@@ -93,7 +83,6 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   @Override
   @Transactional(readOnly = true)
   public List<MobilityChoiceDto> showAll(int userId, String userRole, String filter) {
-    checkFilter(filter);
     String filterToUse = filter == null ? MobilityChoiceDao.FILTER_ACTIVE_MOBILITIES_CHOICES : filter;
     List<MobilityChoiceDto> mobilityChoices;
     if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
@@ -114,22 +103,19 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   @Override
   public void cancel(int mobilityChoiceId, int userId, String reason) {
-    checkPositive(mobilityChoiceId);
-    checkString(reason);
     MobilityChoice mobilityChoice = (MobilityChoice) mobilityChoiceDao.findById(mobilityChoiceId);
     if (mobilityChoice == null) {
-      throw new RessourceNotFoundException("Ressource mobilityChoice not rightly loaded");
+      throw new ResourceNotFoundException();
     }
     if (userId != mobilityChoice.getUser().getId()) {
-      throw new InsufficientPermissionException(
-          "User " + userId + " cannot cancel a mobility choice he does not own");
+      throw new InsufficientPermissionException();
     }
     if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
-      throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
     MobilityDto mobility = mobilityDao.findById(mobilityChoiceId);
     if (mobility != null) {
-      throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_301);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     mobilityChoice.setCancellationReason(reason);
     mobilityChoiceDao.update(mobilityChoice);
@@ -137,23 +123,20 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   @Override
   public void reject(int id, int reason) {
-    checkPositive(id);
-    checkPositive(reason);
     MobilityChoice mobilityChoice = (MobilityChoice) mobilityChoiceDao.findById(id);
     if (mobilityChoice == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
-    if (mobilityChoice.getCancellationReason() != null
-        || mobilityChoice.getDenialReason() != null) {
-      throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
+    if (isClosed(mobilityChoice)) {
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
     DenialReasonDto denialReason = denialReasonDao.findById(reason);
     if (denialReason == null) {
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_DENIAL_REASON_NULL_134);
+      throw new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, reason);
     }
     MobilityDto mobility = mobilityDao.findById(id);
     if (mobility != null) {
-      throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_301);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     mobilityChoice.setDenialReason(denialReason);
     // optimistic locking: the DAO only updates the row if its version is still the one read above
@@ -163,31 +146,22 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   @Override
   public void confirm(int id, int userId) {
-    checkPositive(id);
     MobilityChoiceDto mobilityChoice = mobilityChoiceDao.findById(id);
     if (mobilityChoice == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
-      throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
     if (mobilityDao.findById(id) != null) {
-      throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_321);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
-    if (!isAValidObject(mobilityChoice.getPartner())) {
-      throw new BusinessException(ErrorFormat.CONFIRM_WITHOUT_PARTNER_324);
+    if (mobilityChoice.getPartner() == null) {
+      throw new BusinessException(ErrorCode.PARTNER_REQUIRED_TO_CONFIRM);
     }
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
-    mobility.setId(id);
-    mobility.setState(Mobility.STATE_CREATED);
-    mobility.setSubmissionDate(LocalDateTime.now());
-
+    MobilityDto mobility = newMobility(id);
     mobility.setProfessorInCharge(userDao.findById(userId));
-    mobilityDao.create(mobility);
-    List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
-    for (DocumentDto document : documents) {
-      mobilityDocumentDao.create(document.getId(), id);
-    }
+    createMobility(mobility, mobilityChoice);
     List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId,
         UserDto.ROLE_PROFESSOR);
     for (MobilityChoiceDto choice : mobilityChoices) {
@@ -195,7 +169,7 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
           && choice.getTerm() == mobilityChoice.getTerm()
-          && choice.getCancellationReason() == null && choice.getDenialReason() == null) {
+          && !isClosed(choice)) {
         reject(choice.getId(), 1);
       }
     }
@@ -203,55 +177,42 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
 
   @Override
   public void confirmWithNewPartner(int id, PartnerDto partner, int userId, String userRole) {
-    checkPositive(id);
-    checkObject(partner);
     MobilityChoiceDto mobilityChoice = mobilityChoiceDao.findById(id);
     if (mobilityChoice == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     if (mobilityChoice.getCancellationReason() != null || mobilityChoice.getDenialReason() != null) {
-      throw new BusinessException(ErrorFormat.INVALID_STATE_MOBILITY_CHOICE_317);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
     if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobilityChoice.getUser().getId()) {
       throw new InsufficientPermissionException();
     }
     if (userRole.equals(UserDto.ROLE_STUDENT) && (partner.isOfficial())) {
-      throw new InsufficientPermissionException("Actual user cannot create an offifcial partner");
+      throw new InsufficientPermissionException();
     }
     if (mobilityDao.findById(id) != null) {
-      throw new BusinessException(ErrorFormat.MOBILITY_CHOICE_ALREADY_CONFIRMED_321);
+      throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
-    if (!isPositive(partner.getId())) {
+    // the partner must be in the country of the choice, if the student chose one
+    if (partner.getId() <= 0) {
+      checkPartnerCountry(mobilityChoice, partner);
       partner = partnerUcc.create(partner, userRole);
     } else {
+      // an existing partner is checked as stored, not as sent by the client (the transaction
+      // rolls the restoration back if it is refused)
       partner = partnerUcc.restore(partner.getId(), userRole);
+      checkPartnerCountry(mobilityChoice, partner);
     }
-    // the partner must be in the country the student chose, if any (the whole transaction,
-    // including a partner created above, rolls back otherwise)
-    CountryDto partnerCountry = partner.getAddress().getCountry();
-    if (mobilityChoice.getCountry() != null && !mobilityChoice.getCountry().getCountryCode()
-        .equals(partnerCountry.getCountryCode())) {
-      throw new BusinessException(ErrorFormat.COUNTRY_CHANGE_NOT_ALLOWED_320);
-    }
-    mobilityChoice.setCountry(partnerCountry);
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
-    mobility.setId(id);
-    mobility.setState(Mobility.STATE_CREATED);
-    mobility.setSubmissionDate(LocalDateTime.now());
+    mobilityChoice.setCountry(partner.getAddress().getCountry());
     mobilityChoice.setPartner(partner);
     mobilityChoiceDao.update(mobilityChoice);
-    mobilityDao.create(mobility);
-    List<DocumentDto> documents = documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
-    for (DocumentDto document : documents) {
-      mobilityDocumentDao.create(document.getId(), id);
-    }
+    createMobility(newMobility(id), mobilityChoice);
     List<MobilityChoiceDto> mobilityChoices = getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, userRole);
     for (MobilityChoiceDto choice : mobilityChoices) {
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
           && choice.getTerm() == mobilityChoice.getTerm()
-          && choice.getCancellationReason() == null
-          && choice.getDenialReason() == null) {
+          && !isClosed(choice)) {
         reject(choice.getId(), 1);
       }
     }
@@ -272,6 +233,15 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   }
 
   /**
+   * Tells whether a choice was cancelled by the student or rejected by a professor. The DAO reads
+   * the denial reason of a rejected choice with its id only, without its text.
+   */
+  private static boolean isClosed(MobilityChoiceDto mobilityChoice) {
+    return mobilityChoice.getCancellationReason() != null
+        || mobilityChoice.getDenialReason() != null;
+  }
+
+  /**
    * Returns the mobilityChoices for a specified userId
    *
    * @param userId the userId of the requester
@@ -280,33 +250,15 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
    * @return the list of mobility choices for the userId specified.
    */
   private List<MobilityChoiceDto> getMobilityChoiceForUser(int userId, int onUserId, String userRole) {
-    checkPositive(onUserId);
-    checkPositive(userId);
-    checkString(userRole);
     if (userRole.equals(UserDto.ROLE_STUDENT) && onUserId != userId) {
-      throw new InsufficientPermissionException("Students can't check the mobilities for another user!");
+      throw new InsufficientPermissionException();
     }
     List<MobilityChoiceDto> mobilityChoices = null;
     if ((userDao.findById(onUserId)) == null) {
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
+      throw new BusinessException(ErrorCode.UNKNOWN_USER, onUserId);
     }
     mobilityChoices = mobilityChoiceDao.findByUser(userId);
     return mobilityChoices;
-  }
-
-  /**
-   * Check if a filter for the mobility choices is correct or not. If a filter isn't correct it throw the appropriate business exception.
-   *
-   * @param filter the filter to test.
-   */
-  private void checkFilter(String filter) {
-    if (filter != null && !filter.equals(MobilityChoiceDao.FILTER_ACTIVE_MOBILITIES_CHOICES)
-        && !filter.equals(MobilityChoiceDao.FILTER_ALL_MOBILITIES_CHOICES)
-        && !filter.equals(MobilityChoiceDao.FILTER_CANCELED_MOBILITIES_CHOICES)
-        && !filter.equals(MobilityChoiceDao.FILTER_PASSED_MOBILITIES_CHOICES)
-        && !filter.equals(MobilityChoiceDao.FILTER_REJECTED_MOBILITIES_CHOICES)) {
-      throw new BusinessException(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323);
-    }
   }
 
   /**
@@ -326,9 +278,8 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
     entries[5] = mobilityChoice.getProgramme().getProgrammeName();
     entries[6] = mobilityChoice.getMobilityType();
     entries[7] = mobilityChoice.getTerm() + "";
-    if (mobilityChoice.getPartner() != null) {
-      entries[8] = mobilityChoice.getPartner().getFullName();
-    }
+    PartnerDto partner = mobilityChoice.getPartner();
+    entries[8] = partner == null ? "" : partner.getFullName();
     return entries;
   }
 
@@ -340,45 +291,59 @@ class MobilityChoiceUccImpl implements MobilityChoiceUcc {
   }
 
   /**
-   * Verify the validity of the information received.
+   * Checks that the entities referenced by a new mobility choice exist (their format is checked by
+   * the constraints of {@link MobilityChoiceDto}).
    *
-   * @param mobilityChoice the MobilityChoiceDto we verify.
+   * @param mobilityChoice the new mobility choice
    */
-  private void checkDataIntegrity(MobilityChoiceDto mobilityChoice) {
-    List<Integer> violations = new LinkedList<Integer>();
-    if (mobilityChoice == null) {
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_MOBILITY_CHOICE_NULL_133);
+  private void checkReferencesExist(MobilityChoiceDto mobilityChoice) {
+    if (mobilityChoice.getCountry() != null
+        && countryDao.findById(mobilityChoice.getCountry().getCountryCode()) == null) {
+      throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY,
+          mobilityChoice.getCountry().getCountryCode());
     }
-    try {
-      ((MobilityChoice) mobilityChoice).checkDataIntegrity();
-    } catch (BusinessException ex) {
-      List<ErrorFormat> errors = ex.getError().getDetails();
-      for (ErrorFormat oneError : errors) {
-        violations.add(oneError.getErrorCode());
-      }
+    if (programmeDao.findById(mobilityChoice.getProgramme().getId()) == null) {
+      throw new BusinessException(ErrorCode.UNKNOWN_PROGRAMME,
+          mobilityChoice.getProgramme().getId());
     }
-    if (isAValidString(mobilityChoice.getMobilityType())
-        && mobilityChoice.getMobilityType().length() > MobilityChoiceDao.MAX_LENGTH_MOBILITY_TYPE) {
-      violations.add(ErrorFormat.MAX_LENGTH_MOBILITY_TYPE_OVERFLOW_305);
-    }
-    if (isAValidObject(mobilityChoice.getCountry())
-        && isAValidString(mobilityChoice.getCountry().getCountryCode())) {
-      if (mobilityChoice.getCountry().getCountryCode().length() > MobilityChoiceDao.MAX_LENGTH_COUNTRY) {
-        violations.add(ErrorFormat.MAX_LENGTH_COUNTRY_CODE_OVERFLOW_314);
-      } else if (countryDao.findById(mobilityChoice.getCountry().getCountryCode()) == null) {
-        violations.add(ErrorFormat.EXISTENCE_VIOLATION_COUNTRY_CODE_900);
-      }
-    }
-    if (isAValidObject(mobilityChoice.getProgramme())
-        && programmeDao.findById(mobilityChoice.getProgramme().getId()) == null) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_PROGRAMME_ID_1000);
-    }
-    if (isAValidObject(mobilityChoice.getUser()) && userDao.findById(mobilityChoice.getUser().getId()) == null) {
-      violations.add(ErrorFormat.EXISTENCE_VIOLATION_USER_ID_200);
-    }
-    if (violations.size() > 0) {
-      logger.debug("Invalid mobility choice, violations: {}", violations);
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
+    if (userDao.findById(mobilityChoice.getUser().getId()) == null) {
+      throw new BusinessException(ErrorCode.UNKNOWN_USER, mobilityChoice.getUser().getId());
     }
   }
+
+
+  private MobilityDto newMobility(int id) {
+    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+    mobility.setId(id);
+    mobility.setSubmissionDate(LocalDateTime.now());
+    return mobility;
+  }
+
+  /**
+   * Creates the mobility of a confirmed choice with the documents of its programme. It starts
+   * {@value MobilityDto#STATE_CREATED}, or directly {@value MobilityDto#STATE_TO_BE_PAID} when the
+   * programme has no departure document to fill in (nothing would ever move it forward).
+   */
+  private void createMobility(MobilityDto mobility, MobilityChoiceDto mobilityChoice) {
+    List<DocumentDto> documents =
+        documentDao.findAllByProgramme(mobilityChoice.getProgramme().getId());
+    boolean departureDocuments = documents.stream()
+        .anyMatch(document -> document.getCategory() == Document.DEPARTURE_DOCUMENT);
+    mobility.setState(departureDocuments ? Mobility.STATE_CREATED : Mobility.STATE_TO_BE_PAID);
+    mobilityDao.create(mobility);
+    for (DocumentDto document : documents) {
+      mobilityDocumentDao.create(document.getId(), mobility.getId());
+    }
+  }
+  /**
+   * Refuses a partner outside the country the student chose for the mobility choice, if any.
+   */
+  private static void checkPartnerCountry(MobilityChoiceDto mobilityChoice, PartnerDto partner) {
+    CountryDto choiceCountry = mobilityChoice.getCountry();
+    if (choiceCountry != null && choiceCountry.getCountryCode() != null && !choiceCountry
+        .getCountryCode().equals(partner.getAddress().getCountry().getCountryCode())) {
+      throw new BusinessException(ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED);
+    }
+  }
+
 }
