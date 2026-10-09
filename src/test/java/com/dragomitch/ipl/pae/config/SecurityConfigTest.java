@@ -62,7 +62,7 @@ class SecurityConfigTest {
   }
 
   private static Jwt sign(SecurityConfig config, String subject) {
-    JwtClaimsSet claims = JwtClaimsSet.builder().subject(subject)
+    JwtClaimsSet claims = JwtClaimsSet.builder().subject(subject).claim("role", "Student")
         .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(60)).build();
     return config.jwtEncoder().encode(JwtEncoderParameters.from(
         JwsHeader.with(MacAlgorithm.HS256).build(), claims));
@@ -88,6 +88,28 @@ class SecurityConfigTest {
         .isInstanceOf(BadJwtException.class);
     assertThatThrownBy(() -> new SecurityConfig(SECRET.toUpperCase()).jwtDecoder()
         .decode(token.getTokenValue())).isInstanceOf(BadJwtException.class);
+  }
+
+  @Test
+  void sessionTokensMustCarryASubjectARoleAndAnExpiry() {
+    SecurityConfig config = new SecurityConfig(SECRET);
+    JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+    Instant now = Instant.now();
+
+    String noRole = config.jwtEncoder().encode(JwtEncoderParameters.from(header, JwtClaimsSet
+        .builder().subject("42").issuedAt(now).expiresAt(now.plusSeconds(60)).build()))
+        .getTokenValue();
+    String noExpiry = config.jwtEncoder().encode(JwtEncoderParameters.from(header, JwtClaimsSet
+        .builder().subject("42").claim("role", "Student").issuedAt(now).build()))
+        .getTokenValue();
+    String noSubject = config.jwtEncoder().encode(JwtEncoderParameters.from(header, JwtClaimsSet
+        .builder().claim("userId", 42).claim("role", "Student").issuedAt(now)
+        .expiresAt(now.plusSeconds(60)).build())).getTokenValue();
+
+    for (String token : new String[] {noRole, noExpiry, noSubject}) {
+      assertThatThrownBy(() -> config.jwtDecoder().decode(token))
+          .isInstanceOf(BadJwtException.class);
+    }
   }
 
   @Test

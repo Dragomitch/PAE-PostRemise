@@ -13,163 +13,108 @@ import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
-import com.dragomitch.ipl.pae.presentation.annotations.ApiCollection;
-import com.dragomitch.ipl.pae.presentation.annotations.HttpParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.PathParameter;
-import com.dragomitch.ipl.pae.presentation.annotations.Role;
-import com.dragomitch.ipl.pae.presentation.annotations.Route;
-import com.dragomitch.ipl.pae.presentation.annotations.SessionParameter;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.dragomitch.ipl.pae.presentation.enums.HttpMethod;
-import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
+import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 import com.dragomitch.ipl.pae.utils.DataValidationUtils;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@ApiCollection(name = "Users", endpoint = "/users")
-public class UserUccImpl implements UserUcc {
+@Transactional
+class UserUccImpl implements UserUcc {
 
-  private UserDao userDao;
-  private OptionDao optionDao;
-  private NominatedStudentDao nominatedStudentDao;
-  private UnitOfWork unitOfWork;
-  private PasswordEncoder passwordEncoder;
+  private final UserDao userDao;
+  private final OptionDao optionDao;
+  private final NominatedStudentDao nominatedStudentDao;
+  private final PasswordEncoder passwordEncoder;
 
-  @Autowired
-  public UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
-      UnitOfWork unitOfWork, PasswordEncoder passwordEncoder) {
+  UserUccImpl(UserDao userDao, OptionDao optionDao, NominatedStudentDao nominatedStudentDao,
+      PasswordEncoder passwordEncoder) {
     this.userDao = userDao;
     this.optionDao = optionDao;
     this.nominatedStudentDao = nominatedStudentDao;
-    this.unitOfWork = unitOfWork;
     this.passwordEncoder = passwordEncoder;
   }
 
   @Override
-  @Route(method = HttpMethod.POST)
-  public UserDto signup(@HttpParameter("data") UserDto user) {
+  public UserDto signup(UserDto user) {
     checkObject(user);
-    try {
-      unitOfWork.startTransaction();
-      checkDataIntegrity(user);
-      user.setRegistrationDate(LocalDateTime.now());
-      // encrypt password
-      user.setPassword(passwordEncoder.encode(user.getPassword()));
-      // first user is automatically considered a professor
-      if (userDao.isEmpty()) {
-        user.setRole(User.ROLE_PROFESSOR);
-      } else {
-        user.setRole(User.ROLE_STUDENT);
-      }
-      UserDto newUser = userDao.create(user);
-      unitOfWork.commit();
-      return newUser;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    checkDataIntegrity(user);
+    user.setRegistrationDate(LocalDateTime.now());
+    // encrypt password
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    // first user is automatically considered a professor
+    if (userDao.isEmpty()) {
+      user.setRole(User.ROLE_PROFESSOR);
+    } else {
+      user.setRole(User.ROLE_STUDENT);
     }
+    return userDao.create(user);
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.GET)
-  public Map<String, Object> showAll() {
-    try {
-      unitOfWork.startTransaction();
-      Map<String, Object> data = new HashMap<String, Object>();
-      data.put("data", userDao.findAll());
-      unitOfWork.commit();
-      return data;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
-    }
+  @Transactional(readOnly = true)
+  public List<UserDto> showAll() {
+    return userDao.findAll();
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.PUT, template = "/{id}/promote")
-  public void promoteToProfessor(@PathParameter("id") int id) {
+  public void promoteToProfessor(int id) {
     DataValidationUtils.checkPositiveOrZero(id);
     UserDto user;
-    try {
-      unitOfWork.startTransaction();
-      if ((user = userDao.findById(id)) == null) {
-        throw new RessourceNotFoundException();
-      }
-      if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
-        // the id is what the route gives: promote by id, with the version just read
-        user.setVersion(userDao.promoteToProfessor(user.getId(), user.getVersion()));
-        user.setRole(UserDto.ROLE_PROFESSOR);
-      }
-      unitOfWork.commit();
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    if ((user = userDao.findById(id)) == null) {
+      throw new RessourceNotFoundException();
+    }
+    if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+      // the id is what the route gives: promote by id, with the version just read. Only the role
+      // and the version are written; a stale version throws a ConcurrentModificationException
+      // (the transaction then rolls back). A professor is left untouched.
+      user.setVersion(userDao.promoteToProfessor(user.getId(), user.getVersion()));
+      user.setRole(UserDto.ROLE_PROFESSOR);
     }
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR})
-  @Route(method = HttpMethod.PUT, template = "/by-username/{username}/promote")
-  public UserDto promoteToProfessorByUsername(@PathParameter("username") String username) {
+  public UserDto promoteToProfessorByUsername(String username) {
     DataValidationUtils.checkString(username);
-    try {
-      unitOfWork.startTransaction();
-      UserDto user = userDao.findBy(UserDao.COLUMN_USERNAME, username);
-      if (user == null) {
-        throw new RessourceNotFoundException();
-      }
-      if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
-        user.setVersion(userDao.promoteToProfessor(username, user.getVersion()));
-        user.setRole(UserDto.ROLE_PROFESSOR);
-      }
-      unitOfWork.commit();
-      return user;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    UserDto user = userDao.findBy(UserDao.COLUMN_USERNAME, username);
+    if (user == null) {
+      throw new RessourceNotFoundException();
     }
+    if (user.getRole().equals(UserDto.ROLE_STUDENT)) {
+      user.setVersion(userDao.promoteToProfessor(username, user.getVersion()));
+      user.setRole(UserDto.ROLE_PROFESSOR);
+    }
+    return user;
   }
 
   @Override
-  @Role({UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
-  @Route(method = HttpMethod.PUT, template = "/edit")
-  public UserDto edit(@HttpParameter("data") UserDto user, @SessionParameter("userId") int userId,
-      @SessionParameter("userRole") String userRole) {
+  public UserDto edit(UserDto user, int userId, String userRole) {
     checkObject(user);
     checkPositive(userId);
     checkString(userRole);
-    try {
-      unitOfWork.startTransaction();
-      checkDataIntegrity(user);
-      UserDto existingUser = userDao.findById(user.getId());
-      if (existingUser == null) {
-        throw new RessourceNotFoundException();
-      }
-      user.setPassword(existingUser.getPassword());
-      user.setRegistrationDate(existingUser.getRegistrationDate());
-      user.setRole(existingUser.getRole());
-      userDao.update(user);
-      NominatedStudentDto nominatedStudent = nominatedStudentDao.findById(user.getId());
-      if (nominatedStudent != null && nominatedStudent.getVersion() != user.getVersion()) {
-        nominatedStudentDao.update(nominatedStudent);
-      }
-      unitOfWork.commit();
-      return user;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    if (userRole.equals(UserDto.ROLE_STUDENT) && user.getId() != userId) {
+      throw new InsufficientPermissionException("A student can only edit his own account");
     }
+    checkDataIntegrity(user);
+    UserDto existingUser = userDao.findById(user.getId());
+    if (existingUser == null) {
+      throw new RessourceNotFoundException();
+    }
+    user.setPassword(existingUser.getPassword());
+    user.setRegistrationDate(existingUser.getRegistrationDate());
+    user.setRole(existingUser.getRole());
+    userDao.update(user);
+    NominatedStudentDto nominatedStudent = nominatedStudentDao.findById(user.getId());
+    if (nominatedStudent != null && nominatedStudent.getVersion() != user.getVersion()) {
+      nominatedStudentDao.update(nominatedStudent);
+    }
+    return user;
   }
 
   private void checkDataIntegrity(UserDto user) {

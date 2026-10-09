@@ -30,7 +30,6 @@ import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -96,17 +95,5 @@ class EntityFactoryImplTest {
   void buildingAnUnboundClassFails(Class<?> unbound) {
     assertThatThrownBy(() -> factory.build(unbound)).isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining(unbound.getName());
-  }
-
-  @ParameterizedTest(name = "{2} is bound to its DAO")
-  @MethodSource("bindings")
-  void everyImplementationDeclaresItsDao(Class<?> business, Class<?> dto,
-      Class<?> implementation) {
-    // UnitOfWorkImpl uses @DaoClass to find the DAO that performs the deferred updates
-    DaoClass dao = implementation.getAnnotation(DaoClass.class);
-
-    assertThat(dao).isNotNull();
-    assertThat(dao.value().getSimpleName())
-        .isEqualTo(implementation.getSimpleName().replace("Impl", "Dao"));
   }
 }

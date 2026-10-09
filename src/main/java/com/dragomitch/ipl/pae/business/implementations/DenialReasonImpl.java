@@ -5,14 +5,12 @@ import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
 import com.dragomitch.ipl.pae.business.DenialReason;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-@DaoClass(DenialReasonDao.class)
 class DenialReasonImpl implements DenialReason, Serializable {
 
   private static final long serialVersionUID = 1L;

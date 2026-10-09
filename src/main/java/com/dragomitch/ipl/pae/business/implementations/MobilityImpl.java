@@ -10,8 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.exceptions.FatalException; //TODO Check where we use a Fatal and Why is that inside the business layer
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.MobilityDao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -19,7 +17,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@DaoClass(MobilityDao.class)
 class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable {
 
   private static final long serialVersionUID = -4899380265085074048L;

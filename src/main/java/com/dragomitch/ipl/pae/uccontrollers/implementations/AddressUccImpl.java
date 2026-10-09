@@ -12,63 +12,47 @@ import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
-import com.dragomitch.ipl.pae.uccontrollers.UnitOfWork;
 
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 class AddressUccImpl implements AddressUcc {
-  AddressDao addressDao;
-  CountryDao countryDao;
-  UnitOfWork unitOfWork;
+  private final AddressDao addressDao;
+  private final CountryDao countryDao;
 
-  AddressUccImpl(AddressDao addressDao, CountryDao countryDao, UnitOfWork unitOfWork) {
+  AddressUccImpl(AddressDao addressDao, CountryDao countryDao) {
     this.addressDao = addressDao;
     this.countryDao = countryDao;
-    this.unitOfWork = unitOfWork;
   }
 
   @Override
   public AddressDto create(AddressDto address) {
     checkObject(address);
     checkDataIntegrity(address);
-    try {
-      unitOfWork.startTransaction();
-      if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
-        throw new RessourceNotFoundException("Unknown countryCode for creation of the new Addres");
-      }
-      addressDao.create(address);
-      unitOfWork.commit();
-      return address;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
+      throw new RessourceNotFoundException("Unknown countryCode for creation of the new Addres");
     }
+    addressDao.create(address);
+    return address;
   }
 
   @Override
   public AddressDto edit(AddressDto address) {
     checkObject(address);
     checkDataIntegrity(address);
-    try {
-      unitOfWork.startTransaction();
-      if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
-        throw new RessourceNotFoundException();
-      }
-      AddressDto addressDb = addressDao.findById(address.getId());
-      if (addressDb == null) {
-        throw new RessourceNotFoundException();
-      }
-      address.setVersion(addressDb.getVersion());
-      AddressDto newAddress = addressDao.update(address);
-      unitOfWork.commit();
-      return newAddress;
-    } catch (Exception ex) {
-      unitOfWork.rollback();
-      throw ex;
+    if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
+      throw new RessourceNotFoundException();
     }
+    AddressDto addressDb = addressDao.findById(address.getId());
+    if (addressDb == null) {
+      throw new RessourceNotFoundException();
+    }
+    address.setVersion(addressDb.getVersion());
+    return addressDao.update(address);
   }
 
   private void checkDataIntegrity(AddressDto address) {

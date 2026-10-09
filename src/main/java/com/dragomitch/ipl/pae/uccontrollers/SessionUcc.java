@@ -5,21 +5,13 @@ import com.dragomitch.ipl.pae.business.dto.UserDto;
 public interface SessionUcc {
 
   /**
-   * The name of the session attribute that refers to the user id.
-   */
-  public static final String USER_ID = "userId";
-
-  /**
-   * The name of the session attribute that refers to the user role.
-   */
-  public static final String USER_ROLE = "userRole";
-
-  /**
-   * Authenticate a user and store it in session.
+   * Checks the credentials of a user. Issuing the session itself is the web layer's job.
    * 
    * @param username the username
    * @param password the user password
    * @return the authenticated user
+   * @throws com.dragomitch.ipl.pae.business.exceptions.UnauthenticatedUserException if the
+   *         credentials are wrong
    */
   UserDto signin(String username, String password);
 
@@ -30,10 +22,5 @@ public interface SessionUcc {
    * @return the authenticated user
    */
   UserDto showAuthenticatedUser(int id);
-
-  /**
-   * Sign out the authenticated user.
-   */
-  void signout();
 
 }

@@ -53,10 +53,6 @@ public class MockMobilityDocumentDao implements MobilityDocumentDao, ResettableM
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     mobilityDocuments = new ArrayList<MobilityDocument>();
   }

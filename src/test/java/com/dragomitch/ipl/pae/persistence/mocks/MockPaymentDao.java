@@ -24,10 +24,6 @@ public class MockPaymentDao implements PaymentDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     payments = new ArrayList<PaymentDto>();
   }

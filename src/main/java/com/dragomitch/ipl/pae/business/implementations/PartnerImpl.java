@@ -4,13 +4,10 @@ import com.dragomitch.ipl.pae.business.Partner;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.persistence.DaoClass;
-import com.dragomitch.ipl.pae.persistence.PartnerDao;
 
 import java.io.Serializable;
 import java.util.List;
 
-@DaoClass(PartnerDao.class)
 public class PartnerImpl implements Partner, Serializable {
 
   private static final long serialVersionUID = 1L;

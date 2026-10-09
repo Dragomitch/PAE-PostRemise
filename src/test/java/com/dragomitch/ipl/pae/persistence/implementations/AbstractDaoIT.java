@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
 import com.dragomitch.ipl.pae.business.EntityFactory;
-import com.dragomitch.ipl.pae.persistence.DalServices;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -18,8 +17,13 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.EncodedResource;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.sql.DataSource;
 
 /**
  * Base class of every DAO integration test ({@code *IT}, run by maven-failsafe-plugin against a
@@ -37,14 +41,13 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * </ol>
  * Nothing is ever committed, so tests are isolated from each other and can run in any order.
  *
- * <p>Today this is implemented with the legacy thread-bound {@link DalServices}
- * ({@code openConnection / startTransaction / rollback / closeConnection}) and the connection
- * behind {@link DalBackendServices#prepareStatement(String)}. When the persistence layer moves to
- * Spring-managed transactions ({@code @Transactional}, then Spring Data), <em>only this class</em>
- * has to change: e.g. run the work in a {@code TransactionTemplate} whose status is set to
- * rollback-only, and obtain the connection with {@code DataSourceUtils.getConnection(dataSource)}
- * in {@link #withConnection}. The test classes only rely on the helpers below and on the DAO
- * interfaces, and describe the behaviour the new repositories must keep.
+ * <p>It uses Spring's transaction management, like the application: the work runs in a
+ * {@link TransactionTemplate} (the {@code DataSourceTransactionManager} of {@link DaoItConfig})
+ * whose status is set to rollback-only, and the fixtures and the helper queries use the
+ * transaction-bound connection ({@code DataSourceUtils.getConnection(dataSource)}), the one the
+ * DAOs get from {@link DalBackendServices#prepareStatement(String)}. When the persistence layer
+ * moves to Spring Data, the test classes, which only rely on the helpers below and on the DAO
+ * interfaces, describe the behaviour the new repositories must keep.
  *
  * <h2>Fixtures</h2>
  * Subclasses list classpath SQL scripts in {@link #fixtures()} (see {@code src/test/resources/db/
@@ -55,10 +58,10 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public abstract class AbstractDaoIT {
 
   @Autowired
-  private DalServices dalServices;
+  private DataSource dataSource;
 
   @Autowired
-  private DalBackendServices dalBackendServices;
+  private PlatformTransactionManager transactionManager;
 
   @Autowired
   protected EntityFactory entityFactory;
@@ -80,24 +83,18 @@ public abstract class AbstractDaoIT {
    * @return what {@code work} returned (DTOs stay usable after the rollback)
    */
   protected <T> T inTransaction(Supplier<T> work) {
-    dalServices.openConnection();
-    try {
-      dalServices.startTransaction();
-      try {
-        for (String fixture : fixtures()) {
-          withConnection(connection -> {
-            ScriptUtils.executeSqlScript(connection,
-                new EncodedResource(new ClassPathResource(fixture), StandardCharsets.UTF_8));
-            return null;
-          });
-        }
-        return work.get();
-      } finally {
-        dalServices.rollback();
+    return new TransactionTemplate(transactionManager).execute(status -> {
+      // rolled back at the end, even when the work succeeds
+      status.setRollbackOnly();
+      for (String fixture : fixtures()) {
+        withConnection(connection -> {
+          ScriptUtils.executeSqlScript(connection,
+              new EncodedResource(new ClassPathResource(fixture), StandardCharsets.UTF_8));
+          return null;
+        });
       }
-    } finally {
-      dalServices.closeConnection();
-    }
+      return work.get();
+    });
   }
 
   /**
@@ -190,8 +187,8 @@ public abstract class AbstractDaoIT {
 
   /** Gives access to the connection bound to the current transaction. */
   private <T> T withConnection(ConnectionCallback<T> callback) {
-    try (PreparedStatement probe = dalBackendServices.prepareStatement("SELECT 1")) {
-      return callback.doWith(probe.getConnection());
+    try {
+      return callback.doWith(DataSourceUtils.getConnection(dataSource));
     } catch (SQLException ex) {
       throw new IllegalStateException(ex);
     }

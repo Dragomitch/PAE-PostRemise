@@ -3,7 +3,7 @@ package com.dragomitch.ipl.pae.uccontrollers;
 import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 
-import java.util.Map;
+import java.util.List;
 
 public interface MobilityChoiceUcc {
 
@@ -25,18 +25,18 @@ public interface MobilityChoiceUcc {
    * @param filter a filter for the mobility choices to display
    * @return A list with all the mobilityChoices in DataBase as mobilityChoicesDto's.
    */
-  Map<String, Object> showAll(int userId, String userRole, String filter);
+  List<MobilityChoiceDto> showAll(int userId, String userRole, String filter);
 
 
   /**
-   * Returns a list with all the mobilityChoices stocked in DataBase AND the number of results.
+   * Counts the mobility choices {@link #showAll} would return.
    * 
    * @param userId the id of the user connected.
    * @param userRole the role of the user who's sending the request.
    * @param filter a filter for the mobility choices to display
-   * @return A list with all the mobilityChoices as mobilityChoicesDto's and their count.
+   * @return the number of mobility choices
    */
-  Map<String, Object> countAll(int userId, String userRole, String filter);
+  int countAll(int userId, String userRole, String filter);
 
   /**
    * Confirms the mobility choice which bears the given id.

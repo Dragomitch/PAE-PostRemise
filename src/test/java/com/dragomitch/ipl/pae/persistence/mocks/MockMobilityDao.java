@@ -71,10 +71,6 @@ public class MockMobilityDao implements MobilityDao, ResettableMock {
   }
 
   @Override
-  public void reset() {
-    empty();
-  }
-
   public void empty() {
     mobilities = new HashSet<MobilityDto>();
   }
