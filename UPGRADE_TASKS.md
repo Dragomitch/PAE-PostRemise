@@ -15,8 +15,9 @@ This document tracks the migration of the project from standalone libraries to S
 | 9 | Replace the custom `DependencyManager`/`ContextManager` with Spring dependency injection | Done. |
 | 10 | Replace the custom web framework (`RoutingServlet`, `@Route`/`@Role` annotations, `Invoker`, `JsonSerializer`, `SessionManager`) with Spring MVC `@RestController`s and Spring Security | Done. Stateless JWT cookie resolved by the OAuth2 resource server, `@PreAuthorize` role checks, CSRF cookie for the SPAs, JSON request bodies. |
 | 11 | Replace the `UnitOfWork` and `DalServices` transaction handling with Spring `@Transactional` | Done. DAOs use the transaction-bound connection (`DataSourceUtils`). |
+| 12 | Replace the hand-written JDBC DAOs with Spring Data | In progress. Spring Data JDBC (not JPA: it maps the hand-written schema as it is, with no session or lazy loading, on the same transaction manager). Options, programmes, countries, documents, denial reasons, addresses and users use repositories (`persistence/jdbc`) behind the unchanged DAO interfaces. Payments and the join-heavy DAOs use `JdbcClient`, and `DalBackendServices` is gone. The DAO ITs pass unchanged. Next: Partner + PartnerOption, NominatedStudent, Mobility, MobilityChoice, then MobilityDocument after Spring Boot 3.5 (composite ids); plan in `backend/AGENTS.md`. |
 
 ## Possible next steps
 - Render the API errors as RFC 9457 `ProblemDetail` (with i18n messages) in `ApiExceptionHandler`, the single place that formats every error, 401/403 included.
 - Validate the request bodies with Bean Validation (`@Valid`) instead of the hand-written `checkDataIntegrity` methods.
-- Replace the hand-written JDBC DAOs with Spring Data; the DAO integration tests (`*IT`) describe the behaviour to keep.
+- Finish the Spring Data JDBC migration (task 12) with the checklist of `backend/AGENTS.md`; the DAO integration tests (`*IT`) describe the behaviour to keep.

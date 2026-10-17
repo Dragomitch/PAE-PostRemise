@@ -7,7 +7,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
 ## General structure
 - **src/main/java**
   - `business` – entity interfaces and implementations (`User`, `Mobility`, …) with validation logic and DTO definitions.
-  - `persistence` – DAO interfaces and their JDBC implementations.
+  - `persistence` – DAO interfaces and their implementations: Spring Data JDBC aggregates and repositories (`persistence/jdbc`) behind thin DAO adapters, `JdbcClient` for the join-heavy DAOs.
   - `uccontrollers` – use cases (`@Service`, `@Transactional`) that orchestrate the business logic and the DAOs.
   - `web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, and `ApiExceptionHandler` which renders every API error.
   - `security` – session JWT cookie, current user, CSRF helpers used by the security chain.
@@ -15,12 +15,17 @@ This repository contains a web application for managing Erasmus mobilities. It w
   - additional packages include `exceptions` and `utils`; `Application` is the Spring Boot entry point.
 - **src/main/resources** contains `application.properties` (Spring configuration) and `errors.json` (error catalogue).
 - **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
-- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); the `web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*IT` DAO tests run against an embedded PostgreSQL.
+- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); the `web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*IT` DAO and repository tests run against an embedded PostgreSQL.
 
 ## Key design aspects
 - **Layers**: controllers (`web`) → use cases (`uccontrollers`) → DAOs (`persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
 - **REST API**: thin `@RestController`s bind the request (JSON body, path and query parameters, `CurrentUser`), call a use case and return its result. Paths are matched case-insensitively (as the former router did). Lists read by DataTables are wrapped in `{"data": [...]}`; exports are `text/csv`.
-- **Transactions**: every use-case service is `@Transactional` (read-only for queries); the DAOs prepare their statements on the connection of the current Spring transaction (`DataSourceUtils`) and refuse to run outside one. Updates check the entity version (`WHERE ... AND version = ?`) and throw a `ConcurrentModificationException` (error 120) on a stale version.
+- **Transactions**: every use-case service is `@Transactional` (read-only for queries). The Spring Data repositories and `JdbcClient` run on the connection of the current Spring transaction (`DataSourceUtils`), and the DAOs refuse to run outside one. Updates check the entity version (`@Version`, or `WHERE ... AND version = ?`) and throw a `ConcurrentModificationException` (error 120) on a stale version.
+- **Persistence** (Spring Data JDBC, chosen over JPA because it maps the hand-written schema as it is, with no session, lazy loading or second transaction manager):
+  - `persistence/jdbc/entity`: immutable records mapped with `@Table(schema = "student_exchange_tools", name = ...)`, `@Id`, `@Column` and `@Version`; other aggregates are referenced by id (`AggregateReference`).
+  - `persistence/jdbc/repository`: `ListCrudRepository` interfaces with derived queries and `@Query`/`@Modifying` methods. `JdbcPersistenceConfig` enables them for the application and the integration tests alike.
+  - `persistence/implementations`: the DAO interfaces used by the use cases, implemented by thin adapters that map entities to the DTOs built by `EntityFactory`. `DataAccess` keeps their contract: a transaction is required, a stale version is a `ConcurrentModificationException`, and any other database error is a `FatalException`.
+  - Migrated: options, programmes, countries, documents, denial reasons, addresses and users. Payments (a read model) and the join-heavy DAOs (mobility choices, mobilities, mobility documents, nominated students, partners, partner options) use `JdbcClient`. The migration checklist and the plan for each remaining DAO are in [`backend/AGENTS.md`](backend/AGENTS.md).
 - **Security** (Spring Security, stateless, see `SecurityConfig`):
   - `POST /api/1.0/session` with `{"username", "password"}` issues an HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the `session` cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when `APP_SESSION_COOKIE_SECURE=true`, valid `APP_SESSION_VALIDITY` (12h). `GET` returns the current user, `DELETE` expires the cookie. No HTTP session is created.
   - The OAuth2 resource server validates the token from the cookie (or an `Authorization: Bearer` header); the `role` claim becomes `ROLE_PROFESSOR` / `ROLE_STUDENT`, checked by `@PreAuthorize` on the controllers. Every `/api/**` endpoint requires a session except sign-in, sign-up (`POST /users`) and the option list (`GET /options`).
@@ -46,7 +51,7 @@ mvn package
 to compile the sources, run the tests and assemble the final JAR.
 
 ## Suggestions for further learning
-- Follow a request from a `@RestController` to its `@Transactional` use case and the JDBC DAO.
+- Follow a request from a `@RestController` to its `@Transactional` use case, the DAO adapter and the Spring Data repository.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 

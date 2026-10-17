@@ -5,151 +5,107 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
-import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
-import com.dragomitch.ipl.pae.persistence.OptionDao;
-import com.dragomitch.ipl.pae.persistence.UserDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.sql.Types;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link NominatedStudentDao} with Spring's {@link JdbcClient}. A nominated student extends a
+ * user (same id): the rows of both tables are read together, joined with the option and the
+ * nationality. Updates check the version.
+ */
 @Repository
 class NominatedStudentDaoImpl implements NominatedStudentDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
+  private static final String SQL_INSERT = """
+      INSERT INTO student_exchange_tools.nominated_students
+        (user_id, title, birthdate, nationality, phone_number, gender, passed_years_count, iban,
+         card_holder, bank_name, bic, address, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""";
 
-  private static final String SQL_INSERT = "INSERT INTO " + SCHEMA_NAME + "." + TABLE_NAME + "("
-      + COLUMN_ID + ", " + COLUMN_TITLE + ", " + COLUMN_BIRTHDATE + ", " + COLUMN_NATIONALITY + ", "
-      + COLUMN_PHONE_NUMBER + ", " + COLUMN_GENDER + ", " + COLUMN_PASSED_YEARS_COUNT + ", "
-      + COLUMN_IBAN + ", " + COLUMN_CARD_HOLDER + ", " + COLUMN_BANK_NAME + ", " + COLUMN_BIC + ", "
-      + COLUMN_ADDRESS + ", version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  private static final String SQL_UPDATE = """
+      UPDATE student_exchange_tools.nominated_students
+         SET (title, birthdate, nationality, phone_number, gender, passed_years_count, iban,
+              card_holder, bank_name, bic, version)
+           = (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, version + 1)
+       WHERE user_id = ? AND version = ?
+      RETURNING version""";
 
-  private static final String SQL_UPDATE = "UPDATE " + SCHEMA_NAME + "." + TABLE_NAME + " SET ("
-      + COLUMN_TITLE + ", " + COLUMN_BIRTHDATE + ", " + COLUMN_NATIONALITY + ", "
-      + COLUMN_PHONE_NUMBER + ", " + COLUMN_GENDER + ", " + COLUMN_PASSED_YEARS_COUNT + ", "
-      + COLUMN_IBAN + ", " + COLUMN_CARD_HOLDER + ", " + COLUMN_BANK_NAME + ", " + COLUMN_BIC
-      + ", version) = (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, version + 1) " + "WHERE " + COLUMN_ID
-      + " = ? AND version = ? RETURNING version";
-
-  private static final String SQL_FIND = "SELECT u." + UserDao.COLUMN_ID + ", u."
-      + UserDao.COLUMN_LAST_NAME + ", u." + UserDao.COLUMN_FIRST_NAME + ", u."
-      + UserDao.COLUMN_USERNAME + ", u." + UserDao.COLUMN_PASSWORD + ", u." + UserDao.COLUMN_EMAIL
-      + ", u." + UserDao.COLUMN_REGISTRATION_DATE + ",u." + UserDao.COLUMN_ROLE + ", o."
-      + OptionDao.COLUMN_CODE + ", o." + OptionDao.COLUMN_NAME + ", ns." + COLUMN_TITLE + ", ns."
-      + COLUMN_BIRTHDATE + ", ns." + COLUMN_NATIONALITY + ", c." + CountryDao.COLUMN_NAME + ", ns."
-      + COLUMN_PHONE_NUMBER + ", ns." + COLUMN_GENDER + ", ns." + COLUMN_PASSED_YEARS_COUNT
-      + ", ns." + COLUMN_IBAN + ", ns." + COLUMN_CARD_HOLDER + ", ns." + COLUMN_BANK_NAME + ", ns."
-      + COLUMN_BIC + ", ns." + COLUMN_ADDRESS + ", ns.version FROM " + SCHEMA_NAME + "."
-      + UserDao.TABLE_NAME + " u, " + SCHEMA_NAME + "." + TABLE_NAME + " ns, " + SCHEMA_NAME + "."
-      + OptionDao.TABLE_NAME + " o, " + SCHEMA_NAME + "." + CountryDao.TABLE_NAME + " c WHERE u."
-      + UserDao.COLUMN_OPTION + " = o." + OptionDao.COLUMN_CODE + " AND u." + UserDao.COLUMN_ID
-      + " = ns." + COLUMN_ID + " AND ns." + COLUMN_NATIONALITY + " = c." + CountryDao.COLUMN_CODE;
+  private static final String SQL_SELECT = """
+      SELECT u.user_id, u.last_name, u.first_name, u.username, u.password, u.email,
+             u.registration_date, u.role, o.option_code, o.name, ns.title, ns.birthdate,
+             ns.nationality, c.name, ns.phone_number, ns.gender, ns.passed_years_count, ns.iban,
+             ns.card_holder, ns.bank_name, ns.bic, ns.address, ns.version
+        FROM student_exchange_tools.users u
+        JOIN student_exchange_tools.nominated_students ns ON u.user_id = ns.user_id
+        JOIN student_exchange_tools.options o ON u.option = o.option_code
+        JOIN student_exchange_tools.countries c ON ns.nationality = c.country_code""";
 
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalServices;
+  private final JdbcClient jdbcClient;
 
-  /**
-   * Sole constructor for explicit invocation.
-   * 
-   * @param entityFactory an on-demand object dispenser
-   * @param dalBackendServices backend services
-   */
-  public NominatedStudentDaoImpl(EntityFactory entityFactory, DalBackendServices dalServices) {
+  NominatedStudentDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalServices = dalServices;
+    this.jdbcClient = jdbcClient;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>The row is inserted with the version of the DTO (the user's), which the DTO keeps.
+   */
   @Override
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent) {
-    try (PreparedStatement stmt = dalServices.prepareStatement(SQL_INSERT)) {
-      stmt.setInt(1, nominatedStudent.getId());
-      populatePreparedStatement(stmt, nominatedStudent, 2);
-      stmt.setInt(12, nominatedStudent.getAddress().getId());
-      stmt.setInt(13, nominatedStudent.getVersion());
-      stmt.execute();
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    DataAccess.run(() -> bindColumns(jdbcClient.sql(SQL_INSERT).param(nominatedStudent.getId()),
+        nominatedStudent).param(nominatedStudent.getAddress().getId())
+        .param(nominatedStudent.getVersion()).update());
     return nominatedStudent;
   }
 
   @Override
   public NominatedStudentDto findById(int id) {
-    NominatedStudentDto nominatedStudent = null;
-    try (PreparedStatement stmt =
-        dalServices.prepareStatement(SQL_FIND + " AND ? = ns." + COLUMN_ID)) {
-      stmt.setInt(1, id);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          nominatedStudent = populateStudentDto(rs);
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return nominatedStudent;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT + " WHERE ns.user_id = ?").param(id)
+        .query(this::toDto).list().stream().findFirst().orElse(null));
   }
 
   @Override
   public List<NominatedStudentDto> findAll() {
-    List<NominatedStudentDto> nominatedStudents = new ArrayList<NominatedStudentDto>();
-    try (PreparedStatement stmt = dalServices.prepareStatement(SQL_FIND)) {
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          nominatedStudents.add(populateStudentDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return nominatedStudents;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_SELECT).query(this::toDto).list());
   }
 
   @Override
   public NominatedStudentDto update(NominatedStudentDto nominatedStudent) {
-    try (PreparedStatement stmt = dalServices.prepareStatement(SQL_UPDATE)) {
-      populatePreparedStatement(stmt, nominatedStudent, 1);
-      stmt.setInt(11, nominatedStudent.getId());
-      stmt.setInt(12, nominatedStudent.getVersion());
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (!rs.next()) {
-          throw new ConcurrentModificationException();
-        }
-        nominatedStudent.setVersion(rs.getInt(1));
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
+    int version = DataAccess.call(() -> bindColumns(jdbcClient.sql(SQL_UPDATE), nominatedStudent)
+        .param(nominatedStudent.getId()).param(nominatedStudent.getVersion())
+        .query(Integer.class).optional().orElseThrow(ConcurrentModificationException::new));
+    nominatedStudent.setVersion(version);
     return nominatedStudent;
   }
 
-  private void populatePreparedStatement(PreparedStatement ps, NominatedStudentDto nominatedStudent,
-      int parameterIndex) throws SQLException {
-    ps.setString(parameterIndex++, nominatedStudent.getTitle());
-    ps.setTimestamp(parameterIndex++,
-        Timestamp.valueOf(nominatedStudent.getBirthdate().atStartOfDay()));
-    ps.setString(parameterIndex++, nominatedStudent.getNationality().getCountryCode());
-    ps.setString(parameterIndex++, nominatedStudent.getPhoneNumber());
-    ps.setString(parameterIndex++, nominatedStudent.getGender());
-    ps.setInt(parameterIndex++, nominatedStudent.getNbrPassedYears());
-    ps.setString(parameterIndex++, nominatedStudent.getIban());
-    if (nominatedStudent.getCardHolder() == null) {
-      ps.setNull(parameterIndex++, java.sql.Types.VARCHAR);
-    } else {
-      ps.setString(parameterIndex++, nominatedStudent.getCardHolder());
-    }
-    ps.setString(parameterIndex++, nominatedStudent.getBankName());
-    ps.setString(parameterIndex++, nominatedStudent.getBic());
+  /** Binds the updatable columns, title to bic, in the order of the statements above. */
+  private static JdbcClient.StatementSpec bindColumns(JdbcClient.StatementSpec statement,
+      NominatedStudentDto student) {
+    return statement.param(student.getTitle())
+        .param(Timestamp.valueOf(student.getBirthdate().atStartOfDay()))
+        .param(student.getNationality().getCountryCode())
+        .param(student.getPhoneNumber())
+        .param(student.getGender())
+        .param(student.getNbrPassedYears())
+        .param(student.getIban())
+        .param(DataAccess.typed(Types.VARCHAR, student.getCardHolder()))
+        .param(student.getBankName())
+        .param(student.getBic());
   }
 
-  private NominatedStudentDto populateStudentDto(ResultSet rs) throws SQLException {
+  private NominatedStudentDto toDto(ResultSet rs, int rowNum) throws SQLException {
     NominatedStudentDto nominatedStudent =
         (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
     nominatedStudent.setId(rs.getInt(1));
@@ -174,11 +130,7 @@ class NominatedStudentDaoImpl implements NominatedStudentDao {
     nominatedStudent.setGender(rs.getString(16));
     nominatedStudent.setNbrPassedYears(rs.getInt(17));
     nominatedStudent.setIban(rs.getString(18));
-    String cardHolder = rs.getString(19);
-    if (rs.wasNull()) {
-      cardHolder = null;
-    }
-    nominatedStudent.setCardHolder(cardHolder);
+    nominatedStudent.setCardHolder(rs.getString(19));
     nominatedStudent.setBankName(rs.getString(20));
     nominatedStudent.setBic(rs.getString(21));
     AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);

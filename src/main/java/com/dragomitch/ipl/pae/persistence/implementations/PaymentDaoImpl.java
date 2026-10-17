@@ -6,75 +6,55 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import org.springframework.stereotype.Repository;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PaymentDao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
-public @Repository
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * {@link PaymentDao} with Spring's {@link JdbcClient}. Payments are not a table but a read model
+ * over mobility choices and mobilities (one row per requested payment: 'D' for the first request,
+ * 'R' for the second), so there is no aggregate to map: the query stays plain SQL. The choice may
+ * have no country and no partner: they are LEFT-joined and stay null in the DTO. JdbcClient
+ * runs on the connection of the current transaction, like the Spring Data repositories.
+ */
+@Repository
 class PaymentDaoImpl implements PaymentDao {
 
-  private static final String SCHEMA_NAME = DalBackendServices.SCHEMA_NAME;
+  private static final String SQL_SELECT = """
+      SELECT mc.mobility_choice_id, mc.user_id, u.first_name, u.last_name, mc.mobility_type,
+             mc.academic_year, mc.term, mc.programme, p.name, mc.country, c.name, mc.partner,
+             pa.full_name, m.%1$s_payment_request_date AS payment_date, '%2$s' AS payment_type
+        FROM student_exchange_tools.mobility_choices mc
+        JOIN student_exchange_tools.users u ON mc.user_id = u.user_id
+        JOIN student_exchange_tools.mobilities m ON mc.mobility_choice_id = m.mobility_choice_id
+        JOIN student_exchange_tools.programmes p ON mc.programme = p.programme_id
+        LEFT JOIN student_exchange_tools.countries c ON mc.country = c.country_code
+        LEFT JOIN student_exchange_tools.partners pa ON mc.partner = pa.partner_id
+       WHERE m.%1$s_payment_request_date IS NOT NULL
+      """;
 
-  private static final String SQL_COLUMNS = "SELECT mc." + COLUMN_MOBILITY_CHOICE_ID + ", mc."
-      + COLUMN_USER_ID + ", u." + COLUMN_FIRST_NAME + ", u." + COLUMN_LAST_NAME + ", mc."
-      + COLUMN_MOBILITY_TYPE + ", mc." + COLUMN_ACADEMIC_YEAR + ", mc." + COLUMN_TERM + ", mc."
-      + COLUMN_PROGRAMME + ", p." + COLUMN_NAME + ", mc." + COLUMN_COUNTRY + ", c." + COLUMN_NAME
-      + ", mc." + COLUMN_PARTNER + ", pa." + COLUMN_FULL_NAME + ", m.";
-
-  /** The choice may have no country and no partner: they are LEFT-joined. */
-  private static final String SQL_FROM = " FROM " + SCHEMA_NAME + "."
-      + TABLE_MOBILITY_CHOICES_NAME + " mc JOIN " + SCHEMA_NAME + "." + TABLE_USERS_NAME + " u ON mc."
-      + COLUMN_USER_ID + " = u." + COLUMN_USER_ID + " JOIN " + SCHEMA_NAME + "."
-      + TABLE_MOBILITIES_NAME + " m ON mc." + COLUMN_MOBILITY_CHOICE_ID + " = m."
-      + COLUMN_MOBILITY_CHOICE_ID + " JOIN " + SCHEMA_NAME + "." + TABLE_PROGRAMMES_NAME
-      + " p ON mc." + COLUMN_PROGRAMME + " = p." + COLUMN_PROGRAMME_ID + " LEFT JOIN "
-      + SCHEMA_NAME + "." + TABLE_COUNTRIES_NAME + " c ON mc." + COLUMN_COUNTRY + " = c."
-      + COLUMN_COUNTRY_CODE + " LEFT JOIN " + SCHEMA_NAME + "." + TABLE_PARTNERS_NAME + " pa ON mc."
-      + COLUMN_PARTNER + " = pa." + COLUMN_PARTNER_ID;
-
-  /** One row per requested payment: 'D' for the first request, 'R' for the second one. */
-  private static final String SQL_SELECT = SQL_COLUMNS + COLUMN_FIRST_PAYMENT_REQUEST_DATE
-      + " AS payment_date, 'D' AS \"payment_type\"" + SQL_FROM + " WHERE m."
-      + COLUMN_FIRST_PAYMENT_REQUEST_DATE + " IS NOT NULL UNION " + SQL_COLUMNS
-      + COLUMN_SECOND_PAYMENT_REQUEST_DATE + " AS payment_date, 'R' AS \"payment_type\""
-      + SQL_FROM + " WHERE m." + COLUMN_SECOND_PAYMENT_REQUEST_DATE + " IS NOT NULL";
+  private static final String SQL_PAYMENTS =
+      SQL_SELECT.formatted("first", "D") + " UNION " + SQL_SELECT.formatted("second", "R");
 
   private final EntityFactory entityFactory;
-  private final DalBackendServices dalBackendServices;
+  private final JdbcClient jdbcClient;
 
-  /**
-   * Sole constructor for explicit invocation.
-   * 
-   * @param entityFactory an on-demand object dispenser.
-   * @param dalBackendServices backend services.
-   */
-  public PaymentDaoImpl(EntityFactory entityFactory, DalBackendServices dalBackendServices) {
+  PaymentDaoImpl(EntityFactory entityFactory, JdbcClient jdbcClient) {
     this.entityFactory = entityFactory;
-    this.dalBackendServices = dalBackendServices;
+    this.jdbcClient = jdbcClient;
   }
 
   @Override
   public List<PaymentDto> findAll() {
-    List<PaymentDto> payments = new ArrayList<PaymentDto>();
-    try (PreparedStatement stmt = dalBackendServices.prepareStatement(SQL_SELECT)) {
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          payments.add(populateDto(rs));
-        }
-      }
-    } catch (SQLException ex) {
-      throw new FatalException(FatalException.DATABASE_ERROR_MSG, ex);
-    }
-    return payments;
+    return DataAccess.call(() -> jdbcClient.sql(SQL_PAYMENTS).query(this::toDto).list());
   }
 
-  private PaymentDto populateDto(ResultSet rs) throws SQLException {
+  private PaymentDto toDto(ResultSet rs, int rowNum) throws SQLException {
     PaymentDto payment = (PaymentDto) entityFactory.build(PaymentDto.class);
     payment.setMobilityChoiceId(rs.getInt(1));
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
@@ -107,6 +87,4 @@ class PaymentDaoImpl implements PaymentDao {
     payment.setPaymentType(rs.getString(15));
     return payment;
   }
-
-
 }
