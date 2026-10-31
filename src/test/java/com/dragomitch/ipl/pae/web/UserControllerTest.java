@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,7 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.uccontrollers.UserUcc;
 
 import java.time.LocalDateTime;
@@ -44,6 +46,10 @@ class UserControllerTest {
   @MockBean
   private UserUcc userUcc;
 
+  private static final String VALID_SIGNUP = "{\"username\":\"jdoe\",\"password\":\"secret123\","
+      + "\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
+      + "\"option\":{\"code\":\"BIN\"}}";
+
   private UserDto user(int id, String username) {
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
     user.setId(id);
@@ -61,6 +67,7 @@ class UserControllerTest {
     mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"username\":\"jdoe\",\"password\":\"secret123\",\"firstName\":\"John\","
+                + "\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
                 + "\"option\":{\"code\":\"BIN\"},\"unknownField\":1}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(5))
@@ -78,15 +85,25 @@ class UserControllerTest {
   }
 
   @Test
-  void signupBusinessErrorsKeepTheErrorCatalogueFormat() throws Exception {
-    when(userUcc.signup(any())).thenThrow(new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110,
-        List.of(ErrorFormat.UNICITY_VIOLATION_USERNAME_204)));
+  void signupBusinessErrorsAreProblems() throws Exception {
+    when(userUcc.signup(any())).thenThrow(new BusinessException(ErrorCode.USERNAME_TAKEN, "jdoe"));
 
+    mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content(VALID_SIGNUP))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("USERNAME_TAKEN"))
+        .andExpect(jsonPath("$.detail").value("Le nom d’utilisateur « jdoe » est déjà utilisé."));
+  }
+
+  @Test
+  void signupChecksThePasswordAndTheOtherConstraintsTogether() throws Exception {
     mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
             .contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"jdoe\"}"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errorCode").value(110))
-        .andExpect(jsonPath("$.details[0].errorCode").value(204));
+        .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+        .andExpect(jsonPath("$.errors[*].field").value(org.hamcrest.Matchers.containsInAnyOrder(
+            "password", "firstName", "lastName", "email", "option")));
+    verifyNoInteractions(userUcc);
   }
 
   @Test
@@ -116,15 +133,47 @@ class UserControllerTest {
   }
 
   @Test
-  void aConcurrentPromotionIs400WithTheCatalogueMessage() throws Exception {
+  void aConcurrentPromotionIsAConflictProblem() throws Exception {
     doThrow(new ConcurrentModificationException()).when(userUcc).promoteToProfessor(3);
 
     mockMvc.perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf())
+            .with(TestUsers.professor()).header("Accept-Language", "en"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()))
+        .andExpect(jsonPath("$.detail").isNotEmpty());
+  }
+
+  @Test
+  void aConcurrentPromotionByUsernameIsAConflictProblem() throws Exception {
+    when(userUcc.promoteToProfessorByUsername("bob"))
+        .thenThrow(new ConcurrentModificationException());
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote").with(csrf())
             .with(TestUsers.professor()))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()));
+  }
+
+  @Test
+  void promotingAnUnknownUsernameIsANotFoundProblem() throws Exception {
+    when(userUcc.promoteToProfessorByUsername("nobody"))
+        .thenThrow(new ResourceNotFoundException());
+
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/nobody/promote").with(csrf())
+            .with(TestUsers.professor()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.name()));
+  }
+
+  @Test
+  void promotingATooLongUsernameIsAValidationProblem() throws Exception {
+    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/" + "x".repeat(21) + "/promote")
+            .with(csrf()).with(TestUsers.professor()))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errorCode").value(ErrorFormat.CONCURRENT_MODIFICATION_120))
-        .andExpect(jsonPath("$.developerMessage")
-            .value(org.hamcrest.Matchers.containsString("modified or deleted in the meantime")));
+        .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.name()))
+        .andExpect(jsonPath("$.errors[0].field").value("username"))
+        .andExpect(jsonPath("$.errors[0].code").value("Size"));
+    verifyNoInteractions(userUcc);
   }
 
   @Test
@@ -157,7 +206,9 @@ class UserControllerTest {
         .thenReturn(user(2, "stud"));
 
     mockMvc.perform(put(ApiPaths.BASE + "/users/edit").with(csrf()).with(TestUsers.student())
-            .contentType(MediaType.APPLICATION_JSON).content("{\"id\":2,\"username\":\"stud\"}"))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"id\":2,\"username\":\"stud\","
+                + "\"firstName\":\"S\",\"lastName\":\"T\",\"email\":\"s@t.be\","
+                + "\"option\":{\"code\":\"BIN\"}}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("stud"));
 

@@ -1,23 +1,20 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
-
-import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.business.exceptions.RessourceNotFoundException;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.uccontrollers.AddressUcc;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Addresses. Their format is checked by the constraints of {@link AddressDto}; the country must
+ * exist.
+ */
 @Service
 @Transactional
 class AddressUccImpl implements AddressUcc {
@@ -31,73 +28,26 @@ class AddressUccImpl implements AddressUcc {
 
   @Override
   public AddressDto create(AddressDto address) {
-    checkObject(address);
-    checkDataIntegrity(address);
-    if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
-      throw new RessourceNotFoundException("Unknown countryCode for creation of the new Addres");
-    }
+    checkCountryExists(address);
     addressDao.create(address);
     return address;
   }
 
   @Override
   public AddressDto edit(AddressDto address) {
-    checkObject(address);
-    checkDataIntegrity(address);
-    if ((countryDao.findById(address.getCountry().getCountryCode())) == null) {
-      throw new RessourceNotFoundException();
-    }
+    checkCountryExists(address);
     AddressDto addressDb = addressDao.findById(address.getId());
     if (addressDb == null) {
-      throw new RessourceNotFoundException();
+      throw new ResourceNotFoundException();
     }
     address.setVersion(addressDb.getVersion());
     return addressDao.update(address);
   }
 
-  private void checkDataIntegrity(AddressDto address) {
-    List<Integer> violations = new LinkedList<Integer>();
-    if (address == null) {
-      throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_ADDRESS_NULL_138);
-    }
-    try {
-      ((Address) address).checkDataIntegrity();
-    } catch (BusinessException ex) {
-      List<ErrorFormat> errors = ex.getError().getDetails();
-      for (ErrorFormat oneError : errors) {
-        violations.add(oneError.getErrorCode());
-      }
-    }
-    if (isAValidString(address.getStreet())
-        && address.getStreet().length() > AddressDao.MAX_LENGTH_STREET) {
-      violations.add(ErrorFormat.STREET_MAX_LENGTH_OVERFLOW_806);
-    }
-    if (isAValidString(address.getNumber())
-        && address.getNumber().length() > AddressDao.MAX_LENGTH_NUMBER) {
-      violations.add(ErrorFormat.STREET_NUMBER_MAX_LENGTH_OVERFLOW_810);
-    }
-    if (isAValidObject(address.getCountry())
-        && isAValidObject(address.getCountry().getCountryCode())
-        && address.getCountry().getCountryCode().length() > CountryDao.CODE_LENGTH) {
-      violations.add(ErrorFormat.MAX_LENGTH_COUNTRY_CODE_OVERFLOW_314);
-    }
-    if (isAValidString(address.getCity())
-        && address.getCity().length() > AddressDao.MAX_LENGTH_CITY) {
-      violations.add(ErrorFormat.CITY_MAX_LENGTH_OVERFLOW_807);
-    }
-    if (isAValidString(address.getPostalCode())
-        && address.getPostalCode().length() > AddressDao.MAX_LENGTH_POSTAL_CODE) {
-      violations.add(ErrorFormat.POSTAL_CODE_MAX_LENGTH_OVERFLOW_808);
-    }
-    if (isAValidObject(address.getRegion())
-        && address.getRegion().length() > AddressDao.MAX_LENGTH_REGION) {
-      violations.add(ErrorFormat.REGION_MAX_LENGTH_OVERFLOW_809);
-    }
-
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
+  private void checkCountryExists(AddressDto address) {
+    String countryCode = address.getCountry().getCountryCode();
+    if (countryDao.findById(countryCode) == null) {
+      throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY, countryCode);
     }
   }
-
-
 }

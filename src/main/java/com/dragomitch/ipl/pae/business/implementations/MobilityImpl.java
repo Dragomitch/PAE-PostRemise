@@ -1,14 +1,12 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkPositive;
-
 import com.dragomitch.ipl.pae.business.Document;
 import com.dragomitch.ipl.pae.business.Mobility;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
+import com.dragomitch.ipl.pae.business.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.exceptions.FatalException; //TODO Check where we use a Fatal and Why is that inside the business layer
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -135,7 +133,6 @@ class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable 
 
   @Override
   public boolean fillInDocument(int documentId) {
-    checkPositive(documentId);
     if (documents == null) {
       throw new FatalException(FatalException.LAZY_LOADING_ERROR_MSG);
     }
@@ -149,7 +146,7 @@ class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable 
         }
       }
     }
-    throw new BusinessException(ErrorFormat.EXISTENCE_VIOLATION_DOCUMENT_505);
+    throw new BusinessException(ErrorCode.UNKNOWN_DOCUMENT);
   }
 
   @Override
@@ -194,35 +191,35 @@ class MobilityImpl extends MobilityChoiceImpl implements Mobility, Serializable 
   @Override
   public void checkAllDocumentsFilledIn() {
     if (!allDocumentsFilledIn()) {
-      throw new BusinessException(ErrorFormat.ALL_DOCUMENTS_NOT_FILLED_IN_507);
+      throw new BusinessException(ErrorCode.DOCUMENTS_INCOMPLETE);
     }
   }
 
   @Override
   public void checkAllDepartureDocumentsFilledIn() {
     if (!allDepartureDocumentsFilledIn()) {
-      throw new BusinessException(ErrorFormat.ALL_DEPARTURE_DOCUMENTS_NOT_FILLED_IN_503);
+      throw new BusinessException(ErrorCode.DEPARTURE_DOCUMENTS_INCOMPLETE);
     }
   }
 
   @Override
   public void checkAllReturnDocumentsFilledIn() {
     if (!allReturnDocumentsFilledIn()) {
-      throw new BusinessException(ErrorFormat.ALL_RETURN_DOCUMENTS_NOT_FILLED_IN_504);
+      throw new BusinessException(ErrorCode.RETURN_DOCUMENTS_INCOMPLETE);
     }
   }
 
   @Override
   public void checkNotCancelled() {
     if (this.state.equals(STATE_CANCELLED)) {
-      throw new BusinessException(ErrorFormat.INVALID_CANCELED_MOBILITY_STATE_501);
+      throw new BusinessException(ErrorCode.MOBILITY_CANCELLED);
     }
   }
 
   @Override
   public void checkNotClosed() {
     if (this.state.equals(STATE_CLOSED)) {
-      throw new BusinessException(ErrorFormat.INVALID_CLOSED_MOBILITY_STATE_502);
+      throw new BusinessException(ErrorCode.MOBILITY_CLOSED);
     }
   }
 

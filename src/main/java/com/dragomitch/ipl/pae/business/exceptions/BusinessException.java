@@ -1,58 +1,86 @@
 package com.dragomitch.ipl.pae.business.exceptions;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+import org.springframework.http.ProblemDetail;
+import org.springframework.lang.Nullable;
+import org.springframework.web.ErrorResponseException;
 
 /**
- * This exception may be thrown when an error occurs during a business related operation.
+ * A business rule was broken: the use case refuses the operation with one of the
+ * {@linkplain ErrorCode error codes}.
+ *
+ * <p>It is a Spring {@link org.springframework.web.ErrorResponse}: it carries its HTTP status and
+ * an RFC 9457 {@link ProblemDetail} whose {@code type} and {@code code} come from the error code.
+ * The localized {@code title} and {@code detail} are resolved from the {@code MessageSource} by
+ * {@link #updateAndGetBody} (called by {@code ResponseEntityExceptionHandler}) with the message
+ * codes {@code problem.<CODE>.title} and {@code problem.<CODE>.detail}; the detail may use the
+ * {@linkplain #getDetailMessageArguments() arguments} given to the constructor ({@code {0}},
+ * {@code {1}}...).
+ *
+ * <p>Validation constraints are not business exceptions: they are Bean Validation constraints on
+ * the DTOs and on the use-case methods, reported as {@link ErrorCode#VALIDATION_FAILED}.
  */
-public class BusinessException extends RuntimeException {
+public class BusinessException extends ErrorResponseException {
 
   private static final long serialVersionUID = 1L;
-  private List<Integer> violations;
-  private int errorCode;
+
+  /** Name of the problem property holding the error code. */
+  public static final String CODE_PROPERTY = "code";
+
+  private final ErrorCode errorCode;
 
   /**
-   * Constructs a BusinessException with the specified cause and error.
+   * Creates the exception of an error code.
    *
-   * @param errorCode the error code
-   * @param violations the list of violations for that error.
-   * @param cause the cause (which is saved for later retrieval by the Throwable.getCause() method). (A null value is permitted, and indicates that the cause is
-   * nonexistent or unknown.)
+   * @param errorCode the error
+   * @param detailArguments the arguments of the localized detail message, if it has some
    */
-  public BusinessException(int errorCode, List<Integer> violations, Throwable cause) {
-    super(cause);
-    this.errorCode = errorCode;
-    this.violations = violations;
+  public BusinessException(ErrorCode errorCode, Object... detailArguments) {
+    this(errorCode, null, detailArguments);
   }
 
   /**
-   * Return the errorFormat object describing the error.
+   * Creates the exception of an error code caused by another exception.
    *
-   * @return an ErrorFormat with the violations details rightly inserted
+   * @param errorCode the error
+   * @param cause the cause, may be null
+   * @param detailArguments the arguments of the localized detail message, if it has some
    */
-  public ErrorFormat getError() {
-    ErrorFormat error = ErrorManager.getError(errorCode);
-    if (violations != null) {
-      List<ErrorFormat> errorsOccured = new LinkedList<ErrorFormat>();
-      for (int curError : violations) {
-        errorsOccured.add(ErrorManager.getError(curError));
-      }
-      error.setDetails(errorsOccured);
-    }
-    return error;
-  }
-
-  public BusinessException(int errorCode, List<Integer> violations) {
-    this(errorCode, violations, null);
-  }
-
-  public BusinessException(int errorCode, Throwable cause) {
-    super(cause);
+  public BusinessException(ErrorCode errorCode, @Nullable Throwable cause,
+      Object... detailArguments) {
+    super(Objects.requireNonNull(errorCode, "errorCode").status(), problemOf(errorCode), cause,
+        errorCode.detailMessageCode(), detailArguments);
     this.errorCode = errorCode;
   }
 
-  public BusinessException(int errorCode) {
-    this(errorCode, null, null);
+  private static ProblemDetail problemOf(ErrorCode errorCode) {
+    ProblemDetail problem = ProblemDetail.forStatus(errorCode.status());
+    problem.setType(errorCode.type());
+    problem.setProperty(CODE_PROPERTY, errorCode.name());
+    return problem;
+  }
+
+  /** The error of this exception. */
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
+
+  @Override
+  public String getTitleMessageCode() {
+    return errorCode.titleMessageCode();
+  }
+
+  @Override
+  public String getDetailMessageCode() {
+    return errorCode.detailMessageCode();
+  }
+
+  /** For the logs only: the code and its arguments, never shown to the client. */
+  @Override
+  public String getMessage() {
+    Object[] arguments = getDetailMessageArguments();
+    return errorCode.name()
+        + (arguments == null || arguments.length == 0 ? "" : " " + Arrays.toString(arguments));
   }
 }

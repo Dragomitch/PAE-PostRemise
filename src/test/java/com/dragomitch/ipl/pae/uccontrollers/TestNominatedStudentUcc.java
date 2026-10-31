@@ -1,21 +1,23 @@
 package com.dragomitch.ipl.pae.uccontrollers;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.business.Violations;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 import com.dragomitch.ipl.pae.persistence.mocks.MockNominatedStudentDao;
+import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
 import com.dragomitch.ipl.pae.persistence.mocks.MockUserDao;
 
+import jakarta.validation.ConstraintViolationException;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -54,18 +56,19 @@ public class TestNominatedStudentUcc {
 
   @Test
   public void testCreateTC1() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(ConstraintViolationException.class, () -> {
       nominatedStudentUcc.create(null, 1, UserDto.ROLE_PROFESSOR);
     });
   }
 
   @Test
   public void testCreateTC2() {
-    assertThrows(BusinessException.class, () -> {
-      nominatedStudentDao.create(nominatedStud);
-      nominatedStudentUcc.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
-      assertEquals(1, nominatedStudentDao.findAll().size());
-    });
+    assertEquals(List.of("create.nominatedStudent.bic:Bic", "create.nominatedStudent.birthdate:Past", "create.nominatedStudent.iban:Iban"),
+        Violations.thrownBy(() -> {
+          nominatedStudentDao.create(nominatedStud);
+          nominatedStudentUcc.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
+          assertEquals(1, nominatedStudentDao.findAll().size());
+        }));
   }
 
   @Test

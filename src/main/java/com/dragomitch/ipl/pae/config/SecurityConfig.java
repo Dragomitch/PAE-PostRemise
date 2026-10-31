@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.security.SessionCookieBearerTokenResolver;
 import com.dragomitch.ipl.pae.security.SessionProperties;
 import com.dragomitch.ipl.pae.security.SpaCsrfTokenRequestHandler;
 import com.dragomitch.ipl.pae.web.ApiPaths;
+
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import jakarta.servlet.DispatcherType;
@@ -18,6 +19,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -57,6 +59,7 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
@@ -77,7 +80,8 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
  * {@code XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
  * back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.</li>
  * <li><b>Errors</b>: 401 and 403 are rendered by the MVC exception handler
- * ({@code ApiExceptionHandler}) like every other API error.</li>
+ * ({@code ApiExceptionHandler}) like every other API error: RFC 9457 problems
+ * ({@code UNAUTHENTICATED}, {@code ACCESS_DENIED}) localized from {@code Accept-Language}.</li>
  * </ul>
  *
  * <p>CORS is handled by the servlet filter of {@link CorsConfig}, ahead of this chain.
@@ -137,9 +141,10 @@ public class SecurityConfig {
       RequestMatcher publicApiEndpoints, HandlerMappingIntrospector introspector,
       BearerTokenResolver bearerTokenResolver, JwtAuthenticationConverter jwtAuthenticationConverter,
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
+      ObjectProvider<LocaleResolver> localeResolver,
       SessionProperties sessionProperties) throws Exception {
-    ExceptionResolverSecurityHandler errorHandler =
-        new ExceptionResolverSecurityHandler(handlerExceptionResolver);
+    ExceptionResolverSecurityHandler errorHandler = new ExceptionResolverSecurityHandler(
+        handlerExceptionResolver, localeResolver.getIfAvailable());
     CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
     csrfTokenRepository.setCookiePath("/");
     csrfTokenRepository.setCookieCustomizer(cookie -> cookie

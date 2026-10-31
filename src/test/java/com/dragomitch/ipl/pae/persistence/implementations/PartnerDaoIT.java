@@ -8,8 +8,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
@@ -219,8 +217,7 @@ class PartnerDaoIT extends AbstractDaoIT {
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerDao.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
-        .isInstanceOfSatisfying(BusinessException.class, ex -> assertThat(
-            ex.getError().getErrorCode()).isEqualTo(ErrorFormat.INVALID_PARTNER_FILTER_709)));
+        .isInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "student of {0} sees {1}")

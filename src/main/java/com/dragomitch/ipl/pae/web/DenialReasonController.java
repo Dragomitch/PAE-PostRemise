@@ -3,6 +3,8 @@ package com.dragomitch.ipl.pae.web;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +27,7 @@ public class DenialReasonController {
   }
 
   @PostMapping
-  public DenialReasonDto create(@RequestBody DenialReasonDto denialReason) {
+  public DenialReasonDto create(@RequestBody @Valid DenialReasonDto denialReason) {
     return denialReasonUcc.create(denialReason);
   }
 
@@ -35,7 +37,8 @@ public class DenialReasonController {
   }
 
   @PutMapping("/{id}")
-  public DenialReasonDto edit(@PathVariable int id, @RequestBody DenialReasonDto denialReason) {
+  public DenialReasonDto edit(@PathVariable @Positive int id,
+      @RequestBody @Valid DenialReasonDto denialReason) {
     return denialReasonUcc.edit(id, denialReason);
   }
 }

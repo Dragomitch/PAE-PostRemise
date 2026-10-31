@@ -1,12 +1,11 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.UnauthenticatedUserException;
+import com.dragomitch.ipl.pae.business.exceptions.InvalidCredentialsException;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 import com.dragomitch.ipl.pae.uccontrollers.SessionUcc;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,16 +28,14 @@ class SessionUccImpl implements SessionUcc {
 
   @Override
   public UserDto signin(String username, String password) {
-    checkString(username);
-    checkString(password);
     User user = (User) userDao.findBy(UserDao.COLUMN_USERNAME, username);
     if (user == null) {
       logger.info("User not found in database");
-      throw new UnauthenticatedUserException();
+      throw new InvalidCredentialsException();
     }
     if (!passwordEncoder.matches(password, user.getPassword())) {
       logger.info("Wrong password");
-      throw new UnauthenticatedUserException();
+      throw new InvalidCredentialsException();
     }
     return user;
   }
