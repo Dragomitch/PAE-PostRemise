@@ -11,16 +11,15 @@ import com.dragomitch.ipl.pae.security.SessionCookieService;
 
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -66,7 +65,7 @@ class ApplicationTests {
   void apiRoutesRequireASession() {
     ResponseEntity<String> response = rest.getForEntity("/api/1.0/users", String.class);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"errorCode\":101"), response.getBody());
+    assertTrue(response.getBody().contains("\"code\":\"UNAUTHENTICATED\""), response.getBody());
     assertNull(response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE),
         "no HTTP Basic or Bearer challenge expected");
     // the SPA gets its CSRF cookie even from a 401
@@ -81,7 +80,7 @@ class ApplicationTests {
     ResponseEntity<String> response = rest.exchange("/api/1.0/users", HttpMethod.GET,
         withSessionCookie(token(2, UserDto.ROLE_STUDENT)), String.class);
     assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"errorCode\":103"), response.getBody());
+    assertTrue(response.getBody().contains("\"code\":\"ACCESS_DENIED\""), response.getBody());
   }
 
   @Test
@@ -100,7 +99,7 @@ class ApplicationTests {
     ResponseEntity<String> response = rest.postForEntity("/api/1.0/session",
         new HttpEntity<>("{\"username\":\"a\",\"password\":\"b\"}", headers), String.class);
     assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"errorCode\":103"), response.getBody());
+    assertTrue(response.getBody().contains("\"code\":\"ACCESS_DENIED\""), response.getBody());
   }
 
   @Test

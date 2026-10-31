@@ -2,8 +2,12 @@ package com.dragomitch.ipl.pae.uccontrollers;
 
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface CountryUcc {
 
   /**
@@ -18,6 +22,10 @@ public interface CountryUcc {
    * 
    * @param countryCode : the country code of the country we want to find
    * @return the countryDto found in the database
+   * @throws com.dragomitch.ipl.pae.business.exceptions.ResourceNotFoundException if no country
+   *         has this code
    */
-  CountryDto showOne(String countryCode);
+  CountryDto showOne(
+      @NotBlank @Size(min = CountryDto.CODE_LENGTH, max = CountryDto.CODE_LENGTH)
+      String countryCode);
 }

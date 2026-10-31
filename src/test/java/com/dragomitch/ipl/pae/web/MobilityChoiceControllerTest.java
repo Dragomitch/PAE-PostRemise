@@ -112,7 +112,7 @@ class MobilityChoiceControllerTest {
     mockMvc.perform(put(ApiPaths.BASE + "/mobilityChoices/5/cancel?reason=r").with(csrf())
             .with(TestUsers.student()))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.errorCode").value(103));
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
   }
 
   @Test
@@ -142,9 +142,7 @@ class MobilityChoiceControllerTest {
   void confirmWithNewPartnerReadsThePartnerFromTheBody() throws Exception {
     mockMvc.perform(put(ApiPaths.BASE + "/mobilityChoices/5/confirmWithNewPartner").with(csrf())
             .with(TestUsers.student()).contentType(MediaType.APPLICATION_JSON)
-            .content("{\"fullName\":\"ACME\",\"official\":false,"
-                + "\"address\":{\"country\":{\"countryCode\":\"FR\"}},"
-                + "\"options\":[{\"code\":\"BIN\",\"departement\":\"IT\"}]}"))
+            .content(TestBodies.PARTNER.replace("\"BE\"", "\"FR\"")))
         .andExpect(status().isOk());
 
     ArgumentCaptor<PartnerDto> captor = ArgumentCaptor.forClass(PartnerDto.class);

@@ -25,7 +25,7 @@ public class MockDtoFactory {
 
   private EntityFactory entityFactory;
 
-  MockDtoFactory(EntityFactory entityFactory) {
+  public MockDtoFactory(EntityFactory entityFactory) {
     this.entityFactory = entityFactory;
   }
 

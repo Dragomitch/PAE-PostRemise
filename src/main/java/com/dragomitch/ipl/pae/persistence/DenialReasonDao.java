@@ -10,8 +10,6 @@ public interface DenialReasonDao {
   String COLUMN_ID = "reason_id";
   String COLUMN_REASON = "reason";
 
-  int MAX_LENGTH_REASON = 300;
-
   /**
    * Inserts a denialReason into the database.
    * 

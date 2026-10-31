@@ -32,9 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(WebTestConfig.class)
 class NominatedStudentControllerTest {
 
-  private static final String BODY = "{\"id\":2,\"birthdate\":\"2000-12-31\",\"iban\":\"BE68\","
-      + "\"address\":{\"street\":\"Rue\",\"country\":{\"countryCode\":\"BE\"}},"
-      + "\"nationality\":{\"countryCode\":\"BE\"}}";
+  private static final String BODY = TestBodies.NOMINATED_STUDENT.replace("\"id\":1", "\"id\":2");
 
   @Autowired
   private MockMvc mockMvc;

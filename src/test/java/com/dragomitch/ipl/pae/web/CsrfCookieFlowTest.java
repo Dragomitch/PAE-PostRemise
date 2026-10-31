@@ -78,7 +78,7 @@ class CsrfCookieFlowTest {
     mockMvc.perform(post(ApiPaths.BASE + "/session")
             .contentType(MediaType.APPLICATION_JSON).content(SIGNIN_BODY))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.errorCode").value(103))
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
         .andExpect(cookie().doesNotExist("session"));
   }
 
@@ -102,7 +102,7 @@ class CsrfCookieFlowTest {
     // the session cookie alone does not allow a state change: this is what a CSRF attack sends
     mockMvc.perform(delete(ApiPaths.BASE + "/session").cookie(xsrf, session))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.errorCode").value(103));
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     mockMvc.perform(delete(ApiPaths.BASE + "/session").cookie(xsrf, session)
             .header(XSRF_HEADER, "forged"))
         .andExpect(status().isForbidden());

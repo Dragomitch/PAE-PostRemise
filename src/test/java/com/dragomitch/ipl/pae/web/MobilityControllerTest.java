@@ -106,8 +106,8 @@ class MobilityControllerTest {
 
     mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmPayment?version=2").with(csrf())
             .with(TestUsers.professor()))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errorCode").value(120));
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("CONCURRENT_MODIFICATION"));
   }
 
   @Test

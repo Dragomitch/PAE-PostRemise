@@ -10,8 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import org.springframework.stereotype.Repository;
 import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
@@ -148,6 +146,13 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
     return mobilityChoice;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
+   *         (a programming error: the API rejects an unknown filter before, with a 400
+   *         {@code VALIDATION_FAILED} problem)
+   */
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
     List<MobilityChoiceDto> mobilitiesChoices = new ArrayList<MobilityChoiceDto>();
@@ -169,7 +174,7 @@ class MobilityChoiceDaoImpl implements MobilityChoiceDao {
           + MobilityDao.TABLE_NAME + " m )";
       yearParameter = true;
     } else {
-      throw new BusinessException(ErrorFormat.INVALID_MOBILITY_CHOICE_FILTER_323);
+      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
     }
     try (PreparedStatement findAllStatement =
         dalBackendServices.prepareStatement(SQL_SELECT + queryFilter)) {
