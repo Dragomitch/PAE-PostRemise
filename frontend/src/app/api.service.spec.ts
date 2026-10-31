@@ -2,6 +2,7 @@ import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import { MOCK_PLATFORM_LOCATION_CONFIG } from '@angular/common/testing';
 
 import { ApiService } from './api.service';
 import { appConfig } from './app.config';
@@ -29,7 +30,14 @@ describe('ApiService', () => {
 
     beforeEach(() => {
       TestBed.configureTestingModule({
-        providers: [...appConfig.providers, provideHttpClientTesting(), { provide: LOCALE_ID, useValue: 'en' }],
+        providers: [
+          ...appConfig.providers,
+          provideHttpClientTesting(),
+          { provide: LOCALE_ID, useValue: 'en' },
+          // the XSRF interceptor only sends the token to the page's own origin, which it reads
+          // from PlatformLocation: the test bed's mock location needs a real URL for that
+          { provide: MOCK_PLATFORM_LOCATION_CONFIG, useValue: { startUrl: 'http://localhost/' } },
+        ],
       });
       service = TestBed.inject(ApiService);
       http = TestBed.inject(HttpTestingController);
@@ -134,6 +142,15 @@ describe('ApiService', () => {
         const get = http.expectOne((r) => r.method === 'GET');
         expect(get.request.headers.has('X-XSRF-TOKEN')).toBeFalse();
         get.flush(USER);
+      });
+
+      it('never sends the token to another origin', () => {
+        document.cookie = `${cookie}=token-123; path=/`;
+
+        TestBed.inject(HttpClient).post('https://elsewhere.example.com/api', {}).subscribe();
+        const post = http.expectOne('https://elsewhere.example.com/api');
+        expect(post.request.headers.has('X-XSRF-TOKEN')).toBeFalse();
+        post.flush(null);
       });
     });
   });
