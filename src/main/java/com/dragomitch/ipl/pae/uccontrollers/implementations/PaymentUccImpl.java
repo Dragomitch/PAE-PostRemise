@@ -1,7 +1,5 @@
 package com.dragomitch.ipl.pae.uccontrollers.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.checkString;
-
 import com.dragomitch.ipl.pae.business.dto.PaymentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.business.exceptions.InsufficientPermissionException;
@@ -24,7 +22,6 @@ class PaymentUccImpl implements PaymentUcc {
 
   @Override
   public List<PaymentDto> showAll(String userRole) {
-    checkString(userRole);
     if (userRole.equals(UserDto.ROLE_STUDENT)) {
       throw new InsufficientPermissionException();
     }

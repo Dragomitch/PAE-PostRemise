@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -49,7 +49,7 @@ class CsrfCookieFlowTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private SessionUcc sessionUcc;
 
   @BeforeEach
@@ -78,7 +78,7 @@ class CsrfCookieFlowTest {
     mockMvc.perform(post(ApiPaths.BASE + "/session")
             .contentType(MediaType.APPLICATION_JSON).content(SIGNIN_BODY))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.errorCode").value(103))
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
         .andExpect(cookie().doesNotExist("session"));
   }
 
@@ -102,7 +102,7 @@ class CsrfCookieFlowTest {
     // the session cookie alone does not allow a state change: this is what a CSRF attack sends
     mockMvc.perform(delete(ApiPaths.BASE + "/session").cookie(xsrf, session))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.errorCode").value(103));
+        .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     mockMvc.perform(delete(ApiPaths.BASE + "/session").cookie(xsrf, session)
             .header(XSRF_HEADER, "forged"))
         .andExpect(status().isForbidden());

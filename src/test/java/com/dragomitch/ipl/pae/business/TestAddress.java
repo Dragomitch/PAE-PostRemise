@@ -1,16 +1,16 @@
 package com.dragomitch.ipl.pae.business;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.business.Address;
 import com.dragomitch.ipl.pae.business.EntityFactory;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -95,56 +95,56 @@ public class TestAddress {
   @Test
   public void testCheckDataIntegrityTC1() {
     setUpCorrectAddress();
-    address.checkDataIntegrity();
+    assertEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC2() {
     setUpCorrectAddress();
     address.setStreet(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC3() {
     setUpCorrectAddress();
     address.setNumber(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC4() {
     setUpCorrectAddress();
     address.setCity(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC5() {
     setUpCorrectAddress();
     address.setPostalCode(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC6() {
     setUpCorrectAddress();
     address.setRegion(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC7() {
     setUpCorrectAddress();
     address.setCountry(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   @Test
   public void testCheckDataIntegrityTC8() {
     setUpCorrectAddress();
     address.getCountry().setCountryCode(null);
-    assertThrows(BusinessException.class, () -> address.checkDataIntegrity());
+    assertNotEquals(List.of(), Violations.of(address));
   }
 
   private void setUpCorrectAddress() {

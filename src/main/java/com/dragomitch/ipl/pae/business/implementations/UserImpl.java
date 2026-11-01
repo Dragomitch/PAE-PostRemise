@@ -1,21 +1,12 @@
 package com.dragomitch.ipl.pae.business.implementations;
 
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidEmail;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidObject;
-import static com.dragomitch.ipl.pae.utils.DataValidationUtils.isAValidString;
-
 import com.dragomitch.ipl.pae.business.User;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
-import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
 
 class UserImpl implements User, Serializable {
 
@@ -134,41 +125,4 @@ class UserImpl implements User, Serializable {
     this.version = version;
   }
 
-  @Override
-  public void checkDataIntegrity() {
-    List<Integer> violations = new LinkedList<Integer>();
-    if (!isAValidString(username)) {
-      violations.add(ErrorFormat.INVALID_USERNAME_203);
-    } else if (username.length() > UserDao.USERNAME_MAX_LENGTH) {
-      violations.add(ErrorFormat.USERNAME_MAX_LENGTH_OVERFLOW_213);
-    }
-    if (!isAValidString(lastName)) {
-      violations.add(ErrorFormat.INVALID_LAST_NAME_202);
-    } else if (lastName.length() > UserDao.LAST_NAME_MAX_LENGTH) {
-      violations.add(ErrorFormat.LAST_NAME_MAX_LENGTH_OVERFLOW_212);
-    }
-    if (!isAValidString(firstName)) {
-      violations.add(ErrorFormat.INVALID_FIRST_NAME_201);
-    } else if (firstName.length() > UserDao.FIRST_NAME_MAX_LENGTH) {
-      violations.add(ErrorFormat.FIRST_NAME_MAX_LENGTH_OVERFLOW_211);
-    }
-    if (!isAValidString(password)) {
-      violations.add(ErrorFormat.INVALID_PASSWORD_205);
-    } else if (password.length() > UserDao.PASSWORD_MAX_LENGTH) {
-      violations.add(ErrorFormat.PASSWORD_MAX_LENGTH_OVERFLOW_214);
-    }
-    if (!isAValidEmail(email)) {
-      violations.add(ErrorFormat.INVALID_EMAIL_206);
-    } else if (email.length() > UserDao.EMAIL_MAX_LENGTH) {
-      violations.add(ErrorFormat.EMAIL_MAX_LENGTH_OVERFLOW_215);
-    }
-    if (!isAValidObject(option)) {
-      violations.add(ErrorFormat.INVALID_OPTION_208);
-    } else if (!isAValidString(option.getCode())) {
-      violations.add(ErrorFormat.INVALID_OPTION_CODE_209);
-    }
-    if (violations.size() > 0) {
-      throw new BusinessException(ErrorFormat.INVALID_INPUT_DATA_110, violations);
-    }
-  }
 }

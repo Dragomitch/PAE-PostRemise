@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.uccontrollers.OptionUcc;
 
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,9 @@ public class OptionController {
   /** The partners offering an option. */
   @GetMapping("/{optionCode}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public List<PartnerDto> findAllPartnersByOption(@PathVariable String optionCode) {
+  public List<PartnerDto> findAllPartnersByOption(
+      @PathVariable @Size(min = OptionDto.CODE_LENGTH, max = OptionDto.CODE_LENGTH)
+      String optionCode) {
     return optionUcc.findAllPartnersByOption(optionCode);
   }
 }

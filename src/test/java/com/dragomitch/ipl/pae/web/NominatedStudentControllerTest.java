@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,9 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(WebTestConfig.class)
 class NominatedStudentControllerTest {
 
-  private static final String BODY = "{\"id\":2,\"birthdate\":\"2000-12-31\",\"iban\":\"BE68\","
-      + "\"address\":{\"street\":\"Rue\",\"country\":{\"countryCode\":\"BE\"}},"
-      + "\"nationality\":{\"countryCode\":\"BE\"}}";
+  private static final String BODY = TestBodies.NOMINATED_STUDENT.replace("\"id\":1", "\"id\":2");
 
   @Autowired
   private MockMvc mockMvc;
@@ -42,7 +40,7 @@ class NominatedStudentControllerTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private NominatedStudentUcc nominatedStudentUcc;
 
   private NominatedStudentDto student() {

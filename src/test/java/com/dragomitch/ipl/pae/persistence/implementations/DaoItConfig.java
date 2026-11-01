@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -17,19 +18,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import jakarta.persistence.EntityManagerFactory;
+
 /**
- * Spring context of the DAO integration tests: the <em>real</em> persistence beans (every DAO,
- * the Spring Data JDBC setup and repositories of {@code JdbcPersistenceConfig}), the real
- * {@code EntityFactory}, a {@code DataSourceTransactionManager} and the
- * {@code NamedParameterJdbcTemplate}/{@code JdbcClient} that Spring Boot auto-configures in the
- * application, on top of a throw-away PostgreSQL 16 server started in-process by zonky's
- * embedded-postgres (no Docker needed).
+ * Spring context of the DAO integration tests: the <em>real</em> persistence beans (the JPA
+ * persistence adapters with their entities and Spring Data repositories, and the remaining JDBC
+ * DAOs), the real {@code EntityFactory}, an {@code EntityManagerFactory} that validates the
+ * entity mappings against the schema ({@code ddl-auto=validate}) and a
+ * {@code JpaTransactionManager}, on top of a throw-away PostgreSQL 16 server started in-process
+ * by zonky's embedded-postgres (no Docker needed).
  *
  * <p>The Spring TestContext framework caches this context, so the server is started and
  * {@code SQLRessources/init.sql} is loaded <strong>once per test JVM</strong>; the server is
@@ -41,12 +46,14 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @TestConfiguration(proxyBeanMethods = false)
 @ComponentScan(basePackages = {
-    "com.dragomitch.ipl.pae.persistence.implementations",
-    "com.dragomitch.ipl.pae.persistence.jdbc",
+    "com.dragomitch.ipl.pae.adapter.out.persistence",
     "com.dragomitch.ipl.pae.business.implementations"},
     // do not pick up other test configurations living in the same packages
     excludeFilters = @ComponentScan.Filter(TestConfiguration.class))
+@EnableJpaRepositories(basePackages = DaoItConfig.PERSISTENCE_PACKAGE)
 public class DaoItConfig {
+
+  static final String PERSISTENCE_PACKAGE = "com.dragomitch.ipl.pae.adapter.out.persistence";
 
   /** Schema + reference data of the application (options, programmes, countries, documents). */
   static final Path INIT_SQL = Path.of("SQLRessources", "init.sql");
@@ -59,12 +66,8 @@ public class DaoItConfig {
         .start();
   }
 
-  /**
-   * The pool, wrapped in a {@link StatementRecordingDataSource} (closing it closes the pool) so
-   * that {@code DaoErrorHandlingIT} can check that the DAOs close every statement they create.
-   */
   @Bean(destroyMethod = "close")
-  StatementRecordingDataSource dataSource(EmbeddedPostgres postgres) {
+  DataSource dataSource(EmbeddedPostgres postgres) {
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl(postgres.getJdbcUrl("postgres", "postgres"));
     config.setUsername("postgres");
@@ -77,22 +80,39 @@ public class DaoItConfig {
     populator.addScript(new FileSystemResource(initSql()));
     populator.addScript(new ClassPathResource("db/it-setup.sql"));
     populator.execute(dataSource);
-    return new StatementRecordingDataSource(dataSource);
+    return dataSource;
+  }
+
+  /**
+   * The JPA setup of {@code application.properties}, plus {@code ddl-auto=validate}: Hibernate
+   * checks every entity mapping against the tables created by {@code init.sql} at start-up.
+   */
+  @Bean
+  LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan(PERSISTENCE_PACKAGE);
+    factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+    factory.setJpaPropertyMap(Map.of(
+        "hibernate.hbm2ddl.auto", "validate",
+        "hibernate.default_schema", "student_exchange_tools",
+        // read by QueryCountIT
+        "hibernate.generate_statistics", "true"));
+    return factory;
   }
 
   @Bean
-  PlatformTransactionManager transactionManager(DataSource dataSource) {
-    return new DataSourceTransactionManager(dataSource);
+  PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+    return new JpaTransactionManager(entityManagerFactory);
   }
 
+  /**
+   * Translates the JPA exceptions of the {@code @Repository} persistence adapters into Spring's
+   * {@code DataAccessException}s, as Spring Boot does in the application.
+   */
   @Bean
-  NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-    return new NamedParameterJdbcTemplate(dataSource);
-  }
-
-  @Bean
-  JdbcClient jdbcClient(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
-    return JdbcClient.create(namedParameterJdbcTemplate);
+  static PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslation() {
+    return new PersistenceExceptionTranslationPostProcessor();
   }
 
   /**

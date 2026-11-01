@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import java.sql.Timestamp;
@@ -19,6 +18,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 class UserDaoIT extends AbstractDaoIT {
 
@@ -73,7 +74,7 @@ class UserDaoIT extends AbstractDaoIT {
   @Test
   void createWithAnUnknownOptionIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(() -> userDao.create(newUser("zed", "XYZ")))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -125,7 +126,10 @@ class UserDaoIT extends AbstractDaoIT {
       "username, alice, 1001",
       "username, david, 1004",
       "email, bob@prof.test, 1002",
-      "last_name, Leroy, 1003"})
+      "last_name, Leroy, 1003",
+      "first_name, Chloé, 1003",
+      "role, Professor, 1002",
+      "role, Student, 1001"})
   void findByLooksUpAUserByAnyColumn(String column, String value, int expectedId) {
     UserDto user = inTransaction(() -> userDao.findBy(column, value));
 
@@ -137,6 +141,14 @@ class UserDaoIT extends AbstractDaoIT {
   @CsvSource({"username, Alice", "username, nobody", "email, ALICE@student.test"})
   void findByIsCaseSensitiveAndReturnsNullWhenAbsent(String column, String value) {
     assertThat(inTransaction(() -> userDao.findBy(column, value))).isNull();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"password", "user_id", "username; DROP TABLE users"})
+  void findByRejectsAColumnThatIsNotALookupColumn(String column) {
+    runInTransaction(() -> assertThatThrownBy(() -> userDao.findBy(column, "x"))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @Test

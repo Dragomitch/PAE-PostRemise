@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.web;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.uccontrollers.CountryUcc;
 
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,8 @@ public class CountryController {
   }
 
   @GetMapping("/{code}")
-  public CountryDto showOne(@PathVariable String code) {
+  public CountryDto showOne(
+      @PathVariable @Size(min = CountryDto.CODE_LENGTH, max = CountryDto.CODE_LENGTH) String code) {
     return countryUcc.showOne(code);
   }
 }

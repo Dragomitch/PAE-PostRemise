@@ -51,11 +51,19 @@ var debugg = 1;
           + (user !== undefined ? ' - User: ' + user['username'] : ''));
     }
 
+    // Language of the messages of the API (error problems): the language of the
+    // browser, French when unknown. The server answers in French or English.
+    function language() {
+      return navigator.language || navigator.userLanguage || 'fr';
+    }
+
     function init() {
       $.ajaxSetup({
         // API responses depend on the authenticated user: never let the browser
         // serve a GET from its cache (e.g. the previous user's data or session).
         cache: false,
+        // The API localizes its error messages (RFC 9457 problems) from this header.
+        headers: {'Accept-Language': language()},
         // CSRF protection: every state-changing request must echo the
         // XSRF-TOKEN cookie issued by the server in the X-XSRF-TOKEN header.
         beforeSend: function (xhr, settings) {
@@ -132,6 +140,40 @@ var debugg = 1;
     sEmptyTable: 'Il n\'y a pas de données à afficher'
   };
 
+  // Shows the problem (RFC 9457) of a failed API call in the error modal: its
+  // localized title and detail and, for a validation failure, the invalid
+  // fields. The legacy UI itself is not translated.
+  var ProblemView = (function () {
+    var $el = $('#error-notification');
+
+    function show(xhrOrProblem, errors) {
+      var problem = (xhrOrProblem && xhrOrProblem.detail !== undefined
+          && xhrOrProblem.errors !== undefined) ? xhrOrProblem : Utils.problemOf(xhrOrProblem);
+      var list = errors !== undefined ? errors : problem.errors;
+      $el.find('.top-bar').text(problem.title);
+      var $content = $el.find('.modal-content').empty();
+      $('<p></p>').text(problem.detail).appendTo($content);
+      if (list.length > 0) {
+        var $list = $('<ul></ul>').appendTo($content);
+        for (var i = 0; i < list.length; i++) {
+          $('<li></li>').text(list[i].field + ' : ' + list[i].message).appendTo($list);
+        }
+      }
+      $el.show();
+    }
+
+    function hide() {
+      $el.hide();
+    }
+
+    $el.on('click', '.close, .modal-action button', hide);
+
+    return {
+      show: show,
+      hide: hide
+    };
+  })();
+
   var SigninView = (function () {
 
     // Cache DOM
@@ -179,9 +221,9 @@ var debugg = 1;
             Router.navigate('/demandes-de-mobilite');
           }
         },
-        error: function () {
+        error: function (xhr) {
           cleanForm();
-          $alert.show();
+          $alert.text(Utils.problemOf(xhr).detail).show();
           Utils.animate($el, 'wobble');
         }
       }, app.jsonBody(Utils.serializeForm($form))));
@@ -296,29 +338,23 @@ var debugg = 1;
           PubSub.publish('signup');
           Router.navigate('/connexion');
         },
-        statusCode: {
-          400: function (data) {
-            var error = data.responseJSON;
-            if (error !== undefined) {
-              for (var i = 0; i < error.details.length; i++) {
-                if (error.details[i].errorCode === 204) {
-                  $el.find('#fsu-field-username').parent()
-                  .append(
-                      '<label id="fsu-field-username-error" class="error" for="fsu-field-username">Ce nom d\'utilisateur existe déjà.</label>');
-                }
-                if (error.details[i].errorCode === 207) {
-                  $el.find('#fsu-field-email').parent()
-                  .append(
-                      '<label id="fsu-field-email-error" class="error" for="fsu-field-email">Cet e-mail est déjà associé à un compte.</label>');
-                }
-              }
-            } else {
-              PubSub.publish('applicationError');
+        error: function (xhr) {
+          var problem = Utils.problemOf(xhr);
+          if (problem.code === 'USERNAME_TAKEN' || problem.code === 'EMAIL_TAKEN') {
+            // shown under the field, with the message of the server
+            Utils.showFieldErrors($form, [{
+              field: problem.code === 'USERNAME_TAKEN' ? 'username' : 'email',
+              message: problem.detail
+            }]);
+          } else if (problem.code === 'VALIDATION_FAILED') {
+            var unmatched = Utils.showFieldErrors($form, problem.errors);
+            if (unmatched.length > 0) {
+              ProblemView.show(problem, unmatched);
             }
-          },
-          500: function () {
-            PubSub.publish('serverError');
+          } else {
+            ProblemView.show(problem);
           }
+          Utils.animate($el, 'wobble');
         }
       }, app.jsonBody(data)));
     }
@@ -332,10 +368,8 @@ var debugg = 1;
                 + data[i]['name'] + '</option>');
           }
         },
-        statusCode: {
-          500: function () {
-            PubSub.publish('serverError');
-          }
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -828,8 +862,9 @@ var debugg = 1;
         success: function () {
           switchToSelect(e);
         },
-        error: function () {
+        error: function (xhr) {
           Utils.animate($el, 'wobble');
+          ProblemView.show(xhr);
         }
       }, app.jsonBody(data['denialReason'])));
     }
@@ -970,8 +1005,9 @@ var debugg = 1;
             destroy();
             PubSub.publish('updateMobilityChoices');
           },
-          error: function (e) {
+          error: function (xhr) {
             Utils.animate($el, 'wobble');
+            ProblemView.show(xhr);
           }
         }, app.jsonBody(data)));
       } else {
@@ -1146,11 +1182,9 @@ var debugg = 1;
           destroy();
           PubSub.publish('updateMobilityChoices');
         },
-        error: function (e) {
+        error: function (xhr) {
           Utils.animate($el, 'wobble');
-          if (e.status == 500) {
-            PubSub.publish('serverError');
-          }
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1225,8 +1259,9 @@ var debugg = 1;
         success: function () {
           PubSub.publish('updateMobilityChoices');
         },
-        error: function () {
+        error: function (xhr) {
           Utils.animate($el, 'wobble');
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1240,10 +1275,8 @@ var debugg = 1;
                 + data[i]['reason'] + '</option>');
           }
         },
-        statusCode: {
-          500: function () {
-            PubSub.publish('serverError');
-          }
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1372,10 +1405,8 @@ var debugg = 1;
             $listArchivedMatches.hide();
           }
         },
-        error: function (error) {
-          if (e.status == 500) {
-            PubSub.publish('serverError');
-          }
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1546,9 +1577,12 @@ var debugg = 1;
             destroy();
             PubSub.publish('updatePartners');
           },
-          error: function (error) {
-            if (error.status == 500) {
-              PubSub.publish('serverError');
+          error: function (xhr) {
+            var problem = Utils.problemOf(xhr);
+            var unmatched = Utils.showFieldErrors($form, problem.errors);
+            if (problem.code !== 'VALIDATION_FAILED' || unmatched.length > 0) {
+              ProblemView.show(problem, problem.code === 'VALIDATION_FAILED' ? unmatched
+                  : undefined);
             }
           }
         }, app.jsonBody(data)));
@@ -1564,10 +1598,8 @@ var debugg = 1;
                 + data[i]['name'] + '</option>');
           }
         },
-        statusCode: {
-          500: function () {
-            PubSub.publish('serverError');
-          }
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1581,10 +1613,8 @@ var debugg = 1;
                 + '">' + data[i]['name'] + '</option>');
           }
         },
-        statusCode: {
-          500: function () {
-            PubSub.publish('serverError');
-          }
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -1903,7 +1933,6 @@ var debugg = 1;
           confirmSoftwareEncoding);
       $elPayments.on('click', 'button', confirmPayment);
       $el.find('a.export-mobility').on('click', exportCsv);
-      $elPayments.on('click', 'button', confirmPayment);
     }
 
     function unbindAll() {
@@ -1914,6 +1943,8 @@ var debugg = 1;
           confirmDocument);
       $ulSoftwareEncodings.off('change', 'li input[type=checkbox]',
           confirmSoftwareEncoding);
+      $elPayments.off('click', 'button', confirmPayment);
+      $el.find('a.export-mobility').off('click', exportCsv);
     }
 
     function render(mobilityObj) {
@@ -2046,10 +2077,13 @@ var debugg = 1;
                 '<button class="btn btn-primary">Confirmer le deuxième paiement</button>');
             $elPayments.find('#second-payment-status').show();
           }
-        } else if (app.isProfessor()) {
+        } else if (mobility.state === STATE_TO_BE_PAID && app.isProfessor()) {
+          // the first payment is only expected once the departure documents are filled in
           $elPayments.find('#first-payment-status .content').html('' +
               '<button class="btn btn-primary">Confirmer le premier paiement</button>');
           $elPayments.find('#first-payment-status').show();
+        } else {
+          $elPayments.find('#first-payment-status .content').html('Pas encore dû');
         }
         $elPayments.find('#first-payment-status').show();
       }
@@ -2089,9 +2123,10 @@ var debugg = 1;
             updateMobilityState();
             updatePayment();
           },
-          error: function () {
+          error: function (xhr) {
             $checkBox.attr('checked', false);
             $checkBox.attr('disabled', false);
+            ProblemView.show(xhr);
           }
         });
       }
@@ -2115,9 +2150,10 @@ var debugg = 1;
             mobility.version = mobility.version + 1;
             PubSub.publish('updateMobility');
           },
-          error: function () {
+          error: function (xhr) {
             $checkBox.attr('checked', false);
             $checkBox.attr('disabled', false);
+            ProblemView.show(xhr);
           }
         });
       }
@@ -2137,10 +2173,9 @@ var debugg = 1;
           updatePayment();
           updateMobilityState();
           PubSub.publish('updateMobility');
-        }, statusCode: {
-          500: function () {
-            PubSub.publish('serverError');
-          }
+        },
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -2365,8 +2400,8 @@ var debugg = 1;
           partner = resp;
           render();
         },
-        500: function () {
-          PubSub.publish('serverError');
+        error: function (xhr) {
+          ProblemView.show(xhr);
         }
       });
     }
@@ -2728,14 +2763,12 @@ var debugg = 1;
           updateView();
           PartnersView.updateTable();
         },
-        error: function (data) {
-          var error = data.responseJSON;
-          if (error !== undefined && error.errorCode === 120) {
+        error: function (xhr) {
+          var problem = Utils.problemOf(xhr);
+          if (problem.code === 'CONCURRENT_MODIFICATION') {
             PubSub.publish('concurrentModification');
           }
-        },
-        500: function () {
-          PubSub.publish('serverError');
+          ProblemView.show(problem);
         }
       }, app.jsonBody(partner)));
     }
@@ -2964,8 +2997,18 @@ var debugg = 1;
           student.version = resp.version;
           isComplete = true;
           $el.find('.notification').show();
-        }
+        },
+        error: showStudentProblem
       }, app.jsonBody(student)));
+    }
+
+    // Field errors under the inputs, anything else in the error modal.
+    function showStudentProblem(xhr) {
+      var problem = Utils.problemOf(xhr);
+      var unmatched = Utils.showFieldErrors($form, problem.errors);
+      if (problem.code !== 'VALIDATION_FAILED' || unmatched.length > 0) {
+        ProblemView.show(problem, problem.code === 'VALIDATION_FAILED' ? unmatched : undefined);
+      }
     }
 
     function sync() { //TODO Remove if students can become nominated without problems
@@ -2976,7 +3019,8 @@ var debugg = 1;
           student.version = resp.version;
           isComplete = true;
           $el.find('.notification').show();
-        }
+        },
+        error: showStudentProblem
       }, app.jsonBody(student)));
     }
 

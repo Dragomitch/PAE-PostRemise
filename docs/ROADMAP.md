@@ -37,8 +37,8 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S4 | RFC 9457 `ProblemDetail`/`ErrorResponse` + `@RestControllerAdvice` | `errors.json` + `ErrorFormat` + numeric codes | Standard error body, `MessageSource` i18n | ✅ #92 (+ frontend #88) |
 | S5 | `MessageSource` + `LocaleResolver` (Accept-Language) | French strings hard-coded | `messages_{fr,en}.properties` | ✅ #92 (+ `@angular/localize` in #88) |
 | S6 | Bean Validation (`@Valid`, `@Validated`, constraints on DTOs, method validation on services) | 171 manual `checkX`/`isAValidX` calls + 8 `checkDataIntegrity` methods | Declarative, reusable, automatically reported as problems | ✅ #92 |
-| S7 | Spring Data JDBC repositories | 15 hand-written DAOs, 85 `PreparedStatement`s, 54 `catch (SQLException)` | Derived queries, `@Query`, paging, `@Version` optimistic locking | 🚧 #91 (7 of 15 DAOs; plan for the rest in `backend/AGENTS.md`) |
-| S8 | `JdbcClient`/`JdbcTemplate` for the queries that stay hand-written | Manual `ResultSet` mapping and resource handling | `RowMapper`s, exception translation (`DataAccessException`) | ✅ #91 (the 7 join-heavy DAOs) |
+| S7 | Spring Data repositories | 15 hand-written DAOs, 85 `PreparedStatement`s, 54 `catch (SQLException)` | Derived queries, `@Query`, entity graphs, `@Version` optimistic locking | ✅ Spring Data JPA, issue #102 step 1 ([ADR 0001](adr/0001-spring-data-jpa-and-hexagonal-architecture.md)) |
+| S8 | `JdbcClient`/`JdbcTemplate` for the queries that stay hand-written | Manual `ResultSet` mapping and resource handling | `RowMapper`s, exception translation (`DataAccessException`) | ⛔ superseded by S7: every query is JPA (JPQL, entity graphs), issue #102 Q2 |
 | S9 | `@Version` instead of hand-managed `version` columns | Versions bumped manually in services/UnitOfWork | Optimistic locking by the framework → 409 problem | 🚧 #91 (Address, User) |
 | S10 | Replace DTO interface + impl pairs (and `EntityFactory`) with Java `record`s (API DTOs) and entity classes | 13 interfaces ×2 + a factory + Jackson abstract-type mappings | Plain types; Jackson and Spring Data bind them directly | 💡 |
 | S11 | Mapping layer with MapStruct (entity ↔ DTO) | Manual copying in services/DAOs | Compile-time generated mappers | 💡 |
@@ -53,8 +53,8 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S20 | Jackson CSV (`jackson-dataformat-csv`) or an `HttpMessageConverter` for the exports | `CsvStringBuilder`/`CsvEncoderServerSide` | Declarative CSV columns | 💡 |
 | S21 | `Clock` bean injected instead of `LocalDateTime.now()` (8 call sites) | Time-dependent logic hard to test | Deterministic tests | 💡 |
 | S22 | Testcontainers with `@ServiceConnection` (Boot 3.1+) for integration tests in CI | Embedded PostgreSQL (fine locally) | Same engine/version as production, zero config | 💡 |
-| S23 | Test slices: `@WebMvcTest`, `@DataJdbcTest`, `@JsonTest` instead of full contexts | Mostly full-context/unit | Faster, focused tests | 🚧 `@WebMvcTest` in #90; `@DataJdbcTest` next |
-| S24 | Upgrade Spring Boot 3.2 → 3.5 (3.2 is out of OSS support) with the properties migrator | Unsupported line | Security fixes, structured logging, `RestClient` improvements | 💡 |
+| S23 | Test slices: `@WebMvcTest`, `@DataJpaTest`, `@JsonTest` instead of full contexts | Mostly full-context/unit | Faster, focused tests | 🚧 `@WebMvcTest` in #90; `@DataJpaTest` next |
+| S24 | Upgrade Spring Boot 3.2 → 3.5 (3.2 is out of OSS support); Spring Boot 4 next, in its own PR | Unsupported line | Security fixes, structured logging, `RestClient` improvements | ✅ 3.5.16; Boot 4 still to do (`MvcRequestMatcher` and `withObjectPostProcessor` in `SecurityConfig`) |
 | S25 | Virtual threads (`spring.threads.virtual.enabled=true`, Java 21) | Platform threads | Cheap concurrency for blocking JDBC | 💡 |
 | S26 | Layered jar + `spring-boot:build-image` (buildpacks) or `jarmode=tools extract` in the Dockerfile | Fat jar copied as one layer | Smaller, cache-friendly images | 💡 |
 | S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | 💡 |

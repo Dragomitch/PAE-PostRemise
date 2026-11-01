@@ -8,8 +8,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.business.exceptions.BusinessException;
-import com.dragomitch.ipl.pae.business.exceptions.ErrorFormat;
 import com.dragomitch.ipl.pae.persistence.PartnerDao;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
@@ -21,6 +19,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Partners and their search filters (see db/fixtures/partners.sql for the data set).
@@ -219,8 +218,8 @@ class PartnerDaoIT extends AbstractDaoIT {
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerDao.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
-        .isInstanceOfSatisfying(BusinessException.class, ex -> assertThat(
-            ex.getError().getErrorCode()).isEqualTo(ErrorFormat.INVALID_PARTNER_FILTER_709)));
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "student of {0} sees {1}")
@@ -261,6 +260,14 @@ class PartnerDaoIT extends AbstractDaoIT {
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
     assertThat(partners).allMatch(PartnerDto::isArchived);
+  }
+
+  @Test
+  void aStudentSearchingTheArchivedPartnersIsNotRestrictedToTheirOption() {
+    List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(
+        PartnerDao.FILTER_ARCHIVED_PARTNERS, "", UserDto.ROLE_STUDENT, "BCH"));
+
+    assertThat(ids(partners)).containsExactly(3002);
   }
 
   private static List<Integer> parseIds(String ids) {

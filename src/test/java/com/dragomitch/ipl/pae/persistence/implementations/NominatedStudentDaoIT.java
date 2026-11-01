@@ -7,7 +7,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 
 import java.sql.Timestamp;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class NominatedStudentDaoIT extends AbstractDaoIT {
 
@@ -150,14 +150,14 @@ class NominatedStudentDaoIT extends AbstractDaoIT {
   void createForAnAlreadyNominatedStudentViolatesThePrimaryKey() {
     runInTransaction(() -> assertThatThrownBy(
         () -> nominatedStudentDao.create(newStudent(1001, null)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
   void createForAnUnknownUserIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(
         () -> nominatedStudentDao.create(newStudent(9999, null)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -186,6 +186,21 @@ class NominatedStudentDaoIT extends AbstractDaoIT {
           .containsEntry("iban", "DE89370400440532013000").containsEntry("card_holder", null)
           .containsEntry("bank_name", "Commerzbank").containsEntry("bic", "COBADEFFXXX")
           .containsEntry("address", 2004).containsEntry("version", 3);
+    });
+  }
+
+  @Test
+  void aStudentWithoutVersionIsFoundWithVersionZeroAndCannotBeUpdated() {
+    runInTransaction(() -> {
+      execute("UPDATE student_exchange_tools.nominated_students SET version = NULL "
+          + "WHERE user_id = 1004");
+
+      NominatedStudentDto david = nominatedStudentDao.findById(1004);
+      assertThat(david.getVersion()).isZero();
+      david.setPhoneNumber("+32 2 000 00 00");
+      assertThatThrownBy(() -> nominatedStudentDao.update(david))
+          .isInstanceOf(ConcurrentModificationException.class);
+      assertThat(queryForRow(STUDENT_BY_ID, 1004)).containsEntry("version", null);
     });
   }
 
