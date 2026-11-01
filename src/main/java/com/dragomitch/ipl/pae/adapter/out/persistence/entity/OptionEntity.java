@@ -5,11 +5,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-/** A study option of the school ({@code options}), identified by its three-letter code. */
+/**
+ * A study option of the school ({@code options}), identified by its three-letter code. Reference
+ * data, never written by the application.
+ */
 @Entity
+@Immutable
 @Table(name = "options")
 public class OptionEntity {
 
@@ -25,15 +30,7 @@ public class OptionEntity {
     return code;
   }
 
-  public void setCode(String code) {
-    this.code = code;
-  }
-
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 }

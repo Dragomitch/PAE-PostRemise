@@ -46,7 +46,6 @@ import jakarta.persistence.EntityManagerFactory;
  */
 @TestConfiguration(proxyBeanMethods = false)
 @ComponentScan(basePackages = {
-    "com.dragomitch.ipl.pae.persistence.implementations",
     "com.dragomitch.ipl.pae.adapter.out.persistence",
     "com.dragomitch.ipl.pae.business.implementations"},
     // do not pick up other test configurations living in the same packages
@@ -96,7 +95,9 @@ public class DaoItConfig {
     factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
     factory.setJpaPropertyMap(Map.of(
         "hibernate.hbm2ddl.auto", "validate",
-        "hibernate.default_schema", "student_exchange_tools"));
+        "hibernate.default_schema", "student_exchange_tools",
+        // read by QueryCountIT
+        "hibernate.generate_statistics", "true"));
     return factory;
   }
 

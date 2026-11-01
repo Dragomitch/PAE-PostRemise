@@ -35,43 +35,11 @@ public class MobilityDocumentEntity {
   @Column(name = "version", nullable = false)
   private Integer version;
 
-  public MobilityDocumentId getId() {
-    return id;
-  }
-
-  public void setId(MobilityDocumentId id) {
-    this.id = id;
-  }
-
   public DocumentEntity getDocument() {
     return document;
   }
 
-  public void setDocument(DocumentEntity document) {
-    this.document = document;
-  }
-
-  public MobilityEntity getMobility() {
-    return mobility;
-  }
-
-  public void setMobility(MobilityEntity mobility) {
-    this.mobility = mobility;
-  }
-
   public boolean isFilledIn() {
     return filledIn;
-  }
-
-  public void setFilledIn(boolean filledIn) {
-    this.filledIn = filledIn;
-  }
-
-  public Integer getVersion() {
-    return version;
-  }
-
-  public void setVersion(Integer version) {
-    this.version = version;
   }
 }

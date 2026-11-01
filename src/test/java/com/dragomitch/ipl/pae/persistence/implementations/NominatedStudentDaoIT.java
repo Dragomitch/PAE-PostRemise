@@ -190,6 +190,21 @@ class NominatedStudentDaoIT extends AbstractDaoIT {
   }
 
   @Test
+  void aStudentWithoutVersionIsFoundWithVersionZeroAndCannotBeUpdated() {
+    runInTransaction(() -> {
+      execute("UPDATE student_exchange_tools.nominated_students SET version = NULL "
+          + "WHERE user_id = 1004");
+
+      NominatedStudentDto david = nominatedStudentDao.findById(1004);
+      assertThat(david.getVersion()).isZero();
+      david.setPhoneNumber("+32 2 000 00 00");
+      assertThatThrownBy(() -> nominatedStudentDao.update(david))
+          .isInstanceOf(ConcurrentModificationException.class);
+      assertThat(queryForRow(STUDENT_BY_ID, 1004)).containsEntry("version", null);
+    });
+  }
+
+  @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
       NominatedStudentDto stale = nominatedStudentDao.findById(1004);

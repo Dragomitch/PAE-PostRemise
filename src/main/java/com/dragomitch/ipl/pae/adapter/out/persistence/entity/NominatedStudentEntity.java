@@ -76,10 +76,6 @@ public class NominatedStudentEntity {
   @Column(name = "version")
   private Integer version;
 
-  public Integer getId() {
-    return id;
-  }
-
   public UserEntity getUser() {
     return user;
   }

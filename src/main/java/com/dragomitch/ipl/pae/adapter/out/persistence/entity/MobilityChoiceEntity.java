@@ -80,10 +80,6 @@ public class MobilityChoiceEntity {
     return id;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
   public UserEntity getUser() {
     return user;
   }

@@ -174,8 +174,7 @@
                         </goals>
                         <configuration>
                             <!-- Thresholds: jacoco.minimum.* properties above. The second rule
-                                 guards the DAO implementations (covered by the *IT tests); move it
-                                 to the new repositories' package when they are migrated. The
+                                 guards the persistence adapters (covered by the *IT tests). The
                                  third one guards the business rules of the use-case services
                                  (covered by the unit tests). -->
                             <rules>
@@ -197,7 +196,7 @@
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
-                                        <include>com.dragomitch.ipl.pae.persistence.implementations</include>
+                                        <include>com.dragomitch.ipl.pae.adapter.out.persistence</include>
                                     </includes>
                                     <limits>
                                         <limit>

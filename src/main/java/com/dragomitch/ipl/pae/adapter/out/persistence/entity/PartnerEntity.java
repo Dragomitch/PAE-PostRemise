@@ -75,10 +75,6 @@ public class PartnerEntity {
     return id;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
   public String getLegalName() {
     return legalName;
   }

@@ -40,6 +40,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * mocked JDBC connection: one transaction (one connection) per use-case call, commit on success,
  * rollback when the use case throws, read-only connections for the queries, and the
  * optimistic-locking error of a DAO update rolls back and reaches the caller.
+ *
+ * <p>The application runs a {@code JpaTransactionManager}; a {@code DataSourceTransactionManager}
+ * is enough here, where the DAOs are mocks: the boundaries are the {@code @Transactional} use-case
+ * proxies', whatever the manager.
  */
 @SpringJUnitConfig(TransactionBoundaryTest.TransactionalConfig.class)
 class TransactionBoundaryTest {

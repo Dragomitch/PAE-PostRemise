@@ -262,6 +262,14 @@ class PartnerDaoIT extends AbstractDaoIT {
     assertThat(partners).allMatch(PartnerDto::isArchived);
   }
 
+  @Test
+  void aStudentSearchingTheArchivedPartnersIsNotRestrictedToTheirOption() {
+    List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(
+        PartnerDao.FILTER_ARCHIVED_PARTNERS, "", UserDto.ROLE_STUDENT, "BCH"));
+
+    assertThat(ids(partners)).containsExactly(3002);
+  }
+
   private static List<Integer> parseIds(String ids) {
     if (ids == null || ids.isEmpty()) {
       return List.of();

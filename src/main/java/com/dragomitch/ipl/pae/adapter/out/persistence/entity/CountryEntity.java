@@ -8,15 +8,17 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
  * A country ({@code countries}), identified by its ISO 3166-1 alpha-2 code, with the programme
- * its mobilities belong to. Reference data: the application never writes it, so its
- * {@code version} column is not used for optimistic locking.
+ * its mobilities belong to. Reference data: the application never writes it, so it is immutable
+ * and its {@code version} column is not mapped.
  */
 @Entity
+@Immutable
 @Table(name = "countries")
 public class CountryEntity {
 
@@ -32,38 +34,16 @@ public class CountryEntity {
   @JoinColumn(name = "programme_id", nullable = false)
   private ProgrammeEntity programme;
 
-  @Column(name = "version")
-  private Integer version;
 
   public String getCode() {
     return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
   }
 
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public ProgrammeEntity getProgramme() {
     return programme;
-  }
-
-  public void setProgramme(ProgrammeEntity programme) {
-    this.programme = programme;
-  }
-
-  public Integer getVersion() {
-    return version;
-  }
-
-  public void setVersion(Integer version) {
-    this.version = version;
   }
 }

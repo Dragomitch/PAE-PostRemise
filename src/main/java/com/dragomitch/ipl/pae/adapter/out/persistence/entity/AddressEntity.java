@@ -48,10 +48,6 @@ public class AddressEntity {
     return id;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
   public String getStreet() {
     return street;
   }

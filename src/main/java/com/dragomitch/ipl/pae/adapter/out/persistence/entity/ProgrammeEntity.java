@@ -2,18 +2,21 @@ package com.dragomitch.ipl.pae.adapter.out.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** A mobility programme ({@code programmes}): Erasmus+, Erabel, FAME. */
+import org.hibernate.annotations.Immutable;
+
+/**
+ * A mobility programme ({@code programmes}): Erasmus+, Erabel, FAME. Reference data, never written
+ * by the application.
+ */
 @Entity
+@Immutable
 @Table(name = "programmes")
 public class ProgrammeEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "programme_id")
   private Integer id;
 
@@ -27,23 +30,11 @@ public class ProgrammeEntity {
     return id;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public String getExternalSoftwareName() {
     return externalSoftwareName;
-  }
-
-  public void setExternalSoftwareName(String externalSoftwareName) {
-    this.externalSoftwareName = externalSoftwareName;
   }
 }

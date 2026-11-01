@@ -49,10 +49,6 @@ public class PartnerOptionEntity {
     this.option = option;
   }
 
-  public PartnerEntity getPartner() {
-    return partner;
-  }
-
   public void setPartner(PartnerEntity partner) {
     this.partner = partner;
   }

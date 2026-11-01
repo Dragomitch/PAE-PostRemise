@@ -14,7 +14,6 @@ import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
@@ -44,8 +43,7 @@ import org.springframework.dao.DataAccessException;
 
 /**
  * Every outbound port reports a database failure as a Spring {@link DataAccessException} (the
- * JPA persistence adapters) or a {@link FatalException} (the JDBC DAOs not migrated yet), never as
- * a raw {@code SQLException}, which is kept as the root cause for the logs. The use cases roll
+ * exception translation of the persistence adapters), never as a raw {@code SQLException}, which is kept as the root cause for the logs. The use cases roll
  * back and the API answers 500 with an error id.
  *
  * <p>The failure is provoked by aborting the transaction first: PostgreSQL then rejects every
@@ -161,7 +159,7 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
       abortTransaction();
       // the SQL cause is kept for the logs
       assertThatThrownBy(() -> call.accept(daos))
-          .isInstanceOfAny(DataAccessException.class, FatalException.class)
+          .isInstanceOf(DataAccessException.class)
           .hasRootCauseInstanceOf(SQLException.class);
     });
   }
