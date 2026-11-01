@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
 
 import java.util.List;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class PartnerOptionDaoIT extends AbstractDaoIT {
 
@@ -80,16 +80,16 @@ class PartnerOptionDaoIT extends AbstractDaoIT {
   void createTwiceTheSameOptionForAPartnerViolatesThePrimaryKey() {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerOptionDao.create(option("BIN", "Autre"), 3001))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
   void createWithAnUnknownOptionOrPartnerIsRejected() {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerOptionDao.create(option("XXX", "Autre"), 3001))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerOptionDao.create(option("BIN", "Autre"), 9999))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 }

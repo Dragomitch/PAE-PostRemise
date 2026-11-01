@@ -75,8 +75,10 @@ public interface MobilityChoiceDao {
    *        passed, active, canceled, rejected, all. Combinations are NOT possible between the
    *        filters.
    * @return all the mobility choices fitting the filter.
-   * @throws IllegalArgumentException if the filter is unknown (the use cases only pass the filters
-   *         allowed by their {@code @Pattern} constraints)
+   * @throws org.springframework.dao.InvalidDataAccessApiUsageException wrapping an
+   *         {@code IllegalArgumentException} if the filter is unknown (Spring's exception
+   *         translation of the persistence adapter; the use cases only pass the filters allowed by
+   *         their {@code @Pattern} constraints)
    */
   List<MobilityChoiceDto> findAll(String filter);
 

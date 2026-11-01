@@ -10,7 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
 import java.sql.Timestamp;
@@ -27,6 +26,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Mobility choices and their filters. The data set is described in
@@ -169,7 +170,8 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   @ValueSource(strings = {"whatever", "ALL", "active "})
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.findAll(filter))
-        .isInstanceOf(IllegalArgumentException.class));
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")
@@ -298,7 +300,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   @Test
   void createWithAnUnknownUserIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.create(newChoice(9999)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test

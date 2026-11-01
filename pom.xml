@@ -84,9 +84,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- Persistence: Spring Data JPA (Hibernate) behind the outbound ports (adapter.out.persistence) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
         <dependency>
@@ -173,8 +174,7 @@
                         </goals>
                         <configuration>
                             <!-- Thresholds: jacoco.minimum.* properties above. The second rule
-                                 guards the DAO implementations (covered by the *IT tests); move it
-                                 to the new repositories' package when they are migrated. The
+                                 guards the persistence adapters (covered by the *IT tests). The
                                  third one guards the business rules of the use-case services
                                  (covered by the unit tests). -->
                             <rules>
@@ -196,7 +196,7 @@
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
-                                        <include>com.dragomitch.ipl.pae.persistence.implementations</include>
+                                        <include>com.dragomitch.ipl.pae.adapter.out.persistence</include>
                                     </includes>
                                     <limits>
                                         <limit>
