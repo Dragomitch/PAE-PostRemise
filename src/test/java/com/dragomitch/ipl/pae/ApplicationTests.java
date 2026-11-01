@@ -31,9 +31,12 @@ import org.springframework.http.ResponseEntity;
 
 /**
  * Boots the whole application (real beans, embedded server, real security chain) and checks the
- * HTTP wiring. None of the requests reach the database, so no PostgreSQL instance is needed.
+ * HTTP wiring. None of the requests reach the database, so no PostgreSQL instance is needed:
+ * Hibernate is given the dialect instead of reading it from a database connection at start-up.
  */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+    "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false"})
 class ApplicationTests {
 
   @Autowired

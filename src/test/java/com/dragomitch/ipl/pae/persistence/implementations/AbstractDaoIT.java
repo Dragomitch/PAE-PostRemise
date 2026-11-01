@@ -23,6 +23,9 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import javax.sql.DataSource;
 
 /**
@@ -42,7 +45,7 @@ import javax.sql.DataSource;
  * Nothing is ever committed, so tests are isolated from each other and can run in any order.
  *
  * <p>It uses Spring's transaction management, like the application: the work runs in a
- * {@link TransactionTemplate} (the {@code DataSourceTransactionManager} of {@link DaoItConfig})
+ * {@link TransactionTemplate} (the {@code JpaTransactionManager} of {@link DaoItConfig})
  * whose status is set to rollback-only, and the fixtures and the helper queries use the
  * transaction-bound connection ({@code DataSourceUtils.getConnection(dataSource)}), the one the
  * DAOs get from {@link DalBackendServices#prepareStatement(String)}. When the persistence layer
@@ -62,6 +65,10 @@ public abstract class AbstractDaoIT {
 
   @Autowired
   private PlatformTransactionManager transactionManager;
+
+  /** The transaction-bound persistence context of the JPA adapters. */
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
   protected EntityFactory entityFactory;
@@ -187,6 +194,13 @@ public abstract class AbstractDaoIT {
 
   /** Gives access to the connection bound to the current transaction. */
   private <T> T withConnection(ConnectionCallback<T> callback) {
+    // Raw SQL and the JPA adapters share the transaction's connection, but not the persistence
+    // context: write pending changes before the SQL runs and forget the cached entities, so that
+    // fixtures, checks and the adapters all see the same rows.
+    if (entityManager.isJoinedToTransaction()) {
+      entityManager.flush();
+      entityManager.clear();
+    }
     try {
       return callback.doWith(DataSourceUtils.getConnection(dataSource));
     } catch (SQLException ex) {
