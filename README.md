@@ -7,7 +7,8 @@ This repository contains a web application for managing Erasmus mobilities. It w
 ## General structure
 - **src/main/java**
   - `business` – entity interfaces and implementations (`User`, `Mobility`, …), the DTO interfaces carrying the Bean Validation constraints, the custom constraints (`business/validation`) and the error catalogue (`business/exceptions/ErrorCode`).
-  - `persistence` – DAO interfaces and their JDBC implementations.
+  - `persistence` – the DAO interfaces: the driven ports of the persistence.
+  - `adapter/out/persistence` – their Spring Data JPA adapters, the JPA entities (`entity`) and the Spring Data repositories (`repository`); see [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) and the [glossary](docs/GLOSSARY.md).
   - `uccontrollers` – use cases (`@Service`, `@Transactional`) that orchestrate the business logic and the DAOs.
   - `web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, and `ApiExceptionHandler` which renders every API error.
   - `security` – session JWT cookie, current user, CSRF helpers used by the security chain.
@@ -20,7 +21,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
 ## Key design aspects
 - **Layers**: controllers (`web`) → use cases (`uccontrollers`) → DAOs (`persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
 - **REST API**: thin `@RestController`s bind the request (JSON body, path and query parameters, `CurrentUser`), call a use case and return its result. Paths are matched case-insensitively (as the former router did). Lists read by DataTables are wrapped in `{"data": [...]}`; exports are `text/csv`.
-- **Transactions**: every use-case service is `@Transactional` (read-only for queries); the DAOs prepare their statements on the connection of the current Spring transaction (`DataSourceUtils`) and refuse to run outside one. Updates check the entity version (`WHERE ... AND version = ?`) and throw a `ConcurrentModificationException`, rendered as a 409 `CONCURRENT_MODIFICATION` problem, on a stale version.
+- **Transactions**: every use-case service is `@Transactional` (read-only for queries); the JPA adapters work in the persistence context of that transaction (`open-in-view` is off). Updates check the entity version (`@Version`) and throw a `ConcurrentModificationException`, rendered as a 409 `CONCURRENT_MODIFICATION` problem, on a stale version.
 - **Security** (Spring Security, stateless, see `SecurityConfig`):
   - `POST /api/1.0/session` with `{"username", "password"}` issues an HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the `session` cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when `APP_SESSION_COOKIE_SECURE=true`, valid `APP_SESSION_VALIDITY` (12h). `GET` returns the current user, `DELETE` expires the cookie. No HTTP session is created.
   - The OAuth2 resource server validates the token from the cookie (or an `Authorization: Bearer` header); the `role` claim becomes `ROLE_PROFESSOR` / `ROLE_STUDENT`, checked by `@PreAuthorize` on the controllers. Every `/api/**` endpoint requires a session except sign-in, sign-up (`POST /users`) and the option list (`GET /options`).
@@ -127,7 +128,7 @@ mvn package
 to compile the sources, run the tests and assemble the final JAR.
 
 ## Suggestions for further learning
-- Follow a request from a `@RestController` to its `@Transactional` use case and the JDBC DAO.
+- Follow a request from a `@RestController` to its `@Transactional` use case and the JPA persistence adapter.
 - See how tests use the mock DAOs to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 

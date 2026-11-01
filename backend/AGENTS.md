@@ -109,14 +109,21 @@ Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1
 
 ### Feature Module 2
 
-Persistence is handled by JDBC DAOs under `persistence/implementations` (`@Repository`). They prepare their statements through `DalBackendServices`, which uses the connection of the current Spring transaction (`DataSourceUtils.getConnection`) and throws if no transaction is active. Updates check the entity version and throw a `ConcurrentModificationException` (answered with a 409 `CONCURRENT_MODIFICATION` problem) when it is stale. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real DAOs against an embedded PostgreSQL.
+Persistence is Spring Data JPA (Hibernate), organised as hexagonal ports and adapters: see [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) for the decisions, the target layout and the next steps, and [the glossary](../docs/GLOSSARY.md) for the vocabulary. The DAO interfaces (`persistence`) are the driven ports; each one is implemented by a package-private `@Repository` adapter in `adapter/out/persistence` (`XxxPersistenceAdapter`), which maps the JPA entities (`adapter/out/persistence/entity`, `XxxEntity`) to the DTOs with `PersistenceMapper` and queries through Spring Data interfaces (`adapter/out/persistence/repository`, `XxxJpaRepository`), entity graphs or JPQL built from constant fragments. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real adapters against an embedded PostgreSQL (`DaoItConfig`, `AbstractDaoIT`).
+
+Persistence rules:
+
+- The schema is `SQLRessources/init.sql`: never generated (`ddl-auto=none`), validated by the ITs (`hbm2ddl.auto=validate`). Change it only when justified and agreed (issue #102, Q4).
+- Associations are `LAZY`; a read fetches what its DTOs carry in **one** statement (`@EntityGraph` or `JOIN FETCH`). `QueryCountIT` fails on an N+1; add every new port read to it. `open-in-view` is off.
+- Reference data (options, programmes, countries, documents) is `@Immutable`.
+- An update loads the entity, compares the versions, copies the fields and flushes; creates with an assigned key flush at once.
 
 DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
 
-- Every statement is closed (try-with-resources) and every SQL failure is a `FatalException` carrying the `SQLException` as cause.
-- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version. `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
+- Every SQL failure is a Spring `DataAccessException` (exception translation of the `@Repository` adapters) with the `SQLException` as root cause; a constraint violation is a `DataIntegrityViolationException` (409 `DATA_CONFLICT`).
+- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version; an update that changes nothing writes nothing and keeps the version (JPA dirty checking). `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
-- An unknown `findAll` filter is an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
+- An unknown `findAll` filter (or `UserDao.findBy` column) is an `InvalidDataAccessApiUsageException` wrapping an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
 - A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).
 - `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged). An unknown id or username is a 404 `RESOURCE_NOT_FOUND` problem, a stale version a 409 `CONCURRENT_MODIFICATION`, a blank or too long username a 400 `VALIDATION_FAILED`.
 - The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`.
