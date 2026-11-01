@@ -26,7 +26,8 @@ public interface PartnerDao {
   String FILTER_COUNTRY = "country";
 
   /**
-   * Inserts a partner into the database.
+   * Inserts a partner into the database. A partner without website ({@code null}) is stored with an
+   * empty one, as the website is optional; the same holds for {@link #update}.
    * 
    * @param partner : the partnerDto to be inserted in the database
    * @return the PartnerDto that has just been inserted

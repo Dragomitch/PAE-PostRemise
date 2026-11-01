@@ -135,7 +135,11 @@ class PartnerPersistenceAdapter implements PartnerDao {
     return partner;
   }
 
-  /** The columns a create and an update write. */
+  /**
+   * The columns a create and an update write. The website is optional (the UI's form says so) but
+   * its column is {@code NOT NULL}: a missing website is stored as an empty one, as the UI sends an
+   * empty field.
+   */
   private void copy(PartnerDto partner, PartnerEntity entity) {
     entity.setLegalName(partner.getLegalName());
     entity.setBusinessName(partner.getBusinessName());
@@ -145,7 +149,7 @@ class PartnerPersistenceAdapter implements PartnerDao {
     entity.setAddress(
         entityManager.getReference(AddressEntity.class, partner.getAddress().getId()));
     entity.setEmail(partner.getEmail());
-    entity.setWebsite(partner.getWebsite());
+    entity.setWebsite(partner.getWebsite() == null ? "" : partner.getWebsite());
     entity.setPhoneNumber(partner.getPhoneNumber());
     entity.setOfficial(partner.isOfficial());
   }

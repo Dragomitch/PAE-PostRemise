@@ -178,6 +178,23 @@ class PartnerDaoIT extends AbstractDaoIT {
   }
 
   @Test
+  void aPartnerWithoutWebsiteIsStoredWithAnEmptyOne() {
+    runInTransaction(() -> {
+      PartnerDto partner = newPartner(2002);
+      partner.setWebsite(null);
+
+      PartnerDto created = partnerDao.create(partner);
+
+      assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
+      PartnerDto found = partnerDao.findById(created.getId());
+      assertThat(found.getWebsite()).isEmpty();
+      found.setWebsite(null);
+      partnerDao.update(found);
+      assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
+    });
+  }
+
+  @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
       PartnerDto stale = partnerDao.findById(3001);
