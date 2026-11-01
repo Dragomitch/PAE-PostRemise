@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.OptionRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.OptionJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.persistence.OptionDao;
 
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 class OptionPersistenceAdapter implements OptionDao {
 
-  private final OptionRepository options;
+  private final OptionJpaRepository options;
   private final PersistenceMapper mapper;
 
-  OptionPersistenceAdapter(OptionRepository options, PersistenceMapper mapper) {
+  OptionPersistenceAdapter(OptionJpaRepository options, PersistenceMapper mapper) {
     this.options = options;
     this.mapper = mapper;
   }

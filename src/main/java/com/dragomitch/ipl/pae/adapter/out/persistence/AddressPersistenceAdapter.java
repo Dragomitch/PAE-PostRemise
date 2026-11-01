@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.CountryEntity;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.AddressRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.AddressJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 
@@ -17,13 +17,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 class AddressPersistenceAdapter implements AddressDao {
 
-  private final AddressRepository addresses;
+  private final AddressJpaRepository addresses;
   private final PersistenceMapper mapper;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  AddressPersistenceAdapter(AddressRepository addresses, PersistenceMapper mapper) {
+  AddressPersistenceAdapter(AddressJpaRepository addresses, PersistenceMapper mapper) {
     this.addresses = addresses;
     this.mapper = mapper;
   }

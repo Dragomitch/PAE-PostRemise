@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.DenialReasonEntity;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DenialReasonRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DenialReasonJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 
@@ -15,10 +15,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 class DenialReasonPersistenceAdapter implements DenialReasonDao {
 
-  private final DenialReasonRepository reasons;
+  private final DenialReasonJpaRepository reasons;
   private final PersistenceMapper mapper;
 
-  DenialReasonPersistenceAdapter(DenialReasonRepository reasons, PersistenceMapper mapper) {
+  DenialReasonPersistenceAdapter(DenialReasonJpaRepository reasons, PersistenceMapper mapper) {
     this.reasons = reasons;
     this.mapper = mapper;
   }

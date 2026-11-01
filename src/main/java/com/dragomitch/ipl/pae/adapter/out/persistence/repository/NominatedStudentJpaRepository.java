@@ -8,7 +8,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface NominatedStudentRepository extends JpaRepository<NominatedStudentEntity, Integer> {
+public interface NominatedStudentJpaRepository
+    extends JpaRepository<NominatedStudentEntity, Integer> {
 
   /** The student with their user, option and nationality, in one query. */
   @EntityGraph(attributePaths = {"user", "user.option", "nationality"})

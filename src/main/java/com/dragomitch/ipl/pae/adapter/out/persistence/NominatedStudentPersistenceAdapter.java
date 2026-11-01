@@ -4,7 +4,7 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.CountryEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.NominatedStudentEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.NominatedStudentRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.NominatedStudentJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
@@ -21,13 +21,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 class NominatedStudentPersistenceAdapter implements NominatedStudentDao {
 
-  private final NominatedStudentRepository students;
+  private final NominatedStudentJpaRepository students;
   private final PersistenceMapper mapper;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  NominatedStudentPersistenceAdapter(NominatedStudentRepository students,
+  NominatedStudentPersistenceAdapter(NominatedStudentJpaRepository students,
       PersistenceMapper mapper) {
     this.students = students;
     this.mapper = mapper;

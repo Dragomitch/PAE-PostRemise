@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.OptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.UserRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.UserJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
@@ -19,13 +19,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 class UserPersistenceAdapter implements UserDao {
 
-  private final UserRepository users;
+  private final UserJpaRepository users;
   private final PersistenceMapper mapper;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  UserPersistenceAdapter(UserRepository users, PersistenceMapper mapper) {
+  UserPersistenceAdapter(UserJpaRepository users, PersistenceMapper mapper) {
     this.users = users;
     this.mapper = mapper;
   }

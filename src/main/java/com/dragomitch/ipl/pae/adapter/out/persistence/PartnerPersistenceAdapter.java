@@ -3,7 +3,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
@@ -42,13 +42,13 @@ class PartnerPersistenceAdapter implements PartnerDao {
   private static final String OFFERS_OPTION = "EXISTS (SELECT 1 FROM PartnerOptionEntity f"
       + " WHERE f.partner = p AND f.id.optionCode = :option)";
 
-  private final PartnerRepository partners;
+  private final PartnerJpaRepository partners;
   private final PersistenceMapper mapper;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  PartnerPersistenceAdapter(PartnerRepository partners, PersistenceMapper mapper) {
+  PartnerPersistenceAdapter(PartnerJpaRepository partners, PersistenceMapper mapper) {
     this.partners = partners;
     this.mapper = mapper;
   }

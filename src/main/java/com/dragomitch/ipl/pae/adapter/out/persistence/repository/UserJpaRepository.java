@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+public interface UserJpaRepository extends JpaRepository<UserEntity, Integer> {
 
   @EntityGraph(attributePaths = "option")
   Optional<UserEntity> findWithOptionById(int id);

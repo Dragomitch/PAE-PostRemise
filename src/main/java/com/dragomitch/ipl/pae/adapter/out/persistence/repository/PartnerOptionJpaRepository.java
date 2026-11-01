@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PartnerOptionRepository extends JpaRepository<PartnerOptionEntity, PartnerOptionId> {
+public interface PartnerOptionJpaRepository
+    extends JpaRepository<PartnerOptionEntity, PartnerOptionId> {
 
   /** The options of the partner with their names, sorted by option code, in one query. */
   @Query("SELECT po FROM PartnerOptionEntity po JOIN FETCH po.option"

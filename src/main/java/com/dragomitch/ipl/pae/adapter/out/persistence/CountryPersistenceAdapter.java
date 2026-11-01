@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.CountryRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.CountryJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.persistence.CountryDao;
 
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 class CountryPersistenceAdapter implements CountryDao {
 
-  private final CountryRepository countries;
+  private final CountryJpaRepository countries;
   private final PersistenceMapper mapper;
 
-  CountryPersistenceAdapter(CountryRepository countries, PersistenceMapper mapper) {
+  CountryPersistenceAdapter(CountryJpaRepository countries, PersistenceMapper mapper) {
     this.countries = countries;
     this.mapper = mapper;
   }

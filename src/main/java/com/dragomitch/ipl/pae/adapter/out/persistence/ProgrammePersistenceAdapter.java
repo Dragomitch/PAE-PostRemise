@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.ProgrammeRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.ProgrammeJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 class ProgrammePersistenceAdapter implements ProgrammeDao {
 
-  private final ProgrammeRepository programmes;
+  private final ProgrammeJpaRepository programmes;
   private final PersistenceMapper mapper;
 
-  ProgrammePersistenceAdapter(ProgrammeRepository programmes, PersistenceMapper mapper) {
+  ProgrammePersistenceAdapter(ProgrammeJpaRepository programmes, PersistenceMapper mapper) {
     this.programmes = programmes;
     this.mapper = mapper;
   }

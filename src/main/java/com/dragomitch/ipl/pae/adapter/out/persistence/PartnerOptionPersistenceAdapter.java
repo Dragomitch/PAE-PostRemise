@@ -4,7 +4,7 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.OptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerOptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerOptionId;
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerOptionRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerOptionJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.persistence.PartnerOptionDao;
@@ -21,13 +21,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 class PartnerOptionPersistenceAdapter implements PartnerOptionDao {
 
-  private final PartnerOptionRepository partnerOptions;
+  private final PartnerOptionJpaRepository partnerOptions;
   private final PersistenceMapper mapper;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  PartnerOptionPersistenceAdapter(PartnerOptionRepository partnerOptions,
+  PartnerOptionPersistenceAdapter(PartnerOptionJpaRepository partnerOptions,
       PersistenceMapper mapper) {
     this.partnerOptions = partnerOptions;
     this.mapper = mapper;

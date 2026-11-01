@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
-import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DocumentRepository;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DocumentJpaRepository;
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
 import com.dragomitch.ipl.pae.persistence.DocumentDao;
 
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 class DocumentPersistenceAdapter implements DocumentDao {
 
-  private final DocumentRepository documents;
+  private final DocumentJpaRepository documents;
   private final PersistenceMapper mapper;
 
-  DocumentPersistenceAdapter(DocumentRepository documents, PersistenceMapper mapper) {
+  DocumentPersistenceAdapter(DocumentJpaRepository documents, PersistenceMapper mapper) {
     this.documents = documents;
     this.mapper = mapper;
   }
