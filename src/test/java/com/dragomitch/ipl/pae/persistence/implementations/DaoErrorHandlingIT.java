@@ -177,7 +177,8 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
   }
 
   // Minimal but complete DTOs, so that the failure comes from the database and not from a
-  // NullPointerException while binding the parameters.
+  // NullPointerException while binding the parameters, or from JPA refusing a reference to an
+  // entity without id.
 
   AddressDto address() {
     AddressDto address = build(AddressDto.class);
@@ -222,7 +223,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
 
   UserDto user() {
     UserDto user = build(UserDto.class);
-    user.setOption(build(OptionDto.class));
+    OptionDto option = build(OptionDto.class);
+    option.setCode("BIN");
+    user.setOption(option);
     user.setRegistrationDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return user;
   }

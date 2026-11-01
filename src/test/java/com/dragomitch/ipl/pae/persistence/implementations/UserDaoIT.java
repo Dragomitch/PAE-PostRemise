@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.business.dto.OptionDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
 import java.sql.Timestamp;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class UserDaoIT extends AbstractDaoIT {
@@ -73,7 +73,7 @@ class UserDaoIT extends AbstractDaoIT {
   @Test
   void createWithAnUnknownOptionIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(() -> userDao.create(newUser("zed", "XYZ")))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
