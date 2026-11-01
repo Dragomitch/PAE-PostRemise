@@ -24,7 +24,7 @@ public final class BusinessExceptionAssert {
    * @return the assertions on the exception thrown
    */
   public static BusinessExceptionAssert assertThatBusinessException(ThrowingCallable call) {
-    BusinessException exception = catchThrowableOfType(call, BusinessException.class);
+    BusinessException exception = catchThrowableOfType(BusinessException.class, call);
     assertThat(exception).as("BusinessException thrown").isNotNull();
     return new BusinessExceptionAssert(exception);
   }

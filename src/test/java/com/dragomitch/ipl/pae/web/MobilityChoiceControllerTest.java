@@ -28,9 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MobilityChoiceController.class)
@@ -43,7 +44,7 @@ class MobilityChoiceControllerTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private MobilityChoiceUcc mobilityChoiceUcc;
 
   @Test
@@ -94,7 +95,7 @@ class MobilityChoiceControllerTest {
 
     mockMvc.perform(get(ApiPaths.BASE + "/mobilityChoices/count").with(TestUsers.student()))
         .andExpect(status().isOk())
-        .andExpect(content().json("{\"count\":3}", true));
+        .andExpect(content().json("{\"count\":3}", JsonCompareMode.STRICT));
   }
 
   @Test

@@ -54,7 +54,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S21 | `Clock` bean injected instead of `LocalDateTime.now()` (8 call sites) | Time-dependent logic hard to test | Deterministic tests | 💡 |
 | S22 | Testcontainers with `@ServiceConnection` (Boot 3.1+) for integration tests in CI | Embedded PostgreSQL (fine locally) | Same engine/version as production, zero config | 💡 |
 | S23 | Test slices: `@WebMvcTest`, `@DataJdbcTest`, `@JsonTest` instead of full contexts | Mostly full-context/unit | Faster, focused tests | 🚧 `@WebMvcTest` in #90; `@DataJdbcTest` next |
-| S24 | Upgrade Spring Boot 3.2 → 3.5 (3.2 is out of OSS support) with the properties migrator | Unsupported line | Security fixes, structured logging, `RestClient` improvements | 💡 |
+| S24 | Upgrade Spring Boot 3.2 → 3.5 (3.2 is out of OSS support); Spring Boot 4 next, in its own PR | Unsupported line | Security fixes, structured logging, `RestClient` improvements | ✅ 3.5.16; Boot 4 still to do (`MvcRequestMatcher` and `withObjectPostProcessor` in `SecurityConfig`) |
 | S25 | Virtual threads (`spring.threads.virtual.enabled=true`, Java 21) | Platform threads | Cheap concurrency for blocking JDBC | 💡 |
 | S26 | Layered jar + `spring-boot:build-image` (buildpacks) or `jarmode=tools extract` in the Dockerfile | Fat jar copied as one layer | Smaller, cache-friendly images | 💡 |
 | S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | 💡 |

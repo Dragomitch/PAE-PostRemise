@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -67,27 +67,27 @@ class EndpointAuthorizationTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private CountryUcc countryUcc;
-  @MockBean
+  @MockitoBean
   private DenialReasonUcc denialReasonUcc;
-  @MockBean
+  @MockitoBean
   private MobilityChoiceUcc mobilityChoiceUcc;
-  @MockBean
+  @MockitoBean
   private MobilityUcc mobilityUcc;
-  @MockBean
+  @MockitoBean
   private NominatedStudentUcc nominatedStudentUcc;
-  @MockBean
+  @MockitoBean
   private OptionUcc optionUcc;
-  @MockBean
+  @MockitoBean
   private PartnerUcc partnerUcc;
-  @MockBean
+  @MockitoBean
   private PaymentUcc paymentUcc;
-  @MockBean
+  @MockitoBean
   private ProgrammeUcc programmeUcc;
-  @MockBean
+  @MockitoBean
   private SessionUcc sessionUcc;
-  @MockBean
+  @MockitoBean
   private UserUcc userUcc;
 
   @BeforeEach
