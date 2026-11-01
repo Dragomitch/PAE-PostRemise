@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Mobility choices and their filters. The data set is described in
@@ -169,7 +170,8 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   @ValueSource(strings = {"whatever", "ALL", "active "})
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.findAll(filter))
-        .isInstanceOf(IllegalArgumentException.class));
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")
