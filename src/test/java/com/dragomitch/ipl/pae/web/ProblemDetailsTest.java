@@ -38,7 +38,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -68,27 +68,27 @@ class ProblemDetailsTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private UserUcc userUcc;
-  @MockBean
+  @MockitoBean
   private PartnerUcc partnerUcc;
-  @MockBean
+  @MockitoBean
   private MobilityUcc mobilityUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.CountryUcc countryUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.DenialReasonUcc denialReasonUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.MobilityChoiceUcc mobilityChoiceUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.NominatedStudentUcc nominatedStudentUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.OptionUcc optionUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.PaymentUcc paymentUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.ProgrammeUcc programmeUcc;
-  @MockBean
+  @MockitoBean
   private com.dragomitch.ipl.pae.uccontrollers.SessionUcc sessionUcc;
 
   private ResultActions perform(MockHttpServletRequestBuilder request, String language)

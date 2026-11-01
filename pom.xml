@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.5.16</version>
         <relativePath/>
     </parent>
     <groupId>com.dragomitch.ipl.pae</groupId>
@@ -17,11 +17,11 @@
     <properties>
         <!-- Generic properties -->
         <java.version>21</java.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <embedded-postgres.version>2.2.2</embedded-postgres.version>
         <!-- PostgreSQL 16 binaries used by the DAO integration tests (*IT) -->
         <embedded-postgres-binaries.version>16.15.0</embedded-postgres-binaries.version>
-        <!-- embedded-postgres 2.2 calls commons-lang3 3.18+ APIs; Spring Boot 3.2 manages 3.13.
+        <!-- embedded-postgres 2.2 calls commons-lang3 3.18+ APIs; Spring Boot 3.5 manages 3.17.
              Only the tests use commons-lang3 (see mvn dependency:tree). -->
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <!-- Filled in by jacoco:prepare-agent; declared empty so @{argLine} always resolves -->
@@ -84,12 +84,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- Spring Data JDBC (includes spring-boot-starter-jdbc: HikariCP, JdbcTemplate/JdbcClient,
-             DataSourceTransactionManager). Repositories and aggregates live in persistence.jdbc;
-             the remaining hand-written DAOs share the same transaction-bound connection. -->
+        <!-- Persistence: Spring Data JPA (Hibernate) behind the outbound ports (adapter.out.persistence) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
         <dependency>
@@ -129,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.16.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -176,9 +174,7 @@
                         </goals>
                         <configuration>
                             <!-- Thresholds: jacoco.minimum.* properties above. The second rule
-                                 guards every persistence package (covered by the *IT tests): the
-                                 DAO implementations, JDBC or Spring Data adapters, and the Spring
-                                 Data JDBC configuration and aggregates (persistence.jdbc*). The
+                                 guards the persistence adapters (covered by the *IT tests). The
                                  third one guards the business rules of the use-case services
                                  (covered by the unit tests). -->
                             <rules>
@@ -200,9 +196,7 @@
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
-                                        <include>com.dragomitch.ipl.pae.persistence.implementations</include>
-                                        <!-- Spring Data JDBC setup and aggregates -->
-                                        <include>com.dragomitch.ipl.pae.persistence.jdbc*</include>
+                                        <include>com.dragomitch.ipl.pae.adapter.out.persistence</include>
                                     </includes>
                                     <limits>
                                         <limit>

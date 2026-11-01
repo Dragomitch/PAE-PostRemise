@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.AddressDao;
 
 import java.util.ConcurrentModificationException;
@@ -17,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class AddressDaoIT extends AbstractDaoIT {
 
@@ -68,7 +68,7 @@ class AddressDaoIT extends AbstractDaoIT {
   @Test
   void createWithAnUnknownCountryIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(() -> addressDao.create(newAddress("ZZ", null)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test

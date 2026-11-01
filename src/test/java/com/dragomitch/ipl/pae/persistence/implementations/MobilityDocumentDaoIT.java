@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.business.dto.DocumentDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityDocumentDao;
 
 import java.util.ConcurrentModificationException;
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class MobilityDocumentDaoIT extends AbstractDaoIT {
 
@@ -70,7 +70,7 @@ class MobilityDocumentDaoIT extends AbstractDaoIT {
       "3, 5001"})    // mobility choice that is not a mobility
   void createIsRejectedByTheConstraints(int document, int mobility) {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityDocumentDao.create(document, mobility))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test

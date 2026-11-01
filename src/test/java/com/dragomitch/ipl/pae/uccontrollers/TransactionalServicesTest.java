@@ -15,8 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ClassUtils;
 
 /**
- * Every use-case service is transactional at class level: a DAO can then never be reached outside
- * a transaction (which would leak its connection; {@code DataAccess} refuses it anyway).
+ * Every use-case service is transactional at class level: a DAO is then never reached outside a
+ * transaction, so a use case reads and writes in one persistence context and one connection.
  */
 class TransactionalServicesTest {
 

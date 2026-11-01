@@ -61,7 +61,7 @@ public final class Violations {
    */
   public static List<String> thrownBy(ThrowingCallable call) {
     ConstraintViolationException ex =
-        catchThrowableOfType(call, ConstraintViolationException.class);
+        catchThrowableOfType(ConstraintViolationException.class, call);
     if (ex == null) {
       throw new AssertionError("Expected a ConstraintViolationException");
     }
@@ -75,7 +75,7 @@ public final class Violations {
    * @return the error code
    */
   public static ErrorCode errorCodeOf(ThrowingCallable call) {
-    BusinessException ex = catchThrowableOfType(call, BusinessException.class);
+    BusinessException ex = catchThrowableOfType(BusinessException.class, call);
     if (ex == null) {
       throw new AssertionError("Expected a BusinessException");
     }

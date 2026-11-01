@@ -62,7 +62,7 @@ public record FieldViolation(String field, String code, String message) {
    */
   static List<FieldViolation> of(HandlerMethodValidationException ex) {
     List<FieldViolation> violations = new ArrayList<>();
-    for (ParameterValidationResult result : ex.getAllValidationResults()) {
+    for (ParameterValidationResult result : ex.getParameterValidationResults()) {
       if (result instanceof ParameterErrors errors) {
         violations.addAll(of(errors));
         continue;

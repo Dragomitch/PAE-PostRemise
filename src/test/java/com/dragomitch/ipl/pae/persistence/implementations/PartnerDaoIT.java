@@ -19,6 +19,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Partners and their search filters (see db/fixtures/partners.sql for the data set).
@@ -177,6 +178,23 @@ class PartnerDaoIT extends AbstractDaoIT {
   }
 
   @Test
+  void aPartnerWithoutWebsiteIsStoredWithAnEmptyOne() {
+    runInTransaction(() -> {
+      PartnerDto partner = newPartner(2002);
+      partner.setWebsite(null);
+
+      PartnerDto created = partnerDao.create(partner);
+
+      assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
+      PartnerDto found = partnerDao.findById(created.getId());
+      assertThat(found.getWebsite()).isEmpty();
+      found.setWebsite(null);
+      partnerDao.update(found);
+      assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
+    });
+  }
+
+  @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
       PartnerDto stale = partnerDao.findById(3001);
@@ -217,7 +235,8 @@ class PartnerDaoIT extends AbstractDaoIT {
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerDao.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
-        .isInstanceOf(IllegalArgumentException.class));
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "student of {0} sees {1}")
@@ -258,6 +277,14 @@ class PartnerDaoIT extends AbstractDaoIT {
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
     assertThat(partners).allMatch(PartnerDto::isArchived);
+  }
+
+  @Test
+  void aStudentSearchingTheArchivedPartnersIsNotRestrictedToTheirOption() {
+    List<PartnerDto> partners = inTransaction(() -> partnerDao.findAll(
+        PartnerDao.FILTER_ARCHIVED_PARTNERS, "", UserDto.ROLE_STUDENT, "BCH"));
+
+    assertThat(ids(partners)).containsExactly(3002);
   }
 
   private static List<Integer> parseIds(String ids) {
