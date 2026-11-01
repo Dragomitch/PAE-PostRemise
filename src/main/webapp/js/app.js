@@ -2056,20 +2056,12 @@ var debugg = 1;
         $elPayments.find('.notification').show();
       } else {
         if (mobility.firstPaymentRequestDate != null) {
-          var firstPaymentRequestDate = new Date(
-              mobility.firstPaymentRequestDate);
           $elPayments.find('#first-payment-status .content').html('Effectué le '
-              + firstPaymentRequestDate.getUTCDate() + '/'
-              + firstPaymentRequestDate.getUTCMonth() + '/'
-              + firstPaymentRequestDate.getUTCFullYear());
+              + Utils.formatDate(mobility.firstPaymentRequestDate));
           if (mobility.secondPaymentRequestDate != null) {
-            var secondPaymentRequestDate = new Date(
-                mobility.secondPaymentRequestDate);
             $elPayments.find(
                 '#second-payment-status .content').html('Effectué le '
-                + secondPaymentRequestDate.getUTCDate() + '/'
-                + secondPaymentRequestDate.getUTCMonth() + '/'
-                + secondPaymentRequestDate.getUTCFullYear());
+                + Utils.formatDate(mobility.secondPaymentRequestDate));
             $elPayments.find('#second-payment-status').show();
           } else if (mobility.state === STATE_BALANCE_TO_BE_PAID
               && app.isProfessor()) {
@@ -3124,9 +3116,9 @@ var debugg = 1;
           },
           {
             mData: function (o, type) {
-              var date = new Date(o.paymentDate);
-              return date.getUTCDate() + '/' + date.getUTCMonth() + '/'
-                  + date.getUTCFullYear();
+              // sorted by the date-time itself, displayed as d/m/yyyy
+              return type === 'sort' || type === 'type' ? o.paymentDate
+                  : Utils.formatDate(o.paymentDate);
             },
             title: 'Effectué le'
           }]
