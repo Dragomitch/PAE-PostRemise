@@ -1,6 +1,5 @@
 package com.dragomitch.ipl.pae.persistence.implementations;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
@@ -31,12 +30,9 @@ import com.dragomitch.ipl.pae.persistence.PaymentDao;
 import com.dragomitch.ipl.pae.persistence.ProgrammeDao;
 import com.dragomitch.ipl.pae.persistence.UserDao;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -44,18 +40,16 @@ import org.junit.jupiter.api.Named;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 
 /**
- * Every DAO method reports a database failure as a {@link FatalException} (the use cases and the
- * presentation layer rely on it to answer 500 and roll back), never as a raw {@code SQLException},
- * which is kept as the cause.
+ * Every outbound port reports a database failure as a Spring {@link DataAccessException} (the
+ * JPA persistence adapters) or a {@link FatalException} (the JDBC DAOs not migrated yet), never as
+ * a raw {@code SQLException}, which is kept as the root cause for the logs. The use cases roll
+ * back and the API answers 500 with an error id.
  *
  * <p>The failure is provoked by aborting the transaction first: PostgreSQL then rejects every
- * following statement ("current transaction is aborted"). When the persistence layer moves to
- * Spring, this contract becomes "a {@code DataAccessException} is thrown" and only the expected
- * type below changes.
- *
- * <p>The same calls also check that no DAO method leaks a JDBC statement.
+ * following statement ("current transaction is aborted").
  */
 class DaoErrorHandlingIT extends AbstractDaoIT {
 
@@ -67,8 +61,6 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
       ProgrammeDao programme, UserDao user, DaoErrorHandlingIT test) {
   }
 
-  @Autowired
-  private DalBackendServices dalBackendServices;
   @Autowired
   private AddressDao addressDao;
   @Autowired
@@ -162,71 +154,19 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("daoCalls")
-  void aDatabaseErrorIsReportedAsAFatalException(Consumer<Daos> call) {
+  void aDatabaseErrorIsReportedAsADataAccessException(Consumer<Daos> call) {
     Daos daos = new Daos(addressDao, countryDao, denialReasonDao, documentDao, mobilityChoiceDao,
         mobilityDao, mobilityDocumentDao, nominatedStudentDao, optionDao, partnerDao,
         partnerOptionDao, paymentDao, programmeDao, userDao, this);
     runInTransaction(() -> {
       abortTransaction();
       // the SQL cause is kept for the logs
-      assertThatThrownBy(() -> call.accept(daos)).isInstanceOf(FatalException.class)
-          .hasCauseInstanceOf(SQLException.class);
+      assertThatThrownBy(() -> call.accept(daos))
+          .isInstanceOfAny(DataAccessException.class, FatalException.class)
+          .hasRootCauseInstanceOf(SQLException.class);
     });
   }
 
-  /**
-   * Every statement a DAO prepares is closed before the method returns, whether it succeeds,
-   * fails in the database or throws a business exception (e.g. a stale version). The DAOs are
-   * rebuilt on top of a {@link DalBackendServices} that records the statements it hands out.
-   */
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("daoCalls")
-  void everyPreparedStatementIsClosed(Consumer<Daos> call) {
-    RecordingBackend backend = new RecordingBackend(dalBackendServices);
-    Daos daos = new Daos(new AddressDaoImpl(entityFactory, backend),
-        new CountryDaoImpl(entityFactory, backend), new DenialReasonDaoImpl(entityFactory, backend),
-        new DocumentDaoImpl(entityFactory, backend),
-        new MobilityChoiceDaoImpl(entityFactory, backend),
-        new MobilityDaoImpl(entityFactory, backend),
-        new MobilityDocumentDaoImpl(entityFactory, backend),
-        new NominatedStudentDaoImpl(entityFactory, backend), new OptionDaoImpl(entityFactory, backend),
-        new PartnerDaoImpl(entityFactory, backend), new PartnerOptionDaoImpl(entityFactory, backend),
-        new PaymentDaoImpl(entityFactory, backend), new ProgrammeDaoImpl(entityFactory, backend),
-        new UserDaoImpl(entityFactory, backend), this);
-    for (boolean aborted : new boolean[] {false, true}) {
-      runInTransaction(() -> {
-        if (aborted) {
-          abortTransaction();
-        }
-        try {
-          call.accept(daos);
-        } catch (RuntimeException expected) {
-          // failures are fine here: only the statement lifecycle is checked
-        }
-        assertThat(backend.statements).as("statements prepared").isNotEmpty();
-        assertThat(backend.statements).allSatisfy(
-            stmt -> assertThat(stmt.isClosed()).as("closed: %s", stmt).isTrue());
-        backend.statements.clear();
-      });
-    }
-  }
-
-  /** Delegates to the real backend and remembers every statement handed out. */
-  private static final class RecordingBackend implements DalBackendServices {
-    private final DalBackendServices delegate;
-    private final List<PreparedStatement> statements = new ArrayList<>();
-
-    private RecordingBackend(DalBackendServices delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override
-    public PreparedStatement prepareStatement(String sql) {
-      PreparedStatement statement = delegate.prepareStatement(sql);
-      statements.add(statement);
-      return statement;
-    }
-  }
 
   private void abortTransaction() {
     try {

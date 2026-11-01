@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.DenialReasonDao;
 
 import java.util.ConcurrentModificationException;
@@ -14,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -71,7 +71,7 @@ class DenialReasonDaoIT extends AbstractDaoIT {
   @Test
   void createRejectsAReasonLongerThanTheColumn() {
     runInTransaction(() -> assertThatThrownBy(() -> denialReasonDao.create(reason("x".repeat(301))))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test

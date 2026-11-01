@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -102,6 +103,15 @@ public class DaoItConfig {
   @Bean
   PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
     return new JpaTransactionManager(entityManagerFactory);
+  }
+
+  /**
+   * Translates the JPA exceptions of the {@code @Repository} persistence adapters into Spring's
+   * {@code DataAccessException}s, as Spring Boot does in the application.
+   */
+  @Bean
+  static PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslation() {
+    return new PersistenceExceptionTranslationPostProcessor();
   }
 
   /**
