@@ -195,7 +195,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
     MobilityChoiceDto choice = build(MobilityChoiceDto.class);
     choice.setUser(build(UserDto.class));
     choice.setProgramme(build(ProgrammeDto.class));
-    choice.setCountry(build(CountryDto.class));
+    CountryDto country = build(CountryDto.class);
+    country.setCountryCode("BE");
+    choice.setCountry(country);
     choice.setSubmissionDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return choice;
   }

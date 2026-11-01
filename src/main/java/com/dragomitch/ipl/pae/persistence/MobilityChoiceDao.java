@@ -84,7 +84,8 @@ public interface MobilityChoiceDao {
 
   /**
    * Update a mobilityChoice into the DB with the new fields of the MobilityChoice, with optimistic
-   * locking; the DTO receives the new version.
+   * locking; the DTO receives the new version. An update that changes nothing writes nothing and
+   * keeps the version.
    *
    * <p>An empty cancellation reason is stored as NULL on purpose: NULL means "not cancelled" for
    * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an

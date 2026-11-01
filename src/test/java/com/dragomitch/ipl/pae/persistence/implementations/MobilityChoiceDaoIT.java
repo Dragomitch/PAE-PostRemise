@@ -10,7 +10,6 @@ import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.business.dto.PartnerDto;
 import com.dragomitch.ipl.pae.business.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityChoiceDao;
 
 import java.sql.Timestamp;
@@ -27,6 +26,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
@@ -300,7 +300,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   @Test
   void createWithAnUnknownUserIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityChoiceDao.create(newChoice(9999)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -365,6 +365,7 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   void updateSetsTheNewVersionInTheDtoSoThatItCanBeUpdatedAgain() {
     runInTransaction(() -> {
       MobilityChoiceDto choice = mobilityChoiceDao.findById(5001);
+      choice.setPreferenceOrder(7);
       mobilityChoiceDao.update(choice);
 
       assertThat(choice.getVersion()).isEqualTo(2);
@@ -376,6 +377,17 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
       assertThat(choice.getVersion()).isEqualTo(3);
       assertThat(queryForRow(CHOICE_BY_ID, 5001)).containsEntry("term", 2)
           .containsEntry("version", 3);
+    });
+  }
+
+  @Test
+  void updateThatChangesNothingKeepsTheVersion() {
+    runInTransaction(() -> {
+      MobilityChoiceDto choice = mobilityChoiceDao.findById(5001);
+      mobilityChoiceDao.update(choice);
+
+      assertThat(choice.getVersion()).isEqualTo(1);
+      assertThat(queryForRow(CHOICE_BY_ID, 5001)).containsEntry("version", 1);
     });
   }
 

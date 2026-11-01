@@ -13,10 +13,7 @@ import jakarta.persistence.Version;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.SourceType;
-import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 
 /**
@@ -60,8 +57,7 @@ public class MobilityChoiceEntity {
   @JoinColumn(name = "country")
   private CountryEntity country;
 
-  /** Set by the database ({@code current_timestamp}) on insert, written by the updates. */
-  @CurrentTimestamp(event = EventType.INSERT, source = SourceType.DB)
+  /** The database's time on insert (see the persistence adapter), written by the updates. */
   @Column(name = "submission_date", nullable = false)
   private LocalDateTime submissionDate;
 
