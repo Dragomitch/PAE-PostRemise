@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.dragomitch.ipl.pae.business.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.business.dto.MobilityDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.MobilityDao;
 
 import java.sql.Timestamp;
@@ -20,6 +19,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * Mobilities (see db/fixtures/mobilities.sql). A mobility shares its id with the mobility choice
@@ -218,7 +218,7 @@ class MobilityDaoIT extends AbstractDaoIT {
   @ValueSource(ints = {5006, 9999})
   void createForAnExistingMobilityOrAnUnknownChoiceFails(int id) {
     runInTransaction(() -> assertThatThrownBy(() -> mobilityDao.create(newMobility(id)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
