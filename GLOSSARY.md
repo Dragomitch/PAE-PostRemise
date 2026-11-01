@@ -1,7 +1,7 @@
 # Glossary
 
 The words of the domain, and of the architecture (see
-[ADR 0001](adr/0001-spring-data-jpa-and-hexagonal-architecture.md)), as the code uses them.
+[ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md)), as the code uses them.
 The UI and the stored values are in French. The code is in English.
 
 ## Domain

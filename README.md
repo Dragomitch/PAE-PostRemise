@@ -8,7 +8,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
 - **src/main/java**
   - `business` – entity interfaces and implementations (`User`, `Mobility`, …), the DTO interfaces carrying the Bean Validation constraints, the custom constraints (`business/validation`) and the error catalogue (`business/exceptions/ErrorCode`).
   - `persistence` – the DAO interfaces: the driven ports of the persistence.
-  - `adapter/out/persistence` – their Spring Data JPA adapters, the JPA entities (`entity`) and the Spring Data repositories (`repository`); see [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) and the [glossary](docs/GLOSSARY.md).
+  - `adapter/out/persistence` – their Spring Data JPA adapters, the JPA entities (`entity`) and the Spring Data repositories (`repository`); see [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) and the [glossary](GLOSSARY.md).
   - `uccontrollers` – use cases (`@Service`, `@Transactional`) that orchestrate the business logic and the DAOs.
   - `web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, and `ApiExceptionHandler` which renders every API error.
   - `security` – session JWT cookie, current user, CSRF helpers used by the security chain.
