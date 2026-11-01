@@ -19,6 +19,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Partners and their search filters (see db/fixtures/partners.sql for the data set).
@@ -217,7 +218,8 @@ class PartnerDaoIT extends AbstractDaoIT {
   void findAllRejectsAnUnknownFilter(String filter) {
     runInTransaction(() -> assertThatThrownBy(
         () -> partnerDao.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
-        .isInstanceOf(IllegalArgumentException.class));
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "student of {0} sees {1}")

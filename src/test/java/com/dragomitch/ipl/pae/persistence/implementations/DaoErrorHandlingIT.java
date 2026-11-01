@@ -128,8 +128,7 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
         call("PartnerDao.findById", d -> d.partner().findById(1)),
         call("PartnerDao.findAll", d -> d.partner().findAll("all", null, "Professor", "BIN")),
         call("PartnerDao.update", d -> d.partner().update(d.test().partner())),
-        call("PartnerOptionDao.create", d -> d.partnerOption().create(
-            d.test().build(PartnerOptionDto.class), 1)),
+        call("PartnerOptionDao.create", d -> d.partnerOption().create(d.test().partnerOption(), 1)),
         call("PartnerOptionDao.findAllPartnersByOption",
             d -> d.partnerOption().findAllPartnersByOption("BIN")),
         call("PartnerOptionDao.findAllOptionsByPartner",
@@ -219,6 +218,12 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
     PartnerDto partner = build(PartnerDto.class);
     partner.setAddress(build(AddressDto.class));
     return partner;
+  }
+
+  PartnerOptionDto partnerOption() {
+    PartnerOptionDto option = build(PartnerOptionDto.class);
+    option.setCode("BIN");
+    return option;
   }
 
   UserDto user() {
