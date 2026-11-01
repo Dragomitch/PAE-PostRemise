@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface MobilityJpaRepository extends JpaRepository<MobilityEntity, Integer> {
 
@@ -24,4 +25,14 @@ public interface MobilityJpaRepository extends JpaRepository<MobilityEntity, Int
   @EntityGraph(attributePaths = {"choice", "choice.user", "choice.partner", "choice.country",
       "choice.programme", "denialReason"})
   List<MobilityEntity> findWithChoiceByChoiceUserIdOrderById(int userId);
+
+  /**
+   * The mobilities with at least one payment requested, with their choice, the choice's student,
+   * partner, country and programme, in one query.
+   */
+  @EntityGraph(attributePaths = {"choice", "choice.user", "choice.partner", "choice.country",
+      "choice.programme"})
+  @Query("SELECT m FROM MobilityEntity m WHERE m.firstPaymentRequestDate IS NOT NULL"
+      + " OR m.secondPaymentRequestDate IS NOT NULL ORDER BY m.id")
+  List<MobilityEntity> findWithPaymentRequests();
 }
