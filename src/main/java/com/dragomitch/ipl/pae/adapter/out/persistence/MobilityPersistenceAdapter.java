@@ -82,7 +82,8 @@ class MobilityPersistenceAdapter implements MobilityDao {
         .filter(found -> found.getVersion() == mobility.getVersion())
         .orElseThrow(ConcurrentModificationException::new);
     copy(mobility, entity);
-    mobilities.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        mobility.getVersion());
     mobility.setVersion(entity.getVersion());
     return mobility;
   }

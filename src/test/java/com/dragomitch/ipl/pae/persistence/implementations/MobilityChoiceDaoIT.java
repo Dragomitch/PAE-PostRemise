@@ -365,7 +365,6 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
   void updateSetsTheNewVersionInTheDtoSoThatItCanBeUpdatedAgain() {
     runInTransaction(() -> {
       MobilityChoiceDto choice = mobilityChoiceDao.findById(5001);
-      choice.setPreferenceOrder(7);
       mobilityChoiceDao.update(choice);
 
       assertThat(choice.getVersion()).isEqualTo(2);
@@ -377,17 +376,6 @@ class MobilityChoiceDaoIT extends AbstractDaoIT {
       assertThat(choice.getVersion()).isEqualTo(3);
       assertThat(queryForRow(CHOICE_BY_ID, 5001)).containsEntry("term", 2)
           .containsEntry("version", 3);
-    });
-  }
-
-  @Test
-  void updateThatChangesNothingKeepsTheVersion() {
-    runInTransaction(() -> {
-      MobilityChoiceDto choice = mobilityChoiceDao.findById(5001);
-      mobilityChoiceDao.update(choice);
-
-      assertThat(choice.getVersion()).isEqualTo(1);
-      assertThat(queryForRow(CHOICE_BY_ID, 5001)).containsEntry("version", 1);
     });
   }
 

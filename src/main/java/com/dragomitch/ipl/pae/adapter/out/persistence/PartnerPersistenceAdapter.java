@@ -129,7 +129,8 @@ class PartnerPersistenceAdapter implements PartnerDao {
         .orElseThrow(ConcurrentModificationException::new);
     copy(partner, entity);
     entity.setArchived(partner.isArchived());
-    partners.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        partner.getVersion());
     partner.setVersion(entity.getVersion());
     return partner;
   }

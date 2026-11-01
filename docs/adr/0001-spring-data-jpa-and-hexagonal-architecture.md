@@ -101,6 +101,10 @@ Spring Boot 4 comes after these steps, in its own PR.
   - Versioned tables use `@Version`.
   - An update loads the entity, compares its version with the DTO's, copies the fields and
     flushes.
+  - Every update increments the version, even when it changes nothing, as the JDBC DAOs did
+    (`Versions.flushIncrementingVersion`, pinned by `VersionContractIT`). JPA alone would leave an
+    unchanged entity's version as it is. The use cases rely on the increment: a partner edit takes
+    the stored partner version and detects a stale form through its address update.
   - An unknown id or a stale version throws `ConcurrentModificationException`, answered with a
     409 `CONCURRENT_MODIFICATION`.
   - The two updates whose contract increments the version unconditionally are bulk JPQL updates:
@@ -127,9 +131,7 @@ These are visible to the callers. The `*IT` tests and the port javadoc assert th
    `@Repository`. This concerns `PartnerDao.findAll`, `MobilityChoiceDao.findAll` and
    `UserDao.findBy`. It is still a programming error, because the API rejects an unknown filter
    first.
-3. **An update that changes nothing writes nothing and keeps the version.** This is standard
-   JPA dirty checking; the JDBC updates always incremented the version.
-4. **Lists are ordered by id.** Some JDBC queries had no `ORDER BY`.
+3. **Lists are ordered by id.** Some JDBC queries had no `ORDER BY`.
 
 The submission time of a new mobility choice is still the database's time, read in the create.
 

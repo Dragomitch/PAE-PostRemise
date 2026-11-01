@@ -116,12 +116,12 @@ Persistence rules:
 - The schema is `SQLRessources/init.sql`: never generated (`ddl-auto=none`), validated by the ITs (`hbm2ddl.auto=validate`). Change it only when justified and agreed (issue #102, Q4).
 - Associations are `LAZY`; a read fetches what its DTOs carry in **one** statement (`@EntityGraph` or `JOIN FETCH`). `QueryCountIT` fails on an N+1; add every new port read to it. `open-in-view` is off.
 - Reference data (options, programmes, countries, documents) is `@Immutable`.
-- An update loads the entity, compares the versions, copies the fields and flushes; creates with an assigned key flush at once.
+- An update loads the entity, compares the versions, copies the fields and flushes with `Versions.flushIncrementingVersion`; creates with an assigned key flush at once.
 
 DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
 
 - Every SQL failure is a Spring `DataAccessException` (exception translation of the `@Repository` adapters) with the `SQLException` as root cause; a constraint violation is a `DataIntegrityViolationException` (409 `DATA_CONFLICT`).
-- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version; an update that changes nothing writes nothing and keeps the version (JPA dirty checking). `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
+- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version and increment it even when they change nothing (`Versions.flushIncrementingVersion`, `VersionContractIT`): the partner edit relies on it. `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
 - An unknown `findAll` filter (or `UserDao.findBy` column) is an `InvalidDataAccessApiUsageException` wrapping an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
 - A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).

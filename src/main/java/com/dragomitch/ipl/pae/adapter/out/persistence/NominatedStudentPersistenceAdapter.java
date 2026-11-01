@@ -75,7 +75,8 @@ class NominatedStudentPersistenceAdapter implements NominatedStudentDao {
             && found.getVersion() == nominatedStudent.getVersion())
         .orElseThrow(ConcurrentModificationException::new);
     copy(nominatedStudent, entity);
-    students.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        nominatedStudent.getVersion());
     nominatedStudent.setVersion(entity.getVersion());
     return nominatedStudent;
   }

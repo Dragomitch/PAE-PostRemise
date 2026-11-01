@@ -97,7 +97,8 @@ class UserPersistenceAdapter implements UserDao {
         .filter(found -> found.getVersion() == user.getVersion())
         .orElseThrow(ConcurrentModificationException::new);
     copy(user, entity);
-    users.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        user.getVersion());
     user.setVersion(entity.getVersion());
   }
 

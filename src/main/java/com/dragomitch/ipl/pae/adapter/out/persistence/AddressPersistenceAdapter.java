@@ -57,7 +57,8 @@ class AddressPersistenceAdapter implements AddressDao {
         .filter(found -> found.getVersion() == address.getVersion())
         .orElseThrow(ConcurrentModificationException::new);
     copy(address, entity);
-    addresses.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        address.getVersion());
     address.setVersion(entity.getVersion());
     return address;
   }

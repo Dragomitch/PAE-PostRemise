@@ -140,8 +140,7 @@ class MobilityChoicePersistenceAdapter implements MobilityChoiceDao {
   /**
    * {@inheritDoc}
    *
-   * <p>The student is not changed. An update that changes nothing writes nothing and keeps the
-   * version.
+   * <p>The student is not changed.
    */
   @Override
   public void update(MobilityChoiceDto mobilityChoice) {
@@ -152,7 +151,8 @@ class MobilityChoicePersistenceAdapter implements MobilityChoiceDao {
     }
     copy(mobilityChoice, entity);
     entity.setSubmissionDate(mobilityChoice.getSubmissionDate());
-    entityManager.flush();
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
+        mobilityChoice.getVersion());
     mobilityChoice.setVersion(entity.getVersion());
   }
 
