@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.5.16</version>
         <relativePath/>
     </parent>
     <groupId>com.dragomitch.ipl.pae</groupId>
@@ -17,11 +17,11 @@
     <properties>
         <!-- Generic properties -->
         <java.version>21</java.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <embedded-postgres.version>2.2.2</embedded-postgres.version>
         <!-- PostgreSQL 16 binaries used by the DAO integration tests (*IT) -->
         <embedded-postgres-binaries.version>16.15.0</embedded-postgres-binaries.version>
-        <!-- embedded-postgres 2.2 calls commons-lang3 3.18+ APIs; Spring Boot 3.2 manages 3.13.
+        <!-- embedded-postgres 2.2 calls commons-lang3 3.18+ APIs; Spring Boot 3.5 manages 3.17.
              Only the tests use commons-lang3 (see mvn dependency:tree). -->
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <!-- Filled in by jacoco:prepare-agent; declared empty so @{argLine} always resolves -->
@@ -126,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.16.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>

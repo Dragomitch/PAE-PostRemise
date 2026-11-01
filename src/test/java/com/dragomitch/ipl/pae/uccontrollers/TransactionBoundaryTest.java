@@ -26,7 +26,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -79,7 +79,7 @@ class TransactionBoundaryTest {
   @Autowired
   private EntityFactory entityFactory;
 
-  @MockBean
+  @MockitoBean
   private UserDao userDao;
 
   private UserDto student;
