@@ -175,8 +175,20 @@ var Utils = (function() {
         return (partner == null || partner.fullName == null) ? '' : partner.fullName;
     }
 
+    /**
+     * The date of a date-time of the API as d/m/yyyy. The API sends local date-times without a
+     * time zone ("2026-11-01T21:16:08.5"): the date is read from the text, as the server stored
+     * it, rather than through a Date, whose months start at 0 and whose time zone could shift the
+     * day.
+     */
+    function formatDate(dateTime) {
+        var parts = String(dateTime).substring(0, 10).split('-');
+        return Number(parts[2]) + '/' + Number(parts[1]) + '/' + parts[0];
+    }
+
     return {
         animate: animate,
+        formatDate: formatDate,
         flag: flag,
         countryName: countryName,
         partnerName: partnerName,
