@@ -7,7 +7,6 @@ import com.dragomitch.ipl.pae.business.dto.AddressDto;
 import com.dragomitch.ipl.pae.business.dto.CountryDto;
 import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.exceptions.FatalException;
 import com.dragomitch.ipl.pae.persistence.NominatedStudentDao;
 
 import java.sql.Timestamp;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class NominatedStudentDaoIT extends AbstractDaoIT {
 
@@ -150,14 +150,14 @@ class NominatedStudentDaoIT extends AbstractDaoIT {
   void createForAnAlreadyNominatedStudentViolatesThePrimaryKey() {
     runInTransaction(() -> assertThatThrownBy(
         () -> nominatedStudentDao.create(newStudent(1001, null)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
   void createForAnUnknownUserIsRejectedByTheForeignKey() {
     runInTransaction(() -> assertThatThrownBy(
         () -> nominatedStudentDao.create(newStudent(9999, null)))
-        .isInstanceOf(FatalException.class));
+        .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test

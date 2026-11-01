@@ -209,7 +209,9 @@ class DaoErrorHandlingIT extends AbstractDaoIT {
   NominatedStudentDto student() {
     NominatedStudentDto student = build(NominatedStudentDto.class);
     student.setBirthdate(LocalDate.of(2000, 1, 1));
-    student.setNationality(build(CountryDto.class));
+    CountryDto nationality = build(CountryDto.class);
+    nationality.setCountryCode("BE");
+    student.setNationality(nationality);
     student.setAddress(build(AddressDto.class));
     return student;
   }
