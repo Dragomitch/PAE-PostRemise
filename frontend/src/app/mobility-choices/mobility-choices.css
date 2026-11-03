@@ -155,6 +155,10 @@ th[scope='row'] {
   font-weight: 600;
 }
 
+.student {
+  white-space: nowrap;
+}
+
 .preference {
   text-align: center;
   font-variant-numeric: tabular-nums;

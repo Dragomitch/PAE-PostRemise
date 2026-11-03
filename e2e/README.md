@@ -8,7 +8,7 @@ with the same runner.
 |---|---|
 | `run-e2e.sh` | Runner: waits for the backend, runs the three scripts below in order, starts and stops the Angular dev server, prints a summary and exits 1 if a step failed |
 | `api_e2e.py` | API scenario (Python standard library only): 158 checks |
-| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in and of every legacy UI view: 26 checks |
+| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices screen: 33 checks |
 | `mobility_detail.js` | Playwright check of the completed mobility's detail page: 4 checks |
 | `package.json` | Pins Playwright (exact version) |
 
@@ -30,6 +30,13 @@ as `prof` and as `alice` (created by the API script) and opens every view of the
 must appear, and the page must log no JavaScript error and get no HTTP 5xx. With `DATECHECK=1`
 (the runner sets it) the payment dates of `/paiements` must match the dates returned by the API,
 and the birthdate field of `/mes-donnees-personnelles` must show the API birthdate as `d/m/yyyy`.
+Last, after the legacy walk so that it sees the data of the API script unchanged, it opens the
+Angular mobility choices screen (`/mobility-choices`): as `alice`, the rows must match the API
+count, and a choice created through the form (Erasmus+, France, `Universite de Lyon`, September of
+the current year) must be stored and listed; as `prof`, the active list must match the count shown
+and the API count, alice's new choice is rejected with a denial reason and leaves the active list,
+and the `all` filter must list as many rows as the count shown. Only that new choice is changed,
+so `mobility_detail.js` still finds its completed mobility.
 
 `mobility_detail.js` opens the completed mobility as `prof` and checks that both payment statuses
 read `Effectué le d/m/yyyy` with the dates returned by the API.
