@@ -27,6 +27,7 @@ describe('Shell', () => {
         provideRouter([
           { path: 'signin', component: Page },
           { path: 'partners', component: Page },
+          { path: 'mobility-choices', component: Page },
         ]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -60,6 +61,24 @@ describe('Shell', () => {
     expect(link.getAttribute('aria-current')).toBe('page');
     expect(el.querySelector('router-outlet')).not.toBeNull();
     expect(alert()).toBeNull();
+  });
+
+  it('links the mobility choices, named for the role', async () => {
+    await setup(PROFESSOR);
+    const link = () => el.querySelectorAll<HTMLAnchorElement>('nav a')[1];
+    expect(link().textContent?.trim()).toBe('Demandes de mobilité');
+    expect(link().getAttribute('href')).toBe('/mobility-choices');
+    expect(link().classList).not.toContain('active');
+
+    await router.navigateByUrl('/mobility-choices');
+    fixture.detectChanges();
+    expect(link().classList).toContain('active');
+    expect(link().getAttribute('aria-current')).toBe('page');
+  });
+
+  it('calls them "my mobility choices" for a student', async () => {
+    await setup(STUDENT);
+    expect(el.querySelectorAll('nav a')[1].textContent?.trim()).toBe('Mes demandes de mobilité');
   });
 
   it('shows the name and the role of a professor', async () => {

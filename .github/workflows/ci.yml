@@ -80,6 +80,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: actionlint
         run: pipx run actionlint-py -color
+      - name: Unit tests of the CI report script
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 
   pr-title:
     name: Pull request title
@@ -221,7 +223,7 @@ jobs:
           # only our reports: the docker job also uploads *.dockerbuild build records
           pattern: '*-reports'
       - name: Publish test results
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5.6.2
+        uses: mikepenz/action-junit-report@8a133bfa3ecb0ea9024c1e2ae788b4c25f6cdb9d # v6.6.2
         with:
           check_name: Test results
           report_paths: |
