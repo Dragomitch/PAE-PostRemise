@@ -133,7 +133,7 @@ name is not enough (`@Operation(summary = ...)`, `@Schema(description = ...)` on
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and their constraints in the `domain/dto` package.
 3. Examine the controllers in `adapter/in/web` for the available API endpoints and their roles (`@PreAuthorize`), or browse them in the Swagger UI (`/swagger-ui.html`, see [API documentation](#api-documentation-openapi)).
-4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
+4. Review the Flyway migrations under `src/main/resources/db/migration` to understand the schema (`V1__baseline.sql` is the schema and reference data of `SQLRessources/init.sql`, see [Database schema and migrations](#database-schema-and-migrations)). A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
 ## Building
@@ -170,8 +170,40 @@ mvn -B verify
 The resulting JAR can be found under `target/`.
 
 
+## Database schema and migrations
+The backend owns its schema: at start-up, Flyway applies the pending migrations of
+`src/main/resources/db/migration` to the `student_exchange_tools` schema (created when missing),
+before Hibernate starts, and records them in `student_exchange_tools.flyway_schema_history`
+([ADR 0003](docs/adr/0003-flyway-migrations.md)).
+
+- On an empty database, `V1__baseline.sql` creates the tables and the reference data (options,
+  programmes, countries, documents, the denial reason). There is no account: the first sign-up
+  becomes the professor.
+- A database created from `SQLRessources/init.sql` before Flyway is adopted as version 1 without
+  being changed (`spring.flyway.baseline-on-migrate`), and the later migrations are applied on top.
+- A schema change is a new `V<n>__<description>.sql`; a merged migration is never edited.
+
+Demo data (two professors, three students, three partners and their mobility choices; password
+`123456`) is `SQLRessources/demo.sql`, loaded by hand on a database the backend has migrated, for
+instance with Compose:
+
+```bash
+docker compose exec -T db psql -U pguser01 -d testdb -v ON_ERROR_STOP=1 < SQLRessources/demo.sql
+```
+
+To reset a local database, either drop the schema and restart the backend, which recreates it
+from the migrations, or load `SQLRessources/init.sql` (it drops and recreates the schema at
+version 1, the history table included) and restart the backend:
+
+```bash
+psql -h localhost -U pguser01 -d testdb -c 'DROP SCHEMA student_exchange_tools CASCADE'
+```
+
+With Compose, `docker compose down -v` removes the database volume: the next `docker compose up`
+starts from an empty database.
+
 ## Running with Docker Compose
-A `docker-compose.yml` file is provided to run PostgreSQL (initialised with `SQLRessources/init.sql`), the Spring Boot backend and the Angular frontend.
+A `docker-compose.yml` file is provided to run PostgreSQL, the Spring Boot backend and the Angular frontend. The database starts empty and the backend creates the schema at its first start (see [Database schema and migrations](#database-schema-and-migrations)).
 
 To start everything:
 
