@@ -9,8 +9,6 @@ import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -20,16 +18,16 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Boots the whole application (real beans, embedded server, real security chain) and checks the
@@ -47,10 +45,11 @@ import org.springframework.http.ResponseEntity;
     "spring.jpa.properties.jakarta.persistence.database-major-version=16",
     "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
     "management.health.db.enabled=false"})
+@AutoConfigureRestTestClient
 class ApplicationTests {
 
   @Autowired
-  private TestRestTemplate rest;
+  private RestTestClient rest;
 
   @Autowired
   private SessionCookieService sessionCookieService;
@@ -68,93 +67,118 @@ class ApplicationTests {
     return sessionCookieService.createToken(user);
   }
 
-  private HttpEntity<Void> withSessionCookie(String token) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.add(HttpHeaders.COOKIE, SessionCookieService.COOKIE_NAME + "=" + token);
-    return new HttpEntity<>(headers);
+  private <T> EntityExchangeResult<T> get(String path, Class<T> type) {
+    return rest.get().uri(path).exchange().returnResult(type);
+  }
+
+  private EntityExchangeResult<String> get(String path) {
+    return get(path, String.class);
+  }
+
+  private EntityExchangeResult<String> getWithSessionCookie(String path, String token) {
+    return rest.get().uri(path)
+        .header(HttpHeaders.COOKIE, SessionCookieService.COOKIE_NAME + "=" + token)
+        .exchange().returnResult(String.class);
   }
 
   @Test
   void apiRoutesRequireASession() {
-    ResponseEntity<String> response = rest.getForEntity("/api/1.0/users", String.class);
-    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"code\":\"UNAUTHENTICATED\""), response.getBody());
-    assertNull(response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE),
+    EntityExchangeResult<String> response = get("/api/1.0/users");
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatus());
+    assertTrue(response.getResponseBody().contains("\"code\":\"UNAUTHENTICATED\""),
+        response.getResponseBody());
+    assertNull(response.getResponseHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE),
         "no HTTP Basic or Bearer challenge expected");
     // the SPA gets its CSRF cookie even from a 401
-    List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+    List<String> cookies = response.getResponseHeaders().get(HttpHeaders.SET_COOKIE);
     assertTrue(cookies != null && cookies.stream().anyMatch(c -> c.startsWith("XSRF-TOKEN=")),
         String.valueOf(cookies));
     assertFalse(cookies.stream().anyMatch(c -> c.startsWith("JSESSIONID")), "stateless");
   }
 
   @Test
+  void apiRoutesRequireASessionWhateverTheCaseOfThePath() {
+    // the controllers match paths case-insensitively, so the security rules must as well
+    EntityExchangeResult<String> response = get("/API/1.0/users");
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatus());
+    assertTrue(response.getResponseBody().contains("\"code\":\"UNAUTHENTICATED\""),
+        response.getResponseBody());
+
+    response = getWithSessionCookie("/API/1.0/Users", token(2, UserDto.ROLE_STUDENT));
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
+    assertTrue(response.getResponseBody().contains("\"code\":\"ACCESS_DENIED\""),
+        response.getResponseBody());
+  }
+
+  @Test
   void aStudentCannotCallAProfessorEndpoint() {
-    ResponseEntity<String> response = rest.exchange("/api/1.0/users", HttpMethod.GET,
-        withSessionCookie(token(2, UserDto.ROLE_STUDENT)), String.class);
-    assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"code\":\"ACCESS_DENIED\""), response.getBody());
+    EntityExchangeResult<String> response =
+        getWithSessionCookie("/api/1.0/users", token(2, UserDto.ROLE_STUDENT));
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
+    assertTrue(response.getResponseBody().contains("\"code\":\"ACCESS_DENIED\""),
+        response.getResponseBody());
   }
 
   @Test
   void unknownApiRoutesAre404ForAnAuthenticatedUser() {
-    assertEquals(HttpStatus.UNAUTHORIZED,
-        rest.getForEntity("/api/1.0/doesNotExist", String.class).getStatusCode());
-    ResponseEntity<String> response = rest.exchange("/api/1.0/doesNotExist", HttpMethod.GET,
-        withSessionCookie(token(1, UserDto.ROLE_PROFESSOR)), String.class);
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals(HttpStatus.UNAUTHORIZED, get("/api/1.0/doesNotExist").getStatus());
+    EntityExchangeResult<String> response =
+        getWithSessionCookie("/api/1.0/doesNotExist", token(1, UserDto.ROLE_PROFESSOR));
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatus());
   }
 
   @Test
   void stateChangingRequestsWithoutCsrfTokenAreRefused() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    ResponseEntity<String> response = rest.postForEntity("/api/1.0/session",
-        new HttpEntity<>("{\"username\":\"a\",\"password\":\"b\"}", headers), String.class);
-    assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    assertTrue(response.getBody().contains("\"code\":\"ACCESS_DENIED\""), response.getBody());
+    EntityExchangeResult<String> response = rest.post().uri("/api/1.0/session")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body("{\"username\":\"a\",\"password\":\"b\"}")
+        .exchange().returnResult(String.class);
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
+    assertTrue(response.getResponseBody().contains("\"code\":\"ACCESS_DENIED\""),
+        response.getResponseBody());
   }
 
   @Test
   void legacyWebUiIsServed() {
-    ResponseEntity<String> page = rest.getForEntity("/", String.class);
-    assertEquals(HttpStatus.OK, page.getStatusCode());
-    assertTrue(page.getBody().contains("js/app.js"), "index.html expected");
+    EntityExchangeResult<String> page = get("/");
+    assertEquals(HttpStatus.OK, page.getStatus());
+    assertTrue(page.getResponseBody().contains("js/app.js"), "index.html expected");
 
-    ResponseEntity<byte[]> flag = rest.getForEntity("/images/flags/BE.png", byte[].class);
-    assertEquals(HttpStatus.OK, flag.getStatusCode());
+    EntityExchangeResult<byte[]> flag = get("/images/flags/BE.png", byte[].class);
+    assertEquals(HttpStatus.OK, flag.getStatus());
   }
 
   @Test
   void clientSideRoutesServeTheWebUi() {
     for (String route : List.of("/partenaires", "/demandes-de-mobilite", "/mobilites",
         "/etudiants", "/paiements", "/mes-donnees-personnelles", "/connexion")) {
-      ResponseEntity<String> page = rest.getForEntity(route, String.class);
-      assertEquals(HttpStatus.OK, page.getStatusCode(), route);
-      assertTrue(page.getBody().contains("js/app.js"), "index.html expected for " + route);
+      EntityExchangeResult<String> page = get(route);
+      assertEquals(HttpStatus.OK, page.getStatus(), route);
+      assertTrue(page.getResponseBody().contains("js/app.js"),
+          "index.html expected for " + route);
     }
 
-    assertEquals(HttpStatus.NOT_FOUND,
-        rest.getForEntity("/js/doesNotExist.js", String.class).getStatusCode());
+    assertEquals(HttpStatus.NOT_FOUND, get("/js/doesNotExist.js").getStatus());
   }
 
   @Test
   void healthIsPublicAndShowsNoDetail() {
-    ResponseEntity<JsonNode> response = rest.getForEntity("/actuator/health", JsonNode.class);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("UP", response.getBody().get("status").asText());
+    EntityExchangeResult<JsonNode> response = get("/actuator/health", JsonNode.class);
+    assertEquals(HttpStatus.OK, response.getStatus());
+    JsonNode body = response.getResponseBody();
+    assertEquals("UP", body.get("status").asString());
     // show-details=never: nothing about the components (database, disk space) is disclosed
-    assertFalse(response.getBody().has("components"), response.getBody().toString());
-    assertFalse(response.getBody().has("details"), response.getBody().toString());
-    assertFalse(response.getHeaders().containsKey(HttpHeaders.WWW_AUTHENTICATE));
+    assertFalse(body.has("components"), body.toString());
+    assertFalse(body.has("details"), body.toString());
+    assertFalse(response.getResponseHeaders().containsHeader(HttpHeaders.WWW_AUTHENTICATE));
   }
 
   @Test
   void theHealthProbesArePublic() {
     for (String probe : List.of("/actuator/health/liveness", "/actuator/health/readiness")) {
-      ResponseEntity<String> response = rest.getForEntity(probe, String.class);
-      assertEquals(HttpStatus.OK, response.getStatusCode(), probe);
-      assertEquals("{\"status\":\"UP\"}", response.getBody(), probe);
+      EntityExchangeResult<String> response = get(probe);
+      assertEquals(HttpStatus.OK, response.getStatus(), probe);
+      assertEquals("{\"status\":\"UP\"}", response.getResponseBody(), probe);
     }
   }
 
@@ -162,27 +186,26 @@ class ApplicationTests {
   void otherActuatorEndpointsRequireASession() {
     for (String path : List.of("/actuator", "/actuator/info", "/actuator/env", "/actuator/metrics",
         "/actuator/beans")) {
-      ResponseEntity<String> response = rest.getForEntity(path, String.class);
-      assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), path);
-      assertTrue(response.getBody().contains("\"code\":\"UNAUTHENTICATED\""), response.getBody());
+      EntityExchangeResult<String> response = get(path);
+      assertEquals(HttpStatus.UNAUTHORIZED, response.getStatus(), path);
+      assertTrue(response.getResponseBody().contains("\"code\":\"UNAUTHENTICATED\""),
+          response.getResponseBody());
     }
   }
 
   @Test
   void onlyHealthAndInfoAreExposedToASignedInUser() {
-    HttpEntity<Void> session = withSessionCookie(token(1, UserDto.ROLE_PROFESSOR));
-    assertEquals(HttpStatus.OK,
-        rest.exchange("/actuator/info", HttpMethod.GET, session, String.class).getStatusCode());
+    String session = token(1, UserDto.ROLE_PROFESSOR);
+    assertEquals(HttpStatus.OK, getWithSessionCookie("/actuator/info", session).getStatus());
     for (String path : List.of("/actuator/env", "/actuator/metrics", "/actuator/beans",
         "/actuator/heapdump", "/actuator/prometheus", "/actuator/loggers")) {
-      assertEquals(HttpStatus.NOT_FOUND,
-          rest.exchange(path, HttpMethod.GET, session, String.class).getStatusCode(), path);
+      assertEquals(HttpStatus.NOT_FOUND, getWithSessionCookie(path, session).getStatus(), path);
     }
   }
 
   @Test
   void angularDevServerMayCallTheApi() throws Exception {
-    // java.net.http is used because HttpURLConnection (TestRestTemplate) drops the Origin header
+    // java.net.http directly: the request must carry the browser's Origin header as written here
     HttpClient client = HttpClient.newHttpClient();
     URI session = URI.create("http://localhost:" + port + "/api/1.0/session");
 

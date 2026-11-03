@@ -3,7 +3,7 @@ package com.dragomitch.ipl.pae.domain.exceptions;
 import java.util.Arrays;
 import java.util.Objects;
 import org.springframework.http.ProblemDetail;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.ErrorResponseException;
 
 /**

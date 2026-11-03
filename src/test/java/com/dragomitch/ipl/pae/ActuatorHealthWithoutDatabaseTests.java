@@ -3,15 +3,15 @@ package com.dragomitch.ipl.pae;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.databind.JsonNode;
 
 /**
  * The database indicator of {@code /actuator/health} is part of the status the container health
@@ -26,25 +26,28 @@ import org.springframework.http.ResponseEntity;
     "spring.datasource.url=jdbc:postgresql://localhost:1/unreachable",
     // the smallest timeout Hikari accepts, so that the check fails at once
     "spring.datasource.hikari.connection-timeout=250"})
+@AutoConfigureRestTestClient
 class ActuatorHealthWithoutDatabaseTests {
 
   @Autowired
-  private TestRestTemplate rest;
+  private RestTestClient rest;
 
   @Test
   void theDatabaseCountsInTheHealthStatus() {
-    ResponseEntity<JsonNode> response = rest.getForEntity("/actuator/health", JsonNode.class);
-    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-    assertEquals("DOWN", response.getBody().get("status").asText());
-    assertFalse(response.getBody().has("components"), response.getBody().toString());
-    assertFalse(response.getBody().has("details"), response.getBody().toString());
+    EntityExchangeResult<JsonNode> response =
+        rest.get().uri("/actuator/health").exchange().returnResult(JsonNode.class);
+    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatus());
+    JsonNode body = response.getResponseBody();
+    assertEquals("DOWN", body.get("status").asString());
+    assertFalse(body.has("components"), body.toString());
+    assertFalse(body.has("details"), body.toString());
   }
 
   @Test
   void theLivenessProbeDoesNotDependOnTheDatabase() {
-    ResponseEntity<String> response =
-        rest.getForEntity("/actuator/health/liveness", String.class);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("{\"status\":\"UP\"}", response.getBody());
+    EntityExchangeResult<String> response =
+        rest.get().uri("/actuator/health/liveness").exchange().returnResult(String.class);
+    assertEquals(HttpStatus.OK, response.getStatus());
+    assertEquals("{\"status\":\"UP\"}", response.getResponseBody());
   }
 }

@@ -42,6 +42,19 @@ public class WebConfig implements WebMvcConfigurer {
   public static final Locale DEFAULT_LOCALE = Locale.FRENCH;
 
   /**
+   * The parser of the request mapping patterns, case-insensitive. {@code SecurityConfig} builds
+   * its request matchers with this same parser, so that a path the controllers serve is always
+   * matched by the security rules too ({@code /API/1.0/users} as well as {@code /api/1.0/users}).
+   */
+  public static final PathPatternParser PATH_PATTERN_PARSER = caseInsensitivePathPatternParser();
+
+  private static PathPatternParser caseInsensitivePathPatternParser() {
+    PathPatternParser parser = new PathPatternParser();
+    parser.setCaseSensitive(false);
+    return parser;
+  }
+
+  /**
    * Resolves the locale from {@code Accept-Language} among the supported ones. Declared under
    * the name the {@link DispatcherServlet} looks up, which replaces Spring Boot's default.
    *
@@ -54,9 +67,7 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {
-    PathPatternParser parser = new PathPatternParser();
-    parser.setCaseSensitive(false);
-    configurer.setPatternParser(parser);
+    configurer.setPatternParser(PATH_PATTERN_PARSER);
   }
 
   @Override

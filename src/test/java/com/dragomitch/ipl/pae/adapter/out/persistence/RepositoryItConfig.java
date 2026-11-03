@@ -22,7 +22,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -53,7 +52,6 @@ import jakarta.persistence.EntityManagerFactory;
     "com.dragomitch.ipl.pae.domain.model"},
     // do not pick up other test configurations living in the same packages
     excludeFilters = @ComponentScan.Filter(TestConfiguration.class))
-@EnableJpaRepositories(basePackages = RepositoryItConfig.PERSISTENCE_PACKAGE)
 public class RepositoryItConfig {
 
   static final String PERSISTENCE_PACKAGE = "com.dragomitch.ipl.pae.adapter.out.persistence";

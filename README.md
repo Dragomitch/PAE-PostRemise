@@ -15,18 +15,18 @@ This repository contains a web application for managing Erasmus mobilities. It w
   - `Application` is the Spring Boot entry point.
 - **src/main/resources** contains `application.properties` (Spring configuration) and the message bundles `i18n/messages*.properties` (error titles and details, validation messages, in French and English).
 - **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
-- **src/test/java** holds the JUnit 5 tests. Unit tests run the real domain and use-case beans against the in-memory repositories (`adapter/out/inmemory`, wired by `UnitTestConfig`); the `adapter/in/web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*RepositoryIT` tests (`adapter/out/persistence`) run against an embedded PostgreSQL.
+- **src/test/java** holds the JUnit 6 (Jupiter) tests. Unit tests run the real domain and use-case beans against the in-memory repositories (`adapter/out/inmemory`, wired by `UnitTestConfig`); the `adapter/in/web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*RepositoryIT` tests (`adapter/out/persistence`) run against an embedded PostgreSQL.
 
 ## Key design aspects
-- **Layers** (hexagonal, ADR 0001): controllers (`adapter/in/web`) → use cases (`domain/port/in`, implemented in `application`) → repositories (`domain/port/out`, implemented in `adapter/out/persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
+- **Layers** (hexagonal, ADR 0001): controllers (`adapter/in/web`) → use cases (`domain/port/in`, implemented in `application`) → repositories (`domain/port/out`, implemented in `adapter/out/persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson 3 `JsonMapper` how to read the DTO interfaces (`JacksonConfig`).
 - **REST API**: thin `@RestController`s bind the request (JSON body, path and query parameters, `CurrentUser`), call a use case and return its result. Paths are matched case-insensitively (as the former router did). Lists read by DataTables are wrapped in `{"data": [...]}`; exports are `text/csv`.
 - **Transactions**: every use-case service is `@Transactional` (read-only for queries); the JPA adapters work in the persistence context of that transaction (`open-in-view` is off). Updates check the entity version (`@Version`) and throw a `ConcurrentModificationException`, rendered as a 409 `CONCURRENT_MODIFICATION` problem, on a stale version.
 - **Security** (Spring Security, stateless, see `SecurityConfig`):
   - `POST /api/1.0/session` with `{"username", "password"}` issues an HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the `session` cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when `APP_SESSION_COOKIE_SECURE=true`, valid `APP_SESSION_VALIDITY` (12h). `GET` returns the current user, `DELETE` expires the cookie. No HTTP session is created.
-  - The OAuth2 resource server validates the token from the cookie (or an `Authorization: Bearer` header); the `role` claim becomes `ROLE_PROFESSOR` / `ROLE_STUDENT`, checked by `@PreAuthorize` on the controllers. Every `/api/**` endpoint requires a session except sign-in, sign-up (`POST /users`) and the option list (`GET /options`).
+  - The OAuth2 resource server validates the token from the cookie (or an `Authorization: Bearer` header); the `role` claim becomes `ROLE_PROFESSOR` / `ROLE_STUDENT`, checked by `@PreAuthorize` on the controllers. Every `/api/**` endpoint requires a session except sign-in, sign-up (`POST /users`) and the option list (`GET /options`). The security rules match paths case-insensitively, with the parser of the controllers ([ADR 0002](docs/adr/0002-spring-boot-4.md)).
   - CSRF: the `XSRF-TOKEN` cookie (readable by JavaScript) is issued on every response and must be echoed in the `X-XSRF-TOKEN` header of every `POST`/`PUT`/`DELETE`, sign-in included (Angular does it natively, `app.js` in `$.ajaxSetup`). Requests authenticated by an `Authorization` header are exempt.
   - Errors (401, 403 included) are RFC 9457 problem details, see [Error contract](#error-contract-rfc-9457-problem-details).
-- **Entry point**: `Application` (Spring Boot, embedded Tomcat).
+- **Entry point**: `Application` (Spring Boot 4.1 on Spring Framework 7, embedded Tomcat 11; see [ADR 0002](docs/adr/0002-spring-boot-4.md) for the upgrade decisions).
 - **Validation**: Bean Validation constraints on the DTOs, the request parameters and the use-case methods, see [Validation conventions](#validation-conventions).
 - **i18n**: French (default) and English messages, chosen from `Accept-Language`, see [Translations](#translations-i18n).
 
@@ -186,7 +186,7 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 
 | Job | What it checks |
 |---|---|
-| Backend | `mvn verify`: compile, JUnit 5 tests, JaCoCo coverage |
+| Backend | `mvn verify`: compile, JUnit 6 tests, JaCoCo coverage |
 | Frontend | `npm ci`, production build, Karma tests (headless Chrome) with coverage |
 | Workflow lint | `actionlint` on the workflows |
 | Docker | `docker compose config`, backend and frontend image builds |

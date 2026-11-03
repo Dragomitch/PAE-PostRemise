@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.MobilityChoiceEntit
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
+import com.dragomitch.ipl.pae.adapter.out.persistence.repository.StrictFindByIdRepository;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
@@ -147,8 +148,8 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
    */
   @Override
   public void update(MobilityChoiceDto mobilityChoice) {
-    MobilityChoiceEntity entity = entityManager.find(MobilityChoiceEntity.class,
-        mobilityChoice.getId());
+    MobilityChoiceEntity entity = StrictFindByIdRepository.find(entityManager,
+        MobilityChoiceEntity.class, mobilityChoice.getId());
     if (entity == null || entity.getVersion() != mobilityChoice.getVersion()) {
       throw new ConcurrentModificationException("The data have been modified before that query");
     }

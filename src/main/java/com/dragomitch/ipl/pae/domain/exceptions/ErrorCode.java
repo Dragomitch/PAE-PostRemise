@@ -61,7 +61,7 @@ public enum ErrorCode {
   /** The {@code Content-Type} of the body is not supported. */
   UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE),
   /** The request body is too large. */
-  PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE),
+  PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE),
   /** The entity was modified by someone else since it was read (formerly 120, then 400). */
   CONCURRENT_MODIFICATION(HttpStatus.CONFLICT),
   /** The database refused the change (integrity constraint). */
@@ -73,9 +73,9 @@ public enum ErrorCode {
   /** Email address already used by another account (formerly 207). */
   EMAIL_TAKEN(HttpStatus.CONFLICT),
   /** The option of the user or of the partner does not exist (formerly 210). */
-  UNKNOWN_OPTION(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_OPTION(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The user referenced by the request does not exist (formerly 200). */
-  UNKNOWN_USER(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_USER(HttpStatus.UNPROCESSABLE_CONTENT),
 
   // ----- mobility choices -----
   /** The mobility choice already became a mobility (formerly 301 and 321). */
@@ -85,15 +85,15 @@ public enum ErrorCode {
   /** A mobility choice cannot be confirmed before a partner is chosen (formerly 324). */
   PARTNER_REQUIRED_TO_CONFIRM(HttpStatus.CONFLICT),
   /** A professor cannot apply for a mobility himself (formerly 322). */
-  PROFESSOR_CANNOT_APPLY(HttpStatus.UNPROCESSABLE_ENTITY),
+  PROFESSOR_CANNOT_APPLY(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The partner is not in the country of the mobility choice (formerly 320). */
-  COUNTRY_CHANGE_NOT_ALLOWED(HttpStatus.UNPROCESSABLE_ENTITY),
+  COUNTRY_CHANGE_NOT_ALLOWED(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The country referenced by the request does not exist (formerly 900). */
-  UNKNOWN_COUNTRY(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_COUNTRY(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The programme referenced by the request does not exist (formerly 1000). */
-  UNKNOWN_PROGRAMME(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_PROGRAMME(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The denial reason referenced by the request does not exist (formerly 134 and 400). */
-  UNKNOWN_DENIAL_REASON(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_DENIAL_REASON(HttpStatus.UNPROCESSABLE_CONTENT),
 
   // ----- mobilities -----
   /** The mobility was cancelled (formerly 501). */
@@ -107,15 +107,15 @@ public enum ErrorCode {
   /** Some documents are not filled in (formerly 507). */
   DOCUMENTS_INCOMPLETE(HttpStatus.CONFLICT),
   /** The document is not one of the documents of the mobility (formerly 505). */
-  UNKNOWN_DOCUMENT(HttpStatus.UNPROCESSABLE_ENTITY),
+  UNKNOWN_DOCUMENT(HttpStatus.UNPROCESSABLE_CONTENT),
   /** The bank details of the nominated student are missing (formerly 506). */
   INCOMPLETE_BANK_DETAILS(HttpStatus.CONFLICT),
   /** No payment can be requested in the current state of the mobility (formerly 110). */
   PAYMENT_NOT_EXPECTED(HttpStatus.CONFLICT),
   /** A professor must give a denial reason to cancel a mobility (formerly 130). */
-  DENIAL_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY),
+  DENIAL_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT),
   /** A student must explain why he cancels a mobility (formerly 130). */
-  CANCELLATION_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY),
+  CANCELLATION_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT),
 
   // ----- nominated students -----
   /** The personal data of the student were already recorded (formerly 618). */
@@ -127,7 +127,7 @@ public enum ErrorCode {
   /** Only an archived partner can be restored (formerly 711). */
   PARTNER_NOT_ARCHIVED(HttpStatus.CONFLICT),
   /** A partner must always offer at least one option (formerly 712). */
-  PARTNER_OPTION_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY);
+  PARTNER_OPTION_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT);
 
   /** Prefix of the problem {@code type} URIs. */
   public static final String TYPE_PREFIX = "urn:pae:problem:";

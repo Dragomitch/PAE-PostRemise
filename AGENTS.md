@@ -19,7 +19,7 @@ The Erasmus Management Application (EMA) is a fullstack web platform used to han
 List the main technologies and tools used in the project:
 
 - **Frontend**: Angular 20
-- **Backend**: Spring Boot 3 (Java 21)
+- **Backend**: Spring Boot 4 (Java 21)
 - **Database**: PostgreSQL
 - **Deployment**: Docker Compose
 - **Other Tools**: GitHub Actions, Maven, Node.js
