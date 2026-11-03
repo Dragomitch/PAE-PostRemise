@@ -94,6 +94,18 @@ function watch(page, name, problems) {
         const shown = await page.locator('#payments-view table tbody tr td:last-child').allTextContents();
         ok(api.length > 0 && shown.sort().join() === want.sort().join(), `payment dates shown ${JSON.stringify(shown)} match the API ${JSON.stringify(want)}`);
       }
+      if (href === '/mes-donnees-personnelles' && process.env.DATECHECK) {
+        // the personal-data form shows d/m/yyyy: compare it with the birthdate the API returns (#146 showed month - 1)
+        await page.waitForFunction(() => /\//.test(document.querySelector('#student-personal-details-view [name=birthdate]')?.value || ''), null, { timeout: 5000 }).catch(() => {});
+        const api = await page.evaluate(async () => {
+          const me = await (await fetch('/api/1.0/session')).json();
+          return (await (await fetch(`/api/1.0/nominatedStudents/${me.id}`)).json()).birthdate;
+        });
+        const [y, m, day] = String(api).substring(0, 10).split('-');
+        const want = `${Number(day)}/${Number(m)}/${y}`;
+        const shown = await page.inputValue('#student-personal-details-view [name=birthdate]');
+        ok(!!api && shown === want, `birthdate field shows ${JSON.stringify(shown)}, the API birthdate ${api} is ${JSON.stringify(want)}`);
+      }
     }
     return page;
   }

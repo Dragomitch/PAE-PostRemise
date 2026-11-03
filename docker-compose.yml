@@ -34,13 +34,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # docker stop sends SIGTERM and waits this long before SIGKILL: more than the 20s the
+    # application gives the requests in flight (spring.lifecycle.timeout-per-shutdown-phase)
+    stop_grace_period: 30s
+    healthcheck:
+      # /actuator/health answers 200 when the application and the database are up and 503 when one
+      # is down (curl --fail turns that into a failure). curl comes with the eclipse-temurin image.
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # start-up (Hibernate, schema validation) takes a few seconds: failures in this window
+      # do not count
+      start_period: 40s
 
   frontend:
     build: ./frontend
     ports:
       - "4200:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   db-data-18:

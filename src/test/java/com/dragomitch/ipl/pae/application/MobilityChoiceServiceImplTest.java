@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.application;
 
 import static com.dragomitch.ipl.pae.domain.exceptions.BusinessExceptionAssert.assertThatBusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -35,8 +34,9 @@ import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +60,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class MobilityChoiceServiceImplTest {
+
+  /** The instant the use case reads from its clock: the dates it sets are asserted exactly. */
+  private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 15, 10, 15, 30);
+  private static final Clock CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
   private static final int CHOICE_ID = 11;
   private static final int OTHER_CHOICE_ID = 12;
@@ -96,7 +100,7 @@ class MobilityChoiceServiceImplTest {
   void setUp() {
     mobilityChoiceService = new MobilityChoiceServiceImpl(userRepository, mobilityChoiceRepository, mobilityRepository,
         denialReasonRepository, documentRepository, mobilityDocumentRepository, entityFactory, countryRepository,
-        programmeRepository, partnerService);
+        programmeRepository, partnerService, CLOCK);
   }
 
   private UserDto student() {
@@ -475,8 +479,7 @@ class MobilityChoiceServiceImplTest {
       MobilityDto mobility = createdMobility();
       assertThat(mobility.getId()).isEqualTo(CHOICE_ID);
       assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
-      assertThat(mobility.getSubmissionDate())
-          .isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.MINUTES));
+      assertThat(mobility.getSubmissionDate()).isEqualTo(NOW);
       assertThat(mobility.getProfessorInCharge()).isSameAs(professor);
       verify(mobilityDocumentRepository).create(1, CHOICE_ID);
       verify(mobilityDocumentRepository).create(2, CHOICE_ID);

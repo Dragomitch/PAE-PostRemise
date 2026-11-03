@@ -75,7 +75,9 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
  * <li><b>Authorization</b>: every {@code /api/**} endpoint requires an authenticated user, except
  * the {@linkplain #publicApiEndpoints public ones}; roles are checked on the controllers with
  * {@code @PreAuthorize} ({@code ROLE_PROFESSOR} / {@code ROLE_STUDENT} from the {@code role}
- * claim). The static web UI, its client-side routes and the error page are public.</li>
+ * claim). The static web UI, its client-side routes and the error page are public. So is
+ * {@code GET /actuator/health} (and its sub-paths), which the Docker health check calls without a
+ * session; any other {@code /actuator/**} path requires an authenticated user.</li>
  * <li><b>CSRF</b>: the double-submit cookie pattern for single-page applications: the
  * {@code XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
  * back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.</li>
@@ -93,6 +95,9 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
+  /** Base path of the Actuator endpoints ({@code management.endpoints.web.base-path}). */
+  private static final String ACTUATOR_BASE = "/actuator";
 
   private static final String HMAC_ALGORITHM = "HmacSHA256";
   private static final int MIN_SECRET_BYTES = 32;
@@ -174,6 +179,12 @@ public class SecurityConfig {
             .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
             .requestMatchers(publicApiEndpoints).permitAll()
             .requestMatchers(mvc.pattern(ApiPaths.BASE + "/**")).authenticated()
+            // the health status (database included) is public: the container health check has no
+            // session. The other exposed endpoint (info) and anything else under /actuator need one.
+            .requestMatchers(
+                mvc.pattern(HttpMethod.GET, ACTUATOR_BASE + "/health"),
+                mvc.pattern(HttpMethod.GET, ACTUATOR_BASE + "/health/**")).permitAll()
+            .requestMatchers(mvc.pattern(ACTUATOR_BASE + "/**")).authenticated()
             // the web UI: static files and client-side routes
             .anyRequest().permitAll())
         .oauth2ResourceServer(oauth2 -> oauth2

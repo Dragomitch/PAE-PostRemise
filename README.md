@@ -162,6 +162,8 @@ docker compose up
 
 The backend container exposes port `8080` (API and legacy web UI) while the Angular frontend is served on port `4200`.
 
+The backend reports its health on `http://localhost:8080/actuator/health` (`200` with `"status":"UP"`, or `503` with `"status":"DOWN"` when the database is unreachable; no detail, no session needed). Compose uses it as the backend's health check, and the frontend container starts once the backend is healthy. `/actuator/info` is the only other endpoint exposed, and it needs a session. On `docker stop` the backend finishes the requests in flight (up to 20 seconds) before it exits.
+
 ### Configuration
 The backend reads the following environment variables:
 

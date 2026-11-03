@@ -93,6 +93,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- /actuator/health (with the database indicator) and /actuator/info: the health check of the
+             backend container in docker-compose.yml; nothing else is exposed (application.properties) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- Persistence: Spring Data JPA (Hibernate) behind the outbound ports (adapter.out.persistence) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
