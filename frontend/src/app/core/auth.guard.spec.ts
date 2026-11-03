@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ActivatedRouteSnapshot, GuardResult, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 import { Observable, firstValueFrom, isObservable, of } from 'rxjs';
 
-import { authGuard } from './auth.guard';
+import { authGuard, roleGuard } from './auth.guard';
 import { SessionService } from './session.service';
 
 describe('authGuard', () => {
@@ -64,5 +64,47 @@ describe('authGuard', () => {
     const result = runGuard();
     http.expectOne('/api/1.0/session').error(new ProgressEvent('error'));
     expect(router.serializeUrl((await result) as UrlTree)).toBe('/signin');
+  });
+});
+
+describe('roleGuard', () => {
+  let http: HttpTestingController;
+  let router: Router;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    http = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+  });
+
+  afterEach(() => http.verify());
+
+  function signIn(role: string): void {
+    TestBed.inject(SessionService).signIn({ username: 'someone', password: 'secret' }).subscribe();
+    http.expectOne('/api/1.0/session').flush({ username: 'someone', role });
+  }
+
+  function runGuard(role: string): GuardResult {
+    return TestBed.runInInjectionContext(() =>
+      roleGuard(role)({} as ActivatedRouteSnapshot, { url: '/users' } as RouterStateSnapshot),
+    ) as GuardResult;
+  }
+
+  it('lets a user having the role through', () => {
+    signIn('Professor');
+    expect(runGuard('Professor')).toBeTrue();
+  });
+
+  it('sends a user of another role to the partners, without asking the server', () => {
+    signIn('Student');
+    const outcome = runGuard('Professor');
+    expect(outcome instanceof UrlTree).toBeTrue();
+    expect(router.serializeUrl(outcome as UrlTree)).toBe('/partners');
+  });
+
+  it('sends an unknown user to the partners (the shell guard runs first and signs them in)', () => {
+    expect(router.serializeUrl(runGuard('Student') as UrlTree)).toBe('/partners');
   });
 });

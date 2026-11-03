@@ -5,6 +5,8 @@ export interface Credentials {
 
 export interface OptionRef {
   code: string;
+  /** Sent by the API when it reads an option, never needed in a request. */
+  name?: string;
 }
 
 /** Body of `POST /api/1.0/users` (sent as is, not wrapped). */
