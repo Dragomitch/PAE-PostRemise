@@ -94,12 +94,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
-        <!-- TEMPORARY: reports renamed or removed properties at start-up -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-properties-migrator</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!-- /actuator/health (with the database indicator) and /actuator/info: the health check of the
              backend container in docker-compose.yml; nothing else is exposed (application.properties) -->
         <dependency>
