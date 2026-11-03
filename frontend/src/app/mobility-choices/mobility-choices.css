@@ -204,6 +204,11 @@ th[scope='row'] {
   color: #1f3a5f;
 }
 
+.badge-confirmed {
+  background: #e7f5ea;
+  color: #1d5b2c;
+}
+
 .badge-canceled {
   background: #eef1f5;
   color: #4a5568;

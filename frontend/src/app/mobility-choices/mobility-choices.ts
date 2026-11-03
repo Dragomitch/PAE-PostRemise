@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, Subscription, finalize, forkJoin, map } from 'rxjs';
+import { Observable, Subscription, finalize, forkJoin, map, of } from 'rxjs';
 
 import { ApiService, mobilityChoicesExportUrl } from '../api.service';
 import { ApiProblem, ClientProblemCode, toApiProblem } from '../core/api-problem';
@@ -29,7 +29,14 @@ type Panel = { action: 'cancel' | 'reject'; choice: MobilityChoice };
 interface Loaded {
   choices: MobilityChoice[];
   count: number | null;
+  mobilityIds: number[];
 }
+
+/**
+ * Filters whose list may hold choices that became mobilities: `active` leaves them out, and
+ * `canceled` and `rejected` only hold closed choices.
+ */
+const FILTERS_WITH_MOBILITIES: readonly MobilityChoiceFilter[] = ['all', 'passed'];
 
 /**
  * Mobility choices (the applications of the students), for both roles:
@@ -69,6 +76,8 @@ export class MobilityChoices {
   protected readonly problem = signal<ApiProblem | null>(null);
   protected readonly choices = signal<MobilityChoice[]>([]);
   protected readonly count = signal<number | null>(null);
+  /** Choices of the list that became mobilities (they read "confirmed" and have no action). */
+  private readonly mobilityIds = signal<ReadonlySet<number>>(new Set());
 
   /** Success message of the last action, announced politely. */
   protected readonly notice = signal<string | null>(null);
@@ -108,25 +117,35 @@ export class MobilityChoices {
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: ({ choices, count }) => {
+        next: ({ choices, count, mobilityIds }) => {
           this.choices.set(choices);
           this.count.set(count);
+          this.mobilityIds.set(new Set(mobilityIds));
         },
         error: (error: unknown) => {
           this.choices.set([]);
           this.count.set(null);
+          this.mobilityIds.set(new Set());
           this.fail(toApiProblem(error), this.problem);
         },
       });
   }
 
-  /** The professor's list comes with the count of the API for the same filter. */
+  /**
+   * The professor's list comes with the count of the API for the same filter and, when the filter
+   * may list choices that became mobilities, the ids of the mobilities. The student's list never
+   * holds such choices (the API leaves them out).
+   */
   private fetch(): Observable<Loaded> {
     if (!this.isProfessor()) {
-      return this.api.mobilityChoices().pipe(map((choices) => ({ choices, count: null })));
+      return this.api.mobilityChoices().pipe(map((choices) => ({ choices, count: null, mobilityIds: [] })));
     }
     const filter = this.filter();
-    return forkJoin({ choices: this.api.mobilityChoices(filter), count: this.api.countMobilityChoices(filter) });
+    return forkJoin({
+      choices: this.api.mobilityChoices(filter),
+      count: this.api.countMobilityChoices(filter),
+      mobilityIds: FILTERS_WITH_MOBILITIES.includes(filter) ? this.api.mobilityIds() : of([]),
+    });
   }
 
   /** Shows the problem, or goes back to the sign-in page when the session expired. */
@@ -148,7 +167,7 @@ export class MobilityChoices {
   }
 
   protected state(choice: MobilityChoice): ChoiceState {
-    return choiceState(choice);
+    return choiceState(choice, this.mobilityIds());
   }
 
   protected departure(choice: MobilityChoice): string {

@@ -124,6 +124,17 @@ export class ApiService {
       .pipe(mapApiProblem());
   }
 
+  /**
+   * Ids of the mobilities the user may see (every one for a professor). A mobility has the id of
+   * the choice it was confirmed from, which tells which choices of a list became mobilities.
+   */
+  mobilityIds(): Observable<number[]> {
+    return this.http.get<DataResponse<{ id: number }>>(`${this.baseUrl}/mobilities`).pipe(
+      map((response) => response.data.map((mobility) => mobility.id)),
+      mapApiProblem(),
+    );
+  }
+
   /** A professor confirms a choice that has a partner: it becomes a mobility. */
   confirmMobilityChoice(id: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/mobilityChoices/${id}/confirm`, null).pipe(mapApiProblem());

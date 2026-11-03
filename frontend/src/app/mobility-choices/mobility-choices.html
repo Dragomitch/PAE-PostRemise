@@ -40,7 +40,7 @@
   }
 
   @if (panel(); as current) {
-    <div class="panel">
+    <div class="panel action-panel">
       @if (current.action === 'cancel') {
         <h2 id="mobility-choices-panel-title" i18n="@@mobilityChoices.cancel.title">Annuler une demande de mobilité</h2>
       } @else {
@@ -169,6 +169,9 @@
                   @switch (state(c)) {
                     @case ('rejected') {
                       <span class="badge badge-rejected" i18n="@@mobilityChoices.state.rejected">Refusée</span>
+                    }
+                    @case ('confirmed') {
+                      <span class="badge badge-confirmed" i18n="@@mobilityChoices.state.confirmed">Confirmée</span>
                     }
                     @case ('canceled') {
                       <span class="badge badge-canceled" i18n="@@mobilityChoices.state.canceled">Annulée</span>
