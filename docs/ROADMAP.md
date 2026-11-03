@@ -13,7 +13,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | C1 | Single `CI` workflow on every PR: backend, frontend, Docker build, workflow lint, test report, `CI passed` gate | One required check, readable reports | ✅ #87 |
 | C2 | Branch protection on `master`: require `CI passed` and one review, require up-to-date branches, block force pushes | CI means nothing if red PRs can be merged | 💡 settings |
 | C3 | Enable **"Automatically delete head branches"** + prefer merge queue | Stacked PRs then retarget to `master` automatically (the #81–#84 incident) | 💡 settings |
-| C4 | Dependabot for `maven`, `npm` (frontend) and `github-actions`, grouped weekly (minor/patch grouped, majors separate) | 46 npm vulnerabilities were found; today's bumps arrive one by one and conflict | 💡 |
+| C4 | Dependabot for `maven`, `npm` (frontend) and `github-actions`, grouped weekly (minor/patch grouped, majors separate) | 46 npm vulnerabilities were found; today's bumps arrive one by one and conflict | ✅ #109 (`.github/dependabot.yml`); the first batches landed in #114, #111 and the grouped npm PR |
 | C5 | CodeQL (Java + TypeScript) and `dependency-review-action` on PRs | Catch vulnerable dependencies/injection before merge | 💡 |
 | C6 | Pin third-party actions to commit SHAs (Dependabot keeps them fresh) | Supply-chain hardening | 💡 |
 | C7 | Coverage ratchet: JaCoCo `check` + Karma thresholds fail the build; PR comment shows the delta | Coverage can only go up | ✅ #89 (JaCoCo), #88 (Karma), raised in #92 |
