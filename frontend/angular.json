@@ -108,7 +108,8 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "karmaConfig": "karma.conf.js"
+            "karmaConfig": "karma.conf.js",
+            "codeCoverageExclude": ["src/app/core/api/**"]
           }
         },
         "lint": {
