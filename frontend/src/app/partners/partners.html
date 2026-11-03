@@ -1,0 +1,114 @@
+<section aria-labelledby="partners-title">
+  <h1 id="partners-title" i18n="@@partners.title">Partenaires</h1>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="partners-filter" i18n="@@partners.filter.label">Filtrer par nom</label>
+      <input id="partners-filter" type="search" autocomplete="off" [value]="nameFilter()" (input)="setNameFilter($event)"
+             placeholder="Nom du partenaire" i18n-placeholder="@@partners.filter.placeholder">
+    </div>
+    @if (isProfessor()) {
+      <div class="field">
+        <label for="partners-archived" i18n="@@partners.archivedFilter.label">Statut</label>
+        <select id="partners-archived" [value]="archivedFilter()" (change)="setArchivedFilter($event)">
+          <option value="all" i18n="@@partners.archivedFilter.all">Tous les partenaires</option>
+          <option value="active" i18n="@@partners.archivedFilter.active">Partenaires actifs</option>
+          <option value="archived" i18n="@@partners.archivedFilter.archived">Partenaires archivés</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="state" role="status" i18n="@@partners.loading">Chargement des partenaires…</p>
+  } @else if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@partners.retry">Réessayer</button>
+    </div>
+  } @else {
+    <p class="count" role="status" i18n="@@partners.count">
+      Partenaires affichés : {{ rows().length // i18n(ph="SHOWN") }} sur {{ partners().length // i18n(ph="TOTAL") }}
+    </p>
+
+    @if (rows().length) {
+      <div class="table-wrapper">
+        <table aria-labelledby="partners-title">
+          <thead>
+            <tr>
+              <th scope="col" [attr.aria-sort]="ariaSort('name')">
+                <button type="button" class="sort" (click)="sortBy('name')">
+                  <span i18n="@@partners.column.name">Nom du partenaire</span>
+                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('name') }}</span>
+                </button>
+              </th>
+              <th scope="col" [attr.aria-sort]="ariaSort('country')">
+                <button type="button" class="sort" (click)="sortBy('country')">
+                  <span i18n="@@partners.column.country">Pays</span>
+                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('country') }}</span>
+                </button>
+              </th>
+              <th scope="col" [attr.aria-sort]="ariaSort('options')">
+                <button type="button" class="sort" (click)="sortBy('options')">
+                  <span i18n="@@partners.column.options">Options</span>
+                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('options') }}</span>
+                </button>
+              </th>
+              <th scope="col" [attr.aria-sort]="ariaSort('official')">
+                <button type="button" class="sort" (click)="sortBy('official')">
+                  <span i18n="@@partners.column.official">Officiel</span>
+                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('official') }}</span>
+                </button>
+              </th>
+              @if (isProfessor()) {
+                <th scope="col" [attr.aria-sort]="ariaSort('archived')">
+                  <button type="button" class="sort" (click)="sortBy('archived')">
+                    <span i18n="@@partners.column.archived">Archivé</span>
+                    <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('archived') }}</span>
+                  </button>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of rows(); track p.id) {
+              <tr>
+                <th scope="row" class="name">{{ p.fullName }}</th>
+                <td>
+                  <div class="country">
+                    @if (flagUrl(p.address.country.countryCode); as src) {
+                      <img class="flag" [src]="src" alt="" width="24" height="24" loading="lazy"
+                           (error)="flagFailed(p.address.country.countryCode)">
+                    }
+                    <span>{{ p.address.country.name }}</span>
+                  </div>
+                </td>
+                <td class="options">{{ options(p) }}</td>
+                <td>
+                  @if (p.official) {
+                    <span class="badge badge-yes" i18n="@@partners.yes">Oui</span>
+                  } @else {
+                    <span class="badge badge-no" i18n="@@partners.no">Non</span>
+                  }
+                </td>
+                @if (isProfessor()) {
+                  <td>
+                    @if (p.archived) {
+                      <span class="badge badge-archived" i18n="@@partners.yes">Oui</span>
+                    } @else {
+                      <span class="badge badge-no" i18n="@@partners.no">Non</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (partners().length) {
+      <p class="state" i18n="@@partners.noMatch">Aucun partenaire ne correspond à votre recherche.</p>
+    } @else {
+      <p class="state" i18n="@@partners.empty">Aucun partenaire à afficher.</p>
+    }
+  }
+</section>

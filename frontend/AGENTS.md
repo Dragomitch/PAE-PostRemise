@@ -35,8 +35,12 @@ frontend/
 │   │   │   ├── accept-language.interceptor.ts
 │   │   │   ├── form-errors.ts             # client/server field error helpers
 │   │   │   ├── locales.ts                 # supported locales (fr, en)
+│   │   │   ├── session.service.ts         # signed-in user (GET/POST/DELETE /session), signal-based
+│   │   │   ├── auth.guard.ts              # anonymous visitors -> /signin
 │   │   │   └── models.ts                  # API DTOs
 │   │   ├── language-switcher/
+│   │   ├── shell/                 # layout of the authenticated routes (header, nav, sign-out)
+│   │   ├── partners/              # read-only partners list (sort, name filter, archived filter)
 │   │   ├── sign-in/  sign-up/
 │   │   └── api.service.ts
 │   └── locale/
@@ -202,6 +206,9 @@ Frontend pieces:
 
 - `POST /api/1.0/session` `{username, password}` -> user + HttpOnly session cookie
 - `GET /api/1.0/session` -> current user or 401; `DELETE /api/1.0/session` -> sign out
+- `GET /api/1.0/partners` -> `{data: [...]}`: every partner (archived included) for a professor,
+  the official partners of the student's option for a student. Flags come from
+  `/images/flags/<countryCode>.png`, served by the backend (`proxy.conf.json`, `nginx.conf`).
 - `POST /api/1.0/users` with the user object as body:
   `{username, password, firstName, lastName, email, option: {code}}`
 
@@ -211,7 +218,12 @@ until the backend exposes an options endpoint in the new API.
 ### Routing
 
 Routing is defined in `app.routes.ts`; route titles are localized with `$localize`.
-Unknown paths redirect to `/signin`.
+`/signin` and `/signup` are public. Every other screen is a child of the `Shell` route, guarded by
+`authGuard`: a signed-in user is known from the sign-in of this page load or from
+`GET /api/1.0/session` (`SessionService.restore()`), otherwise the visitor is redirected to
+`/signin`. A successful sign-in navigates to `/partners`; `/` and unknown paths redirect to
+`/partners` (so anonymous visitors end on `/signin`). A 401 while a screen loads (expired session)
+clears the user and goes back to `/signin`.
 
 ## Testing Strategy
 

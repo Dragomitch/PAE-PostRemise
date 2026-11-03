@@ -7,7 +7,7 @@ import { MOCK_PLATFORM_LOCATION_CONFIG } from '@angular/common/testing';
 import { ApiService } from './api.service';
 import { appConfig } from './app.config';
 import { ApiProblem } from './core/api-problem';
-import { SignUpRequest, User } from './core/models';
+import { Partner, SignUpRequest, User } from './core/models';
 
 const USER: User = { id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'j@d.be' };
 
@@ -100,6 +100,31 @@ describe('ApiService', () => {
       expect(req.request.method).toBe('DELETE');
       req.flush(null, { status: 204, statusText: 'No Content' });
       expect(done).toBeTrue();
+    });
+
+    it('lists the partners from GET /partners, unwrapping the data member', () => {
+      const partner = {
+        id: 1,
+        fullName: 'Université de Lyon',
+        address: { country: { countryCode: 'FR', name: 'France' } },
+        options: [{ code: 'BIN' }],
+        official: true,
+        archived: false,
+      };
+      let partners: Partner[] | undefined;
+      service.partners().subscribe((p) => (partners = p));
+      const req = http.expectOne('/api/1.0/partners');
+      expect(req.request.method).toBe('GET');
+      req.flush({ data: [partner] });
+      expect(partners).toEqual([partner]);
+    });
+
+    it('fails with an ApiProblem when the partners cannot be listed', () => {
+      let problem: unknown;
+      service.partners().subscribe({ error: (e) => (problem = e) });
+      http.expectOne('/api/1.0/partners').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      expect(problem).toBeInstanceOf(ApiProblem);
+      expect((problem as ApiProblem).code).toBe('SERVICE_UNAVAILABLE');
     });
 
     it('sends the UI language as Accept-Language', () => {
