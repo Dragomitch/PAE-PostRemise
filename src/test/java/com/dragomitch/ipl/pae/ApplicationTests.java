@@ -204,6 +204,21 @@ class ApplicationTests {
   }
 
   @Test
+  void theOpenApiDocumentAndTheSwaggerUiArePublic() {
+    for (String path : List.of("/v3/api-docs", "/v3/api-docs.yaml", "/v3/api-docs/swagger-config",
+        "/swagger-ui/index.html")) {
+      EntityExchangeResult<String> response = get(path);
+      assertEquals(HttpStatus.OK, response.getStatus(), path);
+      assertFalse(response.getResponseHeaders().containsHeader(HttpHeaders.WWW_AUTHENTICATE),
+          path);
+    }
+    // served like the controllers, whatever the case of the path, and public all the same
+    assertEquals(HttpStatus.OK, get("/V3/API-DOCS").getStatus());
+    // the document describes the API, the API itself still needs a session
+    assertEquals(HttpStatus.UNAUTHORIZED, get("/api/1.0/mobilities").getStatus());
+  }
+
+  @Test
   void angularDevServerMayCallTheApi() throws Exception {
     // java.net.http directly: the request must carry the browser's Origin header as written here
     HttpClient client = HttpClient.newHttpClient();

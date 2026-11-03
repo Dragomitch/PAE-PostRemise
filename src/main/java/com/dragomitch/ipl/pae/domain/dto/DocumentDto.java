@@ -1,5 +1,7 @@
 package com.dragomitch.ipl.pae.domain.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public interface DocumentDto extends Entity {
 
   public static final char DEPARTURE_DOCUMENT = 'D';
@@ -9,6 +11,7 @@ public interface DocumentDto extends Entity {
 
   void setName(String name);
 
+  @Schema(description = "D (departure document) or R (return document).")
   char getCategory();
 
   void setCategory(char category);

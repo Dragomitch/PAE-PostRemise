@@ -11,7 +11,7 @@ This repository contains a web application for managing Erasmus mobilities. It w
   - `application` – the use-case services (`XxxServiceImpl`, `@Service`, `@Transactional`) implementing the driving ports; `export` builds the CSV exports.
   - `adapter/in/web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, `ApiExceptionHandler` which renders every API error, and `security` (session JWT cookie, current user, CSRF helpers used by the security chain).
   - `adapter/out/persistence` – the Spring Data JPA adapters implementing the repositories (`JpaXxxRepositoryAdapter`), the JPA entities (`entity`) and the Spring Data interfaces (`repository`).
-  - `config` – Spring configuration (security chain, JSON mapping, CORS, web UI routing).
+  - `config` – Spring configuration (security chain, JSON mapping, CORS, web UI routing, OpenAPI document).
   - `Application` is the Spring Boot entry point.
 - **src/main/resources** contains `application.properties` (Spring configuration) and the message bundles `i18n/messages*.properties` (error titles and details, validation messages, in French and English).
 - **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
@@ -110,10 +110,29 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 - Rules that need the database or the state (uniqueness, existence of a referenced entity, state of a mobility...) stay in the use cases and throw a `BusinessException` with an `ErrorCode`.
 - Tests: `Violations.of(dto)` / `Violations.onCreate(dto)` list the broken constraints as `"field:Constraint"`, `Violations.thrownBy(() -> ucc.call(...))` those of a use case.
 
+## API documentation (OpenAPI)
+springdoc-openapi generates the OpenAPI 3 document of the REST API from the controllers, and serves
+a Swagger UI on top of it. Both are public (they describe the API and hold no data):
+
+- `GET /v3/api-docs` (JSON, `/v3/api-docs.yaml` for YAML): every endpoint under `/api/1.0` with its
+  parameters, Bean Validation constraints, JSON types, security (the `session` cookie, and the
+  `X-XSRF-TOKEN` header on state-changing requests) and error responses (the `ProblemDetail`
+  schema of the [error contract](#error-contract-rfc-9457-problem-details)).
+- `/swagger-ui.html` (redirects to `/swagger-ui/index.html`): browse and try the API. Sign in first
+  with `POST /api/1.0/session`; the browser then sends the `session` cookie, and a
+  state-changing call needs the value of the `XSRF-TOKEN` cookie in the `csrfHeader` field of
+  *Authorize*.
+
+On a local run they are at <http://localhost:8080/v3/api-docs> and
+<http://localhost:8080/swagger-ui.html>. A new endpoint appears in the document by itself
+(`OpenApiDocumentTest` fails when a mapping of the controllers is missing); document it when its
+name is not enough (`@Operation(summary = ...)`, `@Schema(description = ...)` on a DTO getter, see
+`config/OpenApiConfig` and [backend/AGENTS.md](backend/AGENTS.md)).
+
 ## Getting started
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and their constraints in the `domain/dto` package.
-3. Examine the controllers in `adapter/in/web` for the available API endpoints and their roles (`@PreAuthorize`).
+3. Examine the controllers in `adapter/in/web` for the available API endpoints and their roles (`@PreAuthorize`), or browse them in the Swagger UI (`/swagger-ui.html`, see [API documentation](#api-documentation-openapi)).
 4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
@@ -160,7 +179,7 @@ To start everything:
 docker compose up
 ```
 
-The backend container exposes port `8080` (API and legacy web UI) while the Angular frontend is served on port `4200`.
+The backend container exposes port `8080` (API, its OpenAPI document and Swagger UI, and the legacy web UI) while the Angular frontend is served on port `4200`.
 
 The backend reports its health on `http://localhost:8080/actuator/health` (`200` with `"status":"UP"`, or `503` with `"status":"DOWN"` when the database is unreachable; no detail, no session needed). Compose uses it as the backend's health check, and the frontend container starts once the backend is healthy. `/actuator/info` is the only other endpoint exposed, and it needs a session. On `docker stop` the backend finishes the requests in flight (up to 20 seconds) before it exits.
 

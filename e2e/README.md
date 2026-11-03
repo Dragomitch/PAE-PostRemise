@@ -7,7 +7,7 @@ with the same runner.
 | File | What it does |
 |---|---|
 | `run-e2e.sh` | Runner: waits for the backend, runs the three scripts below in order, starts and stops the Angular dev server, prints a summary and exits 1 if a step failed |
-| `api_e2e.py` | API scenario (Python standard library only): 158 checks |
+| `api_e2e.py` | API scenario (Python standard library only): 159 checks |
 | `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices screen: 33 checks |
 | `mobility_detail.js` | Playwright check of the completed mobility's detail page: 4 checks |
 | `package.json` | Pins Playwright (exact version) |

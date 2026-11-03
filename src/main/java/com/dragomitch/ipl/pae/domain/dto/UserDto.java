@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.domain.dto;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -56,6 +57,7 @@ public interface UserDto extends Entity {
   void setPassword(String password);
 
   /** Required at sign-up only: an edition keeps the stored password. */
+  @Schema(accessMode = Schema.AccessMode.WRITE_ONLY)
   @NotBlank(groups = OnCreate.class)
   @Size(max = PASSWORD_MAX_LENGTH, groups = OnCreate.class)
   String getPassword();

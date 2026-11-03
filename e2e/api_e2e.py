@@ -72,6 +72,16 @@ def check(cond, msg):
     results.append((bool(cond), "  check: " + msg, None))
 
 
+def openapi_document():
+    """GET /v3/api-docs without any cookie: (status, parsed JSON or None)."""
+    url = BASE.rsplit("/api/", 1)[0] + "/v3/api-docs"
+    try:
+        with urllib.request.urlopen(url, timeout=TIMEOUT) as r:
+            return r.status, json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        return e.code, None
+
+
 def main():
     anon = Client("anon")
     anon.call("GET", "/options")  # issues the XSRF cookie
@@ -99,6 +109,9 @@ def main():
 
     # --- reference data ------------------------------------------------------------------------
     check(len(anon.call("GET", "/options")) >= 1, "options are public")
+    status, doc = openapi_document()
+    check(status == 200 and isinstance(doc, dict) and doc.get("paths"),
+          f"OpenAPI document public without a session, with paths (status {status})")
     check(len(prof.call("GET", "/countries")) == 250, "250 countries")
     check(prof.call("GET", "/countries/BE").get("name"), "country BE found")
     prof.call("GET", "/countries/ZZ", expect=(404,), label="unknown country 404")
