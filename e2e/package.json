@@ -1,0 +1,14 @@
+{
+  "name": "pae-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "End-to-end run of the packaged app: API script and Playwright walk of the legacy UI and the Angular app",
+  "scripts": {
+    "e2e": "./run-e2e.sh",
+    "ui": "node ui_e2e.js",
+    "detail": "node mobility_detail.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -104,6 +104,83 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
+  e2e:
+    name: End-to-end (API and Playwright on PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      # Same image and credentials as docker-compose.yml. Service containers cannot mount
+      # files, so init.sql is loaded by a step below.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: pguser01
+          POSTGRES_PASSWORD: yoursecurepassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pguser01 -d testdb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_NAME: testdb
+      DB_USERNAME: pguser01
+      DB_PASSWORD: yoursecurepassword
+      PGPASSWORD: yoursecurepassword
+      SERVER_PORT: '8080'
+      APP_URL: http://localhost:8080
+      NG_PORT: '4200'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build the jar
+        run: mvn -B -ntp -q package -DskipTests -Djacoco.skip=true
+      - name: Load the schema (SQLRessources/init.sql)
+        run: psql -h localhost -U pguser01 -d testdb -v ON_ERROR_STOP=1 -q -f SQLRessources/init.sql
+      - name: Start the app
+        run: |
+          mkdir -p e2e
+          # a signing key for this run only
+          JWT_SECRET="$(openssl rand -hex 32)" nohup java -jar target/PAE-Gestionnaire-Erasmus-1.0-SNAPSHOT.jar > e2e/app.log 2>&1 &
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+      - name: Install the frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright and Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      # waits for the app, runs api_e2e.py, starts ng serve, runs the Playwright walk
+      # (DATECHECK=1) and the mobility detail check
+      - name: Run the end-to-end suite
+        run: e2e/run-e2e.sh
+      - name: Upload screenshots and logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: |
+            e2e/screenshots/
+            e2e/app.log
+            e2e/ng-serve.log
+          if-no-files-found: warn
+          retention-days: 14
+
   report:
     name: Test report
     needs: [ backend, frontend ]
@@ -157,13 +234,13 @@ jobs:
   # Single required status check for branch protection.
   ci-passed:
     name: CI passed
-    needs: [ backend, frontend, workflows, docker, report ]
+    needs: [ backend, frontend, workflows, docker, e2e, report ]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: Check job results
         run: |
-          echo 'backend=${{ needs.backend.result }} frontend=${{ needs.frontend.result }} workflows=${{ needs.workflows.result }} docker=${{ needs.docker.result }} report=${{ needs.report.result }}'
-          for r in '${{ needs.backend.result }}' '${{ needs.frontend.result }}' '${{ needs.workflows.result }}' '${{ needs.docker.result }}' '${{ needs.report.result }}'; do
+          echo 'backend=${{ needs.backend.result }} frontend=${{ needs.frontend.result }} workflows=${{ needs.workflows.result }} docker=${{ needs.docker.result }} e2e=${{ needs.e2e.result }} report=${{ needs.report.result }}'
+          for r in '${{ needs.backend.result }}' '${{ needs.frontend.result }}' '${{ needs.workflows.result }}' '${{ needs.docker.result }}' '${{ needs.e2e.result }}' '${{ needs.report.result }}'; do
             [ "$r" = success ] || { echo "::error::A required job did not succeed ($r)"; exit 1; }
           done
