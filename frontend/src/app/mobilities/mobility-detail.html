@@ -1,0 +1,395 @@
+<section aria-labelledby="mobility-title">
+  <p class="back">
+    <a routerLink="/mobilities">
+      @if (isProfessor()) {
+        <ng-container i18n="@@mobility.back">Retour aux mobilités</ng-container>
+      } @else {
+        <ng-container i18n="@@mobility.back.student">Retour à mes mobilités</ng-container>
+      }
+    </a>
+  </p>
+
+  @if (loading()) {
+    <h1 id="mobility-title" i18n="@@mobility.title.loading">Mobilité</h1>
+    <p class="state" role="status" i18n="@@mobility.loading">Chargement de la mobilité…</p>
+  } @else if (problem(); as p) {
+    <h1 id="mobility-title" i18n="@@mobility.title.loading">Mobilité</h1>
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@mobility.retry">
+        Réessayer
+      </button>
+    </div>
+  } @else if (mobility(); as m) {
+    <h1 id="mobility-title" i18n="@@mobility.title">
+      {{
+        studentName(m) // i18n(ph="STUDENT")
+      }}
+      à
+      {{
+        destination(m) // i18n(ph="PARTNER")
+      }}
+    </h1>
+
+    <div class="notice" role="status">
+      @if (notice(); as message) {
+        <p class="notification notification-success">{{ message }}</p>
+      }
+    </div>
+
+    @if (pending(); as action) {
+      <div class="panel action-panel" role="group" aria-labelledby="mobility-panel-title">
+        <h2 id="mobility-panel-title">{{ panelTitle() }}</h2>
+        <p class="question">{{ panelQuestion() }}</p>
+
+        @if (actionProblem(); as p) {
+          <div class="notification notification-danger" role="alert">
+            <p>{{ p.detail }}</p>
+            @if (otherErrors().length) {
+              <ul>
+                @for (message of otherErrors(); track $index) {
+                  <li>{{ message }}</li>
+                }
+              </ul>
+            }
+            @if (conflict()) {
+              <button type="button" class="retry reload" (click)="load()" i18n="@@mobility.reload">
+                Recharger la mobilité
+              </button>
+            }
+          </div>
+        }
+
+        <form (ngSubmit)="confirm()" novalidate aria-labelledby="mobility-panel-title">
+          @if (action.kind === 'cancel') {
+            <div class="form-group">
+              <label for="mobility-cancel-reason" i18n="@@mobility.cancel.reason.label"
+                >Raison de l'annulation</label
+              >
+              <select
+                #panelField
+                id="mobility-cancel-reason"
+                class="input"
+                [formControl]="reason"
+                [attr.aria-invalid]="!!reasonError()"
+                [attr.aria-describedby]="reasonError() ? 'mobility-cancel-reason-error' : null"
+              >
+                @if (denialReasons(); as reasons) {
+                  <option value="" disabled i18n="@@mobility.cancel.reason.placeholder">
+                    Choisissez une raison
+                  </option>
+                  @for (r of reasons; track r.id) {
+                    <option [value]="r.id">{{ r.reason }}</option>
+                  }
+                } @else {
+                  <option value="" disabled i18n="@@mobility.cancel.reason.loading">
+                    Chargement des raisons…
+                  </option>
+                }
+              </select>
+              @if (reasonError(); as message) {
+                <p class="field-error" id="mobility-cancel-reason-error">{{ message }}</p>
+              }
+            </div>
+          }
+          <div class="actions">
+            @if (action.kind === 'cancel') {
+              <button
+                type="submit"
+                class="button danger confirm"
+                [disabled]="busy()"
+                [attr.aria-busy]="busy()"
+                i18n="@@mobility.cancel.submit"
+              >
+                Annuler la mobilité
+              </button>
+            } @else {
+              <button
+                #panelField
+                type="submit"
+                class="button primary confirm"
+                [disabled]="busy()"
+                [attr.aria-busy]="busy()"
+                i18n="@@mobility.panel.confirm"
+              >
+                Confirmer
+              </button>
+            }
+            <button
+              type="button"
+              class="button close"
+              (click)="closePanel()"
+              i18n="@@mobility.panel.close"
+            >
+              Fermer
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="sections">
+      <section class="section general" aria-labelledby="mobility-general-title">
+        <h2 id="mobility-general-title" i18n="@@mobility.general.title">Informations générales</h2>
+        <dl>
+          <dt i18n="@@mobility.general.type">Type</dt>
+          <dd>{{ mobilityType(m) }}</dd>
+          <dt i18n="@@mobility.general.partner">Partenaire</dt>
+          <dd>{{ m.partner?.fullName }}</dd>
+          <dt i18n="@@mobility.general.country">Pays</dt>
+          <dd>{{ m.country?.name || m.country?.countryCode }}</dd>
+          <dt i18n="@@mobility.general.programme">Programme</dt>
+          <dd>{{ m.programme.programmeName }}</dd>
+          <dt i18n="@@mobility.general.departure">Départ</dt>
+          <dd>{{ departure(m) }}</dd>
+          <dt i18n="@@mobility.general.state">Etat de la mobilité</dt>
+          <dd class="mobility-state" [attr.data-state]="m.state">
+            <span [class]="'badge ' + stateClass(m.state)">{{ stateLabel(m.state) }}</span>
+          </dd>
+          @if (m.stateBeforeCancellation; as before) {
+            <dt i18n="@@mobility.general.stateBeforeCancellation">
+              Etat de la mobilité avant annulation
+            </dt>
+            <dd class="state-before-cancellation">{{ stateLabel(before) }}</dd>
+          }
+          @if (professorInCharge(m); as professor) {
+            <dt i18n="@@mobility.general.professorInCharge">Professeur responsable</dt>
+            <dd>{{ professor }}</dd>
+          }
+        </dl>
+      </section>
+
+      <section class="section student" aria-labelledby="mobility-student-title">
+        <h2 id="mobility-student-title" i18n="@@mobility.student.title">Etudiant</h2>
+        <dl>
+          <dt i18n="@@mobility.student.name">Nom</dt>
+          <dd class="student-name">{{ studentName(m) }}</dd>
+          <dt i18n="@@mobility.student.email">E-mail</dt>
+          <dd>
+            @if (m.nominatedStudent.email; as email) {
+              <a [href]="'mailto:' + email">{{ email }}</a>
+            }
+          </dd>
+          <dt i18n="@@mobility.student.option">Option</dt>
+          <dd>{{ m.nominatedStudent.option?.name || m.nominatedStudent.option?.code }}</dd>
+          <dt i18n="@@mobility.student.phoneNumber">Téléphone</dt>
+          <dd>{{ m.nominatedStudent.phoneNumber }}</dd>
+          <dt i18n="@@mobility.student.iban">IBAN</dt>
+          <dd class="iban">{{ m.nominatedStudent.iban }}</dd>
+          <dt i18n="@@mobility.student.bic">BIC</dt>
+          <dd>{{ m.nominatedStudent.bic }}</dd>
+          <dt i18n="@@mobility.student.bankName">Banque</dt>
+          <dd>{{ m.nominatedStudent.bankName }}</dd>
+          <dt i18n="@@mobility.student.cardHolder">Titulaire du compte</dt>
+          <dd>{{ m.nominatedStudent.cardHolder }}</dd>
+        </dl>
+      </section>
+
+      @for (
+        group of [
+          { category: 'D', documents: departureDocuments() },
+          { category: 'R', documents: returnDocuments() },
+        ];
+        track group.category
+      ) {
+        <section
+          class="section documents"
+          [class.departure-documents]="group.category === 'D'"
+          [class.return-documents]="group.category === 'R'"
+          [attr.aria-labelledby]="'mobility-documents-' + group.category"
+        >
+          <div class="section-header">
+            <h2 [id]="'mobility-documents-' + group.category">
+              @if (group.category === 'D') {
+                <ng-container i18n="@@mobility.documents.departure">Documents au départ</ng-container>
+              } @else {
+                <ng-container i18n="@@mobility.documents.return">Documents à l'arrivée</ng-container>
+              }
+            </h2>
+            @if (isProfessor()) {
+              <span class="exports">
+                <a
+                  class="export"
+                  [href]="exportUrl(m, group.category === 'D' ? 'D' : 'R')"
+                  [attr.download]="exportFileName(m)"
+                  i18n="@@mobility.export.csv"
+                  >Exporter en CSV</a
+                >
+                <a
+                  class="export export-filled"
+                  [href]="exportUrl(m, group.category === 'D' ? 'DF' : 'RF')"
+                  [attr.download]="exportFileName(m)"
+                  i18n="@@mobility.export.filled"
+                  >Complétés (CSV)</a
+                >
+              </span>
+            }
+          </div>
+          @if (group.documents.length) {
+            <ul class="checklist">
+              @for (d of group.documents; track d.id) {
+                <li [attr.data-document]="d.id" [class.filled]="d.filledIn">
+                  <span class="document-name">{{ d.name }}</span>
+                  @if (d.filledIn) {
+                    <span class="status done" i18n="@@mobility.document.filled">Complété</span>
+                  } @else if (canConfirm()) {
+                    <button
+                      type="button"
+                      class="button small confirm-document"
+                      [disabled]="busy()"
+                      (click)="ask({ kind: 'document', document: d })"
+                      i18n="@@mobility.document.confirm"
+                    >
+                      Confirmer
+                    </button>
+                  } @else {
+                    <span class="status" i18n="@@mobility.document.missing">À compléter</span>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="muted" i18n="@@mobility.documents.none">Aucun document.</p>
+          }
+        </section>
+      }
+
+      @if (isProfessor()) {
+        <section class="section encodings" aria-labelledby="mobility-encodings-title">
+          <div class="section-header">
+            <h2 id="mobility-encodings-title" i18n="@@mobility.encodings.title">
+              Encodage dans les logiciels externes
+            </h2>
+            <a
+              class="export export-all"
+              [href]="exportUrl(m)"
+              [attr.download]="exportFileName(m)"
+              i18n="@@mobility.export.all"
+              >Tous les documents (CSV)</a
+            >
+          </div>
+          <ul class="checklist">
+            <li class="pro-eco">
+              <span>ProEco</span>
+              @if (m.encodedInProEco) {
+                <span class="status done" i18n="@@mobility.encoding.done">Encodé</span>
+              } @else if (canConfirm()) {
+                <button
+                  type="button"
+                  class="button small confirm-pro-eco"
+                  [disabled]="busy()"
+                  (click)="ask({ kind: 'proEco' })"
+                  i18n="@@mobility.encoding.confirm"
+                >
+                  Confirmer
+                </button>
+              } @else {
+                <span class="status" i18n="@@mobility.encoding.missing">Non encodé</span>
+              }
+            </li>
+            <li class="second-software">
+              <span>{{ secondSoftware(m) }}</span>
+              @if (m.encodedInSecondSoftware) {
+                <span class="status done" i18n="@@mobility.encoding.done">Encodé</span>
+              } @else if (canConfirm()) {
+                <button
+                  type="button"
+                  class="button small confirm-second-software"
+                  [disabled]="busy()"
+                  (click)="ask({ kind: 'secondSoftware' })"
+                  i18n="@@mobility.encoding.confirm"
+                >
+                  Confirmer
+                </button>
+              } @else {
+                <span class="status" i18n="@@mobility.encoding.missing">Non encodé</span>
+              }
+            </li>
+          </ul>
+        </section>
+      }
+
+      <section class="section payments" aria-labelledby="mobility-payments-title">
+        <h2 id="mobility-payments-title" i18n="@@mobility.payments.title">Paiements</h2>
+        @if (!bankDetailsComplete()) {
+          <p class="notification notification-info bank-details" i18n="@@mobility.payments.bankDetails">
+            Les données bancaires de l'étudiant sont incomplètes. Complétez-les pour pouvoir
+            effectuer les paiements liés à la mobilité.
+          </p>
+        }
+        <dl>
+          @for (
+            payment of [
+              { which: 'first', date: m.firstPaymentRequestDate },
+              { which: 'second', date: m.secondPaymentRequestDate },
+            ];
+            track payment.which
+          ) {
+            <dt>
+              @if (payment.which === 'first') {
+                <ng-container i18n="@@mobility.payments.first">Paiement au départ</ng-container>
+              } @else {
+                <ng-container i18n="@@mobility.payments.second">Paiement à l'arrivée</ng-container>
+              }
+            </dt>
+            <dd [class]="'payment ' + payment.which + '-payment'">
+              @if (payment.date; as date) {
+                <ng-container i18n="@@mobility.payments.done"
+                  >Effectué le
+                  <time [attr.datetime]="day(date)">{{
+                    formatDay(date) // i18n(ph="DATE")
+                  }}</time></ng-container
+                >
+              } @else if (duePayment() === payment.which) {
+                @if (canPay()) {
+                  <button
+                    type="button"
+                    class="button primary confirm-payment"
+                    [disabled]="busy()"
+                    (click)="ask({ kind: 'payment' })"
+                  >
+                    @if (payment.which === 'first') {
+                      <ng-container i18n="@@mobility.payments.confirmFirst"
+                        >Confirmer le premier paiement</ng-container
+                      >
+                    } @else {
+                      <ng-container i18n="@@mobility.payments.confirmSecond"
+                        >Confirmer le deuxième paiement</ng-container
+                      >
+                    }
+                  </button>
+                } @else {
+                  <span class="status" i18n="@@mobility.payments.due">À effectuer</span>
+                }
+              } @else {
+                <span class="status muted" i18n="@@mobility.payments.notDue">Pas encore dû</span>
+              }
+            </dd>
+          }
+        </dl>
+      </section>
+
+      @if (cancelled() || canCancel()) {
+        <section class="section cancellation" aria-labelledby="mobility-cancellation-title">
+          <h2 id="mobility-cancellation-title" i18n="@@mobility.cancellation.title">Annulation</h2>
+          @if (cancelled()) {
+            <dl>
+              <dt i18n="@@mobility.cancellation.reason">Raison de l'annulation</dt>
+              <dd class="cancellation-reason">{{ cancellationReason(m) }}</dd>
+            </dl>
+          } @else {
+            <button
+              type="button"
+              class="button danger cancel-mobility"
+              [disabled]="busy()"
+              (click)="ask({ kind: 'cancel' })"
+              i18n="@@mobility.cancel.open"
+            >
+              Annuler la mobilité
+            </button>
+          }
+        </section>
+      }
+    </div>
+  }
+</section>

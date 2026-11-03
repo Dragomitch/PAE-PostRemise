@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 
 import { authGuard, roleGuard } from './core/auth.guard';
 import { ROLE_PROFESSOR, ROLE_STUDENT } from './core/models';
+import { Mobilities } from './mobilities/mobilities';
+import { MobilityDetail } from './mobilities/mobility-detail';
 import { MobilityChoices } from './mobility-choices/mobility-choices';
 import { Partners } from './partners/partners';
 import { PersonalData } from './personal-data/personal-data';
@@ -30,6 +32,16 @@ export const routes: Routes = [
         path: 'mobility-choices',
         component: MobilityChoices,
         title: $localize`:@@route.mobilityChoices.title:Demandes de mobilité - EMA`,
+      },
+      {
+        path: 'mobilities',
+        component: Mobilities,
+        title: $localize`:@@route.mobilities.title:Mobilités - EMA`,
+      },
+      {
+        path: 'mobilities/:id',
+        component: MobilityDetail,
+        title: $localize`:@@route.mobility.title:Mobilité - EMA`,
       },
       // screens of one role: the others are sent back to the partners
       {

@@ -1,0 +1,84 @@
+<section aria-labelledby="mobilities-title">
+  <h1 id="mobilities-title">
+    @if (isProfessor()) {
+      <ng-container i18n="@@mobilities.title">Gestion des mobilités</ng-container>
+    } @else {
+      <ng-container i18n="@@mobilities.title.student">Mes mobilités</ng-container>
+    }
+  </h1>
+
+  @if (loading()) {
+    <p class="state" role="status" i18n="@@mobilities.loading">Chargement des mobilités…</p>
+  } @else if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@mobilities.retry">
+        Réessayer
+      </button>
+    </div>
+  } @else if (mobilities().length) {
+    <p class="count" i18n="@@mobilities.count">
+      Nombre de mobilités :
+      {{
+        mobilities().length // i18n(ph="COUNT")
+      }}
+    </p>
+    <div class="table-wrapper">
+      <table aria-labelledby="mobilities-title">
+        <thead>
+          <tr>
+            @if (isProfessor()) {
+              <th scope="col" i18n="@@mobilities.column.option">Option</th>
+            }
+            <th scope="col" i18n="@@mobilities.column.student">Etudiant</th>
+            <th scope="col" i18n="@@mobilities.column.partner">Partenaire</th>
+            <th scope="col" i18n="@@mobilities.column.type">Type</th>
+            <th scope="col" i18n="@@mobilities.column.programme">Programme</th>
+            <th scope="col" i18n="@@mobilities.column.departure">Départ</th>
+            <th scope="col" i18n="@@mobilities.column.state">Etat</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of mobilities(); track m.id) {
+            <tr [attr.data-id]="m.id" [attr.data-state]="m.state">
+              @if (isProfessor()) {
+                <td class="option">{{ m.nominatedStudent.option?.code }}</td>
+              }
+              <th scope="row" class="student">
+                <a [routerLink]="['/mobilities', m.id]">{{ studentName(m) }}</a>
+              </th>
+              <td>
+                <div class="destination">
+                  @if (m.country; as country) {
+                    @if (flagUrl(country.countryCode); as src) {
+                      <img
+                        class="flag"
+                        [src]="src"
+                        alt=""
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                        (error)="flagFailed(country.countryCode)"
+                      />
+                    }
+                  }
+                  <span>{{ destination(m) }}</span>
+                </div>
+              </td>
+              <td>{{ mobilityType(m) }}</td>
+              <td>{{ m.programme.programmeName }}</td>
+              <td class="departure">{{ departure(m) }}</td>
+              <td class="mobility-state">
+                <span [class]="'badge ' + stateClass(m.state)">{{
+                  stateLabel(m.state)
+                }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="state" i18n="@@mobilities.empty">Aucune mobilité.</p>
+  }
+</section>

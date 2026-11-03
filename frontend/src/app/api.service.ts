@@ -7,9 +7,11 @@ import {
   Credentials,
   DataResponse,
   DenialReason,
+  Mobility,
   MobilityChoice,
   MobilityChoiceFilter,
   MobilityChoiceRequest,
+  MobilityDocumentFilter,
   NominatedStudent,
   Partner,
   Programme,
@@ -24,6 +26,15 @@ export const API_BASE_URL = '/api/1.0';
 /** URL of the CSV export of the mobility choices matching the filter (opened by the browser itself). */
 export function mobilityChoicesExportUrl(filter: MobilityChoiceFilter): string {
   return `${API_BASE_URL}/mobilityChoices/export?${new HttpParams({ fromObject: { filter } }).toString()}`;
+}
+
+/**
+ * URL of the CSV export of the documents of the mobility `id` (opened by the browser itself), every
+ * document without a filter.
+ */
+export function mobilityExportUrl(id: number, filter?: MobilityDocumentFilter): string {
+  const query = filter ? `?${new HttpParams({ fromObject: { filter } }).toString()}` : '';
+  return `${API_BASE_URL}/mobilities/${id}/export${query}`;
 }
 
 /**
@@ -144,6 +155,47 @@ export class ApiService {
     );
   }
 
+  /** Every mobility for a professor, the own ones for a student, unwrapped from `{data: [...]}`. */
+  mobilities(): Observable<Mobility[]> {
+    return this.http.get<DataResponse<Mobility>>(`${this.baseUrl}/mobilities`).pipe(
+      map((response) => response.data),
+      mapApiProblem(),
+    );
+  }
+
+  /** One mobility with its documents and the student's data (a student may only read their own). */
+  mobility(id: number): Observable<Mobility> {
+    return this.http.get<Mobility>(`${this.baseUrl}/mobilities/${id}`).pipe(mapApiProblem());
+  }
+
+  /**
+   * A professor records that the mobility is encoded in ProEco. Like every state change of a
+   * mobility it takes the version last read: a stale one fails with a 409 problem.
+   */
+  confirmProEcoEncoding(id: number, version: number): Observable<void> {
+    return this.mobilityChange(`${id}/confirmProEcoEncoding`, { version });
+  }
+
+  /** A professor records that the mobility is encoded in the software of its programme. */
+  confirmSecondSoftwareEncoding(id: number, version: number): Observable<void> {
+    return this.mobilityChange(`${id}/confirmSecondSoftwareEncoding`, { version });
+  }
+
+  /** A professor records that the document `documentId` of the mobility is filled in. */
+  confirmMobilityDocument(id: number, documentId: number, version: number): Observable<void> {
+    return this.mobilityChange(`${id}/confirmDocument`, { document: documentId, version });
+  }
+
+  /** A professor records the next payment (the first one in "A payer", the second in "Solde à payer"). */
+  confirmMobilityPayment(id: number, version: number): Observable<void> {
+    return this.mobilityChange(`${id}/confirmPayment`, { version });
+  }
+
+  /** A professor cancels the mobility with one of the denial reasons, given by id. */
+  cancelMobility(id: number, version: number, denialReasonId: number): Observable<void> {
+    return this.mobilityChange(`${id}/cancel`, { version, denialReason: denialReasonId });
+  }
+
   /** A professor confirms a choice that has a partner: it becomes a mobility. */
   confirmMobilityChoice(id: number): Observable<void> {
     return this.http
@@ -189,6 +241,19 @@ export class ApiService {
   /** A professor promotes the user `id` to professor (a professor is left unchanged). */
   promoteUser(id: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/users/${id}/promote`, null).pipe(mapApiProblem());
+  }
+
+  /**
+   * `PUT /mobilities/{path}` without a body. Some of these answer the mobility, others nothing: the
+   * screen reads it again in any case, so the answer is dropped.
+   */
+  private mobilityChange(path: string, params: Record<string, number>): Observable<void> {
+    return this.http
+      .put<unknown>(`${this.baseUrl}/mobilities/${path}`, null, { params })
+      .pipe(
+        map(() => undefined),
+        mapApiProblem(),
+      );
   }
 }
 
