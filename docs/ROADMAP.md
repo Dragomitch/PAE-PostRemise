@@ -24,7 +24,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | C12 | Database migrations with Flyway (baseline = current `init.sql`), run by the app at start-up and checked in CI | Schema changes become reviewable and repeatable | 💡 |
 | C13 | Conventional Commits check (PR title) + Release Please / semantic-release for versions and changelog | The repo already uses `type: subject`; automate versioning | 💡 |
 | C14 | Pre-commit hooks / formatting in CI: Spotless (google-java-format, as backend/AGENTS.md asks) + Prettier/ESLint for Angular | Style debates out of reviews | 💡 |
-| C15 | `CODEOWNERS` + PR template (summary, test plan, screenshots for UI) | Consistent reviews | 💡 |
+| C15 | `CODEOWNERS` + PR template (summary, test plan, screenshots for UI) | Consistent reviews | ✅ #137 PR |
 | C16 | Nightly workflow: full suite against the latest Spring Boot patch + `npm audit`/OWASP dependency-check, opening an issue on failure | Early warning, without slowing PRs | 💡 |
 
 ## 2. Using Spring / Spring Boot better (requirement 8)
@@ -47,17 +47,17 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S14 | Pagination and sorting with Spring Data `Pageable` on list endpoints | Full tables returned to DataTables | `?page=&size=&sort=` | 💡 |
 | S15 | `@ConfigurationProperties` records (`app.jwt.*`, `app.cors.*`, `app.cookie.*`) with validation | Scattered `@Value` | Type-safe, documented (`spring-boot-configuration-processor`) | 🚧 `app.session.*` in #90 |
 | S16 | Flyway via Spring Boot auto-configuration | Manual `init.sql` | Versioned migrations (see C12) | 💡 |
-| S17 | Spring Boot Actuator (health incl. DB, info, metrics, Prometheus) | No health endpoint | Docker/Compose health checks, monitoring | 💡 |
+| S17 | Spring Boot Actuator (health incl. DB, info, metrics, Prometheus) | No health endpoint | Docker/Compose health checks, monitoring | ✅ #137 PR (health with the database indicator and info only; metrics and Prometheus stay unexposed) |
 | S18 | Structured logging (Boot 3.4 `logging.structured.format.console=ecs`) and request correlation IDs (Micrometer Tracing) | Plain text logs | Searchable logs | 💡 |
 | S19 | springdoc-openapi: generated OpenAPI 3 + Swagger UI; generate the Angular client from it | API contract only in code | Typed frontend client, contract tests | 💡 |
 | S20 | Jackson CSV (`jackson-dataformat-csv`) or an `HttpMessageConverter` for the exports | `CsvStringBuilder`/`CsvEncoderServerSide` | Declarative CSV columns | 💡 |
-| S21 | `Clock` bean injected instead of `LocalDateTime.now()` (8 call sites) | Time-dependent logic hard to test | Deterministic tests | 💡 |
+| S21 | `Clock` bean injected instead of `LocalDateTime.now()` (8 call sites) | Time-dependent logic hard to test | Deterministic tests | ✅ #137 PR |
 | S22 | Testcontainers with `@ServiceConnection` (Boot 3.1+) for integration tests in CI | Embedded PostgreSQL (fine locally) | Same engine/version as production, zero config | 💡 |
 | S23 | Test slices: `@WebMvcTest`, `@DataJpaTest`, `@JsonTest` instead of full contexts | Mostly full-context/unit | Faster, focused tests | 🚧 `@WebMvcTest` in #90; `@DataJpaTest` next |
 | S24 | Upgrade Spring Boot 3.2 → 3.5 (3.2 is out of OSS support); Spring Boot 4 next, in its own PR | Unsupported line | Security fixes, structured logging, `RestClient` improvements | ✅ 3.5.16; Boot 4 still to do (`MvcRequestMatcher` and `withObjectPostProcessor` in `SecurityConfig`) |
-| S25 | Virtual threads (`spring.threads.virtual.enabled=true`, Java 21) | Platform threads | Cheap concurrency for blocking JDBC | 💡 |
-| S26 | Layered jar + `spring-boot:build-image` (buildpacks) or `jarmode=tools extract` in the Dockerfile | Fat jar copied as one layer | Smaller, cache-friendly images | 💡 |
-| S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | 💡 |
+| S25 | Virtual threads (`spring.threads.virtual.enabled=true`, Java 21) | Platform threads | Cheap concurrency for blocking JDBC | ✅ #137 PR |
+| S26 | Layered jar + `spring-boot:build-image` (buildpacks) or `jarmode=tools extract` in the Dockerfile | Fat jar copied as one layer | Smaller, cache-friendly images | ✅ #137 PR (`jarmode=tools extract --layers` in `backend/Dockerfile`) |
+| S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | ✅ #137 PR (`server.shutdown=graceful`, 20s; liveness and readiness probes) |
 | S28 | Caching reference data (`@Cacheable` on countries, options, programmes) | Queried on every page | Fewer DB round-trips | 💡 |
 | S29 | Serve the Angular build from the backend or retire the legacy jQuery UI once the Angular app covers its screens | Two UIs to maintain; legacy one is French-only | One i18n'd UI | 💡 |
 | S30 | Spring Modulith (or ArchUnit) tests to enforce the layering web → service → persistence | Layering by convention | Build fails on violations | ✅ `ArchitectureTest` (ArchUnit) with the hexagonal packages of issue #102 step 2 |
