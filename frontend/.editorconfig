@@ -1,12 +1,6 @@
 # Editor configuration, see https://editorconfig.org
-root = true
-
-[*]
-charset = utf-8
-indent_style = space
-indent_size = 2
-insert_final_newline = true
-trim_trailing_whitespace = true
+# Completes the repository's /.editorconfig (UTF-8, LF, 2 spaces, final newline); Prettier
+# (.prettierrc, npm run format) has the last word on the layout of the files it formats.
 
 [*.ts]
 quote_type = single

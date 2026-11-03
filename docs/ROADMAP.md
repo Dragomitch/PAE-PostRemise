@@ -23,7 +23,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | C11 | Deploy workflow with GitHub Environments (`staging` auto on `master`, `production` with manual approval), secrets (`JWT_SECRET`, DB) per environment | No secrets in the repo, audited promotions | 💡 |
 | C12 | Database migrations with Flyway (baseline = current `init.sql`), run by the app at start-up and checked in CI | Schema changes become reviewable and repeatable | 💡 |
 | C13 | Conventional Commits check (PR title) + Release Please / semantic-release for versions and changelog | The repo already uses `type: subject`; automate versioning | ✅ #156 for the PR title check (job `pr-title`, required by `CI passed`); 💡 Release Please / semantic-release |
-| C14 | Pre-commit hooks / formatting in CI: Spotless (google-java-format, as backend/AGENTS.md asks) + Prettier/ESLint for Angular | Style debates out of reviews | 💡 |
+| C14 | Pre-commit hooks / formatting in CI: Spotless (google-java-format, as backend/AGENTS.md asks) + Prettier/ESLint for Angular | Style debates out of reviews | ✅ #172 for the formatting in CI (`spotless:check` in `mvn verify`, `npm run lint` and `npm run format:check` in the frontend job, `.editorconfig`); 💡 pre-commit hooks |
 | C15 | `CODEOWNERS` + PR template (summary, test plan, screenshots for UI) | Consistent reviews | ✅ #137 PR |
 | C16 | Nightly workflow: full suite against the latest Spring Boot patch + `npm audit`/OWASP dependency-check, opening an issue on failure | Early warning, without slowing PRs | 💡 |
 
