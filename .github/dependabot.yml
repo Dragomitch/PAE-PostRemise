@@ -32,6 +32,16 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@angular-devkit/*"
         update-types: ["version-update:semver-major"]
+      # Left out on purpose, see #136: Angular 20 requires TypeScript < 6 (>=5.8 <6.0), and
+      # jasmine-core 7 breaks karma-jasmine-html-reporter (it relies on the HTML reporter that
+      # jasmine-core 7 dropped), so @types/jasmine, which follows jasmine-core, stays on 5.x too.
+      # Lift each one when the tool that blocks it supports the new major.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jasmine-core"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/jasmine"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: maven
     directory: /
