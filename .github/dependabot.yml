@@ -43,6 +43,20 @@ updates:
       - dependency-name: "@types/jasmine"
         update-types: ["version-update:semver-major"]
 
+  # e2e/ has its own package.json and lockfile. The Playwright version there must stay compatible
+  # with the Chromium that `npx playwright install` fetches in CI (the e2e job).
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      e2e-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
   - package-ecosystem: maven
     directory: /
     schedule:
