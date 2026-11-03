@@ -490,7 +490,7 @@ describe('MobilityChoices', () => {
         expect(req.request.method).toBe('GET');
         req.flush(reasons);
         fixture.detectChanges();
-        expect(Array.from(reason().options).map((o) => o.textContent)).toEqual([
+        expect(Array.from(reason().options).map((o) => o.text)).toEqual([
           'Choisissez une raison',
           "L'étudiant part en mobilité pour ce semestre.",
           'Dossier incomplet',
