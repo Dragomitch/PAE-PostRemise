@@ -111,6 +111,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- Schema migrations: Flyway runs src/main/resources/db/migration at start-up, before
+             Hibernate (ADR 0003). The starter brings flyway-core and Spring Boot's auto-configuration;
+             PostgreSQL support is a separate Flyway module. Versions managed by Spring Boot. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
         <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
