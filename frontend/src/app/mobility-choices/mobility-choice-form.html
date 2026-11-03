@@ -1,0 +1,126 @@
+<div class="panel creation">
+  <h2 id="mobility-choice-form-title" i18n="@@mobilityChoiceForm.title">Ajout de demande de mobilité</h2>
+
+  @if (loading()) {
+    <p class="state" role="status" i18n="@@mobilityChoiceForm.loading">Chargement du formulaire…</p>
+  } @else if (loadProblem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@mobilityChoiceForm.retry">Réessayer</button>
+    </div>
+    <button type="button" class="button" (click)="close()" i18n="@@mobilityChoiceForm.close">Fermer</button>
+  } @else {
+    @if (problem(); as p) {
+      <div class="notification notification-danger" role="alert">
+        <p>{{ p.detail }}</p>
+        @if (otherErrors().length) {
+          <ul>
+            @for (message of otherErrors(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate aria-labelledby="mobility-choice-form-title">
+      <div class="grid">
+        <div class="form-group">
+          <label for="mobility-choice-programme" i18n="@@mobilityChoiceForm.programme.label">Programme</label>
+          <select id="mobility-choice-programme" class="input" formControlName="programme"
+                  [attr.aria-invalid]="!!errorFor('programme')"
+                  [attr.aria-describedby]="errorFor('programme') ? 'mobility-choice-programme-error' : null">
+            <option value="" disabled i18n="@@mobilityChoiceForm.programme.placeholder">Choisissez un programme</option>
+            @for (p of programmes(); track p.id) {
+              <option [value]="p.id">{{ p.programmeName }}</option>
+            }
+          </select>
+          @if (errorFor('programme'); as message) {
+            <p class="field-error" id="mobility-choice-programme-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="mobility-choice-country" i18n="@@mobilityChoiceForm.country.label">Pays</label>
+          <select id="mobility-choice-country" class="input" formControlName="country"
+                  [attr.aria-invalid]="!!errorFor('country')"
+                  [attr.aria-describedby]="errorFor('country') ? 'mobility-choice-country-error' : null">
+            <option value="" i18n="@@mobilityChoiceForm.later">Définir plus tard</option>
+            @for (c of countries(); track c.countryCode) {
+              <option [value]="c.countryCode">{{ c.name }}</option>
+            }
+          </select>
+          @if (errorFor('country'); as message) {
+            <p class="field-error" id="mobility-choice-country-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="mobility-choice-partner" i18n="@@mobilityChoiceForm.partner.label">Partenaire</label>
+          <select id="mobility-choice-partner" class="input" formControlName="partner"
+                  [attr.aria-invalid]="!!errorFor('partner')"
+                  [attr.aria-describedby]="errorFor('partner') ? 'mobility-choice-partner-error' : 'mobility-choice-partner-hint'">
+            <option value="" i18n="@@mobilityChoiceForm.later">Définir plus tard</option>
+            @for (p of partners(); track p.id) {
+              <option [value]="p.id">{{ p.fullName }}</option>
+            }
+          </select>
+          @if (errorFor('partner'); as message) {
+            <p class="field-error" id="mobility-choice-partner-error">{{ message }}</p>
+          } @else {
+            <p class="hint" id="mobility-choice-partner-hint" i18n="@@mobilityChoiceForm.partner.hint">Les partenaires de votre option dans le pays choisi.</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="mobility-choice-type" i18n="@@mobilityChoiceForm.type.label">Type de mobilité</label>
+          <select id="mobility-choice-type" class="input" formControlName="mobilityType"
+                  [attr.aria-invalid]="!!errorFor('mobilityType')"
+                  [attr.aria-describedby]="errorFor('mobilityType') ? 'mobility-choice-type-error' : null">
+            @for (t of mobilityTypes; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+          @if (errorFor('mobilityType'); as message) {
+            <p class="field-error" id="mobility-choice-type-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="mobility-choice-order" i18n="@@mobilityChoiceForm.order.label">Ordre de préférence</label>
+          <select id="mobility-choice-order" class="input" formControlName="preferenceOrder"
+                  [attr.aria-invalid]="!!errorFor('preferenceOrder')"
+                  [attr.aria-describedby]="errorFor('preferenceOrder') ? 'mobility-choice-order-error' : null">
+            <option value="" disabled i18n="@@mobilityChoiceForm.order.placeholder">Choisissez l'ordre</option>
+            @for (o of orders; track o) {
+              <option [value]="o">{{ o }}</option>
+            }
+          </select>
+          @if (errorFor('preferenceOrder'); as message) {
+            <p class="field-error" id="mobility-choice-order-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="mobility-choice-departure" i18n="@@mobilityChoiceForm.departure.label">Date de départ</label>
+          <select id="mobility-choice-departure" class="input" formControlName="departure"
+                  [attr.aria-invalid]="!!errorFor('departure')"
+                  [attr.aria-describedby]="errorFor('departure') ? 'mobility-choice-departure-error' : null">
+            <option value="" disabled i18n="@@mobilityChoiceForm.departure.placeholder">Choisissez la date de départ</option>
+            @for (d of departures; track d.value) {
+              <option [value]="d.value">{{ d.label }}</option>
+            }
+          </select>
+          @if (errorFor('departure'); as message) {
+            <p class="field-error" id="mobility-choice-departure-error">{{ message }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="button primary" [disabled]="submitting()" [attr.aria-busy]="submitting()" i18n="@@mobilityChoiceForm.submit">Soumettre</button>
+        <button type="button" class="button" (click)="close()" i18n="@@mobilityChoiceForm.close">Fermer</button>
+      </div>
+    </form>
+  }
+</div>

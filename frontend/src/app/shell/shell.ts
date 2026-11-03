@@ -22,6 +22,7 @@ export class Shell {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
 
+  protected readonly isProfessor = this.session.isProfessor;
   protected readonly displayName = computed(() => {
     const user = this.session.user();
     const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ');

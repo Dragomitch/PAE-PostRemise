@@ -1,0 +1,215 @@
+:host {
+  display: block;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label,
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field select,
+.input {
+  min-width: 15rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #8a94a3;
+  border-radius: 4px;
+  font: inherit;
+}
+
+textarea.input {
+  resize: vertical;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #8a94a3;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f2933;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button.primary {
+  border-color: #1f3a5f;
+  background: #1f3a5f;
+  color: #fff;
+}
+
+.button.danger {
+  border-color: #8a1c14;
+  color: #8a1c14;
+}
+
+.button.confirm {
+  border-color: #1d5b2c;
+  color: #1d5b2c;
+}
+
+.button:hover,
+.button:focus-visible {
+  text-decoration: underline;
+}
+
+.notice:empty {
+  display: none;
+}
+
+.panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #dde2ea;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.panel .summary {
+  margin: 0 0 1rem;
+  color: #4a5568;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.count {
+  margin: 0 0 0.5rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.state {
+  padding: 1.5rem 0;
+  color: #4a5568;
+}
+
+.retry {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #8a1c14;
+  border-radius: 4px;
+  background: #fff;
+  color: #8a1c14;
+  font: inherit;
+  cursor: pointer;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #dde2ea;
+  text-align: left;
+  vertical-align: middle;
+}
+
+thead th {
+  background: #f2f5f9;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+th[scope='row'] {
+  font-weight: 600;
+}
+
+.preference {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.country {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.departure {
+  white-space: nowrap;
+}
+
+.muted {
+  color: #5b6677;
+}
+
+.reason {
+  max-width: 16rem;
+  margin: 0.25rem 0 0;
+  color: #5b6677;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.row-actions {
+  white-space: nowrap;
+}
+
+.row-actions .button + .button {
+  margin-left: 0.5rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.badge-pending {
+  background: #e8eef7;
+  color: #1f3a5f;
+}
+
+.badge-canceled {
+  background: #eef1f5;
+  color: #4a5568;
+}
+
+.badge-rejected {
+  background: #fdecea;
+  color: #8a1c14;
+}

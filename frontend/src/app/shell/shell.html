@@ -6,6 +6,13 @@
 
   <nav class="shell-nav" aria-label="Navigation principale" i18n-aria-label="@@shell.nav.ariaLabel">
     <a routerLink="/partners" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.partners">Partenaires</a>
+    <a routerLink="/mobility-choices" routerLinkActive="active" ariaCurrentWhenActive="page">
+      @if (isProfessor()) {
+        <ng-container i18n="@@shell.nav.mobilityChoices">Demandes de mobilité</ng-container>
+      } @else {
+        <ng-container i18n="@@shell.nav.myMobilityChoices">Mes demandes de mobilité</ng-container>
+      }
+    </a>
   </nav>
 
   <div class="shell-user">
