@@ -1,0 +1,78 @@
+<section aria-labelledby="users-title">
+  <h1 id="users-title" i18n="@@users.title">Gestion des utilisateurs</h1>
+
+  <div class="notice" role="status">
+    @if (notice(); as message) {
+      <p class="notification notification-success">{{ message }}</p>
+    }
+  </div>
+
+  @if (pending(); as user) {
+    <div class="panel promote-panel" role="group" aria-labelledby="users-promote-title">
+      <h2 id="users-promote-title" i18n="@@users.promote.title">Promouvoir un utilisateur</h2>
+      <p class="question" i18n="@@users.promote.question">Promouvoir {{ fullName(user) // i18n(ph="NAME") }} ({{ user.username // i18n(ph="USERNAME") }}) au rôle de professeur ? Cette action est définitive.</p>
+
+      @if (promoteProblem(); as p) {
+        <div class="notification notification-danger" role="alert">
+          <p>{{ p.detail }}</p>
+        </div>
+      }
+
+      <div class="actions">
+        <button #confirmButton type="button" class="button primary confirm" [disabled]="promoting()" [attr.aria-busy]="promoting()" (click)="confirmPromotion()" i18n="@@users.promote.confirm">Promouvoir</button>
+        <button type="button" class="button cancel" (click)="cancelPromotion()" i18n="@@users.promote.cancel">Annuler</button>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="state" role="status" i18n="@@users.loading">Chargement des utilisateurs…</p>
+  } @else if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@users.retry">Réessayer</button>
+    </div>
+  } @else if (users().length) {
+    <p class="count" i18n="@@users.count">Nombre d'utilisateurs : {{ users().length // i18n(ph="COUNT") }}</p>
+    <div class="table-wrapper">
+      <table aria-labelledby="users-title">
+        <thead>
+          <tr>
+            <th scope="col" i18n="@@users.column.name">Nom</th>
+            <th scope="col" i18n="@@users.column.username">Nom d'utilisateur</th>
+            <th scope="col" i18n="@@users.column.email">E-mail</th>
+            <th scope="col" i18n="@@users.column.option">Option</th>
+            <th scope="col" i18n="@@users.column.role">Rôle</th>
+            <th scope="col" i18n="@@users.column.registrationDate">Date d'inscription</th>
+            <th scope="col" i18n="@@users.column.action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users(); track u.id) {
+            <tr [attr.data-id]="u.id" [attr.data-username]="u.username">
+              <th scope="row">{{ fullName(u) }}</th>
+              <td class="username">{{ u.username }}</td>
+              <td class="email">
+                @if (u.email) {
+                  <a [href]="'mailto:' + u.email">{{ u.email }}</a>
+                }
+              </td>
+              <td>{{ u.option?.code }}</td>
+              <td class="role">
+                <span class="badge" [class.badge-professor]="isProfessor(u)">{{ roleLabel(u.role) }}</span>
+              </td>
+              <td class="registered">{{ registered(u) }}</td>
+              <td class="row-actions">
+                @if (!isProfessor(u)) {
+                  <button type="button" class="button promote" [disabled]="promoting()" (click)="askPromotion(u)" i18n="@@users.action.promote">Promouvoir</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="state" i18n="@@users.empty">Aucun utilisateur.</p>
+  }
+</section>

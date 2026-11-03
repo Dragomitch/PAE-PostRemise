@@ -8,7 +8,7 @@ with the same runner.
 |---|---|
 | `run-e2e.sh` | Runner: waits for the backend, runs the three scripts below in order, starts and stops the Angular dev server, prints a summary and exits 1 if a step failed |
 | `api_e2e.py` | API scenario (Python standard library only): 159 checks |
-| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices screen: 33 checks |
+| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices, personal data and users screens: 39 checks |
 | `mobility_detail.js` | Playwright check of the completed mobility's detail page: 4 checks |
 | `package.json` | Pins Playwright (exact version) |
 
@@ -36,7 +36,12 @@ count, and a choice created through the form (Erasmus+, France, `Universite de L
 the current year) must be stored and listed; as `prof`, the active list must match the count shown
 and the API count, alice's new choice is rejected with a denial reason and leaves the active list,
 and the `all` filter must list as many rows as the count shown. Only that new choice is changed,
-so `mobility_detail.js` still finds its completed mobility.
+so `mobility_detail.js` still finds its completed mobility. Then, as `alice`, the Angular personal
+data screen (`/personal-data`) must show her record as `GET /nominatedStudents/{id}` returns it, and
+a phone number changed through the form must be returned by the API with the next version; as
+`prof`, the users screen (`/users`) must list the accounts of `GET /users` with their role, offer
+"Promouvoir" to the students only, and ask for a confirmation, which the walk cancels: nobody is
+promoted, so the roles stay as the API script left them.
 
 `mobility_detail.js` opens the completed mobility as `prof` and checks that both payment statuses
 read `Effectué le d/m/yyyy` with the dates returned by the API.
