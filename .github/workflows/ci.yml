@@ -80,6 +80,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: actionlint
         run: pipx run actionlint-py -color
+      - name: Unit tests of the CI report script
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 
   pr-title:
     name: Pull request title
