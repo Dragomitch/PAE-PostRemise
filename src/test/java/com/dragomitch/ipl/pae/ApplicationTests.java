@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
-import com.dragomitch.ipl.pae.business.dto.UserDto;
-import com.dragomitch.ipl.pae.security.SessionCookieService;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
 
 import java.net.URI;
 import java.net.http.HttpClient;

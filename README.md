@@ -6,20 +6,19 @@ This repository contains a web application for managing Erasmus mobilities. It w
 
 ## General structure
 - **src/main/java**
-  - `business` – entity interfaces and implementations (`User`, `Mobility`, …), the DTO interfaces carrying the Bean Validation constraints, the custom constraints (`business/validation`) and the error catalogue (`business/exceptions/ErrorCode`).
-  - `persistence` – the DAO interfaces: the driven ports of the persistence.
-  - `adapter/out/persistence` – their Spring Data JPA adapters, the JPA entities (`entity`) and the Spring Data repositories (`repository`); see [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) and the [glossary](GLOSSARY.md).
-  - `uccontrollers` – use cases (`@Service`, `@Transactional`) that orchestrate the business logic and the DAOs.
-  - `web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, and `ApiExceptionHandler` which renders every API error.
-  - `security` – session JWT cookie, current user, CSRF helpers used by the security chain.
+  The packages follow the hexagonal architecture of [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) (vocabulary in the [glossary](GLOSSARY.md)); `ArchitectureTest` (ArchUnit) fails the build when a dependency points outwards.
+  - `domain` – the centre. `model`: the entity interfaces and implementations (`User`, `Mobility`, …) created through `EntityFactory`; `dto`: the DTO interfaces carrying the Bean Validation constraints; `exceptions`: `BusinessException` and the error catalogue `ErrorCode`; `validation`: the custom constraints; `port/in`: the use cases (`XxxService` interfaces); `port/out`: the repositories (`XxxRepository` interfaces).
+  - `application` – the use-case services (`XxxServiceImpl`, `@Service`, `@Transactional`) implementing the driving ports; `export` builds the CSV exports.
+  - `adapter/in/web` – the REST API: one Spring MVC `@RestController` per resource under `/api/1.0`, `ApiExceptionHandler` which renders every API error, and `security` (session JWT cookie, current user, CSRF helpers used by the security chain).
+  - `adapter/out/persistence` – the Spring Data JPA adapters implementing the repositories (`JpaXxxRepositoryAdapter`), the JPA entities (`entity`) and the Spring Data interfaces (`repository`).
   - `config` – Spring configuration (security chain, JSON mapping, CORS, web UI routing).
-  - additional packages include `exceptions` and `utils`; `Application` is the Spring Boot entry point.
+  - `Application` is the Spring Boot entry point.
 - **src/main/resources** contains `application.properties` (Spring configuration) and the message bundles `i18n/messages*.properties` (error titles and details, validation messages, in French and English).
 - **src/main/webapp** hosts the legacy client-side HTML, CSS and JavaScript, packaged as static content and served at `/`.
-- **src/test/java** holds the JUnit 5 tests. Unit tests run the real business and use-case beans against the in-memory mock DAOs (`persistence/mocks`, wired by `UnitTestConfig`); the `web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*IT` DAO tests run against an embedded PostgreSQL.
+- **src/test/java** holds the JUnit 5 tests. Unit tests run the real domain and use-case beans against the in-memory repositories (`adapter/out/inmemory`, wired by `UnitTestConfig`); the `adapter/in/web` tests are `@WebMvcTest` slices with the real security chain and mocked use cases; `ApplicationTests` boots the whole application without a database; the `*RepositoryIT` tests (`adapter/out/persistence`) run against an embedded PostgreSQL.
 
 ## Key design aspects
-- **Layers**: controllers (`web`) → use cases (`uccontrollers`) → DAOs (`persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
+- **Layers** (hexagonal, ADR 0001): controllers (`adapter/in/web`) → use cases (`domain/port/in`, implemented in `application`) → repositories (`domain/port/out`, implemented in `adapter/out/persistence`), all Spring beans wired by constructor injection. Business objects are created through `EntityFactory`, which binds each business/DTO interface to its implementation; the same bindings tell Spring MVC's Jackson `ObjectMapper` how to read the DTO interfaces (`JacksonConfig`).
 - **REST API**: thin `@RestController`s bind the request (JSON body, path and query parameters, `CurrentUser`), call a use case and return its result. Paths are matched case-insensitively (as the former router did). Lists read by DataTables are wrapped in `{"data": [...]}`; exports are `text/csv`.
 - **Transactions**: every use-case service is `@Transactional` (read-only for queries); the JPA adapters work in the persistence context of that transaction (`open-in-view` is off). Updates check the entity version (`@Version`) and throw a `ConcurrentModificationException`, rendered as a 409 `CONCURRENT_MODIFICATION` problem, on a stale version.
 - **Security** (Spring Security, stateless, see `SecurityConfig`):
@@ -104,17 +103,17 @@ Status policy: 400 validation / malformed request, 401/403 security, 404 unknown
 - To add a language: add `messages_<lang>.properties` with every key, add the locale to `WebConfig.SUPPORTED_LOCALES` and to `MessageBundlesTest`.
 
 ## Validation conventions
-- Rules on the data are Bean Validation constraints declared on the **getters of the DTO interfaces** (`business/dto`), e.g. `@NotBlank @Size(max = USERNAME_MAX_LENGTH) String getUsername()`; the lengths are those of the database columns. Custom constraints live in `business/validation`: `@Iban` (format and MOD 97 check digits), `@Bic`, `@PhoneNumber` and the class-level `@FilterValueRequired` (cross-field rule of `PartnerSearch`). Empty values are only reported by `@NotBlank`.
+- Rules on the data are Bean Validation constraints declared on the **getters of the DTO interfaces** (`domain/dto`), e.g. `@NotBlank @Size(max = USERNAME_MAX_LENGTH) String getUsername()`; the lengths are those of the database columns. Custom constraints live in `domain/validation`: `@Iban` (format and MOD 97 check digits), `@Bic`, `@PhoneNumber` and the class-level `@FilterValueRequired` (cross-field rule of `PartnerSearch`). Empty values are only reported by `@NotBlank`.
 - Groups (`ValidationGroups`): `Default` for an entity sent in full; `OnCreate` for the extra rules of a creation (password at sign-up, at least one partner option), validated with `@Validated({Default.class, OnCreate.class})`; `Reference` for an entity referenced by another one (`option` of a user, `country` of an address, `user` and `programme` of a mobility choice): the referencing getter uses `@Valid @ConvertGroup(from = Default.class, to = Reference.class)` and only the identifier is checked.
 - Web layer: `@Valid` (or `@Validated(groups)`) on every `@RequestBody`, constraints on `@PathVariable` / `@RequestParam` (`@Positive int id`, `@Pattern` filters). Controllers are not annotated `@Validated`: Spring MVC 6.1 validates the method parameters itself (`HandlerMethodValidationException`).
-- Use-case layer: every `*Ucc` interface is `@Validated` and declares the constraints of its parameters (`@NotNull @Valid`, `@Positive`, `@NotBlank`...), so the rules hold whoever calls the use case (a `ConstraintViolationException`, also answered with `VALIDATION_FAILED`). Parameter constraints are declared on the interface only (Bean Validation forbids redefining them in the implementation).
+- Use-case layer: every `*Service` interface is `@Validated` and declares the constraints of its parameters (`@NotNull @Valid`, `@Positive`, `@NotBlank`...), so the rules hold whoever calls the use case (a `ConstraintViolationException`, also answered with `VALIDATION_FAILED`). Parameter constraints are declared on the interface only (Bean Validation forbids redefining them in the implementation).
 - Rules that need the database or the state (uniqueness, existence of a referenced entity, state of a mobility...) stay in the use cases and throw a `BusinessException` with an `ErrorCode`.
 - Tests: `Violations.of(dto)` / `Violations.onCreate(dto)` list the broken constraints as `"field:Constraint"`, `Violations.thrownBy(() -> ucc.call(...))` those of a use case.
 
 ## Getting started
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
-2. Explore the DTOs and their constraints in the `business` package.
-3. Examine the controllers in `web` for the available API endpoints and their roles (`@PreAuthorize`).
+2. Explore the DTOs and their constraints in the `domain/dto` package.
+3. Examine the controllers in `adapter/in/web` for the available API endpoints and their roles (`@PreAuthorize`).
 4. Review the SQL scripts under `SQLRessources` to understand the schema. A database created from an older `init.sql` gets the countries added since with `SQLRessources/add-missing-countries.sql` (idempotent).
 5. Run the JUnit tests under `src/test/java` (`mvn test`) as examples of typical workflows.
 
@@ -129,7 +128,7 @@ to compile the sources, run the tests and assemble the final JAR.
 
 ## Suggestions for further learning
 - Follow a request from a `@RestController` to its `@Transactional` use case and the JPA persistence adapter.
-- See how tests use the mock DAOs to isolate business logic.
+- See how tests use the in-memory repositories to isolate business logic.
 - Investigate the front-end code in `src/main/webapp` to see how it interacts with the API.
 
 ## Frontend

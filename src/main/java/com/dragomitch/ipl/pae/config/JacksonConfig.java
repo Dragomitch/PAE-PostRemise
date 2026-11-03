@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.config;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;

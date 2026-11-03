@@ -4,6 +4,6 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/** The partners; their filtered search is built by {@code PartnerPersistenceAdapter}. */
+/** The partners; their filtered search is built by {@code JpaPartnerRepositoryAdapter}. */
 public interface PartnerJpaRepository extends JpaRepository<PartnerEntity, Integer> {
 }
