@@ -42,6 +42,8 @@ describe('Shell', () => {
           { path: 'mobility-choices', component: Page },
           { path: 'personal-data', component: Page },
           { path: 'users', component: Page },
+          { path: 'mobilities', component: Page },
+          { path: 'mobilities/:id', component: Page },
         ]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -110,11 +112,12 @@ describe('Shell', () => {
     expect(navLinks()).toEqual([
       ['Partenaires', '/partners'],
       ['Demandes de mobilité', '/mobility-choices'],
+      ['Mobilités', '/mobilities'],
       ['Utilisateurs', '/users'],
     ]);
     await router.navigateByUrl('/users');
     fixture.detectChanges();
-    expect(el.querySelectorAll('nav a')[2].getAttribute('aria-current')).toBe('page');
+    expect(el.querySelectorAll('nav a')[3].getAttribute('aria-current')).toBe('page');
   });
 
   it("links the student's personal data for a student only", async () => {
@@ -122,11 +125,20 @@ describe('Shell', () => {
     expect(navLinks()).toEqual([
       ['Partenaires', '/partners'],
       ['Mes demandes de mobilité', '/mobility-choices'],
+      ['Mes mobilités', '/mobilities'],
       ['Mes données personnelles', '/personal-data'],
     ]);
     await router.navigateByUrl('/personal-data');
     fixture.detectChanges();
-    expect(el.querySelectorAll('nav a')[2].classList).toContain('active');
+    expect(el.querySelectorAll('nav a')[3].classList).toContain('active');
+  });
+
+  it('links the mobilities for both roles, the detail keeping the link active', async () => {
+    await setup(PROFESSOR);
+    const link = () => el.querySelectorAll<HTMLAnchorElement>('nav a')[2];
+    await router.navigateByUrl('/mobilities/7');
+    fixture.detectChanges();
+    expect(link().classList).toContain('active');
   });
 
   it('shows the name and the role of a professor', async () => {

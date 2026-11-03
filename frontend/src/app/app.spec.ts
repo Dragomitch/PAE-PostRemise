@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
+import { Mobilities } from './mobilities/mobilities';
+import { MobilityDetail } from './mobilities/mobility-detail';
 import { authGuard } from './core/auth.guard';
 import { Partners } from './partners/partners';
 import { PersonalData } from './personal-data/personal-data';
@@ -64,5 +66,16 @@ describe('routes', () => {
     expect(users.component).toBe(Users);
     expect(users.title).toBe('Utilisateurs - EMA');
     expect(users.canActivate?.length).toBe(1);
+  });
+
+  it('open the mobilities and their detail to both roles', () => {
+    const list = shell.children!.find((r) => r.path === 'mobilities')!;
+    const detail = shell.children!.find((r) => r.path === 'mobilities/:id')!;
+    expect(list.component).toBe(Mobilities);
+    expect(list.title).toBe('Mobilités - EMA');
+    expect(list.canActivate).toBeUndefined();
+    expect(detail.component).toBe(MobilityDetail);
+    expect(detail.title).toBe('Mobilité - EMA');
+    expect(detail.canActivate).toBeUndefined();
   });
 });

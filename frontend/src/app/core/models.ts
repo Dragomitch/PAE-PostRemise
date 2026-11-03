@@ -164,3 +164,56 @@ export interface MobilityChoiceRequest {
   country?: { countryCode: string };
   partner?: { id: number };
 }
+
+/** States of a mobility (`MobilityDto.STATE_*`), as the API spells them. */
+export const MOBILITY_STATES = {
+  created: 'Créée',
+  inPreparation: 'En préparation',
+  toBePaid: 'A payer',
+  inProgress: 'En cours',
+  balanceToBePaid: 'Solde à payer',
+  closed: 'Terminée',
+  cancelled: 'Annulée',
+} as const;
+
+/** A document of a mobility (`DocumentDto`): `D` departure document, `R` return document. */
+export interface MobilityDocument {
+  id: number;
+  name: string;
+  category: 'D' | 'R';
+  filledIn: boolean;
+}
+
+/**
+ * A mobility (`MobilityDto`): a confirmed mobility choice, with the same id. The list of
+ * `GET /api/1.0/mobilities` leaves out the documents and most of the student's data, which the
+ * detail (`GET /mobilities/{id}`) carries. Dates are `yyyy-MM-ddTHH:mm:ss[.SSSSSS]`, local time of
+ * the server.
+ */
+export interface Mobility {
+  id: number;
+  version: number;
+  mobilityType: MobilityType;
+  academicYear: number;
+  term: number;
+  state: string;
+  stateBeforeCancellation?: string | null;
+  programme: { id: number; programmeName?: string; externalSoftName?: string };
+  country?: { countryCode: string; name?: string } | null;
+  partner?: { id: number; fullName?: string } | null;
+  nominatedStudent: Partial<NominatedStudent> & { id: number };
+  professorInCharge?: { id?: number; firstName?: string; lastName?: string } | null;
+  documents?: MobilityDocument[];
+  encodedInProEco: boolean;
+  encodedInSecondSoftware: boolean;
+  firstPaymentRequestDate?: string | null;
+  secondPaymentRequestDate?: string | null;
+  denialReason?: { id: number; reason?: string } | null;
+  cancellationReason?: string | null;
+}
+
+/**
+ * Filters of the CSV export of a mobility's documents (`MobilityService.DOCUMENT_FILTER_REGEXP`):
+ * departure (`D`) or return (`R`) documents, `F` keeping the filled-in ones; none exports them all.
+ */
+export type MobilityDocumentFilter = 'D' | 'DF' | 'R' | 'RF';

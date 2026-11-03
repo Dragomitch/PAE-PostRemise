@@ -45,6 +45,7 @@ frontend/
 │   │   ├── mobility-choices/      # student: own choices, creation form, cancel; professor: filter, count, confirm, reject, CSV export
 │   │   ├── personal-data/         # student: own nominated-student record (create, then update with its version)
 │   │   ├── users/                 # professor: every account, promotion of a student after a confirmation
+│   │   ├── mobilities/            # list and detail; professor: encodings, documents, payments, cancellation, CSV exports
 │   │   ├── sign-in/  sign-up/
 │   │   └── api.service.ts
 │   └── locale/
@@ -237,6 +238,15 @@ Frontend pieces:
   nationality and the address country as `{countryCode}`, `birthdate` as `yyyy-MM-dd`; a stale version
   answers 409 `CONCURRENT_MODIFICATION` and the screen offers to reload the record.
 - Users (professor): `GET /api/1.0/users` -> `{data: [...]}`, `PUT /users/{id}/promote` (no body, no answer).
+- Mobilities: `GET /api/1.0/mobilities` -> `{data: [...]}` (every mobility for a professor, the own ones for
+  a student, without the documents), `GET /mobilities/{id}` (documents, student's bank details). The state
+  changes of a professor are `PUT` without a body, all with the `version` last read as a query parameter
+  (a stale one answers 409 and the screen offers to reload the mobility): `confirmProEcoEncoding`,
+  `confirmSecondSoftwareEncoding`, `confirmDocument?document=<id>`, `confirmPayment` (the first payment in
+  `A payer`, the second in `Solde à payer`, offered only when the student's IBAN and BIC are known) and
+  `cancel?denialReason=<id>`. Some answer the mobility, others nothing: the screen reads it again after
+  each one. `GET /mobilities/{id}/export?filter=D|DF|R|RF` is the CSV of the documents (every one without a
+  filter), opened by the browser.
 
 The sign-up option list is static (`BIN`, `BBM`, `BCH`, `BDI`, `BIM`, from `SQLRessources/init.sql`)
 until the backend exposes an options endpoint in the new API.
@@ -247,7 +257,8 @@ Routing is defined in `app.routes.ts`; route titles are localized with `$localiz
 `/signin` and `/signup` are public. Every other screen is a child of the `Shell` route, guarded by
 `authGuard` (screens of one role add `roleGuard(ROLE_STUDENT)` for `/personal-data` or
 `roleGuard(ROLE_PROFESSOR)` for `/users`, which sends the other role to `/partners`; the shell only
-links the screens of the user's role): a signed-in user is known from the sign-in of this page load or from
+links the screens of the user's role; `/mobilities` and `/mobilities/:id` serve both roles, the API
+answering a student's own mobilities only): a signed-in user is known from the sign-in of this page load or from
 `GET /api/1.0/session` (`SessionService.restore()`), otherwise the visitor is redirected to
 `/signin`. A successful sign-in navigates to `/partners`; `/` and unknown paths redirect to
 `/partners` (so anonymous visitors end on `/signin`). A 401 while a screen loads (expired session)

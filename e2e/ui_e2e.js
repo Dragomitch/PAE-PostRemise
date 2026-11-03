@@ -1,7 +1,8 @@
 // UI walk on the real app: Angular sign-up and sign-in, then every legacy UI view as a professor
 // and as a student, then the Angular mobility choices screen as the student alice (her list, a
 // creation through the form) and as prof (active list and count, rejection, filter "all"), then
-// alice's personal data (a phone number changed through the form) and prof's users table.
+// alice's personal data (a phone number changed through the form), prof's users table and the
+// mobilities (prof's list and the completed mobility's detail, alice's list).
 // Expects the data created by api_e2e.py (users prof and alice, a completed mobility with its two
 // payments, alice's personal data). Prints one PASS/FAIL line per check, exits 1 on a failure.
 //
@@ -248,6 +249,43 @@ function watch(page, name, problems) {
   await prof.waitForTimeout(300);
   ok(promotions.length === 0 && await prof.locator('app-users .promote-panel').count() === 0,
     'angular prof: "Promouvoir" asks for a confirmation, cancelled without any request');
+
+  // --- Angular: the mobilities, prof's list and the completed mobility's detail, alice's list ---
+  // Read only: the API script already drives the whole lifecycle. The list must hold the mobilities
+  // of GET /mobilities with their state, the detail of the completed one (the mobility that
+  // mobility_detail.js checks on the legacy UI) its state and the days of its two payments.
+  const mobilityStates = page => page.$$eval('app-mobilities tbody tr', trs => trs.map(tr => `${tr.dataset.id}:${tr.dataset.state}`).sort());
+  await prof.click('nav a[href="/mobilities"]');
+  await prof.waitForSelector('app-mobilities table');
+  const profMobilities = (await apiGet(prof, '/api/1.0/mobilities')).data;
+  const profStates = await mobilityStates(prof);
+  ok(profMobilities.length > 0 && profStates.join() === profMobilities.map(m => `${m.id}:${m.state}`).sort().join(),
+    `angular prof: /mobilities lists the ${profMobilities.length} mobilities of GET /mobilities with their state ${JSON.stringify(profStates)}`);
+  await prof.screenshot({ path: path.join(SHOTS, '70-angular-prof-mobilities.png'), fullPage: true });
+  const done = profMobilities.find(m => m.state === 'Terminée');
+  await prof.locator('app-mobilities tbody tr[data-state="Terminée"] th a').first().click();
+  await prof.waitForSelector('app-mobility-detail .second-payment time', { timeout: 5000 }).catch(() => {});
+  const shownDetail = await prof.evaluate(() => ({
+    url: location.pathname,
+    state: document.querySelector('app-mobility-detail .mobility-state')?.dataset.state,
+    first: document.querySelector('app-mobility-detail .first-payment time')?.getAttribute('datetime'),
+    second: document.querySelector('app-mobility-detail .second-payment time')?.getAttribute('datetime'),
+    buttons: document.querySelectorAll('app-mobility-detail button').length,
+  }));
+  ok(done && shownDetail.url === `/mobilities/${done.id}` && shownDetail.state === done.state && shownDetail.buttons === 0,
+    `angular prof: the detail of the completed mobility ${done && done.id} shows its state ${JSON.stringify(shownDetail.state)}, no button`);
+  ok(done && shownDetail.first === String(done.firstPaymentRequestDate).substring(0, 10) && shownDetail.second === String(done.secondPaymentRequestDate).substring(0, 10),
+    `angular prof: payment days shown ${JSON.stringify([shownDetail.first, shownDetail.second])} match the API ${JSON.stringify(done && [done.firstPaymentRequestDate, done.secondPaymentRequestDate])}`);
+  await prof.screenshot({ path: path.join(SHOTS, '71-angular-prof-mobility-detail.png'), fullPage: true });
+
+  await alice.click('nav a[href="/mobilities"]');
+  await alice.waitForSelector('app-mobilities table');
+  const aliceMobilities = (await apiGet(alice, '/api/1.0/mobilities')).data;
+  const aliceStates = await mobilityStates(alice);
+  ok(aliceMobilities.length > 0 && aliceStates.join() === aliceMobilities.map(m => `${m.id}:${m.state}`).sort().join()
+    && /Mes mobilités/.test(await alice.textContent('app-mobilities h1')),
+    `angular alice: /mobilities lists her ${aliceMobilities.length} mobilities ${JSON.stringify(aliceStates)}`);
+  await alice.screenshot({ path: path.join(SHOTS, '72-angular-alice-mobilities.png'), fullPage: true });
 
   await browser.close();
   for (const p of problems) results.push([false, p]);
