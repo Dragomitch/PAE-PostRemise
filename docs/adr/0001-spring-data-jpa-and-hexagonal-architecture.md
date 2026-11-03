@@ -15,7 +15,7 @@ some of them to Spring Data JDBC and `JdbcClient`. Issue #102 settled the target
 | Q2 | Persistence technology | Standard JPA (Spring Data JPA, Hibernate) everywhere: a full refactor rather than a mix of JDBC and JPA. |
 | Q3 | Relations | Real JPA associations between the entities instead of foreign-key ids. |
 | Q4 | Schema | Kept as it is (`SQLRessources/init.sql`). It changes only when that is justified and asked for. |
-| Q5 | Spring Boot | 3.5 now (#134); Spring Boot 4 is a separate refactor. |
+| Q5 | Spring Boot | 3.5 now (#134); Spring Boot 4 is a separate refactor. Done: Spring Boot 4.1 (issue #140, [ADR 0002](0002-spring-boot-4.md)). |
 | Q6 | History | The JPA commits come on top of #91 with no history rewrite. #91's title and description are rewritten at the end. |
 
 ## Decision
@@ -95,7 +95,7 @@ package.
    `EntityFactory`: records for the web DTOs, mapped in `adapter.in.web`. Use typed filters (enums
    instead of strings) and `Optional` results in the driven ports.
 
-Spring Boot 4 comes after these steps, in its own PR.
+Spring Boot 4 came in its own PR (issue #140), before step 3: see [ADR 0002](0002-spring-boot-4.md).
 
 ### Persistence rules
 

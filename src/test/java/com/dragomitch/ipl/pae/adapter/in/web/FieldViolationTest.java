@@ -37,7 +37,7 @@ class FieldViolationTest {
   record Address(@NotBlank String city) {
   }
 
-  record Partner(@NotNull @Valid Address address, @Valid List<Option> options) {
+  record Partner(@NotNull @Valid Address address, List<@Valid Option> options) {
   }
 
   @Test

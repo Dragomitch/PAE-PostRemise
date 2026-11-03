@@ -28,7 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
@@ -241,6 +241,16 @@ class EndpointAuthorizationTest {
         .with(csrf()).with(TestUsers.professor())).andExpect(status().isOk());
     mockMvc.perform(request(HttpMethod.GET, API + "/denialreasons")
         .with(TestUsers.professor())).andExpect(status().isOk());
+  }
+
+  @Test
+  void upperCasePathsNeedAuthenticationToo() throws Exception {
+    // the security rules use the case-insensitive parser of the controllers
+    mockMvc.perform(request(HttpMethod.GET, "/API/1.0/users"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    mockMvc.perform(request(HttpMethod.GET, "/API/1.0/Users").with(TestUsers.student()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

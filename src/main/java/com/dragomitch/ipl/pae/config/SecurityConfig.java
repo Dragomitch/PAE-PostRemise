@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -53,14 +53,13 @@ import org.springframework.security.web.authentication.session.NullAuthenticated
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
  * Spring Security configuration: stateless authentication by the session JWT, role checks on the
@@ -126,24 +125,37 @@ public class SecurityConfig {
   }
 
   /**
+   * Builds the request matchers of this configuration, including the ones behind the
+   * {@code requestMatchers(String...)} shortcuts of the DSL, from the case-insensitive parser of
+   * the controllers ({@link WebConfig#PATH_PATTERN_PARSER}). It replaces Spring Boot's default
+   * builder, which is case-sensitive: with it, {@code /API/1.0/users} would skip the
+   * {@code /api/**} rule while the controllers still serve it.
+   *
+   * @return the request matcher builder
+   */
+  @Bean
+  public PathPatternRequestMatcher.Builder pathPatternRequestMatcherBuilder() {
+    return PathPatternRequestMatcher.withPathPatternParser(WebConfig.PATH_PATTERN_PARSER);
+  }
+
+  /**
    * The API endpoints that anonymous users may call: sign-in, sign-up and the list of options
    * (shown on the sign-up form). Matched like the controllers (case-insensitively).
    *
-   * @param introspector the Spring MVC handler mappings
+   * @param paths the request matcher builder
    * @return the matcher of the public endpoints
    */
   @Bean
-  public RequestMatcher publicApiEndpoints(HandlerMappingIntrospector introspector) {
-    MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
+  public RequestMatcher publicApiEndpoints(PathPatternRequestMatcher.Builder paths) {
     return new OrRequestMatcher(
-        mvc.pattern(HttpMethod.POST, ApiPaths.BASE + "/session"),
-        mvc.pattern(HttpMethod.POST, ApiPaths.BASE + "/users"),
-        mvc.pattern(HttpMethod.GET, ApiPaths.BASE + "/options"));
+        paths.matcher(HttpMethod.POST, ApiPaths.BASE + "/session"),
+        paths.matcher(HttpMethod.POST, ApiPaths.BASE + "/users"),
+        paths.matcher(HttpMethod.GET, ApiPaths.BASE + "/options"));
   }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http,
-      RequestMatcher publicApiEndpoints, HandlerMappingIntrospector introspector,
+      RequestMatcher publicApiEndpoints,
       BearerTokenResolver bearerTokenResolver, JwtAuthenticationConverter jwtAuthenticationConverter,
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
       ObjectProvider<LocaleResolver> localeResolver,
@@ -155,7 +167,6 @@ public class SecurityConfig {
     csrfTokenRepository.setCookieCustomizer(cookie -> cookie
         .sameSite("Lax")
         .secure(sessionProperties.cookieSecure()));
-    MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
 
     http
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -178,13 +189,13 @@ public class SecurityConfig {
             // SPA fallback (forward:/index.html) and the error page
             .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
             .requestMatchers(publicApiEndpoints).permitAll()
-            .requestMatchers(mvc.pattern(ApiPaths.BASE + "/**")).authenticated()
+            // the String patterns are built by pathPatternRequestMatcherBuilder (case-insensitive)
+            .requestMatchers(ApiPaths.BASE + "/**").authenticated()
             // the health status (database included) is public: the container health check has no
             // session. The other exposed endpoint (info) and anything else under /actuator need one.
-            .requestMatchers(
-                mvc.pattern(HttpMethod.GET, ACTUATOR_BASE + "/health"),
-                mvc.pattern(HttpMethod.GET, ACTUATOR_BASE + "/health/**")).permitAll()
-            .requestMatchers(mvc.pattern(ACTUATOR_BASE + "/**")).authenticated()
+            .requestMatchers(HttpMethod.GET, ACTUATOR_BASE + "/health", ACTUATOR_BASE + "/health/**")
+                .permitAll()
+            .requestMatchers(ACTUATOR_BASE + "/**").authenticated()
             // the web UI: static files and client-side routes
             .anyRequest().permitAll())
         .oauth2ResourceServer(oauth2 -> oauth2
