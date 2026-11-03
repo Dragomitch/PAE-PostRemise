@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.application;
 import static com.dragomitch.ipl.pae.domain.exceptions.BusinessExceptionAssert.assertThatBusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,8 +30,9 @@ import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -59,6 +59,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class MobilityServiceImplTest {
+
+  /** The instant the use case reads from its clock: the dates it sets are asserted exactly. */
+  private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 15, 10, 15, 30);
+  private static final Clock CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
   private static final int MOBILITY_ID = 7;
   private static final int VERSION = 3;
@@ -88,7 +92,7 @@ class MobilityServiceImplTest {
   @BeforeEach
   void setUp() {
     mobilityService = new MobilityServiceImpl(mobilityRepository, nominatedStudentRepository, denialReasonRepository,
-        mobilityDocumentRepository, partnerService, programmeService, userRepository);
+        mobilityDocumentRepository, partnerService, programmeService, userRepository, CLOCK);
   }
 
   /** A mobility as {@link MobilityRepository#findById} returns it. */
@@ -389,8 +393,7 @@ class MobilityServiceImplTest {
 
       assertThat(paid).isSameAs(mobility);
       assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_IN_PROGRESS);
-      assertThat(paid.getFirstPaymentRequestDate())
-          .isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.MINUTES));
+      assertThat(paid.getFirstPaymentRequestDate()).isEqualTo(NOW);
       assertThat(paid.getSecondPaymentRequestDate()).isNull();
       assertThat(paid.getVersion()).isEqualTo(VERSION + 1);
     }
@@ -408,8 +411,7 @@ class MobilityServiceImplTest {
 
       assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_CLOSED);
       assertThat(paid.getFirstPaymentRequestDate()).isEqualTo(firstPayment);
-      assertThat(paid.getSecondPaymentRequestDate())
-          .isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.MINUTES));
+      assertThat(paid.getSecondPaymentRequestDate()).isEqualTo(NOW);
       verify(mobilityRepository).update(mobility);
     }
 

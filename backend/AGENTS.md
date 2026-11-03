@@ -62,6 +62,20 @@ pom.xml
 - Write meaningful commit messages in English.
 - Open a Pull Request with a summary of changes and link issues when relevant.
 
+#### Pull requests
+
+`.github/pull_request_template.md` pre-fills the description (Summary, Issue, Changes, Test plan, Screenshots); `.github/CODEOWNERS` requests the review. The conventions behind it:
+
+- **Every change comes through a pull request** against `master`, and the PR links its issue with `Closes #n` so that merging closes it.
+- **The test plan states what was run and the numbers it produced**, never "should work": the exact command and its result, e.g. `mvn -B -ntp clean verify`: N unit tests, N integration tests, 0 failures, `All coverage checks have been met` (with the real numbers in place of N). Run the Maven build in default and in random order (`-Dsurefire.runOrder=random -Dfailsafe.runOrder=random`), `npm run test:ci` when the frontend changes and `docker compose config --quiet` when the Compose file or a Dockerfile does. Say what you could not run.
+- **A PR that changes a screen embeds its screenshots.** Commit the images under `docs/screenshots/<topic>/` on the branch, then reference each one in the PR body with the raw URL of that commit, wrapped in a link to its page, so that the image previews inline and opens in full on click:
+
+  ```markdown
+  [![alt text](https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png)](https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png)
+  ```
+
+  Use the full sha of a commit, not the branch name, so that the link keeps working after the branch is deleted. On a Forgejo mirror the image URL is `https://<host>/Dragomitch/PAE-PostRemise/raw/commit/<commit-sha>/docs/screenshots/<topic>/<file>.png` and the page is the same path under `/src/commit/<commit-sha>/`.
+
 ## Environment Setup
 
 ### Development Requirements
@@ -156,6 +170,7 @@ Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; 
 - Test file organization: mirror package structure under `src/test/java`
 - The stateful in-memory repositories implement `ResettableRepository`; `InMemoryRepositoryResetListener` (registered for every Spring test in `src/test/resources/META-INF/spring.factories`) empties them before every test method, before the test's own `@BeforeEach`, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
 - Production code never writes to the console (`SourceHygieneTest`); log through SLF4J (`LoggerFactory.getLogger`).
+- Production code never reads the current date or time from the system (`LocalDateTime.now()`, `LocalDate.now()`, `Year.now()`; `ArchitectureTest` fails the build): the use cases and the persistence adapters take the `java.time.Clock` bean of `config/ClockConfig` and call `LocalDateTime.now(clock)`. A unit test that asserts a date builds the service with `Clock.fixed(...)` and compares exactly (`MobilityServiceImplTest`, `UserServiceImplTest`, `MobilityChoiceServiceImplTest`); `UnitTestConfig` and `RepositoryItConfig` provide the system clock. The creation date of a mobility choice is the exception: the database sets it (`SELECT LOCAL DATETIME` in `JpaMobilityChoiceRepositoryAdapter.create`).
 
 ### Integration Testing
 
@@ -177,10 +192,10 @@ mvn clean package
 
 ### Deployment Steps
 
-1. Build the Docker image
+1. Build the Docker image (`backend/Dockerfile`: a layered image, the dependencies in layers below the application classes, so a code-only change rebuilds and pulls one small layer)
 2. Configure environment variables
 3. Run `docker compose up backend`
-4. Verify the API is reachable on port 8080
+4. Verify the API is reachable on port 8080 (`curl http://localhost:8080/actuator/health` answers `"status":"UP"`)
 
 ### Environment Variables
 
@@ -224,7 +239,8 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Application Monitoring
 
-- Use Spring Boot Actuator for health checks
+- Spring Boot Actuator exposes `health` and `info` over HTTP, nothing else (`management.endpoints.web.exposure.include`). `GET /actuator/health` (and `/actuator/health/liveness`, `/readiness`) is public and shows the status only, no component or detail: `200` with `"status":"UP"`, or `503` with `"status":"DOWN"` when the database is unreachable (the database indicator counts). Everything else under `/actuator` requires a session (`SecurityConfig`). The `backend` service of `docker-compose.yml` uses it as its `healthcheck`, and `frontend` waits for it to be healthy.
+- The application stops gracefully (`server.shutdown=graceful`, 20 seconds for the requests in flight, `stop_grace_period: 30s` in Compose) and serves requests on virtual threads (`spring.threads.virtual.enabled=true`).
 - Track errors via logs
 - Optionally integrate with Prometheus/Grafana
 

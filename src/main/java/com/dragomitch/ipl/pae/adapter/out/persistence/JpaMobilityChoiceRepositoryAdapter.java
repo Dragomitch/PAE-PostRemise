@@ -18,6 +18,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -52,12 +53,14 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
       + " AND (m.denialReason IS NOT NULL OR m.cancellationReason IS NOT NULL))";
 
   private final PersistenceMapper mapper;
+  private final Clock clock;
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  JpaMobilityChoiceRepositoryAdapter(PersistenceMapper mapper) {
+  JpaMobilityChoiceRepositoryAdapter(PersistenceMapper mapper, Clock clock) {
     this.mapper = mapper;
+    this.clock = clock;
   }
 
   /**
@@ -109,7 +112,7 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
     return choices(where("c.partner.id = :partner AND c.academicYear = :year AND " + PENDING
         + " AND " + NOT_A_CANCELLED_MOBILITY)
         .setParameter("partner", partnerId)
-        .setParameter("year", LocalDate.now().getYear()));
+        .setParameter("year", LocalDate.now(clock).getYear()));
   }
 
   /**
@@ -121,7 +124,7 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
    */
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
-    int year = LocalDate.now().getYear();
+    int year = LocalDate.now(clock).getYear();
     if (FILTER_ALL_MOBILITIES_CHOICES.equals(filter)) {
       return choices(entityManager.createQuery(SELECT + ORDER, MobilityChoiceEntity.class));
     } else if (FILTER_CANCELED_MOBILITIES_CHOICES.equals(filter)) {

@@ -17,6 +17,8 @@ import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryRepositoryResetListen
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.ResettableRepository;
 
+import java.time.Clock;
+
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
@@ -63,6 +65,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @ImportAutoConfiguration({MessageSourceAutoConfiguration.class, ValidationAutoConfiguration.class})
 @PropertySource("classpath:application.properties")
 public class UnitTestConfig {
+
+  /** The system clock, as in the application ({@code ClockConfig}); the unit tests that need a fixed date build their own. */
+  @Bean
+  Clock clock() {
+    return Clock.systemDefaultZone();
+  }
 
   @Bean
   PasswordEncoder passwordEncoder() {

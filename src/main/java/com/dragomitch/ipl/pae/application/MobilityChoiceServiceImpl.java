@@ -27,6 +27,7 @@ import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -46,10 +47,12 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   private final CountryRepository countryRepository;
   private final ProgrammeRepository programmeRepository;
   private final PartnerService partnerService;
+  private final Clock clock;
 
   MobilityChoiceServiceImpl(UserRepository userRepository, MobilityChoiceRepository mobilityChoiceRepository, MobilityRepository mobilityRepository,
       DenialReasonRepository denialReasonRepository, DocumentRepository documentRepository, MobilityDocumentRepository mobilityDocumentRepository,
-      EntityFactory entityFactory, CountryRepository countryRepository, ProgrammeRepository programmeRepository, PartnerService partnerService) {
+      EntityFactory entityFactory, CountryRepository countryRepository, ProgrammeRepository programmeRepository, PartnerService partnerService,
+      Clock clock) {
     this.userRepository = userRepository;
     this.mobilityChoiceRepository = mobilityChoiceRepository;
     this.mobilityRepository = mobilityRepository;
@@ -60,6 +63,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
     this.countryRepository = countryRepository;
     this.programmeRepository = programmeRepository;
     this.partnerService = partnerService;
+    this.clock = clock;
   }
 
   @Override
@@ -315,7 +319,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   private MobilityDto newMobility(int id) {
     MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
     mobility.setId(id);
-    mobility.setSubmissionDate(LocalDateTime.now());
+    mobility.setSubmissionDate(LocalDateTime.now(clock));
     return mobility;
   }
 

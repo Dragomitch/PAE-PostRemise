@@ -12,6 +12,10 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import jakarta.persistence.Entity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Year;
+
 import org.springframework.data.repository.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
@@ -77,6 +81,17 @@ class ArchitectureTest {
   static final ArchRule drivenPortsAreImplementedByThePersistenceAdapter = noClasses().that()
       .resideOutsideOfPackage(PERSISTENCE_ADAPTER)
       .should().implement(resideInAPackage(BASE + ".domain.port.out"));
+
+  /**
+   * The current date and time come from the injected {@code Clock} ({@code config/ClockConfig}),
+   * so that a test can fix them: {@code LocalDateTime.now(clock)}, never the no-argument
+   * {@code now()}.
+   */
+  @ArchTest
+  static final ArchRule currentTimeComesFromTheClock = noClasses()
+      .should().callMethod(LocalDateTime.class, "now")
+      .orShould().callMethod(LocalDate.class, "now")
+      .orShould().callMethod(Year.class, "now");
 
   @ArchTest
   static final ArchRule useCaseServicesLiveInTheApplication = classes().that()
