@@ -2971,9 +2971,8 @@ var debugg = 1;
         complete: function () {
           Utils.populateForm($form, student);
           if (student.birthdate) {
-            var date = new Date(student.birthdate);
-            $form.find('[name=birthdate]').val(date.getUTCDate() + '/'
-                + date.getUTCMonth() + '/' + date.getUTCFullYear());
+            // d/m/yyyy, read from the yyyy-MM-dd text (submitHandler turns it back into yyyy-MM-dd)
+            $form.find('[name=birthdate]').val(Utils.formatDate(student.birthdate));
           }
           $el.show();
         }
