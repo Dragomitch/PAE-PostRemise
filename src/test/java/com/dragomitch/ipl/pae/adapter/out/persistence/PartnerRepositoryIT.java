@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
@@ -39,14 +39,14 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
     return List.of("db/fixtures/partners.sql");
   }
 
-  private PartnerDto newPartner(int addressId) {
-    PartnerDto partner = build(PartnerDto.class);
+  private Partner newPartner(int addressId) {
+    Partner partner = new Partner();
     partner.setLegalName("Gent Tech NV");
     partner.setBusinessName("GentTech");
     partner.setFullName("Gent Technology Institute");
     partner.setOrganisationType("University");
     partner.setEmployeeCount(800);
-    AddressDto address = build(AddressDto.class);
+    Address address = new Address();
     address.setId(addressId);
     partner.setAddress(address);
     partner.setEmail("info@gent.test");
@@ -57,13 +57,13 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
     return partner;
   }
 
-  private List<Integer> ids(List<PartnerDto> partners) {
-    return partners.stream().map(PartnerDto::getId).toList();
+  private List<Integer> ids(List<Partner> partners) {
+    return partners.stream().map(Partner::getId).toList();
   }
 
   @Test
   void findByIdMapsEveryFieldAndJoinsCountryAndProgramme() {
-    PartnerDto partner = inTransaction(() -> partnerRepository.findById(3001));
+    Partner partner = inTransaction(() -> partnerRepository.findById(3001));
 
     assertThat(partner.getId()).isEqualTo(3001);
     assertThat(partner.getLegalName()).isEqualTo("Université Lyon SA");
@@ -83,8 +83,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
     assertThat(partner.getProgramme().getId()).isEqualTo(1);
     assertThat(partner.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
     assertThat(partner.getOptions())
-        .extracting(
-            PartnerOptionDto::getCode, PartnerOptionDto::getDepartement, PartnerOptionDto::getName)
+        .extracting(PartnerOption::getCode, PartnerOption::getDepartement, PartnerOption::getName)
         .containsExactly(
             tuple("BCH", "Chimie", "Bachelier en chimie"),
             tuple("BIN", "Informatique", "Bachelier en informatique de gestion"));
@@ -92,7 +91,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdFindsAPartnerWithoutAnyOptionWithAnEmptyOptionList() {
-    PartnerDto orphan = inTransaction(() -> partnerRepository.findById(3005));
+    Partner orphan = inTransaction(() -> partnerRepository.findById(3005));
 
     assertThat(orphan.getFullName()).isEqualTo("Orphan Partner");
     assertThat(orphan.getAddress().getCountry().getCountryCode()).isEqualTo("FR");
@@ -116,7 +115,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createInsertsANonArchivedPartnerWithVersionOne() {
     runInTransaction(() -> {
-      PartnerDto created = partnerRepository.create(newPartner(2002));
+      Partner created = partnerRepository.create(newPartner(2002));
 
       assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
       assertThat(created.getVersion()).isEqualTo(1);
@@ -137,22 +136,22 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
 
       // visible before it has an option
       assertThat(partnerRepository.findById(created.getId()).getOptions()).isEmpty();
-      PartnerOptionDto option = build(PartnerOptionDto.class);
+      PartnerOption option = new PartnerOption();
       option.setCode("BIN");
       option.setDepartement("Informatique");
       partnerOptionRepository.create(option, created.getId());
 
-      PartnerDto found = partnerRepository.findById(created.getId());
+      Partner found = partnerRepository.findById(created.getId());
       assertThat(found.getFullName()).isEqualTo("Gent Technology Institute");
       assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erabel");
-      assertThat(found.getOptions()).extracting(PartnerOptionDto::getCode).containsExactly("BIN");
+      assertThat(found.getOptions()).extracting(PartnerOption::getCode).containsExactly("BIN");
     });
   }
 
   @Test
   void updateWritesEveryFieldIncludingTheArchiveFlagAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      PartnerDto partner = partnerRepository.findById(3001);
+      Partner partner = partnerRepository.findById(3001);
       partner.setLegalName("Lyon 2");
       partner.setBusinessName("L2");
       partner.setFullName("Université Lumière Lyon 2");
@@ -165,7 +164,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
       partner.setOfficial(false);
       partner.setArchived(true);
 
-      PartnerDto updated = partnerRepository.update(partner);
+      Partner updated = partnerRepository.update(partner);
 
       assertThat(updated.getVersion()).isEqualTo(3);
       assertThat(queryForRow(PARTNER_BY_ID, 3001))
@@ -187,13 +186,13 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void aPartnerWithoutWebsiteIsStoredWithAnEmptyOne() {
     runInTransaction(() -> {
-      PartnerDto partner = newPartner(2002);
+      Partner partner = newPartner(2002);
       partner.setWebsite(null);
 
-      PartnerDto created = partnerRepository.create(partner);
+      Partner created = partnerRepository.create(partner);
 
       assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
-      PartnerDto found = partnerRepository.findById(created.getId());
+      Partner found = partnerRepository.findById(created.getId());
       assertThat(found.getWebsite()).isEmpty();
       found.setWebsite(null);
       partnerRepository.update(found);
@@ -204,7 +203,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      PartnerDto stale = partnerRepository.findById(3001);
+      Partner stale = partnerRepository.findById(3001);
       stale.setVersion(1);
       stale.setArchived(true);
 
@@ -218,21 +217,21 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllForAProfessorReturnsEveryPartnerOnceWithAllItsOptions() {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.PROFESSOR, "BIN"));
 
     // 3001 has two options but is listed once; 3005 has no option but is listed too
     assertThat(ids(partners)).containsExactly(3001, 3002, 3003, 3004, 3005);
     assertThat(partners.get(0).getOptions())
-        .extracting(PartnerOptionDto::getCode)
+        .extracting(PartnerOption::getCode)
         .containsExactly("BCH", "BIN");
     assertThat(partners.get(4).getOptions()).isEmpty();
   }
 
   @Test
   void findAllForAStudentKeepsEveryOptionOfTheMatchingPartners() {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.STUDENT, "BIN"));
 
@@ -241,7 +240,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
         .singleElement()
         .satisfies(lyon ->
             assertThat(lyon.getOptions())
-                .extracting(PartnerOptionDto::getCode)
+                .extracting(PartnerOption::getCode)
                 .containsExactly("BCH", "BIN"));
   }
 
@@ -249,7 +248,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @CsvSource({"BIN, 3001", "BCH, 3001;3004", "BDI, ''"})
   void findAllForAStudentReturnsOnlyOfficialNonArchivedPartnersOfTheirOption(
       String option, String expected) {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.STUDENT, option));
 
@@ -260,7 +259,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @CsvSource({"FR, BIN, 3001", "FR, BCH, 3001", "CA, BCH, 3004", "BE, BIN, ''", "CA, BIN, ''"})
   void findAllByCountryForAStudentAppliesTheStudentRestrictions(
       String country, String option, String expected) {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.COUNTRY, country, Role.STUDENT, option));
 
@@ -271,7 +270,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @CsvSource({"FR, 3001;3002;3005", "BE, 3003", "CA, 3004", "DE, ''"})
   void findAllByCountryForAProfessorReturnsEveryPartnerOfThatCountry(
       String country, String expected) {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.COUNTRY, country, Role.PROFESSOR, "BIN"));
 
@@ -281,17 +280,17 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest(name = "archived partners matching \"{0}\": {1}")
   @CsvSource({"paris, 3002", "PARIS, 3002", "chive, 3002", "'', 3002", "lyon, ''"})
   void findAllArchivedMatchesTheFullNameCaseInsensitively(String search, String expected) {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.ARCHIVED, search, Role.PROFESSOR, "BIN"));
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
-    assertThat(partners).allMatch(PartnerDto::isArchived);
+    assertThat(partners).allMatch(Partner::isArchived);
   }
 
   @Test
   void aStudentSearchingTheArchivedPartnersIsNotRestrictedToTheirOption() {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(
             () -> partnerRepository.findAll(PartnerFilter.ARCHIVED, "", Role.STUDENT, "BCH"));
 

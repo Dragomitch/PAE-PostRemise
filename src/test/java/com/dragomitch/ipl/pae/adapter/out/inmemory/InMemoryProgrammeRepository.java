@@ -1,25 +1,18 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryProgrammeRepository implements ProgrammeRepository {
 
-  private List<ProgrammeDto> programmes;
-  private EntityFactory entityFactory;
+  private List<Programme> programmes;
 
-  /**
-   * Sole constructor for explicit invocation.
-   *
-   * @param entityFactory an on-demand object dispenser
-   */
-  public InMemoryProgrammeRepository(EntityFactory entityFactory) {
-    programmes = new ArrayList<ProgrammeDto>();
-    this.entityFactory = entityFactory;
-    ProgrammeDto programme1 = (ProgrammeDto) this.entityFactory.build(ProgrammeDto.class);
+  /** Sole constructor for explicit invocation. */
+  public InMemoryProgrammeRepository() {
+    programmes = new ArrayList<Programme>();
+    Programme programme1 = new Programme();
     programme1.setId(1);
     programme1.setProgrammeName("Erasmus+");
     programme1.setExternalSoftName("Mobility Tool");
@@ -27,7 +20,7 @@ public class InMemoryProgrammeRepository implements ProgrammeRepository {
   }
 
   @Override
-  public ProgrammeDto findById(int id) {
+  public Programme findById(int id) {
     if (id > 0 && id <= programmes.size()) {
       return programmes.get((id - 1));
     }
@@ -35,7 +28,7 @@ public class InMemoryProgrammeRepository implements ProgrammeRepository {
   }
 
   @Override
-  public List<ProgrammeDto> findAll() {
+  public List<Programme> findAll() {
     return programmes;
   }
 }

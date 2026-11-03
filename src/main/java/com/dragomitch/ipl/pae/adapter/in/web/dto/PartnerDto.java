@@ -1,8 +1,8 @@
 package com.dragomitch.ipl.pae.adapter.in.web.dto;
 
-import com.dragomitch.ipl.pae.domain.validation.PhoneNumber;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.PhoneNumber;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.OnCreate;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.Reference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

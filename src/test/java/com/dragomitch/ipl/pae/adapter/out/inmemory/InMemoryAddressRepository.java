@@ -1,27 +1,27 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryAddressRepository implements AddressRepository, ResettableRepository {
 
-  private List<AddressDto> addresses;
+  private List<Address> addresses;
 
   public InMemoryAddressRepository() {
-    addresses = new ArrayList<AddressDto>();
+    addresses = new ArrayList<Address>();
   }
 
   @Override
-  public AddressDto create(AddressDto address) {
+  public Address create(Address address) {
     address.setId(addresses.size() + 1);
     addresses.add(address);
     return address;
   }
 
   @Override
-  public AddressDto findById(int id) {
+  public Address findById(int id) {
     if (id > 0 && id <= addresses.size()) {
       return addresses.get(id - 1);
     }
@@ -29,7 +29,7 @@ public class InMemoryAddressRepository implements AddressRepository, ResettableR
   }
 
   @Override
-  public AddressDto update(AddressDto address) {
+  public Address update(Address address) {
     address.setVersion((findById(address.getId()).getVersion()) + 1);
     addresses.set(address.getId() - 1, address);
     return address;
@@ -37,6 +37,6 @@ public class InMemoryAddressRepository implements AddressRepository, ResettableR
 
   @Override
   public void empty() {
-    addresses = new ArrayList<AddressDto>();
+    addresses = new ArrayList<Address>();
   }
 }

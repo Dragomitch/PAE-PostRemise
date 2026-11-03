@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -56,12 +56,10 @@ class ApplicationTests {
 
   @Autowired private SessionCookieService sessionCookieService;
 
-  @Autowired private EntityFactory entityFactory;
-
   @LocalServerPort private int port;
 
-  private String token(int id, String role) {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+  private String token(int id, Role role) {
+    User user = new User();
     user.setId(id);
     user.setRole(role);
     return sessionCookieService.createToken(user);
@@ -110,7 +108,7 @@ class ApplicationTests {
         response.getResponseBody().contains("\"code\":\"UNAUTHENTICATED\""),
         response.getResponseBody());
 
-    response = getWithSessionCookie("/API/1.0/Users", token(2, UserDto.ROLE_STUDENT));
+    response = getWithSessionCookie("/API/1.0/Users", token(2, Role.STUDENT));
     assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
     assertTrue(
         response.getResponseBody().contains("\"code\":\"ACCESS_DENIED\""),
@@ -120,7 +118,7 @@ class ApplicationTests {
   @Test
   void aStudentCannotCallAProfessorEndpoint() {
     EntityExchangeResult<String> response =
-        getWithSessionCookie("/api/1.0/users", token(2, UserDto.ROLE_STUDENT));
+        getWithSessionCookie("/api/1.0/users", token(2, Role.STUDENT));
     assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
     assertTrue(
         response.getResponseBody().contains("\"code\":\"ACCESS_DENIED\""),
@@ -131,7 +129,7 @@ class ApplicationTests {
   void unknownApiRoutesAre404ForAnAuthenticatedUser() {
     assertEquals(HttpStatus.UNAUTHORIZED, get("/api/1.0/doesNotExist").getStatus());
     EntityExchangeResult<String> response =
-        getWithSessionCookie("/api/1.0/doesNotExist", token(1, UserDto.ROLE_PROFESSOR));
+        getWithSessionCookie("/api/1.0/doesNotExist", token(1, Role.PROFESSOR));
     assertEquals(HttpStatus.NOT_FOUND, response.getStatus());
   }
 
@@ -219,7 +217,7 @@ class ApplicationTests {
 
   @Test
   void onlyHealthAndInfoAreExposedToASignedInUser() {
-    String session = token(1, UserDto.ROLE_PROFESSOR);
+    String session = token(1, Role.PROFESSOR);
     assertEquals(HttpStatus.OK, getWithSessionCookie("/actuator/info", session).getStatus());
     for (String path :
         List.of(

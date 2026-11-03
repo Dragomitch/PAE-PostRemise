@@ -1,18 +1,9 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.Role;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.groups.Default;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface UserService {
 
   /**
@@ -20,15 +11,14 @@ public interface UserService {
    *
    * @return a list of users
    */
-  List<UserDto> showAll();
+  List<User> showAll();
 
   /**
    * Registers a new user.
    *
    * @param user the user to create
    */
-  @Validated({Default.class, OnCreate.class})
-  UserDto signup(@NotNull @Valid UserDto user);
+  User signup(User user);
 
   /**
    * Changes the role of the user to professor.
@@ -38,7 +28,7 @@ public interface UserService {
    *     user (404)
    * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
-  void promoteToProfessor(@Positive int userId);
+  void promoteToProfessor(int userId);
 
   /**
    * Changes the role of the user having that username to professor. This is the natural entry point
@@ -51,16 +41,15 @@ public interface UserService {
    *     user (404)
    * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
-  UserDto promoteToProfessorByUsername(
-      @NotBlank @Size(max = UserDto.USERNAME_MAX_LENGTH) String username);
+  User promoteToProfessorByUsername(String username);
 
   /**
    * Updates the user's information. Note: This method should not be called explicitly.
    *
-   * @param user the UserDto containing the new data
+   * @param user the User containing the new data
    * @param userId the id of the currently signed in user
    * @param role the role of the currently signed in user
-   * @return the updated UserDto container.
+   * @return the updated User container.
    */
-  UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotNull Role role);
+  User edit(User user, int userId, Role role);
 }

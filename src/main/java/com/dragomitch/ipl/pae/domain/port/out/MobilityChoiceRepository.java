@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public interface MobilityChoiceRepository {
    * @param mobilityChoice the mobility choice to create.
    * @return the mobilityChoice created.
    */
-  MobilityChoiceDto create(MobilityChoiceDto mobilityChoice);
+  MobilityChoice create(MobilityChoice mobilityChoice);
 
   /**
    * Queries the database to find the mobilityChoice where the id is mobilityChoiceId.
@@ -37,19 +37,19 @@ public interface MobilityChoiceRepository {
    * @param mobilityChoiceId the id we are looking for.
    * @return the mobilityChoiceDto of the mobility choice we were looking for.
    */
-  MobilityChoiceDto findById(int mobilityChoiceId);
+  MobilityChoice findById(int mobilityChoiceId);
 
   /**
    * @param userId the user's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified user
    */
-  List<MobilityChoiceDto> findByUser(int userId);
+  List<MobilityChoice> findByUser(int userId);
 
   /**
    * @param partnerId the partner's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified partner
    */
-  List<MobilityChoiceDto> findByPartner(int partnerId);
+  List<MobilityChoice> findByPartner(int partnerId);
 
   /**
    * Return the choices of the current academic year that select that partner and are neither denied
@@ -59,7 +59,7 @@ public interface MobilityChoiceRepository {
    * @param partnerId the partner's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified partner
    */
-  List<MobilityChoiceDto> findByActivePartner(int partnerId);
+  List<MobilityChoice> findByActivePartner(int partnerId);
 
   /**
    * Queries the database for all mobility choices.
@@ -67,7 +67,7 @@ public interface MobilityChoiceRepository {
    * @param filter the list to return (one filter, no combination)
    * @return the mobility choices of the filter, ordered by id
    */
-  List<MobilityChoiceDto> findAll(MobilityChoiceFilter filter);
+  List<MobilityChoice> findAll(MobilityChoiceFilter filter);
 
   /**
    * Update a mobilityChoice into the DB with the new fields of the MobilityChoice, with optimistic
@@ -80,5 +80,5 @@ public interface MobilityChoiceRepository {
    * @param mobilityChoice the mobility choice we are updating.
    * @throws java.util.ConcurrentModificationException if no choice has that id and version
    */
-  void update(MobilityChoiceDto mobilityChoice);
+  void update(MobilityChoice mobilityChoice);
 }

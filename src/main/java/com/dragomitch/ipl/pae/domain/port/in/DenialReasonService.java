@@ -1,13 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface DenialReasonService {
 
   /**
@@ -16,14 +11,14 @@ public interface DenialReasonService {
    * @param denialReason the denial reason to be created
    * @return the newly created denial reason
    */
-  DenialReasonDto create(@NotNull @Valid DenialReasonDto denialReason);
+  DenialReason create(DenialReason denialReason);
 
   /**
    * Return a list of all stored denial reason.
    *
    * @return a list of denial reason
    */
-  List<DenialReasonDto> showAll();
+  List<DenialReason> showAll();
 
   /**
    * Update the denial reason.
@@ -32,5 +27,5 @@ public interface DenialReasonService {
    * @param denialReason the denial reason with updated information
    * @return the updated denial reason
    */
-  DenialReasonDto edit(@Positive int id, @NotNull @Valid DenialReasonDto denialReason);
+  DenialReason edit(int id, DenialReason denialReason);
 }

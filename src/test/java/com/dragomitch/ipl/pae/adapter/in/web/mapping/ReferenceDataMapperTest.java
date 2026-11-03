@@ -6,14 +6,13 @@ import com.dragomitch.ipl.pae.adapter.in.web.dto.CountryDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.OptionDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /** The reference data survive a round trip through the domain, and a null stays null. */
 class ReferenceDataMapperTest {
 
-  private final ReferenceDataMapper mapper = new ReferenceDataMapper(EntityFactories.create());
+  private final ReferenceDataMapper mapper = new ReferenceDataMapper();
 
   @Test
   void anOptionRoundTrips() {
@@ -58,13 +57,13 @@ class ReferenceDataMapperTest {
 
   @Test
   void nullStaysNull() {
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.OptionDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Option) null)).isNull();
     assertThat(mapper.toDomain((OptionDto) null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.ProgrammeDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Programme) null)).isNull();
     assertThat(mapper.toDomain((ProgrammeDto) null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.CountryDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Country) null)).isNull();
     assertThat(mapper.toDomain((CountryDto) null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.DenialReasonDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.DenialReason) null)).isNull();
     assertThat(mapper.toDomain((DenialReasonDto) null)).isNull();
   }
 }

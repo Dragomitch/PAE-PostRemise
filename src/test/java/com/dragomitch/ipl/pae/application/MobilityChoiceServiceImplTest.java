@@ -9,18 +9,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
@@ -81,8 +82,7 @@ class MobilityChoiceServiceImplTest {
   @Mock private ProgrammeRepository programmeRepository;
   @Mock private PartnerService partnerService;
 
-  private final EntityFactory entityFactory = EntityFactories.create();
-  private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
+  private final MockDtoFactory dtos = new MockDtoFactory();
   private MobilityChoiceServiceImpl mobilityChoiceService;
 
   @BeforeEach
@@ -95,62 +95,61 @@ class MobilityChoiceServiceImplTest {
             denialReasonRepository,
             documentRepository,
             mobilityDocumentRepository,
-            entityFactory,
             countryRepository,
             programmeRepository,
             partnerService,
             CLOCK);
   }
 
-  private UserDto student() {
-    UserDto student = dtos.getUser(UserDto.ROLE_STUDENT);
+  private User student() {
+    User student = dtos.getUser(Role.STUDENT);
     student.setId(STUDENT_ID);
     return student;
   }
 
-  private UserDto givenUser(int id, String role) {
-    UserDto user = dtos.getUser(role);
+  private User givenUser(int id, Role role) {
+    User user = dtos.getUser(role);
     user.setId(id);
     when(userRepository.findById(id)).thenReturn(user);
     return user;
   }
 
   /** A choice as {@link MobilityChoiceRepository#findById} returns it. */
-  private MobilityChoiceDto storedChoice(int id, int academicYear, int term) {
-    MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+  private MobilityChoice storedChoice(int id, int academicYear, int term) {
+    MobilityChoice choice = new MobilityChoice();
     choice.setId(id);
     choice.setVersion(1);
     choice.setUser(student());
     choice.setAcademicYear(academicYear);
     choice.setTerm(term);
     choice.setPreferenceOrder(1);
-    choice.setMobilityType("SMS");
+    choice.setMobilityType(MobilityType.SMS);
     choice.setProgramme(dtos.getProgramme());
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("IE");
     choice.setCountry(country);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     partner.setId(PARTNER_ID);
     partner.setFullName("University of Dublin");
     choice.setPartner(partner);
     return choice;
   }
 
-  private MobilityChoiceDto givenChoice(int id, int academicYear, int term) {
-    MobilityChoiceDto choice = storedChoice(id, academicYear, term);
+  private MobilityChoice givenChoice(int id, int academicYear, int term) {
+    MobilityChoice choice = storedChoice(id, academicYear, term);
     when(mobilityChoiceRepository.findById(id)).thenReturn(choice);
     return choice;
   }
 
   /** The denial reason of a rejected choice as the DAO reads it: its id only. */
-  private DenialReasonDto storedDenialReason(int id) {
-    DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+  private DenialReason storedDenialReason(int id) {
+    DenialReason denialReason = new DenialReason();
     denialReason.setId(id);
     return denialReason;
   }
 
-  private DenialReasonDto givenDenialReason(int id) {
-    DenialReasonDto denialReason = storedDenialReason(id);
+  private DenialReason givenDenialReason(int id) {
+    DenialReason denialReason = storedDenialReason(id);
     denialReason.setReason("Places épuisées");
     when(denialReasonRepository.findById(id)).thenReturn(denialReason);
     return denialReason;
@@ -162,11 +161,11 @@ class MobilityChoiceServiceImplTest {
     REJECTED
   }
 
-  private void close(MobilityChoiceDto choice, Closed closed) {
+  private void close(MobilityChoice choice, Closed closed) {
     if (closed == Closed.CANCELLED) {
       choice.setCancellationReason("changed my mind");
     } else {
-      DenialReasonDto denialReason = storedDenialReason(3);
+      DenialReason denialReason = storedDenialReason(3);
       denialReason.setReason("Dossier incomplet");
       choice.setDenialReason(denialReason);
     }
@@ -175,35 +174,35 @@ class MobilityChoiceServiceImplTest {
   @Nested
   class Create {
 
-    private MobilityChoiceDto request() {
-      MobilityChoiceDto request = storedChoice(0, 2016, 1);
+    private MobilityChoice request() {
+      MobilityChoice request = storedChoice(0, 2016, 1);
       request.setPartner(null);
       return request;
     }
 
-    private void givenReferencesExist(MobilityChoiceDto request) {
+    private void givenReferencesExist(MobilityChoice request) {
       when(countryRepository.findById("IE")).thenReturn(request.getCountry());
       when(programmeRepository.findById(1)).thenReturn(request.getProgramme());
     }
 
     @Test
     void aStudentAppliesForThemself() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       givenReferencesExist(request);
-      UserDto stored = givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
+      User stored = givenUser(STUDENT_ID, Role.STUDENT);
       when(mobilityChoiceRepository.create(request)).thenReturn(request);
 
-      MobilityChoiceDto created = mobilityChoiceService.create(request, STUDENT_ID, Role.STUDENT);
+      MobilityChoice created = mobilityChoiceService.create(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(created.getUser()).isSameAs(stored);
     }
 
     @Test
     void aProfessorEncodesTheChoiceOfAStudentWithoutCountry() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       request.setCountry(null);
       when(programmeRepository.findById(1)).thenReturn(request.getProgramme());
-      givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
+      givenUser(STUDENT_ID, Role.STUDENT);
       when(mobilityChoiceRepository.create(request)).thenReturn(request);
 
       assertThat(mobilityChoiceService.create(request, PROFESSOR_ID, Role.PROFESSOR))
@@ -213,9 +212,9 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aStudentCannotApplyForAnotherStudent() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       givenReferencesExist(request);
-      givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
+      givenUser(STUDENT_ID, Role.STUDENT);
 
       assertThatBusinessException(
               () -> mobilityChoiceService.create(request, STUDENT_ID + 1, Role.STUDENT))
@@ -225,9 +224,9 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aProfessorCannotApplyForThemself() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       givenReferencesExist(request);
-      givenUser(STUDENT_ID, UserDto.ROLE_PROFESSOR);
+      givenUser(STUDENT_ID, Role.PROFESSOR);
 
       assertThatBusinessException(
               () -> mobilityChoiceService.create(request, STUDENT_ID, Role.PROFESSOR))
@@ -237,7 +236,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theCountryMustExist() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
 
       assertThatBusinessException(
               () -> mobilityChoiceService.create(request, STUDENT_ID, Role.STUDENT))
@@ -248,7 +247,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theProgrammeMustExist() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       when(countryRepository.findById("IE")).thenReturn(request.getCountry());
 
       assertThatBusinessException(
@@ -260,7 +259,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theStudentMustExist() {
-      MobilityChoiceDto request = request();
+      MobilityChoice request = request();
       givenReferencesExist(request);
 
       assertThatBusinessException(
@@ -276,7 +275,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aProfessorSeesTheActiveChoicesByDefault() {
-      List<MobilityChoiceDto> active = List.of(storedChoice(CHOICE_ID, 2016, 1));
+      List<MobilityChoice> active = List.of(storedChoice(CHOICE_ID, 2016, 1));
       when(mobilityChoiceRepository.findAll(MobilityChoiceFilter.ACTIVE)).thenReturn(active);
 
       assertThat(
@@ -294,7 +293,7 @@ class MobilityChoiceServiceImplTest {
         value = MobilityChoiceFilter.class,
         names = {"ALL", "CANCELED", "REJECTED", "PASSED"})
     void aProfessorFiltersTheChoices(MobilityChoiceFilter filter) {
-      List<MobilityChoiceDto> filtered = List.of();
+      List<MobilityChoice> filtered = List.of();
       when(mobilityChoiceRepository.findAll(filter)).thenReturn(filtered);
 
       assertThat(mobilityChoiceService.showAll(PROFESSOR_ID, Role.PROFESSOR, filter))
@@ -303,8 +302,8 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aStudentSeesAllTheirOwnChoicesWhateverTheFilter() {
-      givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
-      List<MobilityChoiceDto> own =
+      givenUser(STUDENT_ID, Role.STUDENT);
+      List<MobilityChoice> own =
           List.of(storedChoice(CHOICE_ID, 2016, 1), storedChoice(OTHER_CHOICE_ID, 2016, 2));
       when(mobilityChoiceRepository.findByUser(STUDENT_ID)).thenReturn(own);
 
@@ -327,7 +326,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theStudentCancelsTheirChoiceWithAReason() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
 
       mobilityChoiceService.cancel(CHOICE_ID, STUDENT_ID, "changed my mind");
 
@@ -337,7 +336,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void onlyTheOwnerCancelsAChoice() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
 
       assertThatBusinessException(
               () -> mobilityChoiceService.cancel(CHOICE_ID, PROFESSOR_ID, "reason"))
@@ -360,8 +359,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aConfirmedChoiceIsCancelledAsAMobility() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID))
-          .thenReturn((MobilityDto) entityFactory.build(MobilityDto.class));
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
 
       assertThatBusinessException(
               () -> mobilityChoiceService.cancel(CHOICE_ID, STUDENT_ID, "reason"))
@@ -382,8 +380,8 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aProfessorRejectsAChoiceWithADenialReason() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      DenialReasonDto denialReason = givenDenialReason(4);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      DenialReason denialReason = givenDenialReason(4);
 
       mobilityChoiceService.reject(CHOICE_ID, 4);
 
@@ -411,8 +409,8 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aRejectedChoiceAsTheRepositoryReadsItCannotBeRejectedAgain() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      DenialReasonDto firstReason = storedDenialReason(3);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      DenialReason firstReason = storedDenialReason(3);
       choice.setDenialReason(firstReason);
       lenient().when(denialReasonRepository.findById(4)).thenReturn(storedDenialReason(4));
 
@@ -436,8 +434,7 @@ class MobilityChoiceServiceImplTest {
     void aConfirmedChoiceCannotBeRejected() {
       givenChoice(CHOICE_ID, 2016, 1);
       givenDenialReason(4);
-      when(mobilityRepository.findById(CHOICE_ID))
-          .thenReturn((MobilityDto) entityFactory.build(MobilityDto.class));
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
 
       assertThatBusinessException(() -> mobilityChoiceService.reject(CHOICE_ID, 4))
           .hasErrorCode(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
@@ -452,14 +449,14 @@ class MobilityChoiceServiceImplTest {
   }
 
   /** Departure documents of the programme of the choices. */
-  private List<DocumentDto> givenProgrammeDocuments(int... ids) {
-    return givenProgrammeDocuments(DocumentDto.DEPARTURE_DOCUMENT, ids);
+  private List<Document> givenProgrammeDocuments(int... ids) {
+    return givenProgrammeDocuments(DocumentCategory.DEPARTURE, ids);
   }
 
-  private List<DocumentDto> givenProgrammeDocuments(char category, int... ids) {
-    List<DocumentDto> documents = new ArrayList<>();
+  private List<Document> givenProgrammeDocuments(DocumentCategory category, int... ids) {
+    List<Document> documents = new ArrayList<>();
     for (int id : ids) {
-      DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+      Document document = new Document();
       document.setId(id);
       document.setCategory(category);
       documents.add(document);
@@ -468,8 +465,8 @@ class MobilityChoiceServiceImplTest {
     return documents;
   }
 
-  private MobilityDto createdMobility() {
-    ArgumentCaptor<MobilityDto> created = ArgumentCaptor.forClass(MobilityDto.class);
+  private Mobility createdMobility() {
+    ArgumentCaptor<Mobility> created = ArgumentCaptor.forClass(Mobility.class);
     verify(mobilityRepository).create(created.capture());
     return created.getValue();
   }
@@ -479,21 +476,21 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theChoiceBecomesAMobilityWithItsDocumentsAndTheOtherChoicesOfTheTermAreRejected() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      UserDto professor = givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      User professor = givenUser(PROFESSOR_ID, Role.PROFESSOR);
       givenProgrammeDocuments(1, 2, 3);
-      MobilityChoiceDto sameTerm = givenChoice(OTHER_CHOICE_ID, 2016, 1);
-      MobilityChoiceDto otherTerm = storedChoice(13, 2016, 2);
-      MobilityChoiceDto otherYear = storedChoice(14, 2017, 1);
+      MobilityChoice sameTerm = givenChoice(OTHER_CHOICE_ID, 2016, 1);
+      MobilityChoice otherTerm = storedChoice(13, 2016, 2);
+      MobilityChoice otherYear = storedChoice(14, 2017, 1);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID))
           .thenReturn(List.of(choice, sameTerm, otherTerm, otherYear));
-      DenialReasonDto automatic = givenDenialReason(AUTOMATIC_DENIAL_REASON);
+      DenialReason automatic = givenDenialReason(AUTOMATIC_DENIAL_REASON);
 
       mobilityChoiceService.confirm(CHOICE_ID, PROFESSOR_ID);
 
-      MobilityDto mobility = createdMobility();
+      Mobility mobility = createdMobility();
       assertThat(mobility.getId()).isEqualTo(CHOICE_ID);
-      assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
+      assertThat(mobility.getState()).isEqualTo(MobilityState.CREATED);
       assertThat(mobility.getSubmissionDate()).isEqualTo(NOW);
       assertThat(mobility.getProfessorInCharge()).isSameAs(professor);
       verify(mobilityDocumentRepository).create(1, CHOICE_ID);
@@ -509,14 +506,14 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void theClosedChoicesOfTheTermAreLeftAsTheyAre() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      givenUser(PROFESSOR_ID, Role.PROFESSOR);
       givenProgrammeDocuments(1);
-      MobilityChoiceDto cancelled = storedChoice(OTHER_CHOICE_ID, 2016, 1);
+      MobilityChoice cancelled = storedChoice(OTHER_CHOICE_ID, 2016, 1);
       close(cancelled, Closed.CANCELLED);
       lenient().when(mobilityChoiceRepository.findById(OTHER_CHOICE_ID)).thenReturn(cancelled);
-      MobilityChoiceDto rejected = storedChoice(13, 2016, 1);
-      DenialReasonDto firstReason = storedDenialReason(3);
+      MobilityChoice rejected = storedChoice(13, 2016, 1);
+      DenialReason firstReason = storedDenialReason(3);
       rejected.setDenialReason(firstReason);
       lenient().when(mobilityChoiceRepository.findById(13)).thenReturn(rejected);
       lenient()
@@ -555,8 +552,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aChoiceIsConfirmedOnlyOnce() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID))
-          .thenReturn((MobilityDto) entityFactory.build(MobilityDto.class));
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
 
       assertThatBusinessException(() -> mobilityChoiceService.confirm(CHOICE_ID, PROFESSOR_ID))
           .hasErrorCode(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
@@ -574,8 +570,8 @@ class MobilityChoiceServiceImplTest {
   class ConfirmWithNewPartner {
 
     /** The new partner proposed for the choice, in the country of the choice. */
-    private PartnerDto partner(int id, boolean official) {
-      PartnerDto partner = dtos.getPartner();
+    private Partner partner(int id, boolean official) {
+      Partner partner = dtos.getPartner();
       partner.setId(id);
       partner.setOfficial(official);
       partner.getAddress().getCountry().setCountryCode("IE");
@@ -584,13 +580,13 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aStudentConfirmsTheirChoiceWithANewUnofficialPartner() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
       choice.setPartner(null);
-      PartnerDto request = partner(0, false);
-      PartnerDto created = partner(PARTNER_ID, false);
+      Partner request = partner(0, false);
+      Partner created = partner(PARTNER_ID, false);
       when(partnerService.create(request, Role.STUDENT)).thenReturn(created);
       givenProgrammeDocuments(1, 2);
-      givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
+      givenUser(STUDENT_ID, Role.STUDENT);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID)).thenReturn(List.of(choice));
 
       mobilityChoiceService.confirmWithNewPartner(CHOICE_ID, request, STUDENT_ID, Role.STUDENT);
@@ -598,28 +594,28 @@ class MobilityChoiceServiceImplTest {
       assertThat(choice.getPartner()).isSameAs(created);
       assertThat(choice.getCountry().getCountryCode()).isEqualTo("IE");
       verify(mobilityChoiceRepository).update(choice);
-      MobilityDto mobility = createdMobility();
+      Mobility mobility = createdMobility();
       assertThat(mobility.getId()).isEqualTo(CHOICE_ID);
-      assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
+      assertThat(mobility.getState()).isEqualTo(MobilityState.CREATED);
       verify(mobilityDocumentRepository).create(1, CHOICE_ID);
       verify(mobilityDocumentRepository).create(2, CHOICE_ID);
     }
 
     @Test
     void anArchivedPartnerIsRestoredAndTheOpenChoicesOfTheTermAreRejected() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      PartnerDto request = partner(PARTNER_ID, true);
-      PartnerDto restored = partner(PARTNER_ID, true);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      Partner request = partner(PARTNER_ID, true);
+      Partner restored = partner(PARTNER_ID, true);
       when(partnerService.restore(PARTNER_ID, Role.PROFESSOR)).thenReturn(restored);
       givenProgrammeDocuments();
-      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
-      MobilityChoiceDto open = givenChoice(OTHER_CHOICE_ID, 2016, 1);
-      MobilityChoiceDto cancelled = storedChoice(13, 2016, 1);
+      givenUser(PROFESSOR_ID, Role.PROFESSOR);
+      MobilityChoice open = givenChoice(OTHER_CHOICE_ID, 2016, 1);
+      MobilityChoice cancelled = storedChoice(13, 2016, 1);
       close(cancelled, Closed.CANCELLED);
-      MobilityChoiceDto otherTerm = storedChoice(14, 2016, 2);
+      MobilityChoice otherTerm = storedChoice(14, 2016, 2);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID))
           .thenReturn(List.of(choice, open, cancelled, otherTerm));
-      DenialReasonDto automatic = givenDenialReason(AUTOMATIC_DENIAL_REASON);
+      DenialReason automatic = givenDenialReason(AUTOMATIC_DENIAL_REASON);
 
       mobilityChoiceService.confirmWithNewPartner(CHOICE_ID, request, PROFESSOR_ID, Role.PROFESSOR);
 
@@ -635,8 +631,8 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void thePartnerMustBeInTheCountryOfTheChoice() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      PartnerDto inGreatBritain = partner(0, false);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      Partner inGreatBritain = partner(0, false);
       inGreatBritain.getAddress().getCountry().setCountryCode("GB");
 
       assertThatBusinessException(() ->
@@ -651,24 +647,24 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aMobilityWithoutDepartureDocumentStartsToBePaid() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      PartnerDto request = partner(0, false);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      Partner request = partner(0, false);
       when(partnerService.create(request, Role.PROFESSOR)).thenReturn(request);
-      givenProgrammeDocuments(DocumentDto.RETURN_DOCUMENT, 3);
-      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      givenProgrammeDocuments(DocumentCategory.RETURN, 3);
+      givenUser(PROFESSOR_ID, Role.PROFESSOR);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID)).thenReturn(List.of(choice));
 
       mobilityChoiceService.confirmWithNewPartner(CHOICE_ID, request, PROFESSOR_ID, Role.PROFESSOR);
 
-      assertThat(createdMobility().getState()).isEqualTo(MobilityDto.STATE_TO_BE_PAID);
+      assertThat(createdMobility().getState()).isEqualTo(MobilityState.TO_BE_PAID);
       verify(mobilityDocumentRepository).create(3, CHOICE_ID);
     }
 
     @Test
     void aRestoredPartnerIsCheckedAsStoredNotAsSentByTheClient() {
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
-      PartnerDto request = partner(PARTNER_ID, false); // claims the country of the choice (IE)
-      PartnerDto stored = partner(PARTNER_ID, false);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
+      Partner request = partner(PARTNER_ID, false); // claims the country of the choice (IE)
+      Partner stored = partner(PARTNER_ID, false);
       stored.getAddress().getCountry().setCountryCode("GB");
       when(partnerService.restore(PARTNER_ID, Role.PROFESSOR)).thenReturn(stored);
 
@@ -684,13 +680,13 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aChoiceWithoutCountryTakesTheCountryOfThePartner() {
       // as MobilityChoiceRepository reads a choice without country: a country without code
-      MobilityChoiceDto choice = givenChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
       choice.getCountry().setCountryCode(null);
-      PartnerDto inGreatBritain = partner(0, false);
+      Partner inGreatBritain = partner(0, false);
       inGreatBritain.getAddress().getCountry().setCountryCode("GB");
       when(partnerService.create(inGreatBritain, Role.PROFESSOR)).thenReturn(inGreatBritain);
       givenProgrammeDocuments();
-      givenUser(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+      givenUser(PROFESSOR_ID, Role.PROFESSOR);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID)).thenReturn(List.of(choice));
 
       mobilityChoiceService.confirmWithNewPartner(
@@ -737,8 +733,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aChoiceIsConfirmedOnlyOnce() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID))
-          .thenReturn((MobilityDto) entityFactory.build(MobilityDto.class));
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
 
       assertThatBusinessException(() ->
               mobilityChoiceService.confirmWithNewPartner(
@@ -762,12 +757,12 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void everyChoiceIsALineOfTheCsv() {
-      MobilityChoiceDto first = storedChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice first = storedChoice(CHOICE_ID, 2016, 1);
       first.getUser().setLastName("Martin");
       first.getUser().setFirstName("Alice");
-      MobilityChoiceDto second = storedChoice(OTHER_CHOICE_ID, 2016, 2);
+      MobilityChoice second = storedChoice(OTHER_CHOICE_ID, 2016, 2);
       second.setPreferenceOrder(2);
-      second.setMobilityType("SMP");
+      second.setMobilityType(MobilityType.SMP);
       when(mobilityChoiceRepository.findAll(MobilityChoiceFilter.ACTIVE))
           .thenReturn(List.of(first, second));
 
@@ -788,7 +783,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void aChoiceWithoutPartnerHasAnEmptyPartnerColumn() {
-      MobilityChoiceDto withoutPartner = storedChoice(CHOICE_ID, 2016, 1);
+      MobilityChoice withoutPartner = storedChoice(CHOICE_ID, 2016, 1);
       withoutPartner.setPartner(null);
       when(mobilityChoiceRepository.findAll(MobilityChoiceFilter.ACTIVE))
           .thenReturn(List.of(withoutPartner));
@@ -804,7 +799,7 @@ class MobilityChoiceServiceImplTest {
 
     @Test
     void withoutChoicesOnlyTheHeaderIsExported() {
-      givenUser(STUDENT_ID, UserDto.ROLE_STUDENT);
+      givenUser(STUDENT_ID, Role.STUDENT);
       when(mobilityChoiceRepository.findByUser(STUDENT_ID)).thenReturn(List.of());
 
       assertThat(

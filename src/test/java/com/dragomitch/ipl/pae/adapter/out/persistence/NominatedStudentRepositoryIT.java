@@ -3,10 +3,10 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -32,15 +32,15 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
         "db/fixtures/users.sql", "db/fixtures/partners.sql", "db/fixtures/nominated_students.sql");
   }
 
-  private NominatedStudentDto newStudent(int userId, String cardHolder) {
-    NominatedStudentDto student = build(NominatedStudentDto.class);
+  private NominatedStudent newStudent(int userId, String cardHolder) {
+    NominatedStudent student = new NominatedStudent();
     student.setId(userId);
     student.setTitle("Mrs");
     student.setBirthdate(LocalDate.of(2002, 2, 28));
-    CountryDto nationality = build(CountryDto.class);
+    Country nationality = new Country();
     nationality.setCountryCode("CA");
     student.setNationality(nationality);
-    AddressDto address = build(AddressDto.class);
+    Address address = new Address();
     address.setId(2003);
     student.setAddress(address);
     student.setPhoneNumber("+15140000009");
@@ -55,7 +55,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsTheUserAndTheStudentColumns() {
-    NominatedStudentDto alice = inTransaction(() -> nominatedStudentRepository.findById(1001));
+    NominatedStudent alice = inTransaction(() -> nominatedStudentRepository.findById(1001));
 
     // user part
     assertThat(alice.getId()).isEqualTo(1001);
@@ -65,7 +65,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
     assertThat(alice.getPassword()).isEqualTo("hash-alice");
     assertThat(alice.getEmail()).isEqualTo("alice@student.test");
     assertThat(alice.getRegistrationDate()).isEqualTo(LocalDateTime.of(2024, 9, 1, 8, 30));
-    assertThat(alice.getRole()).isEqualTo(UserDto.ROLE_STUDENT);
+    assertThat(alice.getRole()).isEqualTo(Role.STUDENT);
     assertThat(alice.getOption().getCode()).isEqualTo("BIN");
     assertThat(alice.getOption().getName()).isEqualTo("Bachelier en informatique de gestion");
     // nominated student part
@@ -92,11 +92,9 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsEveryNominatedStudent() {
-    List<NominatedStudentDto> students = inTransaction(() -> nominatedStudentRepository.findAll());
+    List<NominatedStudent> students = inTransaction(() -> nominatedStudentRepository.findAll());
 
-    assertThat(students)
-        .extracting(NominatedStudentDto::getId)
-        .containsExactlyInAnyOrder(1001, 1004);
+    assertThat(students).extracting(NominatedStudent::getId).containsExactlyInAnyOrder(1001, 1004);
     assertThat(students)
         .filteredOn(s -> s.getId() == 1004)
         .singleElement()
@@ -111,10 +109,10 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createInsertsTheStudentRow() {
     runInTransaction(() -> {
-      NominatedStudentDto student = newStudent(1003, null);
+      NominatedStudent student = newStudent(1003, null);
       student.setVersion(1);
 
-      NominatedStudentDto created = nominatedStudentRepository.create(student);
+      NominatedStudent created = nominatedStudentRepository.create(student);
 
       assertThat(created.getVersion()).isEqualTo(1);
       assertThat(queryForRow(STUDENT_BY_ID, 1003))
@@ -130,7 +128,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("bank_name", "BNP Paribas Fortis")
           .containsEntry("bic", "GEBABEBB")
           .containsEntry("version", 1);
-      NominatedStudentDto found = nominatedStudentRepository.findById(1003);
+      NominatedStudent found = nominatedStudentRepository.findById(1003);
       assertThat(found.getFirstName()).isEqualTo("Chloé");
       assertThat(found.getNationality().getName()).isEqualTo("Canada");
     });
@@ -143,7 +141,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createStoresAndReturnsTheVersionCarriedByTheDto() {
     runInTransaction(() -> {
-      NominatedStudentDto student = newStudent(1002, "Bob Dupont");
+      NominatedStudent student = newStudent(1002, "Bob Dupont");
       student.setVersion(3);
 
       assertThat(nominatedStudentRepository.create(student).getVersion()).isEqualTo(3);
@@ -171,7 +169,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesTheStudentColumnsButNotTheAddressAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      NominatedStudentDto david = nominatedStudentRepository.findById(1004);
+      NominatedStudent david = nominatedStudentRepository.findById(1004);
       david.setTitle("M");
       david.setBirthdate(LocalDate.of(2000, 1, 1));
       david.getNationality().setCountryCode("DE");
@@ -184,7 +182,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
       david.setBic("COBADEFFXXX");
       david.getAddress().setId(2003);
 
-      NominatedStudentDto updated = nominatedStudentRepository.update(david);
+      NominatedStudent updated = nominatedStudentRepository.update(david);
 
       assertThat(updated.getVersion()).isEqualTo(3);
       assertThat(queryForRow(STUDENT_BY_ID, 1004))
@@ -210,7 +208,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
           "UPDATE student_exchange_tools.nominated_students SET version = NULL "
               + "WHERE user_id = 1004");
 
-      NominatedStudentDto david = nominatedStudentRepository.findById(1004);
+      NominatedStudent david = nominatedStudentRepository.findById(1004);
       assertThat(david.getVersion()).isZero();
       david.setPhoneNumber("+32 2 000 00 00");
       assertThatThrownBy(() -> nominatedStudentRepository.update(david))
@@ -222,7 +220,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      NominatedStudentDto stale = nominatedStudentRepository.findById(1004);
+      NominatedStudent stale = nominatedStudentRepository.findById(1004);
       stale.setVersion(1);
       stale.setBankName("Other");
 

@@ -1,10 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.in.web.dto;
 
-import com.dragomitch.ipl.pae.domain.validation.Bic;
-import com.dragomitch.ipl.pae.domain.validation.Iban;
-import com.dragomitch.ipl.pae.domain.validation.PhoneNumber;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.Bic;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.Iban;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.PhoneNumber;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.OnCreate;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.Reference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;

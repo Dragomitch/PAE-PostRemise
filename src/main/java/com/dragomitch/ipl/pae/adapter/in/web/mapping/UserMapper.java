@@ -2,30 +2,29 @@ package com.dragomitch.ipl.pae.adapter.in.web.mapping;
 
 import com.dragomitch.ipl.pae.adapter.in.web.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
  * Maps the users and the nominated students between the web DTOs and the domain. The password is
- * mapped both ways: the JSON reads it (sign-up) but never writes it.
+ * mapped both ways: the JSON reads it (sign-up) but never writes it. The role of a request is
+ * ignored: the use cases set it (sign-up) or keep the stored one (edition).
  */
 @Component
 public class UserMapper {
 
-  private final EntityFactory entityFactory;
   private final ReferenceDataMapper referenceData;
   private final AddressMapper addresses;
 
-  public UserMapper(
-      EntityFactory entityFactory, ReferenceDataMapper referenceData, AddressMapper addresses) {
-    this.entityFactory = entityFactory;
+  public UserMapper(ReferenceDataMapper referenceData, AddressMapper addresses) {
     this.referenceData = referenceData;
     this.addresses = addresses;
   }
 
-  public @Nullable UserDto toDto(com.dragomitch.ipl.pae.domain.dto.@Nullable UserDto user) {
+  public @Nullable UserDto toDto(@Nullable User user) {
     return user == null
         ? null
         : new UserDto(
@@ -37,21 +36,19 @@ public class UserMapper {
             user.getEmail(),
             referenceData.toDto(user.getOption()),
             user.getRegistrationDate(),
-            user.getRole(),
+            user.getRole() == null ? null : user.getRole().label(),
             user.getVersion());
   }
 
-  public List<UserDto> toUserDtos(List<com.dragomitch.ipl.pae.domain.dto.UserDto> users) {
+  public List<UserDto> toUserDtos(List<User> users) {
     return ReferenceDataMapper.list(users, this::toDto);
   }
 
-  public com.dragomitch.ipl.pae.domain.dto.@Nullable UserDto toDomain(@Nullable UserDto dto) {
+  public @Nullable User toDomain(@Nullable UserDto dto) {
     if (dto == null) {
       return null;
     }
-    var user =
-        (com.dragomitch.ipl.pae.domain.dto.UserDto)
-            entityFactory.build(com.dragomitch.ipl.pae.domain.dto.UserDto.class);
+    var user = new User();
     user.setId(dto.id());
     user.setFirstName(dto.firstName());
     user.setLastName(dto.lastName());
@@ -60,13 +57,11 @@ public class UserMapper {
     user.setEmail(dto.email());
     user.setOption(referenceData.toDomain(dto.option()));
     user.setRegistrationDate(dto.registrationDate());
-    user.setRole(dto.role());
     user.setVersion(dto.version());
     return user;
   }
 
-  public @Nullable NominatedStudentDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable NominatedStudentDto student) {
+  public @Nullable NominatedStudentDto toDto(@Nullable NominatedStudent student) {
     return student == null
         ? null
         : new NominatedStudentDto(
@@ -78,7 +73,7 @@ public class UserMapper {
             student.getEmail(),
             referenceData.toDto(student.getOption()),
             student.getRegistrationDate(),
-            student.getRole(),
+            student.getRole() == null ? null : student.getRole().label(),
             student.getTitle(),
             student.getBirthdate(),
             referenceData.toDto(student.getNationality()),
@@ -93,19 +88,15 @@ public class UserMapper {
             student.getVersion());
   }
 
-  public List<NominatedStudentDto> toNominatedStudentDtos(
-      List<com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto> students) {
+  public List<NominatedStudentDto> toNominatedStudentDtos(List<NominatedStudent> students) {
     return ReferenceDataMapper.list(students, this::toDto);
   }
 
-  public com.dragomitch.ipl.pae.domain.dto.@Nullable NominatedStudentDto toDomain(
-      @Nullable NominatedStudentDto dto) {
+  public @Nullable NominatedStudent toDomain(@Nullable NominatedStudentDto dto) {
     if (dto == null) {
       return null;
     }
-    var student =
-        (com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto)
-            entityFactory.build(com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto.class);
+    var student = new NominatedStudent();
     student.setId(dto.id());
     student.setFirstName(dto.firstName());
     student.setLastName(dto.lastName());
@@ -114,7 +105,6 @@ public class UserMapper {
     student.setEmail(dto.email());
     student.setOption(referenceData.toDomain(dto.option()));
     student.setRegistrationDate(dto.registrationDate());
-    student.setRole(dto.role());
     student.setTitle(dto.title());
     student.setBirthdate(dto.birthdate());
     student.setNationality(referenceData.toDomain(dto.nationality()));

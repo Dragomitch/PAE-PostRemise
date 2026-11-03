@@ -9,14 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
@@ -55,8 +53,7 @@ class NominatedStudentServiceImplTest {
   @Mock private UserRepository userRepository;
   @Mock private UserService userService;
 
-  private final EntityFactory entityFactory = EntityFactories.create();
-  private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
+  private final MockDtoFactory dtos = new MockDtoFactory();
   private NominatedStudentServiceImpl nominatedStudentService;
 
   @BeforeEach
@@ -72,8 +69,8 @@ class NominatedStudentServiceImplTest {
   }
 
   /** Personal data sent by the client: Irish nationality, address in Great Britain. */
-  private NominatedStudentDto request() {
-    NominatedStudentDto student = dtos.getNominatedStudent();
+  private NominatedStudent request() {
+    NominatedStudent student = dtos.getNominatedStudent();
     student.setId(STUDENT_ID);
     student.setFirstName("Alice");
     student.setLastName("Martin");
@@ -81,29 +78,28 @@ class NominatedStudentServiceImplTest {
     return student;
   }
 
-  private void givenCountriesExist(NominatedStudentDto student) {
+  private void givenCountriesExist(NominatedStudent student) {
     for (String code :
         List.of(
             student.getNationality().getCountryCode(),
             student.getAddress().getCountry().getCountryCode())) {
-      when(countryRepository.findById(code))
-          .thenReturn((CountryDto) entityFactory.build(CountryDto.class));
+      when(countryRepository.findById(code)).thenReturn(new Country());
     }
   }
 
-  private UserDto givenUser(int version) {
-    UserDto user = dtos.getUser(UserDto.ROLE_STUDENT);
+  private User givenUser(int version) {
+    User user = dtos.getUser(Role.STUDENT);
     user.setId(STUDENT_ID);
     user.setVersion(version);
     when(userRepository.findById(STUDENT_ID)).thenReturn(user);
     return user;
   }
 
-  private NominatedStudentDto storedStudent(int version) {
-    NominatedStudentDto stored = dtos.getNominatedStudent();
+  private NominatedStudent storedStudent(int version) {
+    NominatedStudent stored = dtos.getNominatedStudent();
     stored.setId(STUDENT_ID);
     stored.setVersion(version);
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    Address address = new Address();
     address.setId(ADDRESS_ID);
     stored.setAddress(address);
     return stored;
@@ -115,7 +111,7 @@ class NominatedStudentServiceImplTest {
     private void givenCreationSucceeds() {
       when(addressRepository.create(any()))
           .thenAnswer(invocation -> {
-            AddressDto address = invocation.getArgument(0);
+            Address address = invocation.getArgument(0);
             address.setId(ADDRESS_ID);
             return address;
           });
@@ -124,15 +120,14 @@ class NominatedStudentServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"Student, 42", "Professor, 2"})
-    void theStudentOrAProfessorRecordsThePersonalData(String role, int requester) {
-      NominatedStudentDto request = request();
+    @CsvSource({"STUDENT, 42", "PROFESSOR, 2"})
+    void theStudentOrAProfessorRecordsThePersonalData(Role role, int requester) {
+      NominatedStudent request = request();
       givenCountriesExist(request);
       givenUser(4);
       givenCreationSucceeds();
 
-      NominatedStudentDto created =
-          nominatedStudentService.create(request, requester, Role.fromLabel(role));
+      NominatedStudent created = nominatedStudentService.create(request, requester, role);
 
       assertThat(created.getId()).isEqualTo(STUDENT_ID);
       // the student row starts at the version of the user row
@@ -147,21 +142,20 @@ class NominatedStudentServiceImplTest {
     @NullAndEmptySource
     @ValueSource(strings = {"  "})
     void theStudentHoldsTheAccountWhenNoCardHolderIsGiven(String cardHolder) {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.setCardHolder(cardHolder);
       givenCountriesExist(request);
       givenUser(1);
       givenCreationSucceeds();
 
-      NominatedStudentDto created =
-          nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
+      NominatedStudent created = nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(created.getCardHolder()).isEqualTo("Alice Martin");
     }
 
     @Test
     void theDefaultCardHolderIsCutToTheColumnLength() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.setCardHolder(null);
       request.setFirstName("Maria-Magdalena Alexandra");
       request.setLastName("Van den Bossche-Vandermeulen");
@@ -169,11 +163,10 @@ class NominatedStudentServiceImplTest {
       givenUser(1);
       givenCreationSucceeds();
 
-      NominatedStudentDto created =
-          nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
+      NominatedStudent created = nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(created.getCardHolder())
-          .hasSize(NominatedStudentDto.CARD_HOLDER_MAX_LENGTH)
+          .hasSize(NominatedStudent.CARD_HOLDER_MAX_LENGTH)
           .isEqualTo("Maria-Magdalena Alexandra Van den B");
     }
 
@@ -188,7 +181,7 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void theNationalityMustExist() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.getNationality().setCountryCode("ZZ");
 
       assertThatBusinessException(
@@ -200,10 +193,10 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void theCountryOfTheAddressMustExist() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.getAddress().getCountry().setCountryCode("ZZ");
       when(countryRepository.findById(request.getNationality().getCountryCode()))
-          .thenReturn((CountryDto) entityFactory.build(CountryDto.class));
+          .thenReturn(new Country());
 
       assertThatBusinessException(
               () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
@@ -214,7 +207,7 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void theUserMustExist() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       givenCountriesExist(request);
 
       assertThatBusinessException(
@@ -226,7 +219,7 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void thePersonalDataAreRecordedOnlyOnce() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       givenCountriesExist(request);
       givenUser(1);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
@@ -243,16 +236,15 @@ class NominatedStudentServiceImplTest {
   class ShowOne {
 
     @ParameterizedTest
-    @CsvSource({"Student, 42", "Professor, 2"})
-    void theStudentOrAProfessorReadsThePersonalDataWithTheFullAddress(String role, int requester) {
-      NominatedStudentDto stored = storedStudent(1);
+    @CsvSource({"STUDENT, 42", "PROFESSOR, 2"})
+    void theStudentOrAProfessorReadsThePersonalDataWithTheFullAddress(Role role, int requester) {
+      NominatedStudent stored = storedStudent(1);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(stored);
-      AddressDto address = dtos.getAddress();
+      Address address = dtos.getAddress();
       address.setId(ADDRESS_ID);
       when(addressRepository.findById(ADDRESS_ID)).thenReturn(address);
 
-      NominatedStudentDto shown =
-          nominatedStudentService.showOne(STUDENT_ID, requester, Role.fromLabel(role));
+      NominatedStudent shown = nominatedStudentService.showOne(STUDENT_ID, requester, role);
 
       assertThat(shown).isSameAs(stored);
       assertThat(shown.getAddress()).isSameAs(address);
@@ -278,7 +270,7 @@ class NominatedStudentServiceImplTest {
 
   @Test
   void showAllListsEveryNominatedStudent() {
-    List<NominatedStudentDto> all = List.of(storedStudent(1));
+    List<NominatedStudent> all = List.of(storedStudent(1));
     when(nominatedStudentRepository.findAll()).thenReturn(all);
 
     assertThat(nominatedStudentService.showAll()).isSameAs(all);
@@ -288,44 +280,43 @@ class NominatedStudentServiceImplTest {
   class Edit {
 
     @ParameterizedTest
-    @CsvSource({"Student, 42", "Professor, 2"})
-    void editsThePersonalDataTheUserAndTheAddress(String role, int requester) {
-      NominatedStudentDto request = request();
+    @CsvSource({"STUDENT, 42", "PROFESSOR, 2"})
+    void editsThePersonalDataTheUserAndTheAddress(Role role, int requester) {
+      NominatedStudent request = request();
       request.setVersion(5);
       request.getAddress().setId(0);
       givenCountriesExist(request);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(5));
       when(nominatedStudentRepository.update(request))
           .thenAnswer(invocation -> {
-            NominatedStudentDto student = invocation.getArgument(0);
+            NominatedStudent student = invocation.getArgument(0);
             student.setVersion(student.getVersion() + 1);
             return student;
           });
-      AddressDto updatedAddress = (AddressDto) entityFactory.build(AddressDto.class);
+      Address updatedAddress = new Address();
       updatedAddress.setVersion(9);
       when(addressService.edit(request.getAddress())).thenReturn(updatedAddress);
 
-      NominatedStudentDto edited =
-          nominatedStudentService.edit(request, requester, Role.fromLabel(role));
+      NominatedStudent edited = nominatedStudentService.edit(request, requester, role);
 
       // the client cannot move the student to another address row
       assertThat(edited.getAddress().getId()).isEqualTo(ADDRESS_ID);
       assertThat(edited.getAddress().getVersion()).isEqualTo(9);
       // the user row is edited at the version the client read (legacy shared version)
       assertThat(edited.getVersion()).isEqualTo(5);
-      verify(userService).edit(request, requester, Role.fromLabel(role));
+      verify(userService).edit(request, requester, role);
     }
 
     @Test
     void theCardHolderDefaultsToTheStudent() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.setCardHolder("");
       givenCountriesExist(request);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
       when(nominatedStudentRepository.update(request)).thenReturn(request);
       when(addressService.edit(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-      NominatedStudentDto edited = nominatedStudentService.edit(request, STUDENT_ID, Role.STUDENT);
+      NominatedStudent edited = nominatedStudentService.edit(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(edited.getCardHolder()).isEqualTo("Alice Martin");
     }
@@ -341,7 +332,7 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void theCountriesMustExist() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       request.getNationality().setCountryCode("ZZ");
 
       assertThatBusinessException(
@@ -353,7 +344,7 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void unrecordedPersonalDataAreNotFound() {
-      NominatedStudentDto request = request();
+      NominatedStudent request = request();
       givenCountriesExist(request);
 
       assertThatBusinessException(

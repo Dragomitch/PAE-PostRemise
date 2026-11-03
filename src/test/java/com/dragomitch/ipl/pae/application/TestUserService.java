@@ -5,17 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.model.Role;
-import com.dragomitch.ipl.pae.domain.model.Violations;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import jakarta.validation.ConstraintViolationException;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,22 +23,20 @@ public class TestUserService {
 
   @Autowired private ApplicationContext context;
 
-  private EntityFactory entityFactory;
   private UserRepository userRepository;
   private UserService userService;
   private MockDtoFactory mockDtoFactory;
-  private UserDto prof;
-  private UserDto stud;
+  private User prof;
+  private User stud;
 
   /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
-    entityFactory = context.getBean(EntityFactory.class);
     userRepository = context.getBean(UserRepository.class);
     userService = context.getBean(UserService.class);
-    mockDtoFactory = new MockDtoFactory(entityFactory);
-    prof = mockDtoFactory.getUser(UserDto.ROLE_PROFESSOR);
-    stud = mockDtoFactory.getUser(UserDto.ROLE_STUDENT);
+    mockDtoFactory = new MockDtoFactory();
+    prof = mockDtoFactory.getUser(Role.PROFESSOR);
+    stud = mockDtoFactory.getUser(Role.STUDENT);
   }
 
   /** Cleans up the 'database'. */
@@ -60,33 +53,10 @@ public class TestUserService {
   }
 
   @Test
-  public void testCreateTC2() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          userService.signup(null);
-          prof.setId(1);
-          assertEquals(prof.getId(), (userRepository.findById(prof.getId())).getId());
-        });
-  }
-
-  @Test
   public void testCreateTC3() {
     userService.signup(stud);
     userService.signup(stud);
     assertEquals(2, (userRepository.findAll().size()));
-  }
-
-  @Test
-  public void testCreateTC4() {
-    assertEquals(
-        List.of("signup.user.option.code:Size"),
-        Violations.thrownBy(() -> {
-          OptionDto option = mockDtoFactory.getOption();
-          option.setCode("Wrong Code Man");
-          stud.setOption(option);
-          userService.signup(stud);
-        }));
   }
 
   @Test
@@ -134,7 +104,7 @@ public class TestUserService {
   public void testPromoteToProfessorTC1() {
     userService.signup(stud);
     userService.promoteToProfessor(stud.getId());
-    assertEquals(UserDto.ROLE_PROFESSOR, stud.getRole());
+    assertEquals(Role.PROFESSOR, stud.getRole());
   }
 
   @Test
@@ -147,18 +117,8 @@ public class TestUserService {
         });
   }
 
-  @Test
-  public void testPromoteToProfessorTC3() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          userService.signup(stud);
-          userService.promoteToProfessor(-1);
-        });
-  }
-
   /** Signs up a professor (the first user) then a student, and returns the student. */
-  private UserDto signUpProfessorThenStudent() {
+  private User signUpProfessorThenStudent() {
     userService.signup(prof);
     stud.setUsername("student1");
     stud.setEmail("student1@student.test");
@@ -167,13 +127,13 @@ public class TestUserService {
 
   @Test
   public void promoteToProfessorByIdIncrementsTheVersion() {
-    UserDto student = signUpProfessorThenStudent();
+    User student = signUpProfessorThenStudent();
     int version = student.getVersion();
 
     userService.promoteToProfessor(student.getId());
 
-    UserDto promoted = userRepository.findById(student.getId());
-    assertEquals(UserDto.ROLE_PROFESSOR, promoted.getRole());
+    User promoted = userRepository.findById(student.getId());
+    assertEquals(Role.PROFESSOR, promoted.getRole());
     assertEquals(version + 1, promoted.getVersion());
   }
 
@@ -184,21 +144,21 @@ public class TestUserService {
 
     userService.promoteToProfessor(prof.getId());
 
-    assertEquals(UserDto.ROLE_PROFESSOR, userRepository.findById(prof.getId()).getRole());
+    assertEquals(Role.PROFESSOR, userRepository.findById(prof.getId()).getRole());
     assertEquals(version, userRepository.findById(prof.getId()).getVersion());
   }
 
   @Test
   public void promoteToProfessorByUsernamePromotesThatStudent() {
-    UserDto student = signUpProfessorThenStudent();
+    User student = signUpProfessorThenStudent();
     int version = student.getVersion();
 
-    UserDto promoted = userService.promoteToProfessorByUsername("student1");
+    User promoted = userService.promoteToProfessorByUsername("student1");
 
     assertEquals(student.getId(), promoted.getId());
-    assertEquals(UserDto.ROLE_PROFESSOR, promoted.getRole());
+    assertEquals(Role.PROFESSOR, promoted.getRole());
     assertEquals(version + 1, promoted.getVersion());
-    assertEquals(UserDto.ROLE_PROFESSOR, userRepository.findById(student.getId()).getRole());
+    assertEquals(Role.PROFESSOR, userRepository.findById(student.getId()).getRole());
   }
 
   @Test
@@ -206,9 +166,9 @@ public class TestUserService {
     signUpProfessorThenStudent();
     int version = prof.getVersion();
 
-    UserDto same = userService.promoteToProfessorByUsername(prof.getUsername());
+    User same = userService.promoteToProfessorByUsername(prof.getUsername());
 
-    assertEquals(UserDto.ROLE_PROFESSOR, same.getRole());
+    assertEquals(Role.PROFESSOR, same.getRole());
     assertEquals(version, same.getVersion());
   }
 
@@ -218,49 +178,6 @@ public class TestUserService {
 
     assertThrows(
         ResourceNotFoundException.class, () -> userService.promoteToProfessorByUsername("nobody"));
-  }
-
-  @Test
-  public void promoteToProfessorByUsernameNeedsAUsername() {
-    assertEquals(
-        List.of("promoteToProfessorByUsername.username:NotBlank"),
-        Violations.thrownBy(() -> userService.promoteToProfessorByUsername("")));
-    assertEquals(
-        List.of("promoteToProfessorByUsername.username:NotBlank"),
-        Violations.thrownBy(() -> userService.promoteToProfessorByUsername(null)));
-    assertEquals(
-        List.of("promoteToProfessorByUsername.username:Size"),
-        Violations.thrownBy(() -> userService.promoteToProfessorByUsername("x".repeat(21))));
-  }
-
-  @Test
-  public void testEditTC1() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          userService.signup(stud);
-          userService.edit(null, 1, Role.STUDENT);
-        });
-  }
-
-  @Test
-  public void testEditTC2() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          userService.signup(stud);
-          userService.edit(stud, -1, Role.STUDENT);
-        });
-  }
-
-  @Test
-  public void testEditTC3() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          userService.signup(stud);
-          userService.edit(stud, -1, null);
-        });
   }
 
   // Edit d'un User avec des données déjà existantes dans un autre User

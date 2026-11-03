@@ -1,11 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import jakarta.validation.constraints.Positive;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface ProgrammeService {
 
   /**
@@ -16,12 +13,12 @@ public interface ProgrammeService {
    * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if no programme has
    *     this id
    */
-  ProgrammeDto showOne(@Positive int id);
+  Programme showOne(int id);
 
   /**
    * Return the list of all programmes.
    *
    * @return the list containing every programme
    */
-  List<ProgrammeDto> showAll();
+  List<Programme> showAll();
 }

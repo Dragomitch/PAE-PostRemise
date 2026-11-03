@@ -1,6 +1,5 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InvalidCredentialsException;
 import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
@@ -26,7 +25,7 @@ class SessionServiceImpl implements SessionService {
   }
 
   @Override
-  public UserDto signin(String username, String password) {
+  public User signin(String username, String password) {
     User user = (User) userRepository.findBy(UserRepository.COLUMN_USERNAME, username);
     if (user == null) {
       logger.info("User not found in database");
@@ -40,7 +39,7 @@ class SessionServiceImpl implements SessionService {
   }
 
   @Override
-  public UserDto showAuthenticatedUser(int id) {
+  public User showAuthenticatedUser(int id) {
     return userRepository.findById(id);
   }
 }

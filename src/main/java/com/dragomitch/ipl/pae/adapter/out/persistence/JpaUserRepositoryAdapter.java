@@ -3,7 +3,8 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.OptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.UserJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,7 +29,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
 
   /** Stores the user at version 1 and sets its generated id and version on the DTO. */
   @Override
-  public UserDto create(UserDto user) {
+  public User create(User user) {
     UserEntity entity = new UserEntity();
     copy(user, entity);
     entity.setRegistrationDate(user.getRegistrationDate());
@@ -40,12 +41,12 @@ class JpaUserRepositoryAdapter implements UserRepository {
   }
 
   @Override
-  public UserDto findById(int id) {
+  public User findById(int id) {
     return users.findWithOptionById(id).map(mapper::user).orElse(null);
   }
 
   @Override
-  public List<UserDto> findAll() {
+  public List<User> findAll() {
     return users.findAllWithOptionByOrderById().stream().map(mapper::user).toList();
   }
 
@@ -57,7 +58,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
    * @throws IllegalArgumentException if users cannot be looked up by that column
    */
   @Override
-  public UserDto findBy(String columnName, String columnValue) {
+  public User findBy(String columnName, String columnValue) {
     Optional<UserEntity> user =
         switch (columnName) {
           case COLUMN_USERNAME -> users.findFirstWithOptionByUsernameOrderById(columnValue);
@@ -74,7 +75,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
   @Override
   public int promoteToProfessor(int userId, int expectedVersion) {
     return promoted(
-        users.updateRoleById(userId, UserDto.ROLE_PROFESSOR, expectedVersion),
+        users.updateRoleById(userId, Role.PROFESSOR.label(), expectedVersion),
         userId,
         expectedVersion);
   }
@@ -82,7 +83,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
   @Override
   public int promoteToProfessor(String username, int expectedVersion) {
     return promoted(
-        users.updateRoleByUsername(username, UserDto.ROLE_PROFESSOR, expectedVersion),
+        users.updateRoleByUsername(username, Role.PROFESSOR.label(), expectedVersion),
         username,
         expectedVersion);
   }
@@ -94,7 +95,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
    *     DTO's (it was changed since it was read)
    */
   @Override
-  public void update(UserDto user) {
+  public void update(User user) {
     UserEntity entity =
         users
             .findById(user.getId())
@@ -120,13 +121,13 @@ class JpaUserRepositoryAdapter implements UserRepository {
   }
 
   /** The columns a create and an update write (the registration date is set once, on create). */
-  private void copy(UserDto user, UserEntity entity) {
+  private void copy(User user, UserEntity entity) {
     entity.setUsername(user.getUsername());
     entity.setLastName(user.getLastName());
     entity.setFirstName(user.getFirstName());
     entity.setEmail(user.getEmail());
     entity.setPassword(user.getPassword());
-    entity.setRole(user.getRole());
+    entity.setRole(user.getRole() == null ? null : user.getRole().label());
     entity.setOption(entityManager.getReference(OptionEntity.class, user.getOption().getCode()));
   }
 }

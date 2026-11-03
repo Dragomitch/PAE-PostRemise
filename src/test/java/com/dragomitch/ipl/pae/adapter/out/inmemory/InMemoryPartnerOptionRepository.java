@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
@@ -11,25 +10,25 @@ import java.util.List;
 public class InMemoryPartnerOptionRepository
     implements PartnerOptionRepository, ResettableRepository {
 
-  private List<PartnerOption> partnerOptions;
+  private List<StoredOption> partnerOptions;
   private PartnerRepository partnerRepository;
 
   /** Sole constructor. */
   public InMemoryPartnerOptionRepository(PartnerRepository partnerRepository) {
-    partnerOptions = new ArrayList<PartnerOption>();
+    partnerOptions = new ArrayList<StoredOption>();
     this.partnerRepository = partnerRepository;
   }
 
   @Override
-  public PartnerOptionDto create(PartnerOptionDto partnerOption, int id) {
-    partnerOptions.add(new PartnerOption(partnerOption, id));
+  public PartnerOption create(PartnerOption partnerOption, int id) {
+    partnerOptions.add(new StoredOption(partnerOption, id));
     return partnerOption;
   }
 
   @Override
-  public List<PartnerDto> findAllPartnersByOption(String optionCode) {
-    List<PartnerDto> partners = new ArrayList<PartnerDto>();
-    for (PartnerOption partnerOption : partnerOptions) {
+  public List<Partner> findAllPartnersByOption(String optionCode) {
+    List<Partner> partners = new ArrayList<Partner>();
+    for (StoredOption partnerOption : partnerOptions) {
       if (partnerOption.getOptionCode().equals(optionCode)) {
         partners.add(partnerRepository.findById(partnerOption.getPartnerId()));
       }
@@ -38,9 +37,9 @@ public class InMemoryPartnerOptionRepository
   }
 
   @Override
-  public List<PartnerOptionDto> findAllOptionsByPartner(int partnerId) {
-    List<PartnerOptionDto> options = new ArrayList<PartnerOptionDto>();
-    for (PartnerOption partnerOption : partnerOptions) {
+  public List<PartnerOption> findAllOptionsByPartner(int partnerId) {
+    List<PartnerOption> options = new ArrayList<PartnerOption>();
+    for (StoredOption partnerOption : partnerOptions) {
       if (partnerOption.getPartnerId() == partnerId) {
         options.add(partnerOption.getDto());
       }
@@ -50,14 +49,14 @@ public class InMemoryPartnerOptionRepository
 
   @Override
   public void empty() {
-    partnerOptions = new ArrayList<PartnerOption>();
+    partnerOptions = new ArrayList<StoredOption>();
   }
 
-  private static class PartnerOption {
-    private PartnerOptionDto dto;
+  private static class StoredOption {
+    private PartnerOption dto;
     private int partnerId;
 
-    private PartnerOption(PartnerOptionDto dto, int partnerId) {
+    private StoredOption(PartnerOption dto, int partnerId) {
       this.dto = dto;
       this.partnerId = partnerId;
     }
@@ -70,7 +69,7 @@ public class InMemoryPartnerOptionRepository
       return partnerId;
     }
 
-    public PartnerOptionDto getDto() {
+    public PartnerOption getDto() {
       return dto;
     }
   }

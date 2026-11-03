@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class InMemoryNominatedStudentRepository
     implements NominatedStudentRepository, ResettableRepository {
 
-  private Map<Integer, NominatedStudentDto> nominatedStudents;
+  private Map<Integer, NominatedStudent> nominatedStudents;
   // the stored versions, kept apart because the stored DTO is shared with the callers
   private Map<Integer, Integer> versions;
 
@@ -27,7 +27,7 @@ public class InMemoryNominatedStudentRepository
   }
 
   @Override
-  public NominatedStudentDto create(NominatedStudentDto nominatedStudent) {
+  public NominatedStudent create(NominatedStudent nominatedStudent) {
     if (nominatedStudents.containsKey(nominatedStudent.getId())) {
       throw new FatalException(FatalException.DATABASE_ERROR_MSG);
     }
@@ -37,8 +37,8 @@ public class InMemoryNominatedStudentRepository
   }
 
   @Override
-  public NominatedStudentDto findById(int id) {
-    NominatedStudentDto student = nominatedStudents.get(id);
+  public NominatedStudent findById(int id) {
+    NominatedStudent student = nominatedStudents.get(id);
     if (student != null) {
       student.setVersion(versions.get(id));
     }
@@ -46,12 +46,12 @@ public class InMemoryNominatedStudentRepository
   }
 
   @Override
-  public List<NominatedStudentDto> findAll() {
-    return new ArrayList<NominatedStudentDto>(nominatedStudents.values());
+  public List<NominatedStudent> findAll() {
+    return new ArrayList<NominatedStudent>(nominatedStudents.values());
   }
 
   @Override
-  public NominatedStudentDto update(NominatedStudentDto nominatedStudent) {
+  public NominatedStudent update(NominatedStudent nominatedStudent) {
     Integer stored = versions.get(nominatedStudent.getId());
     if (stored == null || stored != nominatedStudent.getVersion()) {
       throw new ConcurrentModificationException();
@@ -64,7 +64,7 @@ public class InMemoryNominatedStudentRepository
 
   @Override
   public void empty() {
-    nominatedStudents = new LinkedHashMap<Integer, NominatedStudentDto>();
+    nominatedStudents = new LinkedHashMap<Integer, NominatedStudent>();
     versions = new HashMap<Integer, Integer>();
   }
 }

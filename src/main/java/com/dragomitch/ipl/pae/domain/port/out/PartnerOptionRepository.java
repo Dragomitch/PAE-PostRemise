@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import java.util.List;
 
 public interface PartnerOptionRepository {
@@ -18,7 +18,7 @@ public interface PartnerOptionRepository {
    * @param partnerId the id of the partner owning the option.
    * @return the partnerOption that has been just created.
    */
-  PartnerOptionDto create(PartnerOptionDto partnerOption, int partnerId);
+  PartnerOption create(PartnerOption partnerOption, int partnerId);
 
   /**
    * Queries the database for all partners corresponding to an option.
@@ -27,7 +27,7 @@ public interface PartnerOptionRepository {
    *     Database.
    * @return All partners concerned by the option.
    */
-  List<PartnerDto> findAllPartnersByOption(String optionCode);
+  List<Partner> findAllPartnersByOption(String optionCode);
 
   /**
    * Queries the database for all options corresponding to a partner.
@@ -35,5 +35,5 @@ public interface PartnerOptionRepository {
    * @param partnerId the id of the partner for which we want to retrieve options from the Database.
    * @return All options concerned by the partner.
    */
-  List<PartnerOptionDto> findAllOptionsByPartner(int partnerId);
+  List<PartnerOption> findAllOptionsByPartner(int partnerId);
 }

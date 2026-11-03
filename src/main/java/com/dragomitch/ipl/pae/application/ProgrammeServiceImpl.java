@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import java.util.List;
@@ -19,8 +19,8 @@ class ProgrammeServiceImpl implements ProgrammeService {
   }
 
   @Override
-  public ProgrammeDto showOne(int id) {
-    ProgrammeDto programme = programmeRepository.findById(id);
+  public Programme showOne(int id) {
+    Programme programme = programmeRepository.findById(id);
     if (programme == null) {
       throw new ResourceNotFoundException();
     }
@@ -28,7 +28,7 @@ class ProgrammeServiceImpl implements ProgrammeService {
   }
 
   @Override
-  public List<ProgrammeDto> showAll() {
+  public List<Programme> showAll() {
     return programmeRepository.findAll();
   }
 }

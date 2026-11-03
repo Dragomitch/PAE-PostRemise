@@ -1,20 +1,19 @@
 package com.dragomitch.ipl.pae.application;
 
 import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
 import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
 import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
@@ -71,8 +70,8 @@ class MobilityServiceImpl implements MobilityService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MobilityDto> showAll(int userId, Role userRole) {
-    List<MobilityDto> mobilities;
+  public List<Mobility> showAll(int userId, Role userRole) {
+    List<Mobility> mobilities;
     if (userRole == Role.PROFESSOR) {
       // Lists all mobilities
       mobilities = mobilityRepository.findAll();
@@ -85,13 +84,13 @@ class MobilityServiceImpl implements MobilityService {
 
   @Override
   @Transactional(readOnly = true)
-  public MobilityDto showOne(int id, Role role, int user) {
+  public Mobility showOne(int id, Role role, int user) {
     Mobility mobility = getMobility(id);
     if (role == Role.STUDENT && user != mobility.getNominatedStudent().getId()) {
       throw new InsufficientPermissionException();
     }
     mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
-    NominatedStudentDto student =
+    NominatedStudent student =
         nominatedStudentRepository.findById(mobility.getNominatedStudent().getId());
     if (student != null) {
       mobility.setNominatedStudent(student);
@@ -149,26 +148,25 @@ class MobilityServiceImpl implements MobilityService {
   /**
    * {@inheritDoc}
    *
-   * <p>A payment is only accepted when the state machine expects it: the first one in {@value
-   * MobilityDto#STATE_TO_BE_PAID} (the departure documents are filled in), the second one in
-   * {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} (every document is filled in); any other state is
-   * a {@link ErrorCode#PAYMENT_NOT_EXPECTED} conflict. After the first payment the mobility is
-   * {@value MobilityDto#STATE_IN_PROGRESS}, or directly {@value
-   * MobilityDto#STATE_BALANCE_TO_BE_PAID} when its return documents were already filled in (no
-   * document would be left to move it on).
+   * <p>A payment is only accepted when the state machine expects it: the first one in {@link
+   * MobilityState#TO_BE_PAID} (the departure documents are filled in), the second one in {@link
+   * MobilityState#BALANCE_TO_BE_PAID} (every document is filled in); any other state is a {@link
+   * ErrorCode#PAYMENT_NOT_EXPECTED} conflict. After the first payment the mobility is {@link
+   * MobilityState#IN_PROGRESS}, or directly {@link MobilityState#BALANCE_TO_BE_PAID} when its
+   * return documents were already filled in (no document would be left to move it on).
    */
   @Override
-  public MobilityDto confirmPayment(int id, int version) {
+  public Mobility confirmPayment(int id, int version) {
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
     mobility.checkNotCancelledAndNotClosed();
     boolean firstPayment =
-        mobility.getState().equals(Mobility.STATE_TO_BE_PAID)
+        mobility.getState() == MobilityState.TO_BE_PAID
             && mobility.getFirstPaymentRequestDate() == null;
     boolean secondPayment =
-        mobility.getState().equals(Mobility.STATE_BALANCE_TO_BE_PAID)
+        mobility.getState() == MobilityState.BALANCE_TO_BE_PAID
             && mobility.getFirstPaymentRequestDate() != null;
     if (!firstPayment && !secondPayment) {
       throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
@@ -184,13 +182,13 @@ class MobilityServiceImpl implements MobilityService {
     if (firstPayment) {
       mobility.setFirstPaymentRequestDate(LocalDateTime.now(clock));
       mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
-      mobility.setState(
+      mobility.moveTo(
           mobility.allReturnDocumentsFilledIn()
-              ? Mobility.STATE_BALANCE_TO_BE_PAID
-              : Mobility.STATE_IN_PROGRESS);
+              ? MobilityState.BALANCE_TO_BE_PAID
+              : MobilityState.IN_PROGRESS);
     } else {
       mobility.setSecondPaymentRequestDate(LocalDateTime.now(clock));
-      mobility.setState(Mobility.STATE_CLOSED);
+      mobility.moveTo(MobilityState.CLOSED);
     }
     mobilityRepository.update(mobility);
     return mobility;
@@ -199,16 +197,16 @@ class MobilityServiceImpl implements MobilityService {
   /**
    * {@inheritDoc}
    *
-   * <p>State transitions: {@value MobilityDto#STATE_CREATED} and {@value
-   * MobilityDto#STATE_IN_PREPARATION} become {@value MobilityDto#STATE_TO_BE_PAID} as soon as every
-   * departure document is filled in (also when the first document filled in completes them),
-   * {@value MobilityDto#STATE_IN_PREPARATION} otherwise; {@value MobilityDto#STATE_IN_PROGRESS}
-   * becomes {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when every document is filled in. The
-   * other states do not change (a payment is pending). The documents of a cancelled or closed
-   * mobility are frozen: {@link ErrorCode#MOBILITY_CANCELLED} / {@link ErrorCode#MOBILITY_CLOSED}.
+   * <p>State transitions: {@link MobilityState#CREATED} and {@link MobilityState#IN_PREPARATION}
+   * become {@link MobilityState#TO_BE_PAID} as soon as every departure document is filled in (also
+   * when the first document filled in completes them), {@link MobilityState#IN_PREPARATION}
+   * otherwise; {@link MobilityState#IN_PROGRESS} becomes {@link MobilityState#BALANCE_TO_BE_PAID}
+   * when every document is filled in. The other states do not change (a payment is pending). The
+   * documents of a cancelled or closed mobility are frozen: {@link ErrorCode#MOBILITY_CANCELLED} /
+   * {@link ErrorCode#MOBILITY_CLOSED}.
    */
   @Override
-  public MobilityDto confirmDocument(int id, int document, int version) {
+  public Mobility confirmDocument(int id, int document, int version) {
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
@@ -218,25 +216,23 @@ class MobilityServiceImpl implements MobilityService {
     if (!mobility.fillInDocument(document)) {
       return mobility;
     }
-    String currentState = mobility.getState();
-    if (currentState.equals(Mobility.STATE_CREATED)
-        || currentState.equals(Mobility.STATE_IN_PREPARATION)) {
-      mobility.setState(
+    MobilityState currentState = mobility.getState();
+    if (currentState == MobilityState.CREATED || currentState == MobilityState.IN_PREPARATION) {
+      mobility.moveTo(
           mobility.allDepartureDocumentsFilledIn()
-              ? Mobility.STATE_TO_BE_PAID
-              : Mobility.STATE_IN_PREPARATION);
-    } else if (currentState.equals(Mobility.STATE_IN_PROGRESS)) {
-      if (mobility.allDepartureDocumentsFilledIn() && mobility.allReturnDocumentsFilledIn()) {
-        mobility.setState(Mobility.STATE_BALANCE_TO_BE_PAID);
-      }
+              ? MobilityState.TO_BE_PAID
+              : MobilityState.IN_PREPARATION);
+    } else if (currentState == MobilityState.IN_PROGRESS
+        && mobility.allDepartureDocumentsFilledIn()
+        && mobility.allReturnDocumentsFilledIn()) {
+      mobility.moveTo(MobilityState.BALANCE_TO_BE_PAID);
     }
     mobilityDocumentRepository.fillInDocument(document, mobility.getId());
-    mobility = (Mobility) mobilityRepository.update(mobility);
-    return mobility;
+    return mobilityRepository.update(mobility);
   }
 
   @Override
-  public MobilityDto cancel(
+  public Mobility cancel(
       int id,
       int version,
       String cancellationReason,
@@ -254,11 +250,11 @@ class MobilityServiceImpl implements MobilityService {
     }
     mobility.checkNotClosed();
     // The mobility is already cancelled
-    if (mobility.getState().equals(Mobility.STATE_CANCELLED)) {
+    if (mobility.getState() == MobilityState.CANCELLED) {
       return mobility;
     }
     // The mobility can be cancelled
-    String stateBeforeCancellation = mobility.getState();
+    MobilityState stateBeforeCancellation = mobility.getState();
     if (userRole == Role.PROFESSOR) {
       if (denialReasonId <= 0) {
         throw new BusinessException(ErrorCode.DENIAL_REASON_REQUIRED);
@@ -276,7 +272,7 @@ class MobilityServiceImpl implements MobilityService {
     }
     // Updating the state and the state before cancellation
     mobility.setStateBeforeCancellation(stateBeforeCancellation);
-    mobility.setState(Mobility.STATE_CANCELLED);
+    mobility.moveTo(MobilityState.CANCELLED);
     return mobilityRepository.update(mobility);
   }
 
@@ -305,8 +301,8 @@ class MobilityServiceImpl implements MobilityService {
     csvStringBuilder.write(csvMobilityHeader);
     csvStringBuilder.writeLine(csvDocumentsHeader);
     csvStringBuilder.write(mobilityData);
-    List<DocumentDto> documents = mobility.getDocuments();
-    for (DocumentDto document : documents) {
+    List<Document> documents = mobility.getDocuments();
+    for (Document document : documents) {
       if (isExported(document, filter)) {
         documentsInMobility.put(
             document.getName(), document.isFilledIn() ? "Rempli" : "Non-rempli");
@@ -324,10 +320,8 @@ class MobilityServiceImpl implements MobilityService {
   }
 
   /** Tells whether the export keeps a document: every document without a filter. */
-  private static boolean isExported(DocumentDto document, @Nullable DocumentFilter filter) {
-    return filter == null
-        || (document.getCategory() == filter.category().code()
-            && (document.isFilledIn() || !filter.filledInOnly()));
+  private static boolean isExported(Document document, @Nullable DocumentFilter filter) {
+    return filter == null || filter.keeps(document.getCategory(), document.isFilledIn());
   }
 
   /**
@@ -336,14 +330,14 @@ class MobilityServiceImpl implements MobilityService {
    * @param mobility the mobility to serialize
    * @return a table of strings serializable.
    */
-  private String[] mobilityToStringTable(MobilityDto mobility) {
+  private String[] mobilityToStringTable(Mobility mobility) {
     String[] entries = new String[6];
-    UserDto user = mobility.getNominatedStudent();
-    PartnerDto partner = mobility.getPartner();
+    User user = mobility.getNominatedStudent();
+    Partner partner = mobility.getPartner();
     entries[0] = user.getLastName();
     entries[1] = user.getFirstName();
     entries[2] = partner == null ? "" : partner.getFullName();
-    entries[3] = mobility.getMobilityType();
+    entries[3] = mobility.getMobilityType().name();
     entries[4] = mobility.getProgramme().getProgrammeName();
     entries[5] = mobility.getTerm() + "";
     return entries;

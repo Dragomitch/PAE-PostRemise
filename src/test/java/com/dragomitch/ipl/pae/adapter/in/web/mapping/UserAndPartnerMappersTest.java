@@ -10,8 +10,9 @@ import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,11 +21,10 @@ import org.junit.jupiter.api.Test;
 /** The users, nominated students, addresses and partners survive a round trip. */
 class UserAndPartnerMappersTest {
 
-  private final EntityFactory factory = EntityFactories.create();
-  private final ReferenceDataMapper referenceData = new ReferenceDataMapper(factory);
-  private final AddressMapper addresses = new AddressMapper(factory, referenceData);
-  private final UserMapper users = new UserMapper(factory, referenceData, addresses);
-  private final PartnerMapper partners = new PartnerMapper(factory, referenceData, addresses);
+  private final ReferenceDataMapper referenceData = new ReferenceDataMapper();
+  private final AddressMapper addresses = new AddressMapper(referenceData);
+  private final UserMapper users = new UserMapper(referenceData, addresses);
+  private final PartnerMapper partners = new PartnerMapper(referenceData, addresses);
 
   static final CountryDto BELGIUM = new CountryDto("BE", "Belgique", null, 0);
   static final AddressDto ADDRESS =
@@ -40,8 +40,24 @@ class UserAndPartnerMappersTest {
         "alice@example.test",
         new OptionDto("BIN", "Informatique"),
         LocalDateTime.of(2026, 1, 2, 3, 4, 5),
-        "Student",
+        null,
         3);
+  }
+
+  @Test
+  void theRoleIsWrittenButNeverRead() {
+    User user = new User();
+    user.setRole(Role.PROFESSOR);
+
+    assertThat(users.toDto(user).role()).isEqualTo("Professor");
+    assertThat(
+            users
+                .toDomain(new UserDto(1, null, null, null, null, null, null, null, "Professor", 0))
+                .getRole())
+        .isNull();
+    NominatedStudent student = new NominatedStudent();
+    student.setRole(Role.STUDENT);
+    assertThat(users.toDto(student).role()).isEqualTo("Student");
   }
 
   @Test
@@ -64,7 +80,7 @@ class UserAndPartnerMappersTest {
             "alice@example.test",
             new OptionDto("BIN", null),
             LocalDateTime.of(2026, 1, 2, 3, 4, 5),
-            "Student",
+            null,
             "Ms",
             LocalDate.of(2001, 4, 12),
             BELGIUM,
@@ -125,13 +141,13 @@ class UserAndPartnerMappersTest {
   void nullStaysNull() {
     assertThat(addresses.toDto(null)).isNull();
     assertThat(addresses.toDomain(null)).isNull();
-    assertThat(users.toDto((com.dragomitch.ipl.pae.domain.dto.UserDto) null)).isNull();
+    assertThat(users.toDto((com.dragomitch.ipl.pae.domain.model.User) null)).isNull();
     assertThat(users.toDomain((UserDto) null)).isNull();
-    assertThat(users.toDto((com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto) null)).isNull();
+    assertThat(users.toDto((com.dragomitch.ipl.pae.domain.model.NominatedStudent) null)).isNull();
     assertThat(users.toDomain((NominatedStudentDto) null)).isNull();
-    assertThat(partners.toDto((com.dragomitch.ipl.pae.domain.dto.PartnerDto) null)).isNull();
+    assertThat(partners.toDto((com.dragomitch.ipl.pae.domain.model.Partner) null)).isNull();
     assertThat(partners.toDomain((PartnerDto) null)).isNull();
-    assertThat(partners.toDto((com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto) null)).isNull();
+    assertThat(partners.toDto((com.dragomitch.ipl.pae.domain.model.PartnerOption) null)).isNull();
     assertThat(partners.toDomain((PartnerOptionDto) null)).isNull();
   }
 }

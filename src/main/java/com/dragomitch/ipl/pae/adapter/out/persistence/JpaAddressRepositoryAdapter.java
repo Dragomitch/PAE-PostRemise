@@ -3,7 +3,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.CountryEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.AddressJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -26,7 +26,7 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
 
   /** Stores the address at version 1 and sets its generated id and version on the DTO. */
   @Override
-  public AddressDto create(AddressDto address) {
+  public Address create(Address address) {
     AddressEntity entity = new AddressEntity();
     copy(address, entity);
     entity.setVersion(1);
@@ -37,7 +37,7 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
   }
 
   @Override
-  public AddressDto findById(int id) {
+  public Address findById(int id) {
     return addresses.findWithCountryById(id).map(mapper::address).orElse(null);
   }
 
@@ -48,7 +48,7 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
    *     DTO's (it was changed since it was read)
    */
   @Override
-  public AddressDto update(AddressDto address) {
+  public Address update(Address address) {
     AddressEntity entity =
         addresses
             .findById(address.getId())
@@ -61,7 +61,7 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
     return address;
   }
 
-  private void copy(AddressDto address, AddressEntity entity) {
+  private void copy(Address address, AddressEntity entity) {
     entity.setStreet(address.getStreet());
     entity.setNumber(address.getNumber());
     entity.setCountry(

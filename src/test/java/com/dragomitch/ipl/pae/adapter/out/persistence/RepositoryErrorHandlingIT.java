@@ -3,20 +3,20 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
@@ -208,60 +208,60 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
   // NullPointerException while binding the parameters, or from JPA refusing a reference to an
   // entity without id.
 
-  AddressDto address() {
-    AddressDto address = build(AddressDto.class);
-    CountryDto country = build(CountryDto.class);
+  Address address() {
+    Address address = new Address();
+    Country country = new Country();
     country.setCountryCode("BE");
     address.setCountry(country);
     return address;
   }
 
-  DenialReasonDto denialReason() {
-    return build(DenialReasonDto.class);
+  DenialReason denialReason() {
+    return new DenialReason();
   }
 
-  MobilityChoiceDto choice() {
-    MobilityChoiceDto choice = build(MobilityChoiceDto.class);
-    choice.setUser(build(UserDto.class));
-    choice.setProgramme(build(ProgrammeDto.class));
-    CountryDto country = build(CountryDto.class);
+  MobilityChoice choice() {
+    MobilityChoice choice = new MobilityChoice();
+    choice.setUser(new User());
+    choice.setProgramme(new Programme());
+    Country country = new Country();
     country.setCountryCode("BE");
     choice.setCountry(country);
     choice.setSubmissionDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return choice;
   }
 
-  MobilityDto mobility() {
-    MobilityDto mobility = build(MobilityDto.class);
+  Mobility mobility() {
+    Mobility mobility = new Mobility();
     mobility.setSubmissionDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return mobility;
   }
 
-  NominatedStudentDto student() {
-    NominatedStudentDto student = build(NominatedStudentDto.class);
+  NominatedStudent student() {
+    NominatedStudent student = new NominatedStudent();
     student.setBirthdate(LocalDate.of(2000, 1, 1));
-    CountryDto nationality = build(CountryDto.class);
+    Country nationality = new Country();
     nationality.setCountryCode("BE");
     student.setNationality(nationality);
-    student.setAddress(build(AddressDto.class));
+    student.setAddress(new Address());
     return student;
   }
 
-  PartnerDto partner() {
-    PartnerDto partner = build(PartnerDto.class);
-    partner.setAddress(build(AddressDto.class));
+  Partner partner() {
+    Partner partner = new Partner();
+    partner.setAddress(new Address());
     return partner;
   }
 
-  PartnerOptionDto partnerOption() {
-    PartnerOptionDto option = build(PartnerOptionDto.class);
+  PartnerOption partnerOption() {
+    PartnerOption option = new PartnerOption();
     option.setCode("BIN");
     return option;
   }
 
-  UserDto user() {
-    UserDto user = build(UserDto.class);
-    OptionDto option = build(OptionDto.class);
+  User user() {
+    User user = new User();
+    Option option = new Option();
     option.setCode("BIN");
     user.setOption(option);
     user.setRegistrationDate(LocalDateTime.of(2025, 1, 1, 0, 0));

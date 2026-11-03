@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import java.util.List;
@@ -19,13 +19,13 @@ class CountryServiceImpl implements CountryService {
   }
 
   @Override
-  public List<CountryDto> showAll() {
+  public List<Country> showAll() {
     return countryRepository.findAll();
   }
 
   @Override
-  public CountryDto showOne(String countryCode) {
-    CountryDto country = countryRepository.findById(countryCode);
+  public Country showOne(String countryCode) {
+    Country country = countryRepository.findById(countryCode);
     if (country == null) {
       throw new ResourceNotFoundException();
     }

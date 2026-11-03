@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.OptionJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
+import com.dragomitch.ipl.pae.domain.model.Option;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import java.util.List;
 import org.springframework.stereotype.Repository;
@@ -19,13 +19,13 @@ class JpaOptionRepositoryAdapter implements OptionRepository {
   }
 
   @Override
-  public OptionDto findByCode(String code) {
+  public Option findByCode(String code) {
     return options.findById(code).map(mapper::option).orElse(null);
   }
 
   /** In the order of {@code init.sql}. */
   @Override
-  public List<OptionDto> findAll() {
+  public List<Option> findAll() {
     return options.findAll().stream().map(mapper::option).toList();
   }
 }

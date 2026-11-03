@@ -6,13 +6,13 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.DenialReasonEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.OptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,62 +23,52 @@ import org.springframework.stereotype.Component;
 @Component
 class PersistenceMapper {
 
-  private final EntityFactory entityFactory;
-
-  PersistenceMapper(EntityFactory entityFactory) {
-    this.entityFactory = entityFactory;
-  }
-
-  <T> T build(Class<T> type) {
-    return type.cast(entityFactory.build(type));
-  }
-
-  OptionDto option(OptionEntity entity) {
-    OptionDto option = build(OptionDto.class);
+  Option option(OptionEntity entity) {
+    Option option = new Option();
     option.setCode(entity.getCode());
     option.setName(entity.getName());
     return option;
   }
 
-  ProgrammeDto programme(ProgrammeEntity entity) {
-    ProgrammeDto programme = programmeReference(entity.getId());
+  Programme programme(ProgrammeEntity entity) {
+    Programme programme = programmeReference(entity.getId());
     programme.setProgrammeName(entity.getName());
     programme.setExternalSoftName(entity.getExternalSoftwareName());
     return programme;
   }
 
   /** A programme known by its id only. */
-  ProgrammeDto programmeReference(int id) {
-    ProgrammeDto programme = build(ProgrammeDto.class);
+  Programme programmeReference(int id) {
+    Programme programme = new Programme();
     programme.setId(id);
     return programme;
   }
 
   /** A country with its programme (id, name and external software). */
-  CountryDto country(CountryEntity entity) {
-    CountryDto country = countryNamed(entity);
+  Country country(CountryEntity entity) {
+    Country country = countryNamed(entity);
     country.setProgramme(programme(entity.getProgramme()));
     return country;
   }
 
   /** A country with its code and name only. */
-  CountryDto countryNamed(CountryEntity entity) {
-    CountryDto country = build(CountryDto.class);
+  Country countryNamed(CountryEntity entity) {
+    Country country = new Country();
     country.setCountryCode(entity.getCode());
     country.setName(entity.getName());
     return country;
   }
 
-  DenialReasonDto denialReason(DenialReasonEntity entity) {
-    DenialReasonDto reason = build(DenialReasonDto.class);
+  DenialReason denialReason(DenialReasonEntity entity) {
+    DenialReason reason = new DenialReason();
     reason.setId(entity.getId());
     reason.setReason(entity.getReason());
     return reason;
   }
 
   /** An address with its country (code and name). */
-  AddressDto address(AddressEntity entity) {
-    AddressDto address = build(AddressDto.class);
+  Address address(AddressEntity entity) {
+    Address address = new Address();
     address.setId(entity.getId());
     address.setStreet(entity.getStreet());
     address.setNumber(entity.getNumber());
@@ -91,15 +81,15 @@ class PersistenceMapper {
   }
 
   /** A user with every column, its option (code and name) included. */
-  UserDto user(UserEntity entity) {
-    UserDto user = build(UserDto.class);
+  User user(UserEntity entity) {
+    User user = new User();
     user.setId(entity.getId());
     user.setUsername(entity.getUsername());
     user.setLastName(entity.getLastName());
     user.setFirstName(entity.getFirstName());
     user.setEmail(entity.getEmail());
     user.setPassword(entity.getPassword());
-    user.setRole(entity.getRole());
+    user.setRole(Role.fromLabel(entity.getRole()));
     user.setRegistrationDate(entity.getRegistrationDate());
     user.setVersion(entity.getVersion());
     user.setOption(option(entity.getOption()));

@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.Reference;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,17 +17,15 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class ReferenceEntitiesIntegrityTest {
 
-  private final EntityFactoryImpl factory = new EntityFactoryImpl();
-
   private Option option(String code, String name) {
-    Option option = (Option) factory.build(Option.class);
+    Option option = new com.dragomitch.ipl.pae.domain.model.Option();
     option.setCode(code);
     option.setName(name);
     return option;
   }
 
   private Programme programme(int id, String name, String software) {
-    Programme programme = (Programme) factory.build(Programme.class);
+    Programme programme = new com.dragomitch.ipl.pae.domain.model.Programme();
     programme.setId(id);
     programme.setProgrammeName(name);
     programme.setExternalSoftName(software);
@@ -89,7 +87,7 @@ class ReferenceEntitiesIntegrityTest {
 
   @Test
   void aCountryIsValidWithCodeNameAndAValidProgramme() {
-    Country country = (Country) factory.build(Country.class);
+    Country country = new com.dragomitch.ipl.pae.domain.model.Country();
     country.setCountryCode("BE");
     country.setName("Belgique");
     country.setProgramme(programme(2, "Erabel", "Mobi-ERABEL"));
@@ -108,7 +106,7 @@ class ReferenceEntitiesIntegrityTest {
       nullValues = "NULL")
   void aCountryChecksItsFieldsAndItsProgramme(
       String code, String name, String programmeName, String violation) {
-    Country country = (Country) factory.build(Country.class);
+    Country country = new com.dragomitch.ipl.pae.domain.model.Country();
     country.setCountryCode(code);
     country.setName(name);
     country.setProgramme(programme(2, programmeName, "Mobi-ERABEL"));
@@ -118,7 +116,7 @@ class ReferenceEntitiesIntegrityTest {
 
   @Test
   void aReferencedCountryOnlyNeedsItsCode() {
-    Country country = (Country) factory.build(Country.class);
+    Country country = new com.dragomitch.ipl.pae.domain.model.Country();
     country.setCountryCode("BE");
 
     assertThat(Violations.of(country, Reference.class)).isEmpty();
@@ -127,7 +125,7 @@ class ReferenceEntitiesIntegrityTest {
 
   @Test
   void aDenialReasonWithATextIsValid() {
-    DenialReason reason = (DenialReason) factory.build(DenialReason.class);
+    DenialReason reason = new com.dragomitch.ipl.pae.domain.model.DenialReason();
     reason.setReason("Dossier incomplet");
 
     assertThat(Violations.of(reason)).isEmpty();
@@ -136,7 +134,7 @@ class ReferenceEntitiesIntegrityTest {
   @ParameterizedTest
   @NullAndEmptySource
   void aDenialReasonNeedsAText(String text) {
-    DenialReason reason = (DenialReason) factory.build(DenialReason.class);
+    DenialReason reason = new com.dragomitch.ipl.pae.domain.model.DenialReason();
     reason.setReason(text);
 
     assertThat(Violations.of(reason)).containsExactly("reason:NotBlank");
@@ -146,7 +144,7 @@ class ReferenceEntitiesIntegrityTest {
   @CsvSource({"299, true", "300, true", "301, false", "1000, false"})
   void aDenialReasonFitsInTheColumn(int length, boolean valid) {
     // denial_reasons.reason is VARCHAR(300): a longer text is rejected before reaching the database
-    DenialReason reason = (DenialReason) factory.build(DenialReason.class);
+    DenialReason reason = new com.dragomitch.ipl.pae.domain.model.DenialReason();
     reason.setReason("x".repeat(length));
 
     assertThat(Violations.of(reason)).isEqualTo(valid ? List.of() : List.of("reason:Size"));

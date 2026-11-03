@@ -5,8 +5,8 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerOptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerOptionId;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerOptionJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -31,7 +31,7 @@ class JpaPartnerOptionRepositoryAdapter implements PartnerOptionRepository {
 
   /** Stores the option of the partner, and writes it at once (its key is not generated). */
   @Override
-  public PartnerOptionDto create(PartnerOptionDto partnerOption, int partnerId) {
+  public PartnerOption create(PartnerOption partnerOption, int partnerId) {
     PartnerOptionEntity entity = new PartnerOptionEntity();
     entity.setId(new PartnerOptionId(partnerOption.getCode(), partnerId));
     entity.setOption(entityManager.getReference(OptionEntity.class, partnerOption.getCode()));
@@ -49,10 +49,10 @@ class JpaPartnerOptionRepositoryAdapter implements PartnerOptionRepository {
 
   /** The partners offering the option, each known by its id only. */
   @Override
-  public List<PartnerDto> findAllPartnersByOption(String optionCode) {
+  public List<Partner> findAllPartnersByOption(String optionCode) {
     return partnerOptions.findPartnerIdsByOption(optionCode).stream()
         .map(id -> {
-          PartnerDto partner = mapper.build(PartnerDto.class);
+          Partner partner = new Partner();
           partner.setId(id);
           return partner;
         })
@@ -61,10 +61,10 @@ class JpaPartnerOptionRepositoryAdapter implements PartnerOptionRepository {
 
   /** The options of the partner: code, department and name. */
   @Override
-  public List<PartnerOptionDto> findAllOptionsByPartner(int partnerId) {
+  public List<PartnerOption> findAllOptionsByPartner(int partnerId) {
     return partnerOptions.findByPartnerWithOption(partnerId).stream()
         .map(entity -> {
-          PartnerOptionDto option = mapper.build(PartnerOptionDto.class);
+          PartnerOption option = new PartnerOption();
           option.setCode(entity.getId().getOptionCode());
           option.setDepartement(entity.getDepartment());
           option.setName(entity.getOption().getName());

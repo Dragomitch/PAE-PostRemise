@@ -1,4 +1,4 @@
-package com.dragomitch.ipl.pae.domain.validation;
+package com.dragomitch.ipl.pae.adapter.in.web.validation;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;

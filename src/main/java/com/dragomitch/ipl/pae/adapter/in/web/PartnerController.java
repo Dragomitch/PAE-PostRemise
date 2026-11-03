@@ -2,12 +2,12 @@ package com.dragomitch.ipl.pae.adapter.in.web;
 
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

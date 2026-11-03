@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
+import com.dragomitch.ipl.pae.domain.model.Option;
 import java.util.List;
 
 public interface OptionRepository {
@@ -17,12 +17,12 @@ public interface OptionRepository {
    * @param code the code of the Option we want to retrieve from the Database.
    * @return the optionDto corresponding to the option row having the param option_code as code.
    */
-  OptionDto findByCode(String code);
+  Option findByCode(String code);
 
   /**
    * Queries the database for all options.
    *
    * @return all denialReasons
    */
-  List<OptionDto> findAll();
+  List<Option> findAll();
 }

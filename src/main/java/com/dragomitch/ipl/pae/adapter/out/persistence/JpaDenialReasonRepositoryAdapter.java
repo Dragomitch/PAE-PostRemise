@@ -2,7 +2,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.DenialReasonEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DenialReasonJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -22,7 +22,7 @@ class JpaDenialReasonRepositoryAdapter implements DenialReasonRepository {
   }
 
   @Override
-  public DenialReasonDto create(DenialReasonDto denialReason) {
+  public DenialReason create(DenialReason denialReason) {
     DenialReasonEntity entity = new DenialReasonEntity();
     entity.setReason(denialReason.getReason());
     denialReason.setId(reasons.save(entity).getId());
@@ -30,12 +30,12 @@ class JpaDenialReasonRepositoryAdapter implements DenialReasonRepository {
   }
 
   @Override
-  public DenialReasonDto findById(int id) {
+  public DenialReason findById(int id) {
     return reasons.findById(id).map(mapper::denialReason).orElse(null);
   }
 
   @Override
-  public List<DenialReasonDto> findAll() {
+  public List<DenialReason> findAll() {
     return reasons.findAll(Sort.by("id")).stream().map(mapper::denialReason).toList();
   }
 
@@ -46,7 +46,7 @@ class JpaDenialReasonRepositoryAdapter implements DenialReasonRepository {
    *     no version column, so a missing row is the only conflict
    */
   @Override
-  public DenialReasonDto update(DenialReasonDto denialReason) {
+  public DenialReason update(DenialReason denialReason) {
     DenialReasonEntity entity =
         reasons
             .findById(denialReason.getId())

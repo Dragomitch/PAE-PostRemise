@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import java.util.List;
 
 public interface NominatedStudentRepository {
@@ -39,7 +39,7 @@ public interface NominatedStudentRepository {
    *     and the version of its user.
    * @return the nominatedStudent inserted in the database, with the stored version
    */
-  public NominatedStudentDto create(NominatedStudentDto nominatedStudent);
+  public NominatedStudent create(NominatedStudent nominatedStudent);
 
   /**
    * Queries the database for a nominatedStudent based on it's id.
@@ -47,14 +47,14 @@ public interface NominatedStudentRepository {
    * @param id : the id of the nominatedStudent we want to find.
    * @return a nominatedStudentDto containing the data we were looking for.
    */
-  public NominatedStudentDto findById(int id);
+  public NominatedStudent findById(int id);
 
   /**
    * Queries the database for all nominatedStudents.
    *
    * @return a list of all nominatedStudent.
    */
-  public List<NominatedStudentDto> findAll();
+  public List<NominatedStudent> findAll();
 
   /**
    * Update a nominatedStudent in the database.
@@ -62,5 +62,5 @@ public interface NominatedStudentRepository {
    * @param nominatedStudent : the nominatedStudent to be updated in the database.
    * @return the nominatedStudentDto that has just been updated.
    */
-  public NominatedStudentDto update(NominatedStudentDto nominatedStudent);
+  public NominatedStudent update(NominatedStudent nominatedStudent);
 }

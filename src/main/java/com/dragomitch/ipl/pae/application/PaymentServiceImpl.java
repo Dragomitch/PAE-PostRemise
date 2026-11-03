@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
@@ -20,7 +20,7 @@ class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public List<PaymentDto> showAll(Role userRole) {
+  public List<Payment> showAll(Role userRole) {
     if (userRole == Role.STUDENT) {
       throw new InsufficientPermissionException();
     }

@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.util.List;
 
 public interface UserRepository {
@@ -29,22 +29,22 @@ public interface UserRepository {
    * @param user the user to be inserted in the database
    * @return the userDto inserted into the DB.
    */
-  UserDto create(UserDto user);
+  User create(User user);
 
   /**
    * Retrieve a user with the id passed in parameter.
    *
    * @param id the id of the User we want to retrieve from the Database.
-   * @return the UserDto corresponding to the user row having the param id as id.
+   * @return the User corresponding to the user row having the param id as id.
    */
-  UserDto findById(int id);
+  User findById(int id);
 
   /**
    * Queries the database for all users.
    *
    * @return all users.
    */
-  List<UserDto> findAll();
+  List<User> findAll();
 
   /**
    * Queries the database for a tuple matching a certain condition.
@@ -53,12 +53,12 @@ public interface UserRepository {
    * @param columnValue the comparison value
    * @return first result found that meets the conditions.
    */
-  UserDto findBy(String columnName, String columnValue);
+  User findBy(String columnName, String columnValue);
 
   /**
    * Changes the role of the user having that id to 'professor' and increments its version, with
    * optimistic locking. Only the role and the version are written: prefer it to {@link
-   * #update(UserDto)} when the id is known (e.g. from the API path).
+   * #update(User)} when the id is known (e.g. from the API path).
    *
    * @param userId the user id
    * @param expectedVersion the version the caller read
@@ -79,11 +79,11 @@ public interface UserRepository {
   int promoteToProfessor(String username, int expectedVersion);
 
   /**
-   * Updates the user data in the database with the contents of the UserDto's fields.
+   * Updates the user data in the database with the contents of the User's fields.
    *
    * @param user the user data to update
    */
-  void update(UserDto user);
+  void update(User user);
 
   /**
    * Checks if the users database table is empty.

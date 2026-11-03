@@ -1,20 +1,14 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.model.Role;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface MobilityService {
 
   /**
@@ -24,7 +18,7 @@ public interface MobilityService {
    * @param userRole the role of the requester
    * @return every mobility for a professor, the requester's own ones for a student
    */
-  List<MobilityDto> showAll(@Positive int userId, @NotNull Role userRole);
+  List<Mobility> showAll(int userId, Role userRole);
 
   /**
    * Return the requested mobility.
@@ -37,7 +31,7 @@ public interface MobilityService {
    * @throws InsufficientPermissionException when the requester is not a professor and does not own
    *     the requested mobility
    */
-  MobilityDto showOne(@Positive int id, @NotNull Role role, @Positive int user);
+  Mobility showOne(int id, Role role, int user);
 
   /**
    * Confirm the encoding in Pro Eco software.
@@ -46,7 +40,7 @@ public interface MobilityService {
    * @param version the current version of the mobility to update
    * @throws ResourceNotFoundException if the mobility does not exist
    */
-  void confirmProEcoEncoding(@Positive int id, int version);
+  void confirmProEcoEncoding(int id, int version);
 
   /**
    * Confirm the encoding in Second software.
@@ -55,7 +49,7 @@ public interface MobilityService {
    * @param version the current version of the mobility to update
    * @throws ResourceNotFoundException if the mobility does not exist
    */
-  void confirmSecondSoftwareEncoding(@Positive int id, int version);
+  void confirmSecondSoftwareEncoding(int id, int version);
 
   /**
    * Confirm a payment.
@@ -66,7 +60,7 @@ public interface MobilityService {
    * @throws ResourceNotFoundException if the mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto confirmPayment(@Positive int id, int version);
+  Mobility confirmPayment(int id, int version);
 
   /**
    * Confirm the retrieval of a document.
@@ -77,7 +71,7 @@ public interface MobilityService {
    * @throws ResourceNotFoundException if this mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto confirmDocument(@Positive int id, @Positive int document, int version);
+  Mobility confirmDocument(int id, int document, int version);
 
   /**
    * Cancel a mobility. If the requester is a professor, he can cancel a mobility using a reusable
@@ -92,13 +86,13 @@ public interface MobilityService {
    * @throws ResourceNotFoundException if this mobility does not exist
    * @throws BusinessException if a business-related operation error occurs.
    */
-  MobilityDto cancel(
-      @Positive int id,
+  Mobility cancel(
+      int id,
       int version,
-      @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH) String cancellationReason,
+      String cancellationReason,
       int denialReasonId,
-      @Positive int userId,
-      @NotNull Role userRole);
+      int userId,
+      Role userRole);
 
   /**
    * Create a CSV file as a String with the specified type of documents, for the mobility specified.
@@ -107,5 +101,5 @@ public interface MobilityService {
    * @param filter the documents to export, every document if null
    * @return the string representing the CSV file.
    */
-  String exportDocuments(@Positive int mobilityId, @Nullable DocumentFilter filter);
+  String exportDocuments(int mobilityId, @Nullable DocumentFilter filter);
 }

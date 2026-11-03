@@ -4,11 +4,11 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import jakarta.persistence.EntityManager;
@@ -57,7 +57,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * DTO.
    */
   @Override
-  public PartnerDto create(PartnerDto partner) {
+  public Partner create(Partner partner) {
     PartnerEntity entity = new PartnerEntity();
     copy(partner, entity);
     entity.setArchived(false);
@@ -69,7 +69,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
   }
 
   @Override
-  public PartnerDto findById(int id) {
+  public Partner findById(int id) {
     List<PartnerEntity> found =
         entityManager
             .createQuery(SELECT + " WHERE p.id = :id", PartnerEntity.class)
@@ -85,8 +85,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * partners offering their option ({@link PartnerFilter#ALL} and {@link PartnerFilter#COUNTRY}).
    */
   @Override
-  public List<PartnerDto> findAll(
-      PartnerFilter filter, String value, Role userRole, String option) {
+  public List<Partner> findAll(PartnerFilter filter, String value, Role userRole, String option) {
     List<String> conditions = new ArrayList<>();
     Map<String, Object> parameters = new LinkedHashMap<>();
     switch (filter) {
@@ -123,7 +122,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    *     DTO's (it was changed since it was read)
    */
   @Override
-  public PartnerDto update(PartnerDto partner) {
+  public Partner update(Partner partner) {
     PartnerEntity entity =
         partners
             .findById(partner.getId())
@@ -142,7 +141,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * its column is {@code NOT NULL}: a missing website is stored as an empty one, as the UI sends an
    * empty field.
    */
-  private void copy(PartnerDto partner, PartnerEntity entity) {
+  private void copy(Partner partner, PartnerEntity entity) {
     entity.setLegalName(partner.getLegalName());
     entity.setBusinessName(partner.getBusinessName());
     entity.setFullName(partner.getFullName());
@@ -160,15 +159,15 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * A partner of {@link #SELECT}: its address carries its id and country (code and name), its
    * programme is its country's (id and name), and its options are sorted by code.
    */
-  private PartnerDto partner(PartnerEntity entity) {
-    PartnerDto partner = mapper.build(PartnerDto.class);
+  private Partner partner(PartnerEntity entity) {
+    Partner partner = new Partner();
     partner.setId(entity.getId());
     partner.setLegalName(entity.getLegalName());
     partner.setBusinessName(entity.getBusinessName());
     partner.setFullName(entity.getFullName());
     partner.setOrganisationType(entity.getOrganisationType());
     partner.setEmployeeCount(entity.getEmployeeCount());
-    AddressDto address = mapper.build(AddressDto.class);
+    Address address = new Address();
     address.setId(entity.getAddress().getId());
     address.setCountry(mapper.countryNamed(entity.getAddress().getCountry()));
     partner.setAddress(address);
@@ -179,7 +178,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
     partner.setArchived(entity.isArchived());
     partner.setVersion(entity.getVersion());
     ProgrammeEntity programme = entity.getAddress().getCountry().getProgramme();
-    ProgrammeDto programmeDto = mapper.programmeReference(programme.getId());
+    Programme programmeDto = mapper.programmeReference(programme.getId());
     programmeDto.setProgrammeName(programme.getName());
     partner.setProgramme(programmeDto);
     partner.setOptions(
@@ -187,7 +186,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
             entity.getOptions().stream()
                 .sorted(Comparator.comparing(option -> option.getId().getOptionCode()))
                 .map(option -> {
-                  PartnerOptionDto dto = mapper.build(PartnerOptionDto.class);
+                  PartnerOption dto = new PartnerOption();
                   dto.setCode(option.getId().getOptionCode());
                   dto.setDepartement(option.getDepartment());
                   dto.setName(option.getOption().getName());

@@ -14,12 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import java.util.List;
@@ -38,12 +37,10 @@ class PartnerControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private PartnerService partnerService;
 
-  private PartnerDto partner(int id) {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+  private Partner partner(int id) {
+    Partner partner = new Partner();
     partner.setId(id);
     partner.setFullName("ACME");
     return partner;
@@ -63,7 +60,7 @@ class PartnerControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(8));
 
-    ArgumentCaptor<PartnerDto> captor = ArgumentCaptor.forClass(PartnerDto.class);
+    ArgumentCaptor<Partner> captor = ArgumentCaptor.forClass(Partner.class);
     verify(partnerService).create(captor.capture(), eq(Role.STUDENT));
     assertEquals(12, captor.getValue().getEmployeeCount());
     assertEquals("BIN", captor.getValue().getOptions().get(0).getCode());
@@ -162,7 +159,7 @@ class PartnerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"code\":\"BIN\",\"departement\":\"IT\"}"))
         .andExpect(status().isOk());
-    ArgumentCaptor<PartnerOptionDto> captor = ArgumentCaptor.forClass(PartnerOptionDto.class);
+    ArgumentCaptor<PartnerOption> captor = ArgumentCaptor.forClass(PartnerOption.class);
     verify(partnerService)
         .addOption(eq(3), captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals("IT", captor.getValue().getDepartement());

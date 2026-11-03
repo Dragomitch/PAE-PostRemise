@@ -4,7 +4,12 @@ import com.dragomitch.ipl.pae.adapter.in.web.dto.DocumentDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -16,31 +21,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class MobilityMapper {
 
-  private final EntityFactory entityFactory;
   private final ReferenceDataMapper referenceData;
   private final UserMapper users;
   private final PartnerMapper partners;
 
   public MobilityMapper(
-      EntityFactory entityFactory,
-      ReferenceDataMapper referenceData,
-      UserMapper users,
-      PartnerMapper partners) {
-    this.entityFactory = entityFactory;
+      ReferenceDataMapper referenceData, UserMapper users, PartnerMapper partners) {
     this.referenceData = referenceData;
     this.users = users;
     this.partners = partners;
   }
 
-  public @Nullable MobilityChoiceDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable MobilityChoiceDto choice) {
+  public @Nullable MobilityChoiceDto toDto(@Nullable MobilityChoice choice) {
     return choice == null
         ? null
         : new MobilityChoiceDto(
             choice.getId(),
             users.toDto(choice.getUser()),
             choice.getPreferenceOrder(),
-            choice.getMobilityType(),
+            name(choice.getMobilityType()),
             choice.getAcademicYear(),
             choice.getTerm(),
             referenceData.toDto(choice.getProgramme()),
@@ -52,23 +51,19 @@ public class MobilityMapper {
             choice.getVersion());
   }
 
-  public List<MobilityChoiceDto> toMobilityChoiceDtos(
-      List<com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto> choices) {
+  public List<MobilityChoiceDto> toMobilityChoiceDtos(List<MobilityChoice> choices) {
     return ReferenceDataMapper.list(choices, this::toDto);
   }
 
-  public com.dragomitch.ipl.pae.domain.dto.@Nullable MobilityChoiceDto toDomain(
-      @Nullable MobilityChoiceDto dto) {
+  public @Nullable MobilityChoice toDomain(@Nullable MobilityChoiceDto dto) {
     if (dto == null) {
       return null;
     }
-    var choice =
-        (com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto)
-            entityFactory.build(com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto.class);
+    var choice = new MobilityChoice();
     choice.setId(dto.id());
     choice.setUser(users.toDomain(dto.user()));
     choice.setPreferenceOrder(dto.preferenceOrder());
-    choice.setMobilityType(dto.mobilityType());
+    choice.setMobilityType(mobilityType(dto.mobilityType()));
     choice.setAcademicYear(dto.academicYear());
     choice.setTerm(dto.term());
     choice.setProgramme(referenceData.toDomain(dto.programme()));
@@ -81,28 +76,26 @@ public class MobilityMapper {
     return choice;
   }
 
-  public @Nullable DocumentDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable DocumentDto document) {
+  public @Nullable DocumentDto toDto(@Nullable Document document) {
     return document == null
         ? null
         : new DocumentDto(
             document.getId(),
             document.getName(),
-            document.getCategory(),
+            document.getCategory() == null ? NO_CATEGORY : document.getCategory().code(),
             document.isFilledIn(),
             referenceData.toDto(document.getProgramme()),
             document.getVersion());
   }
 
-  public @Nullable MobilityDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable MobilityDto mobility) {
+  public @Nullable MobilityDto toDto(@Nullable Mobility mobility) {
     return mobility == null
         ? null
         : new MobilityDto(
             mobility.getId(),
             users.toDto(mobility.getUser()),
             mobility.getPreferenceOrder(),
-            mobility.getMobilityType(),
+            name(mobility.getMobilityType()),
             mobility.getAcademicYear(),
             mobility.getTerm(),
             referenceData.toDto(mobility.getProgramme()),
@@ -111,8 +104,8 @@ public class MobilityMapper {
             referenceData.toDto(mobility.getDenialReason()),
             mobility.getCancellationReason(),
             partners.toDto(mobility.getPartner()),
-            mobility.getState(),
-            mobility.getStateBeforeCancellation(),
+            label(mobility.getState()),
+            label(mobility.getStateBeforeCancellation()),
             mobility.getDocuments() == null
                 ? null
                 : ReferenceDataMapper.list(mobility.getDocuments(), this::toDto),
@@ -125,20 +118,18 @@ public class MobilityMapper {
             mobility.getVersion());
   }
 
-  public List<MobilityDto> toMobilityDtos(
-      List<com.dragomitch.ipl.pae.domain.dto.MobilityDto> mobilities) {
+  public List<MobilityDto> toMobilityDtos(List<Mobility> mobilities) {
     return ReferenceDataMapper.list(mobilities, this::toDto);
   }
 
-  public @Nullable PaymentDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable PaymentDto payment) {
+  public @Nullable PaymentDto toDto(@Nullable Payment payment) {
     return payment == null
         ? null
         : new PaymentDto(
             payment.getMobilityChoiceId(),
             users.toDto(payment.getUser()),
             users.toDto(payment.getNominatedStudent()),
-            payment.getMobilityType(),
+            name(payment.getMobilityType()),
             payment.getAcademicYear(),
             payment.getTerm(),
             referenceData.toDto(payment.getProgramme()),
@@ -148,8 +139,23 @@ public class MobilityMapper {
             payment.getPaymentType());
   }
 
-  public List<PaymentDto> toPaymentDtos(
-      List<com.dragomitch.ipl.pae.domain.dto.PaymentDto> payments) {
+  public List<PaymentDto> toPaymentDtos(List<Payment> payments) {
     return ReferenceDataMapper.list(payments, this::toDto);
+  }
+
+  /** The category of a document read without its category. */
+  private static final char NO_CATEGORY = '\0';
+
+  private static @Nullable String name(@Nullable MobilityType type) {
+    return type == null ? null : type.name();
+  }
+
+  /** The type of a validated request: SMS, SMP, or none (blank). */
+  private static @Nullable MobilityType mobilityType(@Nullable String type) {
+    return type == null || type.isBlank() ? null : MobilityType.valueOf(type);
+  }
+
+  private static @Nullable String label(@Nullable MobilityState state) {
+    return state == null ? null : state.label();
   }
 }

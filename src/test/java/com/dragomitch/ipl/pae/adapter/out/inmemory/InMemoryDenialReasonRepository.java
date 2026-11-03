@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -8,21 +8,21 @@ import java.util.List;
 
 public class InMemoryDenialReasonRepository
     implements DenialReasonRepository, ResettableRepository {
-  private List<DenialReasonDto> denialReasons;
+  private List<DenialReason> denialReasons;
 
   public InMemoryDenialReasonRepository() {
-    denialReasons = new ArrayList<DenialReasonDto>();
+    denialReasons = new ArrayList<DenialReason>();
   }
 
   @Override
-  public DenialReasonDto create(DenialReasonDto denialReason) {
+  public DenialReason create(DenialReason denialReason) {
     denialReasons.add(denialReason);
     denialReason.setId(denialReasons.size());
     return denialReason;
   }
 
   @Override
-  public DenialReasonDto findById(int id) {
+  public DenialReason findById(int id) {
     if (id > 0 && id <= denialReasons.size()) {
       return denialReasons.get(id - 1);
     }
@@ -30,12 +30,12 @@ public class InMemoryDenialReasonRepository
   }
 
   @Override
-  public List<DenialReasonDto> findAll() {
+  public List<DenialReason> findAll() {
     return denialReasons;
   }
 
   @Override
-  public DenialReasonDto update(DenialReasonDto denialReasonDto) {
+  public DenialReason update(DenialReason denialReasonDto) {
     if (findById(denialReasonDto.getId()) == null) {
       throw new ConcurrentModificationException();
     }
@@ -46,6 +46,6 @@ public class InMemoryDenialReasonRepository
 
   @Override
   public void empty() {
-    denialReasons = new ArrayList<DenialReasonDto>();
+    denialReasons = new ArrayList<DenialReason>();
   }
 }

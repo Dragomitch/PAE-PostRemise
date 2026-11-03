@@ -12,8 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import java.time.LocalDate;
@@ -35,13 +34,10 @@ class NominatedStudentControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private NominatedStudentService nominatedStudentService;
 
-  private NominatedStudentDto student() {
-    NominatedStudentDto student =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+  private NominatedStudent student() {
+    NominatedStudent student = new NominatedStudent();
     student.setId(2);
     student.setBirthdate(LocalDate.of(2000, 12, 31));
     return student;
@@ -62,7 +58,7 @@ class NominatedStudentControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.birthdate").value("2000-12-31"));
 
-    ArgumentCaptor<NominatedStudentDto> captor = ArgumentCaptor.forClass(NominatedStudentDto.class);
+    ArgumentCaptor<NominatedStudent> captor = ArgumentCaptor.forClass(NominatedStudent.class);
     verify(nominatedStudentService)
         .create(captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals(LocalDate.of(2000, 12, 31), captor.getValue().getBirthdate());
@@ -101,7 +97,7 @@ class NominatedStudentControllerTest {
                 .content(BODY))
         .andExpect(status().isOk());
 
-    ArgumentCaptor<NominatedStudentDto> captor = ArgumentCaptor.forClass(NominatedStudentDto.class);
+    ArgumentCaptor<NominatedStudent> captor = ArgumentCaptor.forClass(NominatedStudent.class);
     verify(nominatedStudentService)
         .edit(captor.capture(), eq(TestUsers.PROFESSOR_ID), eq(Role.PROFESSOR));
     assertEquals(5, captor.getValue().getId());

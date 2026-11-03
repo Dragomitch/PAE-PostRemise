@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,18 +24,17 @@ class UserImplTest {
   static final String LONGEST_EMAIL =
       "e".repeat(64) + "@" + "a".repeat(63) + "." + "b".repeat(63) + "." + "c".repeat(57) + ".test";
 
-  private final EntityFactoryImpl factory = new EntityFactoryImpl();
   private User user;
 
   @BeforeEach
   void validUser() {
-    user = (User) factory.build(User.class);
+    user = new com.dragomitch.ipl.pae.domain.model.User();
     user.setUsername("alice");
     user.setLastName("Martin");
     user.setFirstName("Alice");
     user.setPassword("secret");
     user.setEmail("alice@student.test");
-    OptionDto option = (OptionDto) factory.build(OptionDto.class);
+    Option option = new com.dragomitch.ipl.pae.domain.model.Option();
     option.setCode("BIN");
     user.setOption(option);
   }
@@ -103,7 +101,7 @@ class UserImplTest {
 
   @Test
   void everyViolationIsReportedAtOnce() {
-    User empty = (User) factory.build(User.class);
+    User empty = new com.dragomitch.ipl.pae.domain.model.User();
 
     assertThat(Violations.onCreate(empty))
         .containsExactly(

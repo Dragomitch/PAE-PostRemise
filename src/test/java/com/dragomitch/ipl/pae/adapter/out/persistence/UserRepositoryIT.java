@@ -3,8 +3,9 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -31,26 +32,26 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     return List.of("db/fixtures/users.sql");
   }
 
-  private UserDto newUser(String username, String optionCode) {
-    UserDto user = build(UserDto.class);
+  private User newUser(String username, String optionCode) {
+    User user = new User();
     user.setUsername(username);
     user.setLastName("Lambert");
     user.setFirstName("Emma");
     user.setEmail(username + "@student.test");
     user.setPassword("hash-" + username);
-    OptionDto option = build(OptionDto.class);
+    Option option = new Option();
     option.setCode(optionCode);
     user.setOption(option);
-    user.setRole(UserDto.ROLE_STUDENT);
+    user.setRole(Role.STUDENT);
     user.setRegistrationDate(LocalDateTime.of(2025, 3, 4, 5, 6, 7));
     return user;
   }
 
   @Test
   void createInsertsEveryColumnAndReturnsTheGeneratedIdWithVersionOne() {
-    UserDto found =
+    User found =
         inTransaction(() -> {
-          UserDto created = userRepository.create(newUser("emma", "BDI"));
+          User created = userRepository.create(newUser("emma", "BDI"));
 
           assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
           assertThat(created.getVersion()).isEqualTo(1);
@@ -83,7 +84,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryField() {
-    UserDto user = inTransaction(() -> userRepository.findById(1002));
+    User user = inTransaction(() -> userRepository.findById(1002));
 
     assertThat(user.getId()).isEqualTo(1002);
     assertThat(user.getUsername()).isEqualTo("bob");
@@ -91,7 +92,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     assertThat(user.getFirstName()).isEqualTo("Bob");
     assertThat(user.getEmail()).isEqualTo("bob@prof.test");
     assertThat(user.getPassword()).isEqualTo("hash-bob");
-    assertThat(user.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+    assertThat(user.getRole()).isEqualTo(Role.PROFESSOR);
     assertThat(user.getRegistrationDate()).isEqualTo(LocalDateTime.of(2020, 1, 15, 10, 0));
     assertThat(user.getVersion()).isEqualTo(3);
     assertThat(user.getOption().getCode()).isEqualTo("BIN");
@@ -106,10 +107,10 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsEveryUser() {
-    List<UserDto> users = inTransaction(() -> userRepository.findAll());
+    List<User> users = inTransaction(() -> userRepository.findAll());
 
     assertThat(users)
-        .extracting(UserDto::getUsername)
+        .extracting(User::getUsername)
         .containsExactlyInAnyOrder("alice", "bob", "chloe", "david");
     assertThat(users)
         .filteredOn(u -> u.getId() == 1003)
@@ -122,7 +123,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsAnEmptyListWithoutUsers() {
-    List<UserDto> users =
+    List<User> users =
         inTransaction(() -> {
           execute("DELETE FROM student_exchange_tools.users");
           return userRepository.findAll();
@@ -141,7 +142,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     "role, Student, 1001"
   })
   void findByLooksUpAUserByAnyColumn(String column, String value, int expectedId) {
-    UserDto user = inTransaction(() -> userRepository.findBy(column, value));
+    User user = inTransaction(() -> userRepository.findBy(column, value));
 
     assertThat(user.getId()).isEqualTo(expectedId);
     assertThat(user.getOption()).isNotNull();
@@ -165,14 +166,14 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesTheFieldsAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      UserDto david = userRepository.findById(1004);
+      User david = userRepository.findById(1004);
       david.setUsername("dpetit");
       david.setLastName("Petit-Jean");
       david.setFirstName("Dave");
       david.setEmail("dave@student.test");
       david.setPassword("new-hash");
       david.getOption().setCode("BIM");
-      david.setRole(UserDto.ROLE_PROFESSOR);
+      david.setRole(Role.PROFESSOR);
       david.setRegistrationDate(LocalDateTime.of(1999, 1, 1, 0, 0));
 
       userRepository.update(david);
@@ -197,7 +198,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      UserDto stale = userRepository.findById(1002);
+      User stale = userRepository.findById(1002);
       stale.setVersion(2);
       stale.setUsername("hacker");
 
@@ -212,7 +213,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateOfAnUnknownUserFails() {
     runInTransaction(() -> {
-      UserDto ghost = newUser("ghost", "BIN");
+      User ghost = newUser("ghost", "BIN");
       ghost.setId(424242);
       ghost.setVersion(1);
       assertThatThrownBy(() -> userRepository.update(ghost))
@@ -240,10 +241,10 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       assertThat(userRepository.promoteToProfessor("alice", 1)).isEqualTo(2);
 
-      UserDto alice = userRepository.findById(1001);
-      assertThat(alice.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      User alice = userRepository.findById(1001);
+      assertThat(alice.getRole()).isEqualTo(Role.PROFESSOR);
       assertThat(alice.getVersion()).isEqualTo(2);
-      assertThat(userRepository.findById(1003).getRole()).isEqualTo(UserDto.ROLE_STUDENT);
+      assertThat(userRepository.findById(1003).getRole()).isEqualTo(Role.STUDENT);
     });
   }
 

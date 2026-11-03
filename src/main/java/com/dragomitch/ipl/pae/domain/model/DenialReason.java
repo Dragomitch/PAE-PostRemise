@@ -1,9 +1,33 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+/** A reason given by a professor to reject a mobility choice or to cancel a mobility. */
+public class DenialReason {
 
-/**
- * Business object of a {@link DenialReasonDto}. Its validation rules are the Bean Validation
- * constraints declared on the getters of {@link DenialReasonDto}.
- */
-public interface DenialReason extends DenialReasonDto {}
+  private int id;
+  private String reason;
+  private int version;
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public String getReason() {
+    return reason;
+  }
+
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
+
+  public int getVersion() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version = version;
+  }
+}

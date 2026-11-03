@@ -10,8 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
 import java.util.ArrayList;
@@ -25,20 +23,18 @@ import org.junit.jupiter.params.provider.ValueSource;
 /** Document and state rules of a mobility. */
 class MobilityImplTest {
 
-  private final EntityFactoryImpl factory = new EntityFactoryImpl();
-
   /**
    * Builds a mobility from a compact description: one token per document, "D" or "R" for the
    * category, followed by "+" when it is filled in (e.g. "D+ D R").
    */
   private Mobility mobility(String documents) {
-    Mobility mobility = (Mobility) factory.build(Mobility.class);
-    List<DocumentDto> list = new ArrayList<>();
+    Mobility mobility = new Mobility();
+    List<Document> list = new ArrayList<>();
     int id = 1;
     for (String token : documents.trim().isEmpty() ? new String[0] : documents.split(" ")) {
-      DocumentDto document = (DocumentDto) factory.build(DocumentDto.class);
+      Document document = new Document();
       document.setId(id++);
-      document.setCategory(token.charAt(0));
+      document.setCategory(DocumentCategory.fromCode(token.charAt(0)));
       document.setFilledIn(token.endsWith("+"));
       list.add(document);
     }
@@ -77,7 +73,7 @@ class MobilityImplTest {
 
   @Test
   void documentChecksNeedTheDocumentsToBeLoaded() {
-    Mobility mobility = (Mobility) factory.build(Mobility.class);
+    Mobility mobility = new Mobility();
 
     assertThatThrownBy(mobility::allDocumentsFilledIn)
         .isInstanceOf(FatalException.class)
@@ -117,16 +113,16 @@ class MobilityImplTest {
 
   @ParameterizedTest(name = "state {0}: notCancelled={1} notClosed={2}")
   @CsvSource({
-    "Créée,          true,  true",
-    "En préparation, true,  true",
-    "A payer,        true,  true",
-    "En cours,       true,  true",
-    "Solde à payer,  true,  true",
-    "Terminée,       true,  false",
-    "Annulée,        false, true"
+    "CREATED,        true,  true",
+    "IN_PREPARATION, true,  true",
+    "TO_BE_PAID,     true,  true",
+    "IN_PROGRESS,    true,  true",
+    "BALANCE_TO_BE_PAID, true,  true",
+    "CLOSED,         true,  false",
+    "CANCELLED,      false, true"
   })
-  void stateChecks(String state, boolean notCancelled, boolean notClosed) {
-    Mobility mobility = (Mobility) factory.build(Mobility.class);
+  void stateChecks(MobilityState state, boolean notCancelled, boolean notClosed) {
+    Mobility mobility = new Mobility();
     mobility.setState(state);
 
     assertOutcome(mobility::checkNotCancelled, notCancelled, MOBILITY_CANCELLED);
@@ -134,26 +130,5 @@ class MobilityImplTest {
     ErrorCode combinedError = !notCancelled ? MOBILITY_CANCELLED : MOBILITY_CLOSED;
     assertOutcome(
         mobility::checkNotCancelledAndNotClosed, notCancelled && notClosed, combinedError);
-  }
-
-  @Test
-  void theStateConstantsMatchTheValuesStoredInTheDatabase() {
-    assertThat(
-            List.of(
-                MobilityDto.STATE_CREATED,
-                MobilityDto.STATE_IN_PREPARATION,
-                MobilityDto.STATE_TO_BE_PAID,
-                MobilityDto.STATE_IN_PROGRESS,
-                MobilityDto.STATE_BALANCE_TO_BE_PAID,
-                MobilityDto.STATE_CLOSED,
-                MobilityDto.STATE_CANCELLED))
-        .containsExactly(
-            "Créée",
-            "En préparation",
-            "A payer",
-            "En cours",
-            "Solde à payer",
-            "Terminée",
-            "Annulée");
   }
 }

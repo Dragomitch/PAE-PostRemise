@@ -1,9 +1,9 @@
-package com.dragomitch.ipl.pae.domain.validation;
+package com.dragomitch.ipl.pae.adapter.in.web.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import jakarta.validation.constraints.Email;
 import org.junit.jupiter.api.Test;

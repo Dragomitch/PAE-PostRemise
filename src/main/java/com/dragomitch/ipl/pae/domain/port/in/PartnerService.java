@@ -1,19 +1,12 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.model.Role;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.groups.Default;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface PartnerService {
 
   /**
@@ -23,8 +16,7 @@ public interface PartnerService {
    * @param userRole : the role of the user who wants to create a new partner
    * @return the partnerDto that has just been created
    */
-  @Validated({Default.class, OnCreate.class})
-  PartnerDto create(@NotNull @Valid PartnerDto partner, @NotNull Role userRole);
+  Partner create(Partner partner, Role userRole);
 
   /**
    * Find a partnerDto existing in the database.
@@ -32,7 +24,7 @@ public interface PartnerService {
    * @param id : the id of the partner we want to find
    * @return the partnerDto found in the database
    */
-  PartnerDto showOne(@Positive int id);
+  Partner showOne(int id);
 
   /**
    * The partners visible to the user, filtered.
@@ -44,11 +36,7 @@ public interface PartnerService {
    * @param userId the id of the requester
    * @return the partners, ordered by id
    */
-  List<PartnerDto> showAll(
-      @NotNull PartnerFilter filter,
-      @Nullable String value,
-      @NotNull Role userRole,
-      @Positive int userId);
+  List<Partner> showAll(PartnerFilter filter, @Nullable String value, Role userRole, int userId);
 
   /**
    * Edit a partner.
@@ -58,9 +46,9 @@ public interface PartnerService {
    * @param userRole : the role of the user who wants to edit a partner.
    * @return the partnerDto that has just been edited.
    */
-  PartnerDto edit(@Positive int id, @NotNull @Valid PartnerDto partner, @NotNull Role userRole);
+  Partner edit(int id, Partner partner, Role userRole);
 
-  PartnerDto restore(@Positive int id, @NotNull Role role);
+  Partner restore(int id, Role role);
 
   /**
    * Adds an option to a partner. A professor may add an option to any partner. A student may only
@@ -77,11 +65,7 @@ public interface PartnerService {
    * @throws com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException if a student
    *     may not change that partner (403 {@code ACCESS_DENIED})
    */
-  void addOption(
-      @Positive int id,
-      @NotNull @Valid PartnerOptionDto partnerOption,
-      @Positive int userId,
-      @NotNull Role userRole);
+  void addOption(int id, PartnerOption partnerOption, int userId, Role userRole);
 
   /**
    * Find all options for a partner.
@@ -89,5 +73,5 @@ public interface PartnerService {
    * @param partnerId : the id of the partnerDto for which we want to find options
    * @return a list of options corresponding to a partner
    */
-  List<PartnerOptionDto> findAllPartnerOption(@Positive int partnerId);
+  List<PartnerOption> findAllPartnerOption(int partnerId);
 }

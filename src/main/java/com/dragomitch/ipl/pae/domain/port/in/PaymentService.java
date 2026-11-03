@@ -1,12 +1,9 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import com.dragomitch.ipl.pae.domain.model.Role;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface PaymentService {
 
   /**
@@ -15,5 +12,5 @@ public interface PaymentService {
    * @param userRole the role of the requester, only professors may list payments
    * @return a list of all the payments found in the database
    */
-  List<PaymentDto> showAll(@NotNull Role userRole);
+  List<Payment> showAll(Role userRole);
 }

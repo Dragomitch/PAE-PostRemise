@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import java.util.List;
 
 public interface PaymentRepository {
@@ -38,5 +38,5 @@ public interface PaymentRepository {
    *
    * @return all payments
    */
-  List<PaymentDto> findAll();
+  List<Payment> findAll();
 }

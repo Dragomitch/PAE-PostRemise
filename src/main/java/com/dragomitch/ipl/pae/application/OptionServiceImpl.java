@@ -1,8 +1,8 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
@@ -24,12 +24,12 @@ class OptionServiceImpl implements OptionService {
   }
 
   @Override
-  public List<OptionDto> showAll() {
+  public List<Option> showAll() {
     return optionRepository.findAll();
   }
 
   @Override
-  public List<PartnerDto> findAllPartnersByOption(String optionCode) {
+  public List<Partner> findAllPartnersByOption(String optionCode) {
     if (optionRepository.findByCode(optionCode) == null) {
       throw new ResourceNotFoundException();
     }

@@ -13,9 +13,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.sql.Connection;
@@ -77,20 +77,18 @@ class TransactionBoundaryTest {
 
   @Autowired private UserService userService;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private UserRepository userRepository;
 
-  private UserDto student;
+  private User student;
 
   @BeforeEach
   void setUp() throws SQLException {
     clearInvocations(connection, dataSource);
     reset(userRepository);
-    student = (UserDto) entityFactory.build(UserDto.class);
+    student = new User();
     student.setId(5);
     student.setVersion(3);
-    student.setRole(UserDto.ROLE_STUDENT);
+    student.setRole(Role.STUDENT);
   }
 
   @Test

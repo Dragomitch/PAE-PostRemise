@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.in.web.dto;
 
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.Reference;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

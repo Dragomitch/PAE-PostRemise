@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
 import java.util.List;
 
 public interface MobilityDocumentRepository {
@@ -25,7 +25,7 @@ public interface MobilityDocumentRepository {
    *     Database.
    * @return All documents concerned by the mobility.
    */
-  List<DocumentDto> findAllByMobility(int mobilityId);
+  List<Document> findAllByMobility(int mobilityId);
 
   /**
    * Marks a document of a mobility as filled in (and increments the version of the link).

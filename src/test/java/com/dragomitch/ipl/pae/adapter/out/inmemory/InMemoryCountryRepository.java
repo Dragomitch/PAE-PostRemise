@@ -1,8 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,26 +10,20 @@ import java.util.Map;
 
 public class InMemoryCountryRepository implements CountryRepository {
 
-  private Map<String, CountryDto> countries;
-  private EntityFactory entityFactory;
+  private Map<String, Country> countries;
 
-  /**
-   * Sole constructor for explicit invocation.
-   *
-   * @param entityFactory an on-demand object dispenser
-   */
-  public InMemoryCountryRepository(EntityFactory entityFactory) {
-    countries = new HashMap<String, CountryDto>();
-    this.entityFactory = entityFactory;
-    CountryDto country1 = (CountryDto) this.entityFactory.build(CountryDto.class);
+  /** Sole constructor for explicit invocation. */
+  public InMemoryCountryRepository() {
+    countries = new HashMap<String, Country>();
+    Country country1 = new Country();
     country1.setCountryCode("GB");
     country1.setName("Angleterre");
-    ProgrammeDto programme = (ProgrammeDto) this.entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     programme.setId(1);
     programme.setProgrammeName("Erasmus+");
     country1.setProgramme(programme);
     countries.put(country1.getCountryCode(), country1);
-    CountryDto country2 = (CountryDto) this.entityFactory.build(CountryDto.class);
+    Country country2 = new Country();
     country2.setCountryCode("IE");
     country2.setName("Ireland");
     country2.setProgramme(programme);
@@ -38,7 +31,7 @@ public class InMemoryCountryRepository implements CountryRepository {
   }
 
   @Override
-  public CountryDto findById(String countryCode) {
+  public Country findById(String countryCode) {
     if (countries.containsKey(countryCode)) {
       return countries.get(countryCode);
     }
@@ -46,8 +39,8 @@ public class InMemoryCountryRepository implements CountryRepository {
   }
 
   @Override
-  public List<CountryDto> findAll() {
-    List<CountryDto> countryList = new ArrayList<CountryDto>();
+  public List<Country> findAll() {
+    List<Country> countryList = new ArrayList<Country>();
     for (String key : countries.keySet()) {
       countryList.add(countries.get(key));
     }

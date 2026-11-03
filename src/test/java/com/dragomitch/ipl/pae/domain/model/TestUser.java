@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +23,7 @@ public class TestUser {
   private static final String EMAIL = "email@do.com";
   private static final String PASSWORD = "password";
   private static final String OPTION_CODE = "BIN";
-  private static final String ROLE = "student";
+  private static final Role ROLE = Role.STUDENT;
   private static final LocalDateTime REGISTRATION_DATE = LocalDateTime.now();
   private static final String LONG_STRING_21 = "asdasdasdasdasdasdasd";
   private static final String LONG_STRING_36 = "asdasdasdasdasdasdasdasdasdasdasdasd";
@@ -33,13 +31,11 @@ public class TestUser {
       "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdas"
           + "dasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasda"
           + "sdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasda";
-  private EntityFactory entityFactory;
   private User user;
 
   /** Creates a new User instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
     user = setUpCorrectUser();
   }
 
@@ -81,7 +77,7 @@ public class TestUser {
 
   @Test
   public void testSetAndGetOption() {
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    Option option = new Option();
     option.setCode(OPTION_CODE);
     user.setOption(option);
     assertEquals(option, user.getOption());
@@ -213,13 +209,13 @@ public class TestUser {
   }
 
   private User setUpCorrectUser() {
-    User user = (User) entityFactory.build(UserDto.class);
+    User user = new User();
     user.setFirstName(FIRST_NAME);
     user.setLastName(LAST_NAME);
     user.setUsername(USERNAME);
     user.setEmail(EMAIL);
     user.setPassword(PASSWORD);
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    Option option = new Option();
     option.setCode(OPTION_CODE);
     user.setOption(option);
     user.setRole(ROLE);

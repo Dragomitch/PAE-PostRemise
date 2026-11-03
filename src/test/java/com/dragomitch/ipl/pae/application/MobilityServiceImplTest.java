@@ -9,18 +9,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
 import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
@@ -79,7 +80,6 @@ class MobilityServiceImplTest {
   @Mock private ProgrammeService programmeService;
   @Mock private UserRepository userRepository;
 
-  private final EntityFactory entityFactory = EntityFactories.create();
   private MobilityServiceImpl mobilityService;
 
   @BeforeEach
@@ -97,37 +97,36 @@ class MobilityServiceImplTest {
   }
 
   /** A mobility as {@link MobilityRepository#findById} returns it. */
-  private MobilityDto storedMobility(String state) {
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+  private Mobility storedMobility(MobilityState state) {
+    Mobility mobility = new Mobility();
     mobility.setId(MOBILITY_ID);
     mobility.setVersion(VERSION);
     mobility.setState(state);
-    mobility.setMobilityType("SMS");
+    mobility.setMobilityType(MobilityType.SMS);
     mobility.setTerm(2);
     mobility.setAcademicYear(2016);
     mobility.setSubmissionDate(LocalDateTime.of(2016, 3, 1, 10, 0));
-    NominatedStudentDto student =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+    NominatedStudent student = new NominatedStudent();
     student.setId(STUDENT_ID);
     student.setFirstName("Alice");
     student.setLastName("Martin");
     mobility.setNominatedStudent(student);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     partner.setId(PARTNER_ID);
     partner.setFullName("University of Dublin");
     mobility.setPartner(partner);
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     programme.setId(PROGRAMME_ID);
     programme.setProgrammeName("Erasmus+");
     mobility.setProgramme(programme);
-    UserDto professor = (UserDto) entityFactory.build(UserDto.class);
+    User professor = new User();
     professor.setId(PROFESSOR_ID);
     mobility.setProfessorInCharge(professor);
     return mobility;
   }
 
-  private MobilityDto givenMobility(String state) {
-    MobilityDto mobility = storedMobility(state);
+  private Mobility givenMobility(MobilityState state) {
+    Mobility mobility = storedMobility(state);
     when(mobilityRepository.findById(MOBILITY_ID)).thenReturn(mobility);
     return mobility;
   }
@@ -138,14 +137,14 @@ class MobilityServiceImplTest {
   private void givenUpdateSucceeds() {
     when(mobilityRepository.update(any()))
         .thenAnswer(invocation -> {
-          MobilityDto mobility = invocation.getArgument(0);
+          Mobility mobility = invocation.getArgument(0);
           mobility.setVersion(mobility.getVersion() + 1);
           return mobility;
         });
   }
 
-  private DocumentDto document(int id, char category, boolean filledIn, String name) {
-    DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+  private Document document(int id, DocumentCategory category, boolean filledIn, String name) {
+    Document document = new Document();
     document.setId(id);
     document.setCategory(category);
     document.setFilledIn(filledIn);
@@ -153,13 +152,12 @@ class MobilityServiceImplTest {
     return document;
   }
 
-  private DocumentDto document(int id, char category, boolean filledIn) {
+  private Document document(int id, DocumentCategory category, boolean filledIn) {
     return document(id, category, filledIn, "document " + id);
   }
 
-  private NominatedStudentDto nominatedStudent(String iban, String bankName, String bic) {
-    NominatedStudentDto student =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+  private NominatedStudent nominatedStudent(String iban, String bankName, String bic) {
+    NominatedStudent student = new NominatedStudent();
     student.setId(STUDENT_ID);
     student.setIban(iban);
     student.setBankName(bankName);
@@ -172,7 +170,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aProfessorSeesEveryMobility() {
-      List<MobilityDto> all = List.of(storedMobility(MobilityDto.STATE_CREATED));
+      List<Mobility> all = List.of(storedMobility(MobilityState.CREATED));
       when(mobilityRepository.findAll()).thenReturn(all);
 
       assertThat(mobilityService.showAll(PROFESSOR_ID, Role.PROFESSOR)).isSameAs(all);
@@ -181,7 +179,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aStudentSeesOnlyTheirOwnMobilities() {
-      List<MobilityDto> own = List.of(storedMobility(MobilityDto.STATE_CREATED));
+      List<Mobility> own = List.of(storedMobility(MobilityState.CREATED));
       when(mobilityRepository.findByUser(STUDENT_ID)).thenReturn(own);
 
       assertThat(mobilityService.showAll(STUDENT_ID, Role.STUDENT)).isSameAs(own);
@@ -202,7 +200,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aStudentCannotSeeTheMobilityOfAnotherStudent() {
-      givenMobility(MobilityDto.STATE_CREATED);
+      givenMobility(MobilityState.CREATED);
 
       assertThat(
               Violations.errorCodeOf(
@@ -214,27 +212,27 @@ class MobilityServiceImplTest {
 
     static Stream<Arguments> allowedRequesters() {
       return Stream.of(
-          Arguments.of(UserDto.ROLE_PROFESSOR, PROFESSOR_ID),
-          Arguments.of(UserDto.ROLE_PROFESSOR, STUDENT_ID + 1),
-          Arguments.of(UserDto.ROLE_STUDENT, STUDENT_ID));
+          Arguments.of(Role.PROFESSOR, PROFESSOR_ID),
+          Arguments.of(Role.PROFESSOR, STUDENT_ID + 1),
+          Arguments.of(Role.STUDENT, STUDENT_ID));
     }
 
     @ParameterizedTest
     @MethodSource("allowedRequesters")
-    void theOwnerOrAProfessorGetsTheMobilityWithItsDetails(String role, int requester) {
-      givenMobility(MobilityDto.STATE_IN_PREPARATION);
-      List<DocumentDto> documents = List.of(document(1, DocumentDto.DEPARTURE_DOCUMENT, true));
+    void theOwnerOrAProfessorGetsTheMobilityWithItsDetails(Role role, int requester) {
+      givenMobility(MobilityState.IN_PREPARATION);
+      List<Document> documents = List.of(document(1, DocumentCategory.DEPARTURE, true));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(documents);
-      NominatedStudentDto student = nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB");
+      NominatedStudent student = nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB");
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(student);
-      PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+      Partner partner = new Partner();
       when(partnerService.showOne(PARTNER_ID)).thenReturn(partner);
-      ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+      Programme programme = new Programme();
       when(programmeService.showOne(PROGRAMME_ID)).thenReturn(programme);
-      UserDto professor = (UserDto) entityFactory.build(UserDto.class);
+      User professor = new User();
       when(userRepository.findById(PROFESSOR_ID)).thenReturn(professor);
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.fromLabel(role), requester);
+      Mobility shown = mobilityService.showOne(MOBILITY_ID, role, requester);
 
       assertThat(shown.getDocuments()).isEqualTo(documents);
       assertThat(shown.getNominatedStudent()).isSameAs(student);
@@ -246,11 +244,11 @@ class MobilityServiceImplTest {
     @Test
     void aMobilityConfirmedWithANewPartnerHasNoProfessorInCharge() {
       // confirmWithNewPartner creates the mobility without professor (nullable column)
-      MobilityDto stored = givenMobility(MobilityDto.STATE_CREATED);
+      Mobility stored = givenMobility(MobilityState.CREATED);
       stored.setProfessorInCharge(null);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
+      Mobility shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
 
       assertThat(shown.getProfessorInCharge()).isNull();
       verifyNoInteractions(userRepository);
@@ -258,11 +256,11 @@ class MobilityServiceImplTest {
 
     @Test
     void theStudentSummaryIsKeptWhenThePersonalDataAreNotRecorded() {
-      MobilityDto stored = givenMobility(MobilityDto.STATE_CREATED);
-      NominatedStudentDto summary = stored.getNominatedStudent();
+      Mobility stored = givenMobility(MobilityState.CREATED);
+      NominatedStudent summary = stored.getNominatedStudent();
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
+      Mobility shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
 
       assertThat(shown.getNominatedStudent()).isSameAs(summary);
       assertThat(shown.getNominatedStudent().getLastName()).isEqualTo("Martin");
@@ -278,12 +276,12 @@ class MobilityServiceImplTest {
       }
 
       @Override
-      boolean isEncoded(MobilityDto mobility) {
+      boolean isEncoded(Mobility mobility) {
         return mobility.isEncodedInProEco();
       }
 
       @Override
-      void setEncoded(MobilityDto mobility) {
+      void setEncoded(Mobility mobility) {
         mobility.setProEcoEncoding(true);
       }
     },
@@ -294,21 +292,21 @@ class MobilityServiceImplTest {
       }
 
       @Override
-      boolean isEncoded(MobilityDto mobility) {
+      boolean isEncoded(Mobility mobility) {
         return mobility.isEncodedInSecondSoftware();
       }
 
       @Override
-      void setEncoded(MobilityDto mobility) {
+      void setEncoded(Mobility mobility) {
         mobility.setSecondSoftwareEncoding(true);
       }
     };
 
     abstract void confirm(MobilityServiceImpl ucc, int id, int version);
 
-    abstract boolean isEncoded(MobilityDto mobility);
+    abstract boolean isEncoded(Mobility mobility);
 
-    abstract void setEncoded(MobilityDto mobility);
+    abstract void setEncoded(Mobility mobility);
 
     Software other() {
       return this == PRO_ECO ? SECOND : PRO_ECO;
@@ -321,7 +319,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @EnumSource(Software.class)
     void confirmsTheEncodingOfThatSoftwareOnly(Software software) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      Mobility mobility = givenMobility(MobilityState.IN_PROGRESS);
       givenUpdateSucceeds();
 
       software.confirm(mobilityService, MOBILITY_ID, VERSION);
@@ -335,7 +333,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @EnumSource(Software.class)
     void aClosedMobilityCanStillBeEncoded(Software software) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CLOSED);
+      Mobility mobility = givenMobility(MobilityState.CLOSED);
       givenUpdateSucceeds();
 
       software.confirm(mobilityService, MOBILITY_ID, VERSION);
@@ -346,7 +344,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @EnumSource(Software.class)
     void confirmingAnEncodingTwiceWritesNothing(Software software) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      Mobility mobility = givenMobility(MobilityState.IN_PROGRESS);
       software.setEncoded(mobility);
 
       software.confirm(mobilityService, MOBILITY_ID, VERSION);
@@ -358,7 +356,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @EnumSource(Software.class)
     void aCancelledMobilityCannotBeEncoded(Software software) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CANCELLED);
+      Mobility mobility = givenMobility(MobilityState.CANCELLED);
 
       assertThat(
               Violations.errorCodeOf(() -> software.confirm(mobilityService, MOBILITY_ID, VERSION)))
@@ -370,7 +368,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @EnumSource(Software.class)
     void aStaleVersionIsAConcurrentModification(Software software) {
-      givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      givenMobility(MobilityState.IN_PROGRESS);
 
       assertThatThrownBy(() -> software.confirm(mobilityService, MOBILITY_ID, VERSION - 1))
           .isInstanceOf(ConcurrentModificationException.class);
@@ -391,20 +389,20 @@ class MobilityServiceImplTest {
 
     @Test
     void theFirstPaymentPutsTheMobilityInProgress() {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
           .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID))
           .thenReturn(
               List.of(
-                  document(1, DocumentDto.DEPARTURE_DOCUMENT, true),
-                  document(3, DocumentDto.RETURN_DOCUMENT, false)));
+                  document(1, DocumentCategory.DEPARTURE, true),
+                  document(3, DocumentCategory.RETURN, false)));
       givenUpdateSucceeds();
 
-      MobilityDto paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
+      Mobility paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
 
       assertThat(paid).isSameAs(mobility);
-      assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_IN_PROGRESS);
+      assertThat(paid.getState()).isEqualTo(MobilityState.IN_PROGRESS);
       assertThat(paid.getFirstPaymentRequestDate()).isEqualTo(NOW);
       assertThat(paid.getSecondPaymentRequestDate()).isNull();
       assertThat(paid.getVersion()).isEqualTo(VERSION + 1);
@@ -412,16 +410,16 @@ class MobilityServiceImplTest {
 
     @Test
     void theBalancePaymentClosesTheMobility() {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_BALANCE_TO_BE_PAID);
+      Mobility mobility = givenMobility(MobilityState.BALANCE_TO_BE_PAID);
       LocalDateTime firstPayment = LocalDateTime.of(2016, 9, 1, 12, 0);
       mobility.setFirstPaymentRequestDate(firstPayment);
       when(nominatedStudentRepository.findById(STUDENT_ID))
           .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
       givenUpdateSucceeds();
 
-      MobilityDto paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
+      Mobility paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
 
-      assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_CLOSED);
+      assertThat(paid.getState()).isEqualTo(MobilityState.CLOSED);
       assertThat(paid.getFirstPaymentRequestDate()).isEqualTo(firstPayment);
       assertThat(paid.getSecondPaymentRequestDate()).isEqualTo(NOW);
       verify(mobilityRepository).update(mobility);
@@ -431,35 +429,31 @@ class MobilityServiceImplTest {
     void theFirstPaymentMakesTheBalanceDueWhenTheReturnDocumentsAreAlreadyFilledIn() {
       // the return documents may be ticked while the first payment is pending ("A payer"):
       // "En cours" would then be a dead end, no document being left to fill in
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
           .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID))
           .thenReturn(
               List.of(
-                  document(1, DocumentDto.DEPARTURE_DOCUMENT, true),
-                  document(3, DocumentDto.RETURN_DOCUMENT, true)));
+                  document(1, DocumentCategory.DEPARTURE, true),
+                  document(3, DocumentCategory.RETURN, true)));
       givenUpdateSucceeds();
 
-      MobilityDto paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
+      Mobility paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
 
-      assertThat(paid.getState()).isEqualTo(MobilityDto.STATE_BALANCE_TO_BE_PAID);
+      assertThat(paid.getState()).isEqualTo(MobilityState.BALANCE_TO_BE_PAID);
       assertThat(paid.getFirstPaymentRequestDate()).isNotNull();
       assertThat(paid.getSecondPaymentRequestDate()).isNull();
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = {
-          MobilityDto.STATE_CREATED,
-          MobilityDto.STATE_IN_PREPARATION,
-          MobilityDto.STATE_IN_PROGRESS,
-          MobilityDto.STATE_BALANCE_TO_BE_PAID
-        })
-    void noFirstPaymentBeforeTheDepartureDocumentsAreFilledIn(String state) {
+    @EnumSource(
+        value = MobilityState.class,
+        names = {"CREATED", "IN_PREPARATION", "IN_PROGRESS", "BALANCE_TO_BE_PAID"})
+    void noFirstPaymentBeforeTheDepartureDocumentsAreFilledIn(MobilityState state) {
       // the first payment is only expected in "A payer": before, the departure documents are
       // incomplete; "En cours" and "Solde à payer" without a first payment are inconsistent
-      MobilityDto mobility = givenMobility(state);
+      Mobility mobility = givenMobility(state);
 
       assertThat(Violations.errorCodeOf(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION)))
           .isEqualTo(ErrorCode.PAYMENT_NOT_EXPECTED);
@@ -470,14 +464,11 @@ class MobilityServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = {
-          MobilityDto.STATE_IN_PROGRESS,
-          MobilityDto.STATE_TO_BE_PAID,
-          MobilityDto.STATE_IN_PREPARATION
-        })
-    void noSecondPaymentBeforeTheBalanceIsDue(String state) {
-      MobilityDto mobility = givenMobility(state);
+    @EnumSource(
+        value = MobilityState.class,
+        names = {"IN_PROGRESS", "TO_BE_PAID", "IN_PREPARATION"})
+    void noSecondPaymentBeforeTheBalanceIsDue(MobilityState state) {
+      Mobility mobility = givenMobility(state);
       mobility.setFirstPaymentRequestDate(LocalDateTime.of(2016, 9, 1, 12, 0));
 
       assertThat(Violations.errorCodeOf(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION)))
@@ -490,13 +481,13 @@ class MobilityServiceImplTest {
 
     static Stream<Arguments> closedStates() {
       return Stream.of(
-          Arguments.of(MobilityDto.STATE_CANCELLED, ErrorCode.MOBILITY_CANCELLED),
-          Arguments.of(MobilityDto.STATE_CLOSED, ErrorCode.MOBILITY_CLOSED));
+          Arguments.of(MobilityState.CANCELLED, ErrorCode.MOBILITY_CANCELLED),
+          Arguments.of(MobilityState.CLOSED, ErrorCode.MOBILITY_CLOSED));
     }
 
     @ParameterizedTest
     @MethodSource("closedStates")
-    void aCancelledOrClosedMobilityIsNotPaid(String state, ErrorCode expected) {
+    void aCancelledOrClosedMobilityIsNotPaid(MobilityState state, ErrorCode expected) {
       givenMobility(state);
 
       assertThat(Violations.errorCodeOf(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION)))
@@ -507,7 +498,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aStudentWithoutPersonalDataHasNoBankDetails() {
-      givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      givenMobility(MobilityState.TO_BE_PAID);
 
       assertThat(Violations.errorCodeOf(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION)))
           .isEqualTo(ErrorCode.INCOMPLETE_BANK_DETAILS);
@@ -526,7 +517,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @MethodSource("incompleteBankDetails")
     void theBankDetailsMustBeComplete(String iban, String bankName, String bic) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
           .thenReturn(nominatedStudent(iban, bankName, bic));
 
@@ -538,7 +529,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aStaleVersionIsAConcurrentModification() {
-      givenMobility(MobilityDto.STATE_TO_BE_PAID);
+      givenMobility(MobilityState.TO_BE_PAID);
 
       assertThatThrownBy(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION + 1))
           .isInstanceOf(ConcurrentModificationException.class);
@@ -555,8 +546,8 @@ class MobilityServiceImplTest {
   @Nested
   class ConfirmDocument {
 
-    private static final char D = DocumentDto.DEPARTURE_DOCUMENT;
-    private static final char R = DocumentDto.RETURN_DOCUMENT;
+    private static final DocumentCategory D = DocumentCategory.DEPARTURE;
+    private static final DocumentCategory R = DocumentCategory.RETURN;
 
     /**
      * State transitions: the mobility, its documents (id 1 and 2 departure, 3 and 4 return,
@@ -565,36 +556,29 @@ class MobilityServiceImplTest {
     static Stream<Arguments> transitions() {
       return Stream.of(
           // the first document starts the preparation...
-          Arguments.of(MobilityDto.STATE_CREATED, "----", 1, MobilityDto.STATE_IN_PREPARATION),
+          Arguments.of(MobilityState.CREATED, "----", 1, MobilityState.IN_PREPARATION),
           // ...or makes the first payment due at once when it completes the departure documents
-          Arguments.of(MobilityDto.STATE_CREATED, "-X--", 1, MobilityDto.STATE_TO_BE_PAID),
-          Arguments.of(MobilityDto.STATE_CREATED, "-XX-", 1, MobilityDto.STATE_TO_BE_PAID),
-          Arguments.of(MobilityDto.STATE_CREATED, "----", 3, MobilityDto.STATE_IN_PREPARATION),
+          Arguments.of(MobilityState.CREATED, "-X--", 1, MobilityState.TO_BE_PAID),
+          Arguments.of(MobilityState.CREATED, "-XX-", 1, MobilityState.TO_BE_PAID),
+          Arguments.of(MobilityState.CREATED, "----", 3, MobilityState.IN_PREPARATION),
           // the last departure document makes the first payment due
-          Arguments.of(MobilityDto.STATE_IN_PREPARATION, "X---", 2, MobilityDto.STATE_TO_BE_PAID),
-          Arguments.of(
-              MobilityDto.STATE_IN_PREPARATION, "----", 1, MobilityDto.STATE_IN_PREPARATION),
-          Arguments.of(
-              MobilityDto.STATE_IN_PREPARATION, "X---", 3, MobilityDto.STATE_IN_PREPARATION),
+          Arguments.of(MobilityState.IN_PREPARATION, "X---", 2, MobilityState.TO_BE_PAID),
+          Arguments.of(MobilityState.IN_PREPARATION, "----", 1, MobilityState.IN_PREPARATION),
+          Arguments.of(MobilityState.IN_PREPARATION, "X---", 3, MobilityState.IN_PREPARATION),
           // return documents do not change a mobility waiting for its first payment
-          Arguments.of(MobilityDto.STATE_TO_BE_PAID, "XX--", 3, MobilityDto.STATE_TO_BE_PAID),
+          Arguments.of(MobilityState.TO_BE_PAID, "XX--", 3, MobilityState.TO_BE_PAID),
           // the last return document makes the balance due
+          Arguments.of(MobilityState.IN_PROGRESS, "XXX-", 4, MobilityState.BALANCE_TO_BE_PAID),
+          Arguments.of(MobilityState.IN_PROGRESS, "XX--", 3, MobilityState.IN_PROGRESS),
+          Arguments.of(MobilityState.IN_PROGRESS, "-XXX", 1, MobilityState.BALANCE_TO_BE_PAID),
+          Arguments.of(MobilityState.IN_PROGRESS, "--XX", 1, MobilityState.IN_PROGRESS),
           Arguments.of(
-              MobilityDto.STATE_IN_PROGRESS, "XXX-", 4, MobilityDto.STATE_BALANCE_TO_BE_PAID),
-          Arguments.of(MobilityDto.STATE_IN_PROGRESS, "XX--", 3, MobilityDto.STATE_IN_PROGRESS),
-          Arguments.of(
-              MobilityDto.STATE_IN_PROGRESS, "-XXX", 1, MobilityDto.STATE_BALANCE_TO_BE_PAID),
-          Arguments.of(MobilityDto.STATE_IN_PROGRESS, "--XX", 1, MobilityDto.STATE_IN_PROGRESS),
-          Arguments.of(
-              MobilityDto.STATE_BALANCE_TO_BE_PAID,
-              "XX-X",
-              3,
-              MobilityDto.STATE_BALANCE_TO_BE_PAID));
+              MobilityState.BALANCE_TO_BE_PAID, "XX-X", 3, MobilityState.BALANCE_TO_BE_PAID));
     }
 
-    private List<DocumentDto> documents(String filledIn) {
-      char[] categories = {D, D, R, R};
-      List<DocumentDto> documents = new ArrayList<>();
+    private List<Document> documents(String filledIn) {
+      DocumentCategory[] categories = {D, D, R, R};
+      List<Document> documents = new ArrayList<>();
       for (int i = 0; i < categories.length; i++) {
         documents.add(document(i + 1, categories[i], filledIn.charAt(i) == 'X'));
       }
@@ -604,13 +588,13 @@ class MobilityServiceImplTest {
     @ParameterizedTest(name = "{0} with {1}, fill in {2} -> {3}")
     @MethodSource("transitions")
     void fillingInADocumentMovesTheMobilityThroughItsStates(
-        String state, String filledIn, int document, String expectedState) {
-      MobilityDto mobility = givenMobility(state);
-      List<DocumentDto> documents = documents(filledIn);
+        MobilityState state, String filledIn, int document, MobilityState expectedState) {
+      Mobility mobility = givenMobility(state);
+      List<Document> documents = documents(filledIn);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(documents);
       givenUpdateSucceeds();
 
-      MobilityDto updated = mobilityService.confirmDocument(MOBILITY_ID, document, VERSION);
+      Mobility updated = mobilityService.confirmDocument(MOBILITY_ID, document, VERSION);
 
       assertThat(updated).isSameAs(mobility);
       assertThat(updated.getState()).isEqualTo(expectedState);
@@ -618,19 +602,19 @@ class MobilityServiceImplTest {
       assertThat(updated.getDocuments())
           .filteredOn(d -> d.getId() == document)
           .singleElement()
-          .matches(DocumentDto::isFilledIn);
+          .matches(Document::isFilledIn);
       verify(mobilityDocumentRepository).fillInDocument(document, MOBILITY_ID);
     }
 
     @Test
     void aDocumentAlreadyFilledInChangesNothing() {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_IN_PREPARATION);
+      Mobility mobility = givenMobility(MobilityState.IN_PREPARATION);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(documents("X---"));
 
-      MobilityDto unchanged = mobilityService.confirmDocument(MOBILITY_ID, 1, VERSION);
+      Mobility unchanged = mobilityService.confirmDocument(MOBILITY_ID, 1, VERSION);
 
       assertThat(unchanged).isSameAs(mobility);
-      assertThat(unchanged.getState()).isEqualTo(MobilityDto.STATE_IN_PREPARATION);
+      assertThat(unchanged.getState()).isEqualTo(MobilityState.IN_PREPARATION);
       assertThat(unchanged.getVersion()).isEqualTo(VERSION);
       verify(mobilityDocumentRepository, never()).fillInDocument(1, MOBILITY_ID);
       verify(mobilityRepository, never()).update(any());
@@ -639,8 +623,9 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @MethodSource(
         "com.dragomitch.ipl.pae.application.MobilityServiceImplTest$ConfirmPayment#closedStates")
-    void theDocumentsOfACancelledOrClosedMobilityAreFrozen(String state, ErrorCode expected) {
-      MobilityDto mobility = givenMobility(state);
+    void theDocumentsOfACancelledOrClosedMobilityAreFrozen(
+        MobilityState state, ErrorCode expected) {
+      Mobility mobility = givenMobility(state);
 
       assertThat(
               Violations.errorCodeOf(
@@ -653,7 +638,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aDocumentThatIsNotRequiredByTheMobilityIsUnknown() {
-      givenMobility(MobilityDto.STATE_IN_PREPARATION);
+      givenMobility(MobilityState.IN_PREPARATION);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(documents("----"));
 
       assertThat(
@@ -665,7 +650,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aStaleVersionIsAConcurrentModification() {
-      givenMobility(MobilityDto.STATE_IN_PREPARATION);
+      givenMobility(MobilityState.IN_PREPARATION);
 
       assertThatThrownBy(() -> mobilityService.confirmDocument(MOBILITY_ID, 1, VERSION - 1))
           .isInstanceOf(ConcurrentModificationException.class);
@@ -684,8 +669,8 @@ class MobilityServiceImplTest {
   @Nested
   class Cancel {
 
-    private DenialReasonDto givenDenialReason(int id) {
-      DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    private DenialReason givenDenialReason(int id) {
+      DenialReason denialReason = new DenialReason();
       denialReason.setId(id);
       denialReason.setReason("Dossier incomplet");
       when(denialReasonRepository.findById(id)).thenReturn(denialReason);
@@ -693,23 +678,18 @@ class MobilityServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = {
-          MobilityDto.STATE_CREATED,
-          MobilityDto.STATE_IN_PREPARATION,
-          MobilityDto.STATE_TO_BE_PAID,
-          MobilityDto.STATE_IN_PROGRESS,
-          MobilityDto.STATE_BALANCE_TO_BE_PAID
-        })
-    void aProfessorCancelsWithADenialReason(String state) {
+    @EnumSource(
+        value = MobilityState.class,
+        names = {"CREATED", "IN_PREPARATION", "TO_BE_PAID", "IN_PROGRESS", "BALANCE_TO_BE_PAID"})
+    void aProfessorCancelsWithADenialReason(MobilityState state) {
       givenMobility(state);
-      DenialReasonDto denialReason = givenDenialReason(4);
+      DenialReason denialReason = givenDenialReason(4);
       givenUpdateSucceeds();
 
-      MobilityDto cancelled =
+      Mobility cancelled =
           mobilityService.cancel(MOBILITY_ID, VERSION, null, 4, PROFESSOR_ID, Role.PROFESSOR);
 
-      assertThat(cancelled.getState()).isEqualTo(MobilityDto.STATE_CANCELLED);
+      assertThat(cancelled.getState()).isEqualTo(MobilityState.CANCELLED);
       assertThat(cancelled.getStateBeforeCancellation()).isEqualTo(state);
       assertThat(cancelled.getDenialReason()).isSameAs(denialReason);
       assertThat(cancelled.getCancellationReason()).isNull();
@@ -717,16 +697,18 @@ class MobilityServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {MobilityDto.STATE_CREATED, MobilityDto.STATE_IN_PROGRESS})
-    void theOwnerCancelsWithAReason(String state) {
+    @EnumSource(
+        value = MobilityState.class,
+        names = {"CREATED", "IN_PROGRESS"})
+    void theOwnerCancelsWithAReason(MobilityState state) {
       givenMobility(state);
       givenUpdateSucceeds();
 
-      MobilityDto cancelled =
+      Mobility cancelled =
           mobilityService.cancel(
               MOBILITY_ID, VERSION, "Raisons médicales", 0, STUDENT_ID, Role.STUDENT);
 
-      assertThat(cancelled.getState()).isEqualTo(MobilityDto.STATE_CANCELLED);
+      assertThat(cancelled.getState()).isEqualTo(MobilityState.CANCELLED);
       assertThat(cancelled.getStateBeforeCancellation()).isEqualTo(state);
       assertThat(cancelled.getCancellationReason()).isEqualTo("Raisons médicales");
       assertThat(cancelled.getDenialReason()).isNull();
@@ -736,7 +718,7 @@ class MobilityServiceImplTest {
     @ParameterizedTest
     @ValueSource(ints = {0, -1})
     void aProfessorMustGiveADenialReason(int denialReasonId) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CREATED);
+      Mobility mobility = givenMobility(MobilityState.CREATED);
 
       assertThat(
               Violations.errorCodeOf(() ->
@@ -748,13 +730,13 @@ class MobilityServiceImplTest {
                       PROFESSOR_ID,
                       Role.PROFESSOR)))
           .isEqualTo(ErrorCode.DENIAL_REASON_REQUIRED);
-      assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
+      assertThat(mobility.getState()).isEqualTo(MobilityState.CREATED);
       verify(mobilityRepository, never()).update(any());
     }
 
     @Test
     void aProfessorMustGiveAnExistingDenialReason() {
-      givenMobility(MobilityDto.STATE_CREATED);
+      givenMobility(MobilityState.CREATED);
 
       assertThatBusinessException(() ->
               mobilityService.cancel(MOBILITY_ID, VERSION, null, 99, PROFESSOR_ID, Role.PROFESSOR))
@@ -767,50 +749,52 @@ class MobilityServiceImplTest {
     @NullAndEmptySource
     @ValueSource(strings = {"   "})
     void aStudentMustGiveACancellationReason(String reason) {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CREATED);
+      Mobility mobility = givenMobility(MobilityState.CREATED);
 
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
                       MOBILITY_ID, VERSION, reason, 4, STUDENT_ID, Role.STUDENT)))
           .isEqualTo(ErrorCode.CANCELLATION_REASON_REQUIRED);
-      assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
+      assertThat(mobility.getState()).isEqualTo(MobilityState.CREATED);
       verify(mobilityRepository, never()).update(any());
     }
 
     @Test
     void aStudentCannotCancelTheMobilityOfAnotherStudent() {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CREATED);
+      Mobility mobility = givenMobility(MobilityState.CREATED);
 
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
                       MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID + 1, Role.STUDENT)))
           .isEqualTo(ErrorCode.ACCESS_DENIED);
-      assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
+      assertThat(mobility.getState()).isEqualTo(MobilityState.CREATED);
       verify(mobilityRepository, never()).update(any());
     }
 
     @Test
     void cancellingACancelledMobilityAgainChangesNothing() {
-      MobilityDto mobility = givenMobility(MobilityDto.STATE_CANCELLED);
-      mobility.setStateBeforeCancellation(MobilityDto.STATE_IN_PROGRESS);
+      Mobility mobility = givenMobility(MobilityState.CANCELLED);
+      mobility.setStateBeforeCancellation(MobilityState.IN_PROGRESS);
       mobility.setCancellationReason("first reason");
 
-      MobilityDto unchanged =
+      Mobility unchanged =
           mobilityService.cancel(
               MOBILITY_ID, VERSION, "second reason", 0, STUDENT_ID, Role.STUDENT);
 
       assertThat(unchanged).isSameAs(mobility);
       assertThat(unchanged.getCancellationReason()).isEqualTo("first reason");
-      assertThat(unchanged.getStateBeforeCancellation()).isEqualTo(MobilityDto.STATE_IN_PROGRESS);
+      assertThat(unchanged.getStateBeforeCancellation()).isEqualTo(MobilityState.IN_PROGRESS);
       verify(mobilityRepository, never()).update(any());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {MobilityDto.STATE_CANCELLED, MobilityDto.STATE_CLOSED})
-    void aStudentLearnsNothingAboutTheMobilityOfAnotherStudent(String state) {
-      MobilityDto mobility = givenMobility(state);
+    @EnumSource(
+        value = MobilityState.class,
+        names = {"CANCELLED", "CLOSED"})
+    void aStudentLearnsNothingAboutTheMobilityOfAnotherStudent(MobilityState state) {
+      Mobility mobility = givenMobility(state);
       mobility.setCancellationReason("personal reason of the owner");
 
       assertThat(
@@ -822,21 +806,20 @@ class MobilityServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {UserDto.ROLE_PROFESSOR, UserDto.ROLE_STUDENT})
-    void aClosedMobilityCannotBeCancelled(String role) {
-      givenMobility(MobilityDto.STATE_CLOSED);
+    @EnumSource(Role.class)
+    void aClosedMobilityCannotBeCancelled(Role role) {
+      givenMobility(MobilityState.CLOSED);
 
       assertThat(
               Violations.errorCodeOf(() ->
-                  mobilityService.cancel(
-                      MOBILITY_ID, VERSION, "reason", 4, STUDENT_ID, Role.fromLabel(role))))
+                  mobilityService.cancel(MOBILITY_ID, VERSION, "reason", 4, STUDENT_ID, role)))
           .isEqualTo(ErrorCode.MOBILITY_CLOSED);
       verify(mobilityRepository, never()).update(any());
     }
 
     @Test
     void aStaleVersionIsAConcurrentModification() {
-      givenMobility(MobilityDto.STATE_CREATED);
+      givenMobility(MobilityState.CREATED);
 
       assertThatThrownBy(() ->
               mobilityService.cancel(
@@ -868,20 +851,25 @@ class MobilityServiceImplTest {
             + "Martin;Alice;University of Dublin;SMS;Erasmus+;2;";
 
     /** The documents of an Erabel mobility: 4 departure and 3 return documents, some filled in. */
-    private List<DocumentDto> erabelDocuments() {
+    private List<Document> erabelDocuments() {
       return List.of(
-          document(1, 'D', true, "Contrat de bourse"),
-          document(2, 'D', false, "Convention de stage / Convention d'études"),
-          document(3, 'D', true, "Charte de l'étudiant"),
-          document(4, 'D', false, "Document d'engagement"),
-          document(5, 'R', true, "Attestation séjour"),
-          document(6, 'R', false, "Relevé de notes (SMS) ou certificat de stage (SMP)"),
-          document(7, 'R', false, "Rapport final (complété en ligne)"));
+          document(1, DocumentCategory.DEPARTURE, true, "Contrat de bourse"),
+          document(
+              2, DocumentCategory.DEPARTURE, false, "Convention de stage / Convention d'études"),
+          document(3, DocumentCategory.DEPARTURE, true, "Charte de l'étudiant"),
+          document(4, DocumentCategory.DEPARTURE, false, "Document d'engagement"),
+          document(5, DocumentCategory.RETURN, true, "Attestation séjour"),
+          document(
+              6,
+              DocumentCategory.RETURN,
+              false,
+              "Relevé de notes (SMS) ou certificat de stage (SMP)"),
+          document(7, DocumentCategory.RETURN, false, "Rapport final (complété en ligne)"));
     }
 
     @Test
     void withoutFilterEveryDocumentOfTheMobilityIsExportedInTheColumnsOrder() {
-      givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      givenMobility(MobilityState.IN_PROGRESS);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(erabelDocuments());
 
       String csv = mobilityService.exportDocuments(MOBILITY_ID, null);
@@ -903,7 +891,7 @@ class MobilityServiceImplTest {
         })
     void theFilterKeepsTheDocumentsOfItsCategoryAndOptionallyOnlyTheFilledInOnes(
         DocumentFilter filter, String documentColumns) {
-      givenMobility(MobilityDto.STATE_IN_PROGRESS);
+      givenMobility(MobilityState.IN_PROGRESS);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(erabelDocuments());
 
       assertThat(mobilityService.exportDocuments(MOBILITY_ID, filter))
@@ -912,7 +900,7 @@ class MobilityServiceImplTest {
 
     @Test
     void aMobilityWithoutDocumentsExportsEmptyColumns() {
-      givenMobility(MobilityDto.STATE_CREATED);
+      givenMobility(MobilityState.CREATED);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
 
       assertThat(mobilityService.exportDocuments(MOBILITY_ID, null))

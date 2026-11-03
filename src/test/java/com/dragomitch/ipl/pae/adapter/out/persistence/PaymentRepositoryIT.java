@@ -3,7 +3,8 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,12 +31,11 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsOneRowPerRequestedPayment() {
-    List<PaymentDto> payments = inTransaction(() -> paymentRepository.findAll());
+    List<Payment> payments = inTransaction(() -> paymentRepository.findAll());
 
     // 5006 has only its first payment requested; 5007 has both
     assertThat(payments)
-        .extracting(
-            PaymentDto::getMobilityChoiceId, PaymentDto::getPaymentType, PaymentDto::getPaymentDate)
+        .extracting(Payment::getMobilityChoiceId, Payment::getPaymentType, Payment::getPaymentDate)
         .containsExactlyInAnyOrder(
             tuple(5006, "D", LocalDateTime.of(2025, 2, 1, 9, 0)),
             tuple(5007, "D", LocalDateTime.of(2025, 3, 1, 8, 0)),
@@ -44,7 +44,7 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllMapsTheMobilityStudentProgrammeCountryAndPartner() {
-    PaymentDto payment =
+    Payment payment =
         inTransaction(() -> paymentRepository.findAll()).stream()
             .filter(p -> p.getMobilityChoiceId() == 5006)
             .findFirst()
@@ -53,7 +53,7 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
     assertThat(payment.getUser().getId()).isEqualTo(1004);
     assertThat(payment.getUser().getFirstName()).isEqualTo("David");
     assertThat(payment.getUser().getLastName()).isEqualTo("Petit");
-    assertThat(payment.getMobilityType()).isEqualTo("SMP");
+    assertThat(payment.getMobilityType()).isEqualTo(MobilityType.SMP);
     assertThat(payment.getAcademicYear()).isEqualTo(String.valueOf(LocalDate.now().getYear()));
     assertThat(payment.getTerm()).isEqualTo(2);
     assertThat(payment.getProgramme().getId()).isEqualTo(1);
@@ -66,7 +66,7 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllListsThePaymentsOfAMobilityWithoutPartnerNorCountry() {
-    List<PaymentDto> payments =
+    List<Payment> payments =
         inTransaction(() -> {
           execute(
               "INSERT INTO student_exchange_tools.mobilities (mobility_choice_id, submission_date, "
@@ -88,7 +88,7 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsNothingWhenNoPaymentWasRequested() {
-    List<PaymentDto> payments =
+    List<Payment> payments =
         inTransaction(() -> {
           execute(
               "UPDATE student_exchange_tools.mobilities SET first_payment_request_date = NULL, "
@@ -101,14 +101,14 @@ class PaymentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllListsASecondPaymentEvenWithoutAFirstOne() {
-    List<PaymentDto> payments =
+    List<Payment> payments =
         inTransaction(() -> {
           execute("UPDATE student_exchange_tools.mobilities SET first_payment_request_date = NULL");
           return paymentRepository.findAll();
         });
 
     assertThat(payments)
-        .extracting(PaymentDto::getMobilityChoiceId, PaymentDto::getPaymentType)
+        .extracting(Payment::getMobilityChoiceId, Payment::getPaymentType)
         .containsExactly(tuple(5007, "R"));
   }
 }

@@ -3,10 +3,11 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
@@ -41,10 +42,10 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
     @Test
     void findAllReturnsTheFiveIplOptionsInInsertionOrder() {
-      List<OptionDto> options = inTransaction(() -> optionRepository.findAll());
+      List<Option> options = inTransaction(() -> optionRepository.findAll());
 
       assertThat(options)
-          .extracting(OptionDto::getCode, OptionDto::getName)
+          .extracting(Option::getCode, Option::getName)
           .containsExactly(
               tuple("BIN", "Bachelier en informatique de gestion"),
               tuple("BBM", "Bachelier en biologie médicale"),
@@ -55,7 +56,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
     @Test
     void findByCodeReturnsTheOption() {
-      OptionDto option = inTransaction(() -> optionRepository.findByCode("BCH"));
+      Option option = inTransaction(() -> optionRepository.findByCode("BCH"));
 
       assertThat(option.getCode()).isEqualTo("BCH");
       assertThat(option.getName()).isEqualTo("Bachelier en chimie");
@@ -73,13 +74,10 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
     @Test
     void findAllReturnsTheThreeProgrammes() {
-      List<ProgrammeDto> programmes = inTransaction(() -> programmeRepository.findAll());
+      List<Programme> programmes = inTransaction(() -> programmeRepository.findAll());
 
       assertThat(programmes)
-          .extracting(
-              ProgrammeDto::getId,
-              ProgrammeDto::getProgrammeName,
-              ProgrammeDto::getExternalSoftName)
+          .extracting(Programme::getId, Programme::getProgrammeName, Programme::getExternalSoftName)
           .containsExactly(
               tuple(1, "Erasmus+", "Mobility Tool"),
               tuple(2, "Erabel", "Mobi-ERABEL"),
@@ -89,7 +87,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @ParameterizedTest
     @CsvSource({"1, Erasmus+, Mobility Tool", "2, Erabel, Mobi-ERABEL", "3, FAME, Mobi-FAME"})
     void findByIdReturnsEveryField(int id, String name, String software) {
-      ProgrammeDto programme = inTransaction(() -> programmeRepository.findById(id));
+      Programme programme = inTransaction(() -> programmeRepository.findById(id));
 
       assertThat(programme.getId()).isEqualTo(id);
       assertThat(programme.getProgrammeName()).isEqualTo(name);
@@ -109,7 +107,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @Test
     void findAllReturnsEveryCountrySortedByName() {
       List<Object> namesSortedByTheDatabase = new ArrayList<>();
-      List<CountryDto> countries =
+      List<Country> countries =
           inTransaction(() -> {
             query("SELECT name FROM student_exchange_tools.countries ORDER BY name")
                 .forEach(row -> namesSortedByTheDatabase.add(row.get("name")));
@@ -119,7 +117,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
       assertThat(countries).hasSize(namesSortedByTheDatabase.size()).hasSizeGreaterThan(200);
       // sorted by name with the database collation (accented names such as "Îles Åland")
       assertThat(countries)
-          .extracting(CountryDto::getName)
+          .extracting(Country::getName)
           .containsExactlyElementsOf(
               namesSortedByTheDatabase.stream().map(String.class::cast).toList())
           .contains("Belgique", "Algérie", "Îles Åland");
@@ -153,7 +151,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     })
     void findByIdJoinsTheProgramme(
         String code, String name, int programmeId, String programmeName, String software) {
-      CountryDto country = inTransaction(() -> countryRepository.findById(code));
+      Country country = inTransaction(() -> countryRepository.findById(code));
 
       assertThat(country.getCountryCode()).isEqualTo(code);
       assertThat(country.getName()).isEqualTo(name);
@@ -194,28 +192,28 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @CsvSource({"1, 5, 4", "2, 4, 3", "3, 4, 3"})
     void findAllByProgrammeReturnsTheDepartureAndReturnDocumentsOfThatProgrammeOnly(
         int programme, int departures, int returns) {
-      List<DocumentDto> documents =
+      List<Document> documents =
           inTransaction(() -> documentRepository.findAllByProgramme(programme));
 
       assertThat(documents).hasSize(departures + returns);
       assertThat(documents)
-          .filteredOn(d -> d.getCategory() == DocumentDto.DEPARTURE_DOCUMENT)
+          .filteredOn(d -> d.getCategory() == DocumentCategory.DEPARTURE)
           .hasSize(departures);
       assertThat(documents)
-          .filteredOn(d -> d.getCategory() == DocumentDto.RETURN_DOCUMENT)
+          .filteredOn(d -> d.getCategory() == DocumentCategory.RETURN)
           .hasSize(returns);
     }
 
     @Test
     void findAllByProgrammeMapsIdNameCategoryAndProgramme() {
-      List<DocumentDto> documents = inTransaction(() -> documentRepository.findAllByProgramme(1));
+      List<Document> documents = inTransaction(() -> documentRepository.findAllByProgramme(1));
 
       assertThat(documents)
-          .extracting(DocumentDto::getId, DocumentDto::getName, DocumentDto::getCategory)
+          .extracting(Document::getId, Document::getName, Document::getCategory)
           .contains(
-              tuple(1, "Contrat de bourse", 'D'),
-              tuple(5, "Preuve du passage des tests linguistiques", 'D'),
-              tuple(14, "Attestation séjour", 'R'));
+              tuple(1, "Contrat de bourse", DocumentCategory.DEPARTURE),
+              tuple(5, "Preuve du passage des tests linguistiques", DocumentCategory.DEPARTURE),
+              tuple(14, "Attestation séjour", DocumentCategory.RETURN));
       assertThat(documents)
           .allSatisfy(document -> {
             assertThat(document.getProgramme().getId()).isEqualTo(1);

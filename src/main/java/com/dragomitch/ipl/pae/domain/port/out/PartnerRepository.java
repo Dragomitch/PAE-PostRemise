@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import java.util.List;
@@ -27,18 +27,18 @@ public interface PartnerRepository {
    * empty one, as the website is optional; the same holds for {@link #update}.
    *
    * @param partner : the partnerDto to be inserted in the database
-   * @return the PartnerDto that has just been inserted
+   * @return the Partner that has just been inserted
    */
-  PartnerDto create(PartnerDto partner);
+  Partner create(Partner partner);
 
   /**
    * Queries the database for a partner based on it's partner_id.
    *
    * @param id : the partner_id of the partner we want to find
-   * @return the PartnerDto containing the data we were looking for, with all its options (an empty
+   * @return the Partner containing the data we were looking for, with all its options (an empty
    *     list if it has none), or null if there is no such partner
    */
-  PartnerDto findById(int id);
+  Partner findById(int id);
 
   /**
    * Queries the database for all partners matching a filter, each with all its options.
@@ -50,9 +50,9 @@ public interface PartnerRepository {
    * @param userRole : the role of the user; students only get the official, non-archived partners
    *     offering their option (except with the archived filter).
    * @param option : the option of the user.
-   * @return a List of all PartnerDto, ordered by id
+   * @return a List of all Partner, ordered by id
    */
-  List<PartnerDto> findAll(PartnerFilter filter, String value, Role userRole, String option);
+  List<Partner> findAll(PartnerFilter filter, String value, Role userRole, String option);
 
   /**
    * Update a partner in the database.
@@ -60,5 +60,5 @@ public interface PartnerRepository {
    * @param partner : the partner to be updated in the database
    * @return the partnerDto that has just been updated
    */
-  PartnerDto update(PartnerDto partner);
+  Partner update(Partner partner);
 }

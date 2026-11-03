@@ -1,10 +1,10 @@
-package com.dragomitch.ipl.pae.domain.validation;
+package com.dragomitch.ipl.pae.adapter.in.web.validation;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerSearch;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

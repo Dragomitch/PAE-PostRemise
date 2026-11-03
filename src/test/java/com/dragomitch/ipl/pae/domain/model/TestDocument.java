@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +17,15 @@ public class TestDocument {
 
   private static final int ID = 1;
   private static final String NAME = "Contrat de bourse";
-  private static final char CATEGORY = 'D';
+  private static final DocumentCategory CATEGORY = DocumentCategory.DEPARTURE;
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
-  private DocumentDto document;
+  private Document document;
 
   /** Creates a new Document instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.document = (DocumentDto) entityFactory.build(DocumentDto.class);
+    this.document = new Document();
   }
 
   @Test

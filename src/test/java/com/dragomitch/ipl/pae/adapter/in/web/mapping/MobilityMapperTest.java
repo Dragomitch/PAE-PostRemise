@@ -8,8 +8,9 @@ import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PaymentDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -17,12 +18,11 @@ import org.junit.jupiter.api.Test;
 /** The mobility choices, mobilities and payments are mapped with everything they carry. */
 class MobilityMapperTest {
 
-  private final EntityFactory factory = EntityFactories.create();
-  private final ReferenceDataMapper referenceData = new ReferenceDataMapper(factory);
-  private final AddressMapper addresses = new AddressMapper(factory, referenceData);
-  private final UserMapper users = new UserMapper(factory, referenceData, addresses);
-  private final PartnerMapper partners = new PartnerMapper(factory, referenceData, addresses);
-  private final MobilityMapper mapper = new MobilityMapper(factory, referenceData, users, partners);
+  private final ReferenceDataMapper referenceData = new ReferenceDataMapper();
+  private final AddressMapper addresses = new AddressMapper(referenceData);
+  private final UserMapper users = new UserMapper(referenceData, addresses);
+  private final PartnerMapper partners = new PartnerMapper(referenceData, addresses);
+  private final MobilityMapper mapper = new MobilityMapper(referenceData, users, partners);
 
   private static final LocalDateTime DATE = LocalDateTime.of(2026, 3, 4, 5, 6, 7);
 
@@ -51,32 +51,24 @@ class MobilityMapperTest {
 
   @Test
   void aMobilityCarriesItsLifeCycleItsDocumentsAndItsPeople() {
-    var mobility =
-        (com.dragomitch.ipl.pae.domain.dto.MobilityDto)
-            factory.build(com.dragomitch.ipl.pae.domain.dto.MobilityDto.class);
+    var mobility = new com.dragomitch.ipl.pae.domain.model.Mobility();
     mobility.setId(1);
-    mobility.setState("En cours");
-    mobility.setStateBeforeCancellation("Créée");
+    mobility.setState(MobilityState.IN_PROGRESS);
+    mobility.setStateBeforeCancellation(MobilityState.CREATED);
     mobility.setFirstPaymentRequestDate(DATE);
     mobility.setSecondPaymentRequestDate(DATE.plusDays(1));
     mobility.setProEcoEncoding(true);
     mobility.setSubmissionDate(DATE);
-    var document =
-        (com.dragomitch.ipl.pae.domain.dto.DocumentDto)
-            factory.build(com.dragomitch.ipl.pae.domain.dto.DocumentDto.class);
+    var document = new com.dragomitch.ipl.pae.domain.model.Document();
     document.setId(5);
     document.setName("Contrat de bourse");
-    document.setCategory('D');
+    document.setCategory(DocumentCategory.DEPARTURE);
     document.setFilledIn(true);
     mobility.setDocuments(List.of(document));
-    var professor =
-        (com.dragomitch.ipl.pae.domain.dto.UserDto)
-            factory.build(com.dragomitch.ipl.pae.domain.dto.UserDto.class);
+    var professor = new com.dragomitch.ipl.pae.domain.model.User();
     professor.setId(9);
     mobility.setProfessorInCharge(professor);
-    var student =
-        (com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto)
-            factory.build(com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto.class);
+    var student = new com.dragomitch.ipl.pae.domain.model.NominatedStudent();
     student.setId(2);
     mobility.setNominatedStudent(student);
     mobility.setVersion(7);
@@ -110,11 +102,9 @@ class MobilityMapperTest {
 
   @Test
   void aPaymentCarriesItsMobilityAndItsDate() {
-    var payment =
-        (com.dragomitch.ipl.pae.domain.dto.PaymentDto)
-            factory.build(com.dragomitch.ipl.pae.domain.dto.PaymentDto.class);
+    var payment = new com.dragomitch.ipl.pae.domain.model.Payment();
     payment.setMobilityChoiceId(1);
-    payment.setMobilityType("SMP");
+    payment.setMobilityType(MobilityType.SMP);
     payment.setAcademicYear("2026");
     payment.setTerm(2);
     payment.setPaymentDate(DATE);
@@ -129,10 +119,10 @@ class MobilityMapperTest {
 
   @Test
   void nullStaysNull() {
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.MobilityChoice) null)).isNull();
     assertThat(mapper.toDomain(null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.MobilityDto) null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.DocumentDto) null)).isNull();
-    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.dto.PaymentDto) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Mobility) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Document) null)).isNull();
+    assertThat(mapper.toDto((com.dragomitch.ipl.pae.domain.model.Payment) null)).isNull();
   }
 }

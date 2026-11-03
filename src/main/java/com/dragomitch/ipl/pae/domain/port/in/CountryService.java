@@ -1,12 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.dragomitch.ipl.pae.domain.model.Country;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface CountryService {
 
   /**
@@ -14,7 +10,7 @@ public interface CountryService {
    *
    * @return a list of all the countryDto found in the database
    */
-  List<CountryDto> showAll();
+  List<Country> showAll();
 
   /**
    * Ask the countryRepository to get a countryDto existing in the database.
@@ -24,7 +20,5 @@ public interface CountryService {
    * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if no country has
    *     this code
    */
-  CountryDto showOne(
-      @NotBlank @Size(min = CountryDto.CODE_LENGTH, max = CountryDto.CODE_LENGTH)
-          String countryCode);
+  Country showOne(String countryCode);
 }

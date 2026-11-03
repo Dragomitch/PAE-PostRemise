@@ -10,19 +10,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
@@ -39,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -63,8 +61,7 @@ class PartnerServiceImplTest {
   @Mock private ProgrammeRepository programmeRepository;
   @Mock private UserRepository userRepository;
 
-  private final EntityFactory entityFactory = EntityFactories.create();
-  private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
+  private final MockDtoFactory dtos = new MockDtoFactory();
   private PartnerServiceImpl partnerService;
 
   @BeforeEach
@@ -81,32 +78,31 @@ class PartnerServiceImplTest {
             userRepository);
   }
 
-  private PartnerOptionDto option(String code) {
-    PartnerOptionDto option = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+  private PartnerOption option(String code) {
+    PartnerOption option = new PartnerOption();
     option.setCode(code);
     return option;
   }
 
   private void givenOptionsExist(String... codes) {
     for (String code : codes) {
-      when(optionRepository.findByCode(code))
-          .thenReturn((OptionDto) entityFactory.build(OptionDto.class));
+      when(optionRepository.findByCode(code)).thenReturn(new Option());
     }
   }
 
   /**
    * A partner as {@link PartnerRepository#findById} returns it: ids of its address and programme.
    */
-  private PartnerDto givenStoredPartner(boolean official, boolean archived) {
-    PartnerDto stored = (PartnerDto) entityFactory.build(PartnerDto.class);
+  private Partner givenStoredPartner(boolean official, boolean archived) {
+    Partner stored = new Partner();
     stored.setId(PARTNER_ID);
     stored.setVersion(6);
     stored.setOfficial(official);
     stored.setArchived(archived);
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    Address address = new Address();
     address.setId(ADDRESS_ID);
     stored.setAddress(address);
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     programme.setId(1);
     stored.setProgramme(programme);
     when(partnerRepository.findById(PARTNER_ID)).thenReturn(stored);
@@ -116,10 +112,10 @@ class PartnerServiceImplTest {
   @Nested
   class Create {
 
-    private PartnerDto request(boolean official, String... optionCodes) {
-      PartnerDto partner = dtos.getPartner();
+    private Partner request(boolean official, String... optionCodes) {
+      Partner partner = dtos.getPartner();
       partner.setOfficial(official);
-      List<PartnerOptionDto> options = new ArrayList<>();
+      List<PartnerOption> options = new ArrayList<>();
       for (String code : optionCodes) {
         options.add(option(code));
       }
@@ -130,30 +126,26 @@ class PartnerServiceImplTest {
     private void givenCreationSucceeds() {
       when(addressRepository.create(any()))
           .thenAnswer(invocation -> {
-            AddressDto address = invocation.getArgument(0);
+            Address address = invocation.getArgument(0);
             address.setId(ADDRESS_ID);
             return address;
           });
       when(partnerRepository.create(any()))
           .thenAnswer(invocation -> {
-            PartnerDto partner = invocation.getArgument(0);
+            Partner partner = invocation.getArgument(0);
             partner.setId(PARTNER_ID);
             return partner;
           });
     }
 
     @ParameterizedTest
-    @CsvSource({
-      UserDto.ROLE_PROFESSOR + ", true",
-      UserDto.ROLE_PROFESSOR + ", false",
-      UserDto.ROLE_STUDENT + ", false"
-    })
-    void createsThePartnerItsAddressAndItsOptions(String role, boolean official) {
-      PartnerDto request = request(official, "BIN", "BIM");
+    @CsvSource({"PROFESSOR, true", "PROFESSOR, false", "STUDENT, false"})
+    void createsThePartnerItsAddressAndItsOptions(Role role, boolean official) {
+      Partner request = request(official, "BIN", "BIM");
       givenOptionsExist("BIN", "BIM");
       givenCreationSucceeds();
 
-      PartnerDto created = partnerService.create(request, Role.fromLabel(role));
+      Partner created = partnerService.create(request, role);
 
       assertThat(created.getId()).isEqualTo(PARTNER_ID);
       assertThat(created.getAddress().getId()).isEqualTo(ADDRESS_ID);
@@ -172,7 +164,7 @@ class PartnerServiceImplTest {
 
     @Test
     void everyOptionMustExist() {
-      PartnerDto request = request(false, "BIN", "XYZ");
+      Partner request = request(false, "BIN", "XYZ");
       givenOptionsExist("BIN");
       givenCreationSucceeds();
 
@@ -190,19 +182,19 @@ class PartnerServiceImplTest {
     @CsvSource({"0, true", "2, false"})
     void aPartnerIsArchivableWhenNoActiveChoiceUsesIt(int activeChoices, boolean archivable) {
       givenStoredPartner(true, false);
-      AddressDto address = dtos.getAddress();
+      Address address = dtos.getAddress();
       when(addressRepository.findById(ADDRESS_ID)).thenReturn(address);
-      ProgrammeDto programme = dtos.getProgramme();
+      Programme programme = dtos.getProgramme();
       when(programmeRepository.findById(1)).thenReturn(programme);
-      List<PartnerOptionDto> options = List.of(option("BIN"));
+      List<PartnerOption> options = List.of(option("BIN"));
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID)).thenReturn(options);
-      List<MobilityChoiceDto> choices = new ArrayList<>();
+      List<MobilityChoice> choices = new ArrayList<>();
       for (int i = 0; i < activeChoices; i++) {
-        choices.add((MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class));
+        choices.add(new MobilityChoice());
       }
       when(mobilityChoiceRepository.findByActivePartner(PARTNER_ID)).thenReturn(choices);
 
-      PartnerDto shown = partnerService.showOne(PARTNER_ID);
+      Partner shown = partnerService.showOne(PARTNER_ID);
 
       assertThat(shown.getAddress()).isSameAs(address);
       assertThat(shown.getProgramme()).isSameAs(programme);
@@ -221,28 +213,26 @@ class PartnerServiceImplTest {
   class ShowAll {
 
     private void givenUserWithOption(String code) {
-      UserDto user = dtos.getUser(UserDto.ROLE_STUDENT);
+      User user = dtos.getUser(Role.STUDENT);
       user.getOption().setCode(code);
       when(userRepository.findById(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {UserDto.ROLE_STUDENT, UserDto.ROLE_PROFESSOR})
-    void withoutFilterEveryPartnerVisibleToTheRequesterIsListed(String role) {
+    @EnumSource(Role.class)
+    void withoutFilterEveryPartnerVisibleToTheRequesterIsListed(Role role) {
       givenUserWithOption("BIM");
-      List<PartnerDto> partners = List.of(dtos.getPartner());
-      when(partnerRepository.findAll(PartnerFilter.ALL, null, Role.fromLabel(role), "BIM"))
-          .thenReturn(partners);
+      List<Partner> partners = List.of(dtos.getPartner());
+      when(partnerRepository.findAll(PartnerFilter.ALL, null, role, "BIM")).thenReturn(partners);
 
-      assertThat(partnerService.showAll(PartnerFilter.ALL, null, Role.fromLabel(role), USER_ID))
-          .isSameAs(partners);
+      assertThat(partnerService.showAll(PartnerFilter.ALL, null, role, USER_ID)).isSameAs(partners);
     }
 
     @ParameterizedTest
     @CsvSource({"COUNTRY, IE", "ARCHIVED, Dublin"})
     void theFilterAndItsValueAreApplied(PartnerFilter filter, String value) {
       givenUserWithOption("BIN");
-      List<PartnerDto> partners = List.of(dtos.getPartner());
+      List<Partner> partners = List.of(dtos.getPartner());
       when(partnerRepository.findAll(filter, value, Role.STUDENT, "BIN")).thenReturn(partners);
 
       assertThat(partnerService.showAll(filter, value, Role.STUDENT, USER_ID)).isSameAs(partners);
@@ -260,8 +250,8 @@ class PartnerServiceImplTest {
   @Nested
   class Edit {
 
-    private PartnerDto request(boolean archived, PartnerOptionDto... options) {
-      PartnerDto partner = dtos.getPartner();
+    private Partner request(boolean archived, PartnerOption... options) {
+      Partner partner = dtos.getPartner();
       partner.setId(0);
       partner.setVersion(0);
       partner.setArchived(archived);
@@ -274,7 +264,7 @@ class PartnerServiceImplTest {
       when(addressRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
       when(partnerRepository.update(any()))
           .thenAnswer(invocation -> {
-            PartnerDto partner = invocation.getArgument(0);
+            Partner partner = invocation.getArgument(0);
             partner.setVersion(partner.getVersion() + 1);
             return partner;
           });
@@ -287,10 +277,10 @@ class PartnerServiceImplTest {
           .thenReturn(List.of(option("BIN")));
       givenOptionsExist("BIM");
       givenUpdatesSucceed();
-      PartnerOptionDto bim = option("BIM");
-      PartnerDto request = request(false, option("BIN"), bim, option("BIM"));
+      PartnerOption bim = option("BIM");
+      Partner request = request(false, option("BIN"), bim, option("BIM"));
 
-      PartnerDto edited = partnerService.edit(PARTNER_ID, request, Role.PROFESSOR);
+      Partner edited = partnerService.edit(PARTNER_ID, request, Role.PROFESSOR);
 
       assertThat(edited.getId()).isEqualTo(PARTNER_ID);
       // the stored row and version, whatever the client sent
@@ -307,7 +297,7 @@ class PartnerServiceImplTest {
           .thenReturn(List.of(option("BIN")));
       givenUpdatesSucceed();
 
-      partnerService.edit(PARTNER_ID, request(false, (PartnerOptionDto[]) null), Role.PROFESSOR);
+      partnerService.edit(PARTNER_ID, request(false, (PartnerOption[]) null), Role.PROFESSOR);
 
       verify(partnerOptionRepository, never()).create(any(), anyInt());
       verify(partnerRepository).update(any());
@@ -331,7 +321,7 @@ class PartnerServiceImplTest {
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID)).thenReturn(List.of());
       givenOptionsExist("BIN");
       givenUpdatesSucceed();
-      PartnerOptionDto bin = option("BIN");
+      PartnerOption bin = option("BIN");
 
       partnerService.edit(PARTNER_ID, request(false, bin), Role.PROFESSOR);
 
@@ -346,7 +336,7 @@ class PartnerServiceImplTest {
           .thenReturn(List.of(option("BIN")));
       givenUpdatesSucceed();
 
-      PartnerDto edited = partnerService.edit(PARTNER_ID, request(true), Role.PROFESSOR);
+      Partner edited = partnerService.edit(PARTNER_ID, request(true), Role.PROFESSOR);
 
       assertThat(edited.isArchived()).isTrue();
     }
@@ -355,7 +345,7 @@ class PartnerServiceImplTest {
     void aPartnerChosenByStudentsCannotBeArchived() {
       givenStoredPartner(true, false);
       when(mobilityChoiceRepository.findByPartner(PARTNER_ID))
-          .thenReturn(List.of((MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class)));
+          .thenReturn(List.of(new MobilityChoice()));
 
       assertThatBusinessException(
               () -> partnerService.edit(PARTNER_ID, request(true), Role.PROFESSOR))
@@ -388,18 +378,14 @@ class PartnerServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-      UserDto.ROLE_PROFESSOR + ", true",
-      UserDto.ROLE_PROFESSOR + ", false",
-      UserDto.ROLE_STUDENT + ", true"
-    })
-    void anArchivedPartnerWithOptionsIsRestored(String role, boolean official) {
+    @CsvSource({"PROFESSOR, true", "PROFESSOR, false", "STUDENT, true"})
+    void anArchivedPartnerWithOptionsIsRestored(Role role, boolean official) {
       givenStoredPartner(official, true);
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID))
           .thenReturn(List.of(option("BIN")));
       givenUpdateSucceeds();
 
-      PartnerDto restored = partnerService.restore(PARTNER_ID, Role.fromLabel(role));
+      Partner restored = partnerService.restore(PARTNER_ID, role);
 
       assertThat(restored.isArchived()).isFalse();
       assertThat(restored.isArchivable()).isTrue();
@@ -447,7 +433,7 @@ class PartnerServiceImplTest {
     @Test
     void theOptionsOfAPartnerAreListed() {
       givenStoredPartner(true, false);
-      List<PartnerOptionDto> options = List.of(option("BIN"), option("BIM"));
+      List<PartnerOption> options = List.of(option("BIN"), option("BIM"));
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID)).thenReturn(options);
 
       assertThat(partnerService.findAllPartnerOption(PARTNER_ID)).isSameAs(options);
@@ -464,7 +450,7 @@ class PartnerServiceImplTest {
     void aProfessorAddsAnOptionToAnyPartner() {
       givenStoredPartner(true, false);
       givenOptionsExist("BCH");
-      PartnerOptionDto option = option("BCH");
+      PartnerOption option = option("BCH");
 
       partnerService.addOption(PARTNER_ID, option, USER_ID, Role.PROFESSOR);
 
@@ -478,7 +464,7 @@ class PartnerServiceImplTest {
       givenOptionsExist("BCH");
       when(mobilityChoiceRepository.findByUser(USER_ID))
           .thenReturn(List.of(choiceWithPartner(PARTNER_ID)));
-      PartnerOptionDto option = option("BCH");
+      PartnerOption option = option("BCH");
 
       partnerService.addOption(PARTNER_ID, option, USER_ID, Role.STUDENT);
 
@@ -493,7 +479,7 @@ class PartnerServiceImplTest {
       when(mobilityChoiceRepository.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(0)));
       when(mobilityRepository.findByUser(USER_ID))
           .thenReturn(List.of(mobilityWithPartner(PARTNER_ID)));
-      PartnerOptionDto option = option("BCH");
+      PartnerOption option = option("BCH");
 
       partnerService.addOption(PARTNER_ID, option, USER_ID, Role.STUDENT);
 
@@ -543,10 +529,10 @@ class PartnerServiceImplTest {
     }
 
     /** A choice of the student with that partner ({@code 0}: no partner). */
-    private MobilityChoiceDto choiceWithPartner(int partnerId) {
-      MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+    private MobilityChoice choiceWithPartner(int partnerId) {
+      MobilityChoice choice = new MobilityChoice();
       if (partnerId > 0) {
-        PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+        Partner partner = new Partner();
         partner.setId(partnerId);
         choice.setPartner(partner);
       }
@@ -554,10 +540,10 @@ class PartnerServiceImplTest {
     }
 
     /** A mobility of the student with that partner ({@code 0}: no partner). */
-    private MobilityDto mobilityWithPartner(int partnerId) {
-      MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+    private Mobility mobilityWithPartner(int partnerId) {
+      Mobility mobility = new Mobility();
       if (partnerId > 0) {
-        PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+        Partner partner = new Partner();
         partner.setId(partnerId);
         mobility.setPartner(partner);
       }

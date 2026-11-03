@@ -1,7 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.in.web.mapping;
 
 import com.dragomitch.ipl.pae.adapter.in.web.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Address;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -9,16 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class AddressMapper {
 
-  private final EntityFactory entityFactory;
   private final ReferenceDataMapper referenceData;
 
-  public AddressMapper(EntityFactory entityFactory, ReferenceDataMapper referenceData) {
-    this.entityFactory = entityFactory;
+  public AddressMapper(ReferenceDataMapper referenceData) {
     this.referenceData = referenceData;
   }
 
-  public @Nullable AddressDto toDto(
-      com.dragomitch.ipl.pae.domain.dto.@Nullable AddressDto address) {
+  public @Nullable AddressDto toDto(@Nullable Address address) {
     return address == null
         ? null
         : new AddressDto(
@@ -32,13 +29,11 @@ public class AddressMapper {
             address.getVersion());
   }
 
-  public com.dragomitch.ipl.pae.domain.dto.@Nullable AddressDto toDomain(@Nullable AddressDto dto) {
+  public @Nullable Address toDomain(@Nullable AddressDto dto) {
     if (dto == null) {
       return null;
     }
-    var address =
-        (com.dragomitch.ipl.pae.domain.dto.AddressDto)
-            entityFactory.build(com.dragomitch.ipl.pae.domain.dto.AddressDto.class);
+    var address = new Address();
     address.setId(dto.id());
     address.setStreet(dto.street());
     address.setNumber(dto.number());

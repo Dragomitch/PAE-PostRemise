@@ -3,9 +3,11 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -39,40 +41,40 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
         "db/fixtures/mobilities.sql");
   }
 
-  private MobilityDto newMobility(int choiceId) {
-    MobilityDto mobility = build(MobilityDto.class);
+  private Mobility newMobility(int choiceId) {
+    Mobility mobility = new Mobility();
     mobility.setId(choiceId);
     mobility.setSubmissionDate(LocalDateTime.of(2025, 4, 1, 12, 0, 30));
-    mobility.setState(MobilityDto.STATE_CREATED);
+    mobility.setState(MobilityState.CREATED);
     mobility.setProEcoEncoding(false);
     mobility.setSecondSoftwareEncoding(false);
     return mobility;
   }
 
-  private DenialReasonDto denialReason(int id) {
-    DenialReasonDto reason = build(DenialReasonDto.class);
+  private DenialReason denialReason(int id) {
+    DenialReason reason = new DenialReason();
     reason.setId(id);
     return reason;
   }
 
-  private UserDto user(int id) {
-    UserDto user = build(UserDto.class);
+  private User user(int id) {
+    User user = new User();
     user.setId(id);
     return user;
   }
 
   @Test
   void findByIdMapsEveryFieldAndJoinsStudentPartnerCountryAndProgramme() {
-    MobilityDto mobility = inTransaction(() -> mobilityRepository.findById(5006));
+    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5006));
 
     assertThat(mobility.getId()).isEqualTo(5006);
-    assertThat(mobility.getMobilityType()).isEqualTo("SMP");
+    assertThat(mobility.getMobilityType()).isEqualTo(MobilityType.SMP);
     assertThat(mobility.getAcademicYear()).isEqualTo(LocalDate.now().getYear());
     assertThat(mobility.getTerm()).isEqualTo(2);
     assertThat(mobility.getSubmissionDate())
         .as("the mobility's own submission date")
         .isEqualTo(LocalDateTime.of(2025, 1, 10, 10, 0));
-    assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_IN_PREPARATION);
+    assertThat(mobility.getState()).isEqualTo(MobilityState.IN_PREPARATION);
     assertThat(mobility.getStateBeforeCancellation()).isNull();
     assertThat(mobility.getFirstPaymentRequestDate()).isEqualTo(LocalDateTime.of(2025, 2, 1, 9, 0));
     assertThat(mobility.getSecondPaymentRequestDate()).isNull();
@@ -96,10 +98,10 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsACancelledAndDeniedMobility() {
-    MobilityDto mobility = inTransaction(() -> mobilityRepository.findById(5007));
+    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5007));
 
-    assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CANCELLED);
-    assertThat(mobility.getStateBeforeCancellation()).isEqualTo(MobilityDto.STATE_CREATED);
+    assertThat(mobility.getState()).isEqualTo(MobilityState.CANCELLED);
+    assertThat(mobility.getStateBeforeCancellation()).isEqualTo(MobilityState.CREATED);
     assertThat(mobility.getFirstPaymentRequestDate()).isEqualTo(LocalDateTime.of(2025, 3, 1, 8, 0));
     assertThat(mobility.getSecondPaymentRequestDate())
         .isEqualTo(LocalDateTime.of(2025, 6, 30, 16, 30));
@@ -122,18 +124,18 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllReturnsEveryMobility() {
-    List<MobilityDto> mobilities = inTransaction(() -> mobilityRepository.findAll());
+    List<Mobility> mobilities = inTransaction(() -> mobilityRepository.findAll());
 
-    assertThat(mobilities).extracting(MobilityDto::getId).containsExactlyInAnyOrder(5006, 5007);
+    assertThat(mobilities).extracting(Mobility::getId).containsExactlyInAnyOrder(5006, 5007);
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")
   @CsvSource({"1004, 5006", "1003, 5007", "1001, ''", "1002, ''"})
   void findByUserReturnsTheMobilitiesOfThatStudent(int userId, String expected) {
-    List<MobilityDto> mobilities = inTransaction(() -> mobilityRepository.findByUser(userId));
+    List<Mobility> mobilities = inTransaction(() -> mobilityRepository.findByUser(userId));
 
     assertThat(mobilities)
-        .extracting(MobilityDto::getId)
+        .extracting(Mobility::getId)
         .containsExactlyElementsOf(
             expected.isEmpty() ? List.of() : List.of(Integer.valueOf(expected)));
   }
@@ -141,11 +143,11 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createInsertsTheMobilityWithVersionOne() {
     runInTransaction(() -> {
-      MobilityDto mobility = newMobility(5001);
+      Mobility mobility = newMobility(5001);
       mobility.setProfessorInCharge(user(1002));
       mobility.setProEcoEncoding(true);
 
-      MobilityDto created = mobilityRepository.create(mobility);
+      Mobility created = mobilityRepository.create(mobility);
 
       assertThat(created.getVersion()).isEqualTo(1);
       assertThat(queryForRow(MOBILITY_BY_ID, 5001))
@@ -161,7 +163,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("prof_denial_reason", null)
           .containsEntry("professor_in_charge", 1002)
           .containsEntry("version", 1);
-      MobilityDto found = mobilityRepository.findById(5001);
+      Mobility found = mobilityRepository.findById(5001);
       assertThat(found.getPartner().getId()).isEqualTo(3001);
       assertThat(found.getNominatedStudent().getId()).isEqualTo(1001);
     });
@@ -170,9 +172,9 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createStoresPaymentDatesDenialAndCancellation() {
     runInTransaction(() -> {
-      MobilityDto mobility = newMobility(5004);
-      mobility.setState(MobilityDto.STATE_CANCELLED);
-      mobility.setStateBeforeCancellation(MobilityDto.STATE_TO_BE_PAID);
+      Mobility mobility = newMobility(5004);
+      mobility.setState(MobilityState.CANCELLED);
+      mobility.setStateBeforeCancellation(MobilityState.TO_BE_PAID);
       mobility.setFirstPaymentRequestDate(LocalDateTime.of(2025, 5, 1, 0, 0));
       mobility.setSecondPaymentRequestDate(LocalDateTime.of(2025, 9, 1, 0, 0));
       mobility.setCancellationReason("Abandon");
@@ -197,16 +199,16 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityRepository.create(newMobility(5002));
 
-      MobilityDto found = mobilityRepository.findById(5002);
+      Mobility found = mobilityRepository.findById(5002);
       assertThat(found.getPartner()).isNull();
       assertThat(found.getCountry().getCountryCode()).isEqualTo("BE");
       assertThat(found.getCountry().getName()).isEqualTo("Belgique");
       assertThat(found.getNominatedStudent().getId()).isEqualTo(1001);
       assertThat(mobilityRepository.findByUser(1001))
-          .extracting(MobilityDto::getId)
+          .extracting(Mobility::getId)
           .containsExactly(5002);
       assertThat(mobilityRepository.findAll())
-          .extracting(MobilityDto::getId)
+          .extracting(Mobility::getId)
           .containsExactlyInAnyOrder(5002, 5006, 5007);
     });
   }
@@ -216,7 +218,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityRepository.create(newMobility(5003));
 
-      MobilityDto found = mobilityRepository.findById(5003);
+      Mobility found = mobilityRepository.findById(5003);
       assertThat(found.getPartner()).isNull();
       assertThat(found.getCountry()).isNull();
       assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
@@ -234,10 +236,10 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesEveryUpdatableColumnAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      MobilityDto mobility = mobilityRepository.findById(5006);
+      Mobility mobility = mobilityRepository.findById(5006);
       mobility.setSubmissionDate(LocalDateTime.of(2025, 1, 12, 13, 14, 15));
-      mobility.setState(MobilityDto.STATE_CANCELLED);
-      mobility.setStateBeforeCancellation(MobilityDto.STATE_IN_PREPARATION);
+      mobility.setState(MobilityState.CANCELLED);
+      mobility.setStateBeforeCancellation(MobilityState.IN_PREPARATION);
       mobility.setFirstPaymentRequestDate(null);
       mobility.setSecondPaymentRequestDate(LocalDateTime.of(2025, 7, 7, 7, 7));
       mobility.setProEcoEncoding(false);
@@ -246,7 +248,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
       mobility.setDenialReason(denialReason(4001));
       mobility.setProfessorInCharge(null);
 
-      MobilityDto updated = mobilityRepository.update(mobility);
+      Mobility updated = mobilityRepository.update(mobility);
 
       assertThat(updated.getVersion()).isEqualTo(3);
       assertThat(queryForRow(MOBILITY_BY_ID, 5006))
@@ -269,9 +271,9 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      MobilityDto stale = mobilityRepository.findById(5006);
+      Mobility stale = mobilityRepository.findById(5006);
       stale.setVersion(1);
-      stale.setState(MobilityDto.STATE_CLOSED);
+      stale.setState(MobilityState.CLOSED);
 
       assertThatThrownBy(() -> mobilityRepository.update(stale))
           .isInstanceOf(ConcurrentModificationException.class);

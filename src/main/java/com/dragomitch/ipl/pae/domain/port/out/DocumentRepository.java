@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
 import java.util.List;
 
 public interface DocumentRepository {
@@ -18,5 +18,5 @@ public interface DocumentRepository {
    *     Database.
    * @return all documents concerned by the programme
    */
-  public List<DocumentDto> findAllByProgramme(int programmeId);
+  public List<Document> findAllByProgramme(int programmeId);
 }

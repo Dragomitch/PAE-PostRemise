@@ -1,6 +1,6 @@
-package com.dragomitch.ipl.pae.domain.dto;
+package com.dragomitch.ipl.pae.adapter.in.web.dto;
 
-import com.dragomitch.ipl.pae.domain.validation.FilterValueRequired;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.FilterValueRequired;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 

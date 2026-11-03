@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -34,19 +35,16 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllByMobilityReturnsTheDocumentsWithTheirFilledInFlag() {
-    List<DocumentDto> documents =
+    List<Document> documents =
         inTransaction(() -> mobilityDocumentRepository.findAllByMobility(5006));
 
     assertThat(documents)
-        .extracting(
-            DocumentDto::getId,
-            DocumentDto::getName,
-            DocumentDto::getCategory,
-            DocumentDto::isFilledIn)
+        .extracting(Document::getId, Document::getName, Document::getCategory, Document::isFilledIn)
         .containsExactlyInAnyOrder(
-            tuple(1, "Contrat de bourse", 'D', true),
-            tuple(2, "Convention de stage / Convention d'études", 'D', false),
-            tuple(14, "Attestation séjour", 'R', false));
+            tuple(1, "Contrat de bourse", DocumentCategory.DEPARTURE, true),
+            tuple(
+                2, "Convention de stage / Convention d'études", DocumentCategory.DEPARTURE, false),
+            tuple(14, "Attestation séjour", DocumentCategory.RETURN, false));
   }
 
   @Test
@@ -66,7 +64,7 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("is_filled_in", false)
           .containsEntry("version", 1);
       assertThat(mobilityDocumentRepository.findAllByMobility(5006))
-          .extracting(DocumentDto::getId)
+          .extracting(Document::getId)
           .containsExactlyInAnyOrder(1, 2, 3, 14);
     });
   }
