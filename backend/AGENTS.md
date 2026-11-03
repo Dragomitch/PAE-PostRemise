@@ -67,6 +67,7 @@ pom.xml
 `.github/pull_request_template.md` pre-fills the description (Summary, Issue, Changes, Test plan, Screenshots); `.github/CODEOWNERS` requests the review. The conventions behind it:
 
 - **Every change comes through a pull request** against `master`, and the PR links its issue with `Closes #n` so that merging closes it.
+- The PR title is `<type>: <subject>` or `<type>(<scope>): <subject>`, with `<type>` one of `feat`, `fix`, `build`, `ci`, `docs`, `test`, `refactor`, `chore`, `perf`, `style` or `revert` (and an optional `!` before the colon for a breaking change); the `pr-title` job of the CI workflow fails on any other title, and the `CI passed` gate requires that job on pull requests.
 - **The test plan states what was run and the numbers it produced**, never "should work": the exact command and its result, e.g. `mvn -B -ntp clean verify`: N unit tests, N integration tests, 0 failures, `All coverage checks have been met` (with the real numbers in place of N). Run the Maven build in default and in random order (`-Dsurefire.runOrder=random -Dfailsafe.runOrder=random`), `npm run test:ci` when the frontend changes and `docker compose config --quiet` when the Compose file or a Dockerfile does. Say what you could not run.
 - **A PR that changes a screen embeds its screenshots.** Commit the images under `docs/screenshots/<topic>/` on the branch, then reference each one in the PR body with the raw URL of that commit, wrapped in a link to its page, so that the image previews inline and opens in full on click:
 
