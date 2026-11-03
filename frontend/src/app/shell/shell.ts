@@ -3,7 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { finalize } from 'rxjs';
 
 import { ApiProblem, toApiProblem } from '../core/api-problem';
-import { ROLE_PROFESSOR, ROLE_STUDENT } from '../core/models';
+import { roleLabel } from '../core/roles';
 import { SessionService } from '../core/session.service';
 
 /**
@@ -28,17 +28,7 @@ export class Shell {
     const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
     return fullName || user?.username || '';
   });
-  protected readonly roleLabel = computed(() => {
-    const role = this.session.user()?.role;
-    switch (role) {
-      case ROLE_PROFESSOR:
-        return $localize`:@@role.professor:Professeur`;
-      case ROLE_STUDENT:
-        return $localize`:@@role.student:Étudiant`;
-      default:
-        return role ?? '';
-    }
-  });
+  protected readonly roleLabel = computed(() => roleLabel(this.session.user()?.role));
   protected readonly signingOut = signal(false);
   protected readonly problem = signal<ApiProblem | null>(null);
 

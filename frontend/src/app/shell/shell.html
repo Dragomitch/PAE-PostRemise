@@ -13,6 +13,11 @@
         <ng-container i18n="@@shell.nav.myMobilityChoices">Mes demandes de mobilité</ng-container>
       }
     </a>
+    @if (isProfessor()) {
+      <a routerLink="/users" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.users">Utilisateurs</a>
+    } @else {
+      <a routerLink="/personal-data" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.personalData">Mes données personnelles</a>
+    }
   </nav>
 
   <div class="shell-user">
