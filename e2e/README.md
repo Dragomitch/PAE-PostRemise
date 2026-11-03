@@ -50,6 +50,11 @@ The UI scripts depend on the data created by `api_e2e.py`, so the database must 
 from `SQLRessources/init.sql` before a run (`init.sql` drops and recreates the schema, so loading
 it again resets the data).
 
+The jar does not need `init.sql` (its Flyway migrations create the schema of an empty database),
+but the CI job and a local run keep loading it before starting the jar: Flyway then adopts the
+database as version 1 (baseline, see [ADR 0003](../docs/adr/0003-flyway-migrations.md)) and applies
+any later migration, so the run also covers that path.
+
 ## Ports and environment
 
 | Variable | Default | Used by |
@@ -75,7 +80,7 @@ Prerequisites: Java 21 and Maven, Node 20+, Python 3, `psql`, a PostgreSQL datab
 # 1. Playwright and its browser (once)
 cd e2e && npm ci && npx playwright install chromium && cd ..
 
-# 2. A fresh schema (repeat before every run)
+# 2. A fresh schema at version 1 (repeat before every run; Flyway baselines it when the jar starts)
 psql -h localhost -U pguser01 -d testdb -v ON_ERROR_STOP=1 -f SQLRessources/init.sql
 
 # 3. The jar, configured like docker-compose.yml

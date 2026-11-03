@@ -139,10 +139,14 @@ Persistence is Spring Data JPA (Hibernate), organised as hexagonal ports and ada
 
 Persistence rules:
 
-- The schema is `SQLRessources/init.sql`: never generated (`ddl-auto=none`), validated by the ITs (`hbm2ddl.auto=validate`). Change it only when justified and agreed (issue #102, Q4).
+- The schema is the Flyway migrations of `src/main/resources/db/migration` (see *Schema changes* below): never generated (`ddl-auto=none`), validated by the ITs (`hbm2ddl.auto=validate`). Change it only when justified and agreed (issue #102, Q4).
 - Associations are `LAZY`; a read fetches what its DTOs carry in **one** statement (`@EntityGraph` or `JOIN FETCH`). `QueryCountIT` fails on an N+1; add every new port read to it. `open-in-view` is off.
 - Reference data (options, programmes, countries, documents) is `@Immutable`.
 - An update loads the entity, compares the versions, copies the fields and flushes with `Versions.flushIncrementingVersion`; creates with an assigned key flush at once.
+
+#### Schema changes
+
+The application migrates its database at start-up with Flyway ([ADR 0003](../docs/adr/0003-flyway-migrations.md)): `spring.flyway.*` in `application.properties`, migrations in `src/main/resources/db/migration`, history in `student_exchange_tools.flyway_schema_history`. `V1__baseline.sql` is the schema and reference data of `SQLRessources/init.sql`, and a database created from `init.sql` is adopted as version 1 (`baseline-on-migrate`). A schema change is one new migration, `V<n>__<description>.sql` (next free number, a short snake_case description), in the PR that changes the entities; never edit, rename or delete a merged migration (Flyway refuses to start on a checksum mismatch), and never edit `init.sql` or V1 (`FlywayBaselineIT` keeps them equal). Reference data the application needs goes in a migration; demo data stays in `SQLRessources/demo.sql`. The ITs run the migrations (`RepositoryItConfig`), so `mvn verify` checks the new migration against the entities. To reset a local database, drop the `student_exchange_tools` schema (or load `init.sql`) and restart the backend.
 
 Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; the in-memory repositories follow them too):
 
@@ -185,7 +189,7 @@ Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; 
 ### Integration Testing
 
 - Test scenarios: every repository method against the real schema (`*IT`, run by Failsafe in `mvn verify`)
-- Testing tools: an embedded PostgreSQL (io.zonky, no Docker) loaded with `SQLRessources/init.sql`; `AbstractRepositoryIT` runs each test in a transaction that is always rolled back, with the fixtures of `src/test/resources/db/fixtures`
+- Testing tools: an embedded PostgreSQL (io.zonky, no Docker) migrated by Flyway with the application's migrations, then `db/it-setup.sql`; `AbstractRepositoryIT` runs each test in a transaction that is always rolled back, with the fixtures of `src/test/resources/db/fixtures`. `FlywayBaselineIT` compares V1 with `SQLRessources/init.sql` and checks the baseline of a database created from it.
 
 ### End-to-End Testing
 

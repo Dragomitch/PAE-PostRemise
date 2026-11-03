@@ -1,3 +1,11 @@
+-- Resets a database to version 1 of the schema (the Flyway baseline, ADR 0003): drops the
+-- student_exchange_tools schema (data and flyway_schema_history included) and recreates it with
+-- the reference data. The application does not need it: Flyway creates the schema from
+-- src/main/resources/db/migration at its first start. It stays for the end-to-end runs and for a
+-- manual reset; at the next start Flyway adopts the database as version 1 and applies the later
+-- migrations. It is frozen: V1__baseline.sql must keep producing the same schema
+-- (FlywayBaselineIT), and a schema change is a new migration, never an edit of this file.
+--
 -- Removes SQL schema
 DROP SCHEMA IF EXISTS student_exchange_tools CASCADE;
  
