@@ -4,11 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestUser {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
   private static final int ID = 1;
   private static final String USERNAME = "username";
   public static final String LAST_NAME = "Last Name";
@@ -40,9 +36,7 @@ public class TestUser {
   private EntityFactory entityFactory;
   private User user;
 
-  /**
-   * Creates a new User instance.
-   */
+  /** Creates a new User instance. */
   @BeforeEach
   public void setUp() throws Exception {
     entityFactory = context.getBean(EntityFactory.class);

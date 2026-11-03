@@ -4,16 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Violations;
+import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
-
+import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -26,8 +25,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestUserService {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private UserRepository userRepository;
@@ -36,10 +34,7 @@ public class TestUserService {
   private UserDto prof;
   private UserDto stud;
 
-
-  /**
-   * Sets up the environment before every test.
-   */
+  /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
     entityFactory = context.getBean(EntityFactory.class);
@@ -50,9 +45,7 @@ public class TestUserService {
     stud = mockDtoFactory.getUser(UserDto.ROLE_STUDENT);
   }
 
-  /**
-   * Cleans up the 'database'.
-   */
+  /** Cleans up the 'database'. */
   @AfterEach
   public void cleanUp() {
     ((InMemoryUserRepository) userRepository).empty();
@@ -67,11 +60,13 @@ public class TestUserService {
 
   @Test
   public void testCreateTC2() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      userService.signup(null);
-      prof.setId(1);
-      assertEquals(prof.getId(), (userRepository.findById(prof.getId())).getId());
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          userService.signup(null);
+          prof.setId(1);
+          assertEquals(prof.getId(), (userRepository.findById(prof.getId())).getId());
+        });
   }
 
   @Test
@@ -83,7 +78,8 @@ public class TestUserService {
 
   @Test
   public void testCreateTC4() {
-    assertEquals(List.of("signup.user.option.code:Size"),
+    assertEquals(
+        List.of("signup.user.option.code:Size"),
         Violations.thrownBy(() -> {
           OptionDto option = mockDtoFactory.getOption();
           option.setCode("Wrong Code Man");
@@ -94,28 +90,34 @@ public class TestUserService {
 
   @Test
   public void testCreateTC5() {
-    assertThrows(BusinessException.class, () -> {
-      userService.signup(stud);
-      userService.signup(prof);
-    });
+    assertThrows(
+        BusinessException.class,
+        () -> {
+          userService.signup(stud);
+          userService.signup(prof);
+        });
   }
 
   @Test
   public void testCreateTC6() {
-    assertThrows(BusinessException.class, () -> {
-      userService.signup(stud);
-      prof.setUsername("chikiBriki");
-      userService.signup(prof);
-    });
+    assertThrows(
+        BusinessException.class,
+        () -> {
+          userService.signup(stud);
+          prof.setUsername("chikiBriki");
+          userService.signup(prof);
+        });
   }
 
   @Test
   public void testCreateTC7() {
-    assertThrows(BusinessException.class, () -> {
-      userService.signup(stud);
-      prof.setEmail("MamyFaitDesBlagues@joke.be");
-      userService.signup(prof);
-    });
+    assertThrows(
+        BusinessException.class,
+        () -> {
+          userService.signup(stud);
+          prof.setEmail("MamyFaitDesBlagues@joke.be");
+          userService.signup(prof);
+        });
   }
 
   @Test
@@ -136,18 +138,22 @@ public class TestUserService {
 
   @Test
   public void testPromoteToProfessorTC2() {
-    assertThrows(ResourceNotFoundException.class, () -> {
-      userService.signup(stud);
-      userService.promoteToProfessor(69);
-    });
+    assertThrows(
+        ResourceNotFoundException.class,
+        () -> {
+          userService.signup(stud);
+          userService.promoteToProfessor(69);
+        });
   }
 
   @Test
   public void testPromoteToProfessorTC3() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      userService.signup(stud);
-      userService.promoteToProfessor(-1);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          userService.signup(stud);
+          userService.promoteToProfessor(-1);
+        });
   }
 
   /** Signs up a professor (the first user) then a student, and returns the student. */
@@ -209,63 +215,73 @@ public class TestUserService {
   public void promoteToProfessorByUsernameOfAnUnknownUserIsNotFound() {
     signUpProfessorThenStudent();
 
-    assertThrows(ResourceNotFoundException.class,
-        () -> userService.promoteToProfessorByUsername("nobody"));
+    assertThrows(
+        ResourceNotFoundException.class, () -> userService.promoteToProfessorByUsername("nobody"));
   }
 
   @Test
   public void promoteToProfessorByUsernameNeedsAUsername() {
-    assertEquals(List.of("promoteToProfessorByUsername.username:NotBlank"),
+    assertEquals(
+        List.of("promoteToProfessorByUsername.username:NotBlank"),
         Violations.thrownBy(() -> userService.promoteToProfessorByUsername("")));
-    assertEquals(List.of("promoteToProfessorByUsername.username:NotBlank"),
+    assertEquals(
+        List.of("promoteToProfessorByUsername.username:NotBlank"),
         Violations.thrownBy(() -> userService.promoteToProfessorByUsername(null)));
-    assertEquals(List.of("promoteToProfessorByUsername.username:Size"),
+    assertEquals(
+        List.of("promoteToProfessorByUsername.username:Size"),
         Violations.thrownBy(() -> userService.promoteToProfessorByUsername("x".repeat(21))));
   }
 
   @Test
   public void testEditTC1() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      userService.signup(stud);
-      userService.edit(null, 1, UserDto.ROLE_STUDENT);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          userService.signup(stud);
+          userService.edit(null, 1, UserDto.ROLE_STUDENT);
+        });
   }
 
   @Test
   public void testEditTC2() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      userService.signup(stud);
-      userService.edit(stud, -1, UserDto.ROLE_STUDENT);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          userService.signup(stud);
+          userService.edit(stud, -1, UserDto.ROLE_STUDENT);
+        });
   }
 
   @Test
   public void testEditTC3() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      userService.signup(stud);
-      userService.edit(stud, -1, "");
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          userService.signup(stud);
+          userService.edit(stud, -1, "");
+        });
   }
 
   // Edit d'un User avec des données déjà existantes dans un autre User
   @Test
   public void testEditTC4() {
-    assertThrows(BusinessException.class, () -> {
-      userService.signup(prof);
-      userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertThrows(
+        BusinessException.class,
+        () -> {
+          userService.signup(prof);
+          userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+        });
   }
 
   @Test
   public void testEditTC5() {
-    assertThrows(ResourceNotFoundException.class, () -> {
-      userService.signup(prof);
-      prof.setUsername("chikiBriki");
-      prof.setEmail("MamyFaitDesBlagues@joke.be");
-      userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertThrows(
+        ResourceNotFoundException.class,
+        () -> {
+          userService.signup(prof);
+          prof.setUsername("chikiBriki");
+          prof.setEmail("MamyFaitDesBlagues@joke.be");
+          userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+        });
   }
-
-
-
 }

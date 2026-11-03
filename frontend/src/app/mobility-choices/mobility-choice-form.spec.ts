@@ -8,7 +8,13 @@ import { SessionService } from '../core/session.service';
 import { MobilityChoiceForm, departures } from './mobility-choice-form';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
-const STUDENT: User = { id: 2, username: 'alice', firstName: 'Alice', lastName: 'Tester', role: 'Student' };
+const STUDENT: User = {
+  id: 2,
+  username: 'alice',
+  firstName: 'Alice',
+  lastName: 'Tester',
+  role: 'Student',
+};
 const YEAR = new Date().getFullYear();
 
 const PROGRAMMES = [
@@ -21,9 +27,20 @@ const COUNTRIES: ProgrammeCountry[] = [
   { countryCode: 'BE', name: 'Belgique', programme: { id: 2 } },
 ];
 function partner(id: number, fullName: string, countryCode: string): Partner {
-  return { id, fullName, address: { country: { countryCode, name: countryCode } }, options: [], official: true, archived: false };
+  return {
+    id,
+    fullName,
+    address: { country: { countryCode, name: countryCode } },
+    options: [],
+    official: true,
+    archived: false,
+  };
 }
-const PARTNERS = [partner(3, 'Université de Lyon', 'FR'), partner(5, 'Sans Site', 'FR'), partner(4, 'Hochschule Berlin', 'DE')];
+const PARTNERS = [
+  partner(3, 'Université de Lyon', 'FR'),
+  partner(5, 'Sans Site', 'FR'),
+  partner(4, 'Hochschule Berlin', 'DE'),
+];
 
 describe('MobilityChoiceForm', () => {
   let fixture: ComponentFixture<MobilityChoiceForm>;
@@ -62,7 +79,8 @@ describe('MobilityChoiceForm', () => {
 
   const select = (id: string) => el.querySelector<HTMLSelectElement>(`#mobility-choice-${id}`)!;
   const options = (id: string) => Array.from(select(id).options).map((o) => o.textContent?.trim());
-  const error = (id: string) => el.querySelector(`#mobility-choice-${id}-error`)?.textContent?.trim();
+  const error = (id: string) =>
+    el.querySelector(`#mobility-choice-${id}-error`)?.textContent?.trim();
   function choose(id: string, value: string): void {
     select(id).value = value;
     select(id).dispatchEvent(new Event('change'));
@@ -91,7 +109,9 @@ describe('MobilityChoiceForm', () => {
     });
 
     it('shows a failure with a retry button and a way out', () => {
-      http.expectOne('/api/1.0/programmes').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      http
+        .expectOne('/api/1.0/programmes')
+        .flush(null, { status: 503, statusText: 'Service Unavailable' });
       // the first failure cancels the other requests
       expect(http.match(() => true).every((req) => req.cancelled)).toBeTrue();
       fixture.detectChanges();
@@ -115,7 +135,12 @@ describe('MobilityChoiceForm', () => {
 
     it('goes back to the sign-in page when the session expired', () => {
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
-      http.expectOne('/api/1.0/programmes').flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      http
+        .expectOne('/api/1.0/programmes')
+        .flush(
+          { code: 'UNAUTHENTICATED', status: 401 },
+          { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+        );
       http.match(() => true);
       fixture.detectChanges();
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
@@ -130,7 +155,10 @@ describe('MobilityChoiceForm', () => {
     });
 
     it('has the fields and labels of the legacy form', () => {
-      const labels = Array.from(el.querySelectorAll('label')).map((l) => [l.getAttribute('for'), l.textContent?.trim()]);
+      const labels = Array.from(el.querySelectorAll('label')).map((l) => [
+        l.getAttribute('for'),
+        l.textContent?.trim(),
+      ]);
       expect(labels).toEqual([
         ['mobility-choice-programme', 'Programme'],
         ['mobility-choice-country', 'Pays'],
@@ -157,7 +185,9 @@ describe('MobilityChoiceForm', () => {
     it('offers the countries of the chosen programme, by name, and the partners of the chosen country', () => {
       expect(options('country')).toEqual(['Définir plus tard']);
       expect(options('partner')).toEqual(['Définir plus tard']);
-      expect(select('partner').getAttribute('aria-describedby')).toBe('mobility-choice-partner-hint');
+      expect(select('partner').getAttribute('aria-describedby')).toBe(
+        'mobility-choice-partner-hint',
+      );
 
       choose('programme', '1');
       expect(options('country')).toEqual(['Définir plus tard', 'Allemagne', 'France']);
@@ -184,7 +214,9 @@ describe('MobilityChoiceForm', () => {
       expect(error('partner')).toBeUndefined();
       expect(error('type')).toBeUndefined();
       expect(select('programme').getAttribute('aria-invalid')).toBe('true');
-      expect(select('programme').getAttribute('aria-describedby')).toBe('mobility-choice-programme-error');
+      expect(select('programme').getAttribute('aria-describedby')).toBe(
+        'mobility-choice-programme-error',
+      );
     });
 
     it('sends the choice of the signed-in student without country nor partner when they are left for later', () => {
@@ -220,7 +252,13 @@ describe('MobilityChoiceForm', () => {
       submit();
       const req = http.expectOne('/api/1.0/mobilityChoice');
       expect(req.request.body).toEqual(
-        jasmine.objectContaining({ country: { countryCode: 'FR' }, partner: { id: 3 }, academicYear: YEAR, term: 2, mobilityType: 'SMS' }),
+        jasmine.objectContaining({
+          country: { countryCode: 'FR' },
+          partner: { id: 3 },
+          academicYear: YEAR,
+          term: 2,
+          mobilityType: 'SMS',
+        }),
       );
       req.flush({ id: 21 });
     });
@@ -243,8 +281,12 @@ describe('MobilityChoiceForm', () => {
         { status: 400, statusText: 'Bad Request', headers: PROBLEM_HEADERS },
       );
       fixture.detectChanges();
-      expect(el.querySelector('[role=alert]')?.textContent).toContain('Certaines informations sont invalides.');
-      expect(Array.from(el.querySelectorAll('[role=alert] li')).map((li) => li.textContent)).toEqual(['Utilisateur inconnu.']);
+      expect(el.querySelector('[role=alert]')?.textContent).toContain(
+        'Certaines informations sont invalides.',
+      );
+      expect(
+        Array.from(el.querySelectorAll('[role=alert] li')).map((li) => li.textContent),
+      ).toEqual(['Utilisateur inconnu.']);
       expect(error('departure')).toBe("L'année doit être positive.");
       expect(error('order')).toBe('Au plus 3.');
       expect(error('programme')).toBe('Programme inconnu.');
@@ -257,7 +299,12 @@ describe('MobilityChoiceForm', () => {
       choose('country', 'FR');
       submit();
       http.expectOne('/api/1.0/mobilityChoice').flush(
-        { code: 'UNKNOWN_COUNTRY', status: 422, detail: 'Pays inconnu : FR.', errors: [{ field: 'country.countryCode', code: 'Invalid', message: 'Inconnu.' }] },
+        {
+          code: 'UNKNOWN_COUNTRY',
+          status: 422,
+          detail: 'Pays inconnu : FR.',
+          errors: [{ field: 'country.countryCode', code: 'Invalid', message: 'Inconnu.' }],
+        },
         { status: 422, statusText: 'Unprocessable Entity', headers: PROBLEM_HEADERS },
       );
       fixture.detectChanges();
@@ -270,7 +317,12 @@ describe('MobilityChoiceForm', () => {
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
       fillRequired();
       submit();
-      http.expectOne('/api/1.0/mobilityChoice').flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      http
+        .expectOne('/api/1.0/mobilityChoice')
+        .flush(
+          { code: 'UNAUTHENTICATED', status: 401 },
+          { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+        );
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
       expect(el.querySelector('[role=alert]')).toBeNull();
     });

@@ -205,8 +205,8 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 
 | Job | What it checks |
 |---|---|
-| Backend | `mvn verify`: compile, JUnit 6 tests, JaCoCo coverage |
-| Frontend | `npm ci`, production build, Karma tests (headless Chrome) with coverage |
+| Backend | `mvn verify`: compile, JUnit 6 tests, JaCoCo coverage, `spotless:check` (google-java-format) |
+| Frontend | `npm ci`, `npm run lint` (angular-eslint), `npm run format:check` (Prettier), production build, Karma tests (headless Chrome) with coverage |
 | Workflow lint | `actionlint` on the workflows |
 | Docker | `docker compose config`, backend and frontend image builds |
 | End-to-end | the jar on a PostgreSQL 18 service container: `e2e/run-e2e.sh` (API scenario, Playwright walk of the legacy UI and the Angular app), screenshots and logs uploaded |
@@ -214,6 +214,8 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 | CI passed | single gate job to mark as *required* in branch protection |
 
 Reproduce locally with `mvn verify` and `cd frontend && npm run test:ci`.
+
+Formatting: `mvn spotless:apply` formats the Java sources (google-java-format) and `cd frontend && npm run format` the Angular app (Prettier); `mvn verify`, `npm run lint` and `npm run format:check` fail on what is left, and `.editorconfig` sets the same basics (UTF-8, LF, 2 spaces, final newline) in the editors.
 
 ## End-to-end tests
 `e2e/` holds an API scenario (Python) and a Playwright walk of the legacy UI and the Angular app,

@@ -6,11 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -23,8 +21,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   private static final String ADDRESS_BY_ID =
       "SELECT * FROM student_exchange_tools.addresses WHERE address_id = ?";
 
-  @Autowired
-  private AddressRepository addressRepository;
+  @Autowired private AddressRepository addressRepository;
 
   @Override
   protected List<String> fixtures() {
@@ -48,18 +45,23 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @NullSource
   @ValueSource(strings = {"Bruxelles-Capitale"})
   void createInsertsEveryColumnAndReturnsTheGeneratedIdWithVersionOne(String region) {
-    AddressDto found = inTransaction(() -> {
-      AddressDto created = addressRepository.create(newAddress("BE", region));
+    AddressDto found =
+        inTransaction(() -> {
+          AddressDto created = addressRepository.create(newAddress("BE", region));
 
-      assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
-      assertThat(created.getVersion()).isEqualTo(1);
-      Map<String, Object> row = queryForRow(ADDRESS_BY_ID, created.getId());
-      assertThat(row).containsEntry("street", "Avenue Louise").containsEntry("number", "54a")
-          .containsEntry("country", "BE").containsEntry("city", "Bruxelles")
-          .containsEntry("postal_code", "1050").containsEntry("region", region)
-          .containsEntry("version", 1);
-      return addressRepository.findById(created.getId());
-    });
+          assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
+          assertThat(created.getVersion()).isEqualTo(1);
+          Map<String, Object> row = queryForRow(ADDRESS_BY_ID, created.getId());
+          assertThat(row)
+              .containsEntry("street", "Avenue Louise")
+              .containsEntry("number", "54a")
+              .containsEntry("country", "BE")
+              .containsEntry("city", "Bruxelles")
+              .containsEntry("postal_code", "1050")
+              .containsEntry("region", region)
+              .containsEntry("version", 1);
+          return addressRepository.findById(created.getId());
+        });
 
     assertThat(found.getRegion()).isEqualTo(region);
     assertThat(found.getCountry().getName()).isEqualTo("Belgique");
@@ -67,8 +69,9 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void createWithAnUnknownCountryIsRejectedByTheForeignKey() {
-    runInTransaction(() -> assertThatThrownBy(() -> addressRepository.create(newAddress("ZZ", null)))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> addressRepository.create(newAddress("ZZ", null)))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -115,10 +118,14 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
 
       assertThat(updated).isSameAs(address);
       assertThat(updated.getVersion()).isEqualTo(5);
-      assertThat(queryForRow(ADDRESS_BY_ID, 2002)).containsEntry("street", "Place Flagey")
-          .containsEntry("number", "7").containsEntry("country", "FR")
-          .containsEntry("city", "Lille").containsEntry("postal_code", "59000")
-          .containsEntry("region", "Hauts-de-France").containsEntry("version", 5);
+      assertThat(queryForRow(ADDRESS_BY_ID, 2002))
+          .containsEntry("street", "Place Flagey")
+          .containsEntry("number", "7")
+          .containsEntry("country", "FR")
+          .containsEntry("city", "Lille")
+          .containsEntry("postal_code", "59000")
+          .containsEntry("region", "Hauts-de-France")
+          .containsEntry("version", 5);
     });
   }
 
@@ -129,7 +136,8 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
       address.setRegion(null);
       addressRepository.update(address);
 
-      assertThat(queryForRow(ADDRESS_BY_ID, 2001)).containsEntry("region", null)
+      assertThat(queryForRow(ADDRESS_BY_ID, 2001))
+          .containsEntry("region", null)
           .containsEntry("version", 2);
     });
   }
@@ -143,7 +151,8 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
 
       assertThatThrownBy(() -> addressRepository.update(stale))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(queryForRow(ADDRESS_BY_ID, 2002)).containsEntry("city", "Bruxelles")
+      assertThat(queryForRow(ADDRESS_BY_ID, 2002))
+          .containsEntry("city", "Bruxelles")
           .containsEntry("version", 4);
     });
   }

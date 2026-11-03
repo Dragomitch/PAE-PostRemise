@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,11 +37,13 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         return partners;
       } else {
         for (PartnerDto partnerDto : partners) {
-          partnerDto.getOptions().forEach(opt -> {
-            if (opt.getCode().equals(option)) {
-              optOk[0] = true;
-            }
-          });
+          partnerDto
+              .getOptions()
+              .forEach(opt -> {
+                if (opt.getCode().equals(option)) {
+                  optOk[0] = true;
+                }
+              });
           if (optOk[0] && partnerDto.isArchived() == false && partnerDto.isOfficial()) {
             list.add(partnerDto);
           }
@@ -52,13 +53,16 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
     } else if (filter.equals("country")) {
       if (userRole.equals(UserDto.ROLE_STUDENT)) {
         for (PartnerDto partnerDto : list) {
-          partnerDto.getOptions().forEach(opt -> {
-            if (opt.getCode().equals(option)) {
-              optOk[0] = true;
-            }
-          });
+          partnerDto
+              .getOptions()
+              .forEach(opt -> {
+                if (opt.getCode().equals(option)) {
+                  optOk[0] = true;
+                }
+              });
           if (partnerDto.isOfficial()
-              && partnerDto.getAddress().getCountry().getCountryCode().equals(value) && optOk[0]) {
+              && partnerDto.getAddress().getCountry().getCountryCode().equals(value)
+              && optOk[0]) {
             list.add(partnerDto);
           }
         }
@@ -74,11 +78,13 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
     } else if (filter.equals("archived")) {
       if (userRole.equals(UserDto.ROLE_STUDENT)) {
         for (PartnerDto partnerDto : partners) {
-          partnerDto.getOptions().forEach(opt -> {
-            if (opt.getCode().equals(option)) {
-              optOk[0] = true;
-            }
-          });
+          partnerDto
+              .getOptions()
+              .forEach(opt -> {
+                if (opt.getCode().equals(option)) {
+                  optOk[0] = true;
+                }
+              });
           if (optOk[0] && partnerDto.isArchived()) {
             list.add(partnerDto);
           }
@@ -108,5 +114,4 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
   public void empty() {
     partners = new ArrayList<PartnerDto>();
   }
-
 }

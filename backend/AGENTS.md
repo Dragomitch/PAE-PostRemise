@@ -45,8 +45,15 @@ pom.xml
 
 ### Code Style
 
-- Follow the Google Java Style Guide.
-- Use the Maven formatter plugin before committing.
+- Follow the Google Java Style Guide. The layout is google-java-format's (2 spaces, 100 columns,
+  one ASCII-sorted import block), applied by Spotless (`spotless-maven-plugin`, versions in the
+  `spotless.version` and `google-java-format.version` properties of `pom.xml`) to
+  `src/main/java` and `src/test/java`.
+- Run `mvn spotless:apply` before committing; it formats the Java sources and removes unused
+  imports. `mvn spotless:check` reports the files it would change without touching them, and it is
+  bound to the `verify` phase, so `mvn verify` (the CI backend job) fails on a misformatted file.
+- google-java-format refuses a comment at the end of an import line ("Imports not contiguous"):
+  put the comment on its own line.
 - Keep methods short and well-documented.
 
 ### Naming Conventions

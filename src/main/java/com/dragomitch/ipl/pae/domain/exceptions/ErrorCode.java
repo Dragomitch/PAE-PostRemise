@@ -5,35 +5,36 @@ import java.util.Locale;
 import org.springframework.http.HttpStatus;
 
 /**
- * Catalogue of the errors of the API. Every error response is an RFC 9457 problem
- * ({@code application/problem+json}) whose {@code code} property is the name of one of these
- * constants: it is the stable, machine-readable key clients branch on (never the message text).
+ * Catalogue of the errors of the API. Every error response is an RFC 9457 problem ({@code
+ * application/problem+json}) whose {@code code} property is the name of one of these constants: it
+ * is the stable, machine-readable key clients branch on (never the message text).
  *
  * <p>Each code carries:
+ *
  * <ul>
- * <li>its HTTP status, following one policy:
- *   <ul>
- *   <li>400: the request is malformed or breaks a validation constraint
- *   ({@link #VALIDATION_FAILED}, with the offending fields in {@code errors});</li>
- *   <li>401 / 403: authentication and authorization;</li>
- *   <li>404: the resource identified by the URL does not exist;</li>
- *   <li>409: the request conflicts with the current state of the data (uniqueness, state of a
- *   mobility or of a mobility choice, stale version);</li>
- *   <li>422: the request is well-formed but breaks a business rule, e.g. it refers to an entity
- *   that does not exist (unknown option, country, user...) or that is not allowed for the
- *   requester;</li>
- *   <li>5xx: server-side failures, never detailed to the client.</li>
- *   </ul></li>
- * <li>its problem {@code type}, {@code urn:pae:problem:<kebab-case-code>};</li>
- * <li>its localized title and detail, read from the {@code MessageSource}
- * ({@code i18n/messages*.properties}) under {@code problem.<CODE>.title} and
- * {@code problem.<CODE>.detail}. A test checks that every code is translated in every
- * supported language.</li>
+ *   <li>its HTTP status, following one policy:
+ *       <ul>
+ *         <li>400: the request is malformed or breaks a validation constraint ({@link
+ *             #VALIDATION_FAILED}, with the offending fields in {@code errors});
+ *         <li>401 / 403: authentication and authorization;
+ *         <li>404: the resource identified by the URL does not exist;
+ *         <li>409: the request conflicts with the current state of the data (uniqueness, state of a
+ *             mobility or of a mobility choice, stale version);
+ *         <li>422: the request is well-formed but breaks a business rule, e.g. it refers to an
+ *             entity that does not exist (unknown option, country, user...) or that is not allowed
+ *             for the requester;
+ *         <li>5xx: server-side failures, never detailed to the client.
+ *       </ul>
+ *   <li>its problem {@code type}, {@code urn:pae:problem:<kebab-case-code>};
+ *   <li>its localized title and detail, read from the {@code MessageSource} ({@code
+ *       i18n/messages*.properties}) under {@code problem.<CODE>.title} and {@code
+ *       problem.<CODE>.detail}. A test checks that every code is translated in every supported
+ *       language.
  * </ul>
  *
  * <p>The field-level checks of the former numeric catalogue ({@code errors.json}: invalid first
- * name, too long username, malformed IBAN...) are now Bean Validation constraints reported
- * together under {@link #VALIDATION_FAILED}.
+ * name, too long username, malformed IBAN...) are now Bean Validation constraints reported together
+ * under {@link #VALIDATION_FAILED}.
  */
 public enum ErrorCode {
 
@@ -161,12 +162,12 @@ public enum ErrorCode {
   }
 
   /**
-   * The code whose status is {@code status}, for errors raised by the infrastructure (Spring
-   * MVC, servlet container) that carry no code of their own.
+   * The code whose status is {@code status}, for errors raised by the infrastructure (Spring MVC,
+   * servlet container) that carry no code of their own.
    *
    * @param status an HTTP error status
-   * @return the matching generic code ({@link #MALFORMED_REQUEST} for any other 4xx,
-   *     {@link #INTERNAL_ERROR} for any other status)
+   * @return the matching generic code ({@link #MALFORMED_REQUEST} for any other 4xx, {@link
+   *     #INTERNAL_ERROR} for any other status)
    */
   public static ErrorCode forStatus(int status) {
     return switch (status) {

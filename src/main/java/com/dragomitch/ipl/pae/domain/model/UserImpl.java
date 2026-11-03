@@ -1,10 +1,7 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -124,5 +121,4 @@ class UserImpl implements User, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
 }

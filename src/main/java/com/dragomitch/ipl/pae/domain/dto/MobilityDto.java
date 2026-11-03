@@ -14,11 +14,20 @@ public interface MobilityDto extends MobilityChoiceDto {
   String STATE_CLOSED = "Terminée";
   String STATE_CANCELLED = "Annulée";
 
-  @Schema(description = "Créée, En préparation (a document is filled in), A payer (every "
-      + "departure document is filled in), En cours (first payment), Solde à payer (every "
-      + "document is filled in), Terminée (second payment) or Annulée.", allowableValues = {
-          STATE_CREATED, STATE_IN_PREPARATION, STATE_TO_BE_PAID, STATE_IN_PROGRESS,
-          STATE_BALANCE_TO_BE_PAID, STATE_CLOSED, STATE_CANCELLED})
+  @Schema(
+      description =
+          "Créée, En préparation (a document is filled in), A payer (every "
+              + "departure document is filled in), En cours (first payment), Solde à payer (every "
+              + "document is filled in), Terminée (second payment) or Annulée.",
+      allowableValues = {
+        STATE_CREATED,
+        STATE_IN_PREPARATION,
+        STATE_TO_BE_PAID,
+        STATE_IN_PROGRESS,
+        STATE_BALANCE_TO_BE_PAID,
+        STATE_CLOSED,
+        STATE_CANCELLED
+      })
   String getState();
 
   void setState(String state);
@@ -55,5 +64,4 @@ public interface MobilityDto extends MobilityChoiceDto {
   NominatedStudentDto getNominatedStudent();
 
   void setNominatedStudent(NominatedStudentDto nominatedStudent);
-
 }

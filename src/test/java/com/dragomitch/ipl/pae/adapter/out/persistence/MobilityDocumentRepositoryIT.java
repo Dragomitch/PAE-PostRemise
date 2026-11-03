@@ -5,13 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,21 +21,29 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
       "SELECT * FROM student_exchange_tools.mobility_documents "
           + "WHERE document_id = ? AND mobility_id = ?";
 
-  @Autowired
-  private MobilityDocumentRepository mobilityDocumentRepository;
+  @Autowired private MobilityDocumentRepository mobilityDocumentRepository;
 
   @Override
   protected List<String> fixtures() {
-    return List.of("db/fixtures/users.sql", "db/fixtures/partners.sql",
-        "db/fixtures/mobility_choices.sql", "db/fixtures/mobilities.sql");
+    return List.of(
+        "db/fixtures/users.sql",
+        "db/fixtures/partners.sql",
+        "db/fixtures/mobility_choices.sql",
+        "db/fixtures/mobilities.sql");
   }
 
   @Test
   void findAllByMobilityReturnsTheDocumentsWithTheirFilledInFlag() {
-    List<DocumentDto> documents = inTransaction(() -> mobilityDocumentRepository.findAllByMobility(5006));
+    List<DocumentDto> documents =
+        inTransaction(() -> mobilityDocumentRepository.findAllByMobility(5006));
 
-    assertThat(documents).extracting(DocumentDto::getId, DocumentDto::getName,
-        DocumentDto::getCategory, DocumentDto::isFilledIn).containsExactlyInAnyOrder(
+    assertThat(documents)
+        .extracting(
+            DocumentDto::getId,
+            DocumentDto::getName,
+            DocumentDto::getCategory,
+            DocumentDto::isFilledIn)
+        .containsExactlyInAnyOrder(
             tuple(1, "Contrat de bourse", 'D', true),
             tuple(2, "Convention de stage / Convention d'études", 'D', false),
             tuple(14, "Attestation séjour", 'R', false));
@@ -57,21 +62,25 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityDocumentRepository.create(3, 5006);
 
-      assertThat(queryForRow(LINK, 3, 5006)).containsEntry("is_filled_in", false)
+      assertThat(queryForRow(LINK, 3, 5006))
+          .containsEntry("is_filled_in", false)
           .containsEntry("version", 1);
-      assertThat(mobilityDocumentRepository.findAllByMobility(5006)).extracting(DocumentDto::getId)
+      assertThat(mobilityDocumentRepository.findAllByMobility(5006))
+          .extracting(DocumentDto::getId)
           .containsExactlyInAnyOrder(1, 2, 3, 14);
     });
   }
 
   @ParameterizedTest(name = "document {0} / mobility {1}")
   @CsvSource({
-      "1, 5006",     // already linked (primary key)
-      "999, 5006",   // unknown document
-      "3, 5001"})    // mobility choice that is not a mobility
+    "1, 5006", // already linked (primary key)
+    "999, 5006", // unknown document
+    "3, 5001"
+  }) // mobility choice that is not a mobility
   void createIsRejectedByTheConstraints(int document, int mobility) {
-    runInTransaction(() -> assertThatThrownBy(() -> mobilityDocumentRepository.create(document, mobility))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> mobilityDocumentRepository.create(document, mobility))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -79,9 +88,11 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityDocumentRepository.fillInDocument(2, 5006);
 
-      assertThat(queryForRow(LINK, 2, 5006)).containsEntry("is_filled_in", true)
+      assertThat(queryForRow(LINK, 2, 5006))
+          .containsEntry("is_filled_in", true)
           .containsEntry("version", 2);
-      assertThat(queryForRow(LINK, 14, 5006)).containsEntry("is_filled_in", false)
+      assertThat(queryForRow(LINK, 14, 5006))
+          .containsEntry("is_filled_in", false)
           .containsEntry("version", 1);
     });
   }
@@ -91,7 +102,8 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityDocumentRepository.fillInDocument(1, 5006);
 
-      assertThat(queryForRow(LINK, 1, 5006)).containsEntry("is_filled_in", true)
+      assertThat(queryForRow(LINK, 1, 5006))
+          .containsEntry("is_filled_in", true)
           .containsEntry("version", 3);
     });
   }
@@ -104,9 +116,13 @@ class MobilityDocumentRepositoryIT extends AbstractRepositoryIT {
 
       assertThatThrownBy(() -> mobilityDocumentRepository.fillInDocument(5, 5006))
           .isInstanceOf(ConcurrentModificationException.class)
-          .hasMessageContaining("Document 5").hasMessageContaining("5006");
-      assertThat(query("SELECT * FROM student_exchange_tools.mobility_documents "
-          + "ORDER BY document_id")).isEqualTo(before);
+          .hasMessageContaining("Document 5")
+          .hasMessageContaining("5006");
+      assertThat(
+              query(
+                  "SELECT * FROM student_exchange_tools.mobility_documents "
+                      + "ORDER BY document_id"))
+          .isEqualTo(before);
     });
   }
 }

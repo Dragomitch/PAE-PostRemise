@@ -15,8 +15,7 @@ import jakarta.persistence.Version;
 @Table(name = "mobility_documents")
 public class MobilityDocumentEntity {
 
-  @EmbeddedId
-  private MobilityDocumentId id;
+  @EmbeddedId private MobilityDocumentId id;
 
   @MapsId("documentId")
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

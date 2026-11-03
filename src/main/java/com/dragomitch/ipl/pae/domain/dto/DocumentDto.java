@@ -24,5 +24,4 @@ public interface DocumentDto extends Entity {
   ProgrammeDto getProgramme();
 
   void setProgramme(ProgrammeDto programme);
-
 }

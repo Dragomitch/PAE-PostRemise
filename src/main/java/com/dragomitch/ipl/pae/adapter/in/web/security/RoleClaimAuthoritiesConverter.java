@@ -10,9 +10,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.StringUtils;
 
 /**
- * Maps the {@value CurrentUser#ROLE_CLAIM} claim of the session JWT ({@code Professor} or
- * {@code Student}) to the authority {@code ROLE_PROFESSOR} or {@code ROLE_STUDENT}, so that
- * endpoints can be guarded with {@code @PreAuthorize("hasRole('PROFESSOR')")}.
+ * Maps the {@value CurrentUser#ROLE_CLAIM} claim of the session JWT ({@code Professor} or {@code
+ * Student}) to the authority {@code ROLE_PROFESSOR} or {@code ROLE_STUDENT}, so that endpoints can
+ * be guarded with {@code @PreAuthorize("hasRole('PROFESSOR')")}.
  */
 public class RoleClaimAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 

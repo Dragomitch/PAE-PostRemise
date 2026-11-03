@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  LOCALE_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -29,7 +37,10 @@ export function optionCodes(partner: Partner): string {
 
 /** Lower case without accents, so that "universite" finds "Université". */
 export function normalize(text: string): string {
-  return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 }
 
 /**
@@ -50,7 +61,10 @@ export class Partners {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly collator = new Intl.Collator(inject(LOCALE_ID), { sensitivity: 'base', numeric: true });
+  private readonly collator = new Intl.Collator(inject(LOCALE_ID), {
+    sensitivity: 'base',
+    numeric: true,
+  });
 
   protected readonly isProfessor = this.session.isProfessor;
   protected readonly loading = signal(true);
@@ -71,7 +85,11 @@ export class Partners {
     return this.partners()
       .filter((p) => normalize(p.fullName).includes(text))
       .filter((p) => archived === 'all' || p.archived === (archived === 'archived'))
-      .sort((a, b) => sign * this.collator.compare(key(a), key(b)) || this.collator.compare(a.fullName, b.fullName));
+      .sort(
+        (a, b) =>
+          sign * this.collator.compare(key(a), key(b)) ||
+          this.collator.compare(a.fullName, b.fullName),
+      );
   });
 
   /** Flags that failed to load (country without a picture): the name alone is shown. */

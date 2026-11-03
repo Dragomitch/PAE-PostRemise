@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -86,5 +85,4 @@ public class InMemoryUserRepository implements UserRepository, ResettableReposit
   public void empty() {
     users = new ArrayList<UserDto>();
   }
-
 }

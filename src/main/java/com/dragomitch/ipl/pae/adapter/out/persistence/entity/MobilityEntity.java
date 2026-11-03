@@ -10,12 +10,11 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
 import java.time.LocalDateTime;
 
 /**
- * A confirmed mobility ({@code mobilities}). It shares its primary key with the mobility choice
- * it confirms ({@code mobility_choice_id}, mapped with {@link MapsId}).
+ * A confirmed mobility ({@code mobilities}). It shares its primary key with the mobility choice it
+ * confirms ({@code mobility_choice_id}, mapped with {@link MapsId}).
  */
 @Entity
 @Table(name = "mobilities")

@@ -1,0 +1,9 @@
+# Prettier formats the sources (src/) and the configuration files of the frontend.
+# Generated files and build output
+package-lock.json
+dist/
+coverage/
+reports/
+.angular/
+# Documentation: not formatted by Prettier
+*.md

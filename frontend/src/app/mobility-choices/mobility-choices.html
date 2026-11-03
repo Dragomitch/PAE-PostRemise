@@ -1,7 +1,9 @@
 <section aria-labelledby="mobility-choices-title">
   <h1 id="mobility-choices-title">
     @if (isProfessor()) {
-      <ng-container i18n="@@mobilityChoices.title.professor">Gestion des demandes de mobilité</ng-container>
+      <ng-container i18n="@@mobilityChoices.title.professor"
+        >Gestion des demandes de mobilité</ng-container
+      >
     } @else {
       <ng-container i18n="@@mobilityChoices.title.student">Mes demandes de mobilité</ng-container>
     }
@@ -10,16 +12,32 @@
   <div class="toolbar">
     @if (isProfessor()) {
       <div class="field">
-        <label for="mobility-choices-filter" i18n="@@mobilityChoices.filter.label">Afficher les demandes</label>
+        <label for="mobility-choices-filter" i18n="@@mobilityChoices.filter.label"
+          >Afficher les demandes</label
+        >
         <select id="mobility-choices-filter" [value]="filter()" (change)="setFilter($event)">
           @for (f of filters; track f.value) {
             <option [value]="f.value">{{ f.label }}</option>
           }
         </select>
       </div>
-      <a class="button export" [href]="exportUrl()" target="_blank" rel="noopener" i18n="@@mobilityChoices.export">Exporter en csv</a>
+      <a
+        class="button export"
+        [href]="exportUrl()"
+        target="_blank"
+        rel="noopener"
+        i18n="@@mobilityChoices.export"
+        >Exporter en csv</a
+      >
     } @else if (!creating()) {
-      <button type="button" class="button primary create" (click)="openCreation()" i18n="@@mobilityChoices.create">Créer une demande de mobilité</button>
+      <button
+        type="button"
+        class="button primary create"
+        (click)="openCreation()"
+        i18n="@@mobilityChoices.create"
+      >
+        Créer une demande de mobilité
+      </button>
     }
   </div>
 
@@ -42,9 +60,13 @@
   @if (panel(); as current) {
     <div class="panel action-panel">
       @if (current.action === 'cancel') {
-        <h2 id="mobility-choices-panel-title" i18n="@@mobilityChoices.cancel.title">Annuler une demande de mobilité</h2>
+        <h2 id="mobility-choices-panel-title" i18n="@@mobilityChoices.cancel.title">
+          Annuler une demande de mobilité
+        </h2>
       } @else {
-        <h2 id="mobility-choices-panel-title" i18n="@@mobilityChoices.reject.title">Refuser une demande de mobilité</h2>
+        <h2 id="mobility-choices-panel-title" i18n="@@mobilityChoices.reject.title">
+          Refuser une demande de mobilité
+        </h2>
       }
       <p class="summary">{{ summary(current.choice) }}</p>
 
@@ -62,35 +84,80 @@
       }
 
       @if (current.action === 'cancel') {
-        <form [formGroup]="cancelForm" (ngSubmit)="submitPanel()" novalidate aria-labelledby="mobility-choices-panel-title">
+        <form
+          [formGroup]="cancelForm"
+          (ngSubmit)="submitPanel()"
+          novalidate
+          aria-labelledby="mobility-choices-panel-title"
+        >
           <div class="form-group">
-            <label for="mobility-choices-cancel-reason" i18n="@@mobilityChoices.cancel.reason.label">Raison de l'annulation :</label>
-            <textarea #panelField id="mobility-choices-cancel-reason" class="input" rows="3" formControlName="reason"
-                      [attr.maxlength]="reasonMaxLength" [attr.aria-invalid]="!!reasonError()"
-                      [attr.aria-describedby]="reasonError() ? 'mobility-choices-reason-error' : null"></textarea>
+            <label for="mobility-choices-cancel-reason" i18n="@@mobilityChoices.cancel.reason.label"
+              >Raison de l'annulation :</label
+            >
+            <textarea
+              #panelField
+              id="mobility-choices-cancel-reason"
+              class="input"
+              rows="3"
+              formControlName="reason"
+              [attr.maxlength]="reasonMaxLength"
+              [attr.aria-invalid]="!!reasonError()"
+              [attr.aria-describedby]="reasonError() ? 'mobility-choices-reason-error' : null"
+            ></textarea>
             @if (reasonError(); as message) {
               <p class="field-error" id="mobility-choices-reason-error">{{ message }}</p>
             }
           </div>
           <div class="actions">
-            <button type="submit" class="button danger" [disabled]="busy()" [attr.aria-busy]="busy()" i18n="@@mobilityChoices.cancel.submit">Annuler la demande</button>
-            <button type="button" class="button" (click)="closePanel()" i18n="@@mobilityChoices.panel.close">Fermer</button>
+            <button
+              type="submit"
+              class="button danger"
+              [disabled]="busy()"
+              [attr.aria-busy]="busy()"
+              i18n="@@mobilityChoices.cancel.submit"
+            >
+              Annuler la demande
+            </button>
+            <button
+              type="button"
+              class="button"
+              (click)="closePanel()"
+              i18n="@@mobilityChoices.panel.close"
+            >
+              Fermer
+            </button>
           </div>
         </form>
       } @else {
-        <form [formGroup]="rejectForm" (ngSubmit)="submitPanel()" novalidate aria-labelledby="mobility-choices-panel-title">
+        <form
+          [formGroup]="rejectForm"
+          (ngSubmit)="submitPanel()"
+          novalidate
+          aria-labelledby="mobility-choices-panel-title"
+        >
           <div class="form-group">
-            <label for="mobility-choices-reject-reason" i18n="@@mobilityChoices.reject.reason.label">Raison du refus</label>
-            <select #panelField id="mobility-choices-reject-reason" class="input" formControlName="reason"
-                    [attr.aria-invalid]="!!reasonError()"
-                    [attr.aria-describedby]="reasonError() ? 'mobility-choices-reason-error' : null">
+            <label for="mobility-choices-reject-reason" i18n="@@mobilityChoices.reject.reason.label"
+              >Raison du refus</label
+            >
+            <select
+              #panelField
+              id="mobility-choices-reject-reason"
+              class="input"
+              formControlName="reason"
+              [attr.aria-invalid]="!!reasonError()"
+              [attr.aria-describedby]="reasonError() ? 'mobility-choices-reason-error' : null"
+            >
               @if (denialReasons(); as reasons) {
-                <option value="" disabled i18n="@@mobilityChoices.reject.reason.placeholder">Choisissez une raison</option>
+                <option value="" disabled i18n="@@mobilityChoices.reject.reason.placeholder">
+                  Choisissez une raison
+                </option>
                 @for (r of reasons; track r.id) {
                   <option [value]="r.id">{{ r.reason }}</option>
                 }
               } @else {
-                <option value="" disabled i18n="@@mobilityChoices.reject.reason.loading">Chargement des raisons…</option>
+                <option value="" disabled i18n="@@mobilityChoices.reject.reason.loading">
+                  Chargement des raisons…
+                </option>
               }
             </select>
             @if (reasonError(); as message) {
@@ -98,8 +165,23 @@
             }
           </div>
           <div class="actions">
-            <button type="submit" class="button danger" [disabled]="busy()" [attr.aria-busy]="busy()" i18n="@@mobilityChoices.reject.submit">Refuser la demande</button>
-            <button type="button" class="button" (click)="closePanel()" i18n="@@mobilityChoices.panel.close">Fermer</button>
+            <button
+              type="submit"
+              class="button danger"
+              [disabled]="busy()"
+              [attr.aria-busy]="busy()"
+              i18n="@@mobilityChoices.reject.submit"
+            >
+              Refuser la demande
+            </button>
+            <button
+              type="button"
+              class="button"
+              (click)="closePanel()"
+              i18n="@@mobilityChoices.panel.close"
+            >
+              Fermer
+            </button>
           </div>
         </form>
       }
@@ -107,15 +189,24 @@
   }
 
   @if (loading()) {
-    <p class="state" role="status" i18n="@@mobilityChoices.loading">Chargement des demandes de mobilité…</p>
+    <p class="state" role="status" i18n="@@mobilityChoices.loading">
+      Chargement des demandes de mobilité…
+    </p>
   } @else if (problem(); as p) {
     <div class="notification notification-danger" role="alert">
       <p>{{ p.detail }}</p>
-      <button type="button" class="retry" (click)="load()" i18n="@@mobilityChoices.retry">Réessayer</button>
+      <button type="button" class="retry" (click)="load()" i18n="@@mobilityChoices.retry">
+        Réessayer
+      </button>
     </div>
   } @else {
     @if (count() !== null) {
-      <p class="count" i18n="@@mobilityChoices.count">Nombre de demandes : {{ count() // i18n(ph="COUNT") }}</p>
+      <p class="count" i18n="@@mobilityChoices.count">
+        Nombre de demandes :
+        {{
+          count() // i18n(ph="COUNT")
+        }}
+      </p>
     }
 
     @if (choices().length) {
@@ -147,7 +238,15 @@
                   @if (c.country; as country) {
                     <div class="country">
                       @if (flagUrl(country.countryCode); as src) {
-                        <img class="flag" [src]="src" alt="" width="24" height="24" loading="lazy" (error)="flagFailed(country.countryCode)">
+                        <img
+                          class="flag"
+                          [src]="src"
+                          alt=""
+                          width="24"
+                          height="24"
+                          loading="lazy"
+                          (error)="flagFailed(country.countryCode)"
+                        />
                       }
                       <span>{{ country.name || country.countryCode }}</span>
                     </div>
@@ -159,7 +258,9 @@
                   @if (c.partner; as partner) {
                     {{ partner.fullName }}
                   } @else {
-                    <span class="muted" i18n="@@mobilityChoices.partner.none">Pas de partenaire spécifié</span>
+                    <span class="muted" i18n="@@mobilityChoices.partner.none"
+                      >Pas de partenaire spécifié</span
+                    >
                   }
                 </td>
                 <td>{{ mobilityType(c) }}</td>
@@ -168,17 +269,25 @@
                 <td>
                   @switch (state(c)) {
                     @case ('rejected') {
-                      <span class="badge badge-rejected" i18n="@@mobilityChoices.state.rejected">Refusée</span>
+                      <span class="badge badge-rejected" i18n="@@mobilityChoices.state.rejected"
+                        >Refusée</span
+                      >
                     }
                     @case ('confirmed') {
-                      <span class="badge badge-confirmed" i18n="@@mobilityChoices.state.confirmed">Confirmée</span>
+                      <span class="badge badge-confirmed" i18n="@@mobilityChoices.state.confirmed"
+                        >Confirmée</span
+                      >
                     }
                     @case ('canceled') {
-                      <span class="badge badge-canceled" i18n="@@mobilityChoices.state.canceled">Annulée</span>
+                      <span class="badge badge-canceled" i18n="@@mobilityChoices.state.canceled"
+                        >Annulée</span
+                      >
                       <p class="reason">{{ c.cancellationReason }}</p>
                     }
                     @default {
-                      <span class="badge badge-pending" i18n="@@mobilityChoices.state.pending">En attente</span>
+                      <span class="badge badge-pending" i18n="@@mobilityChoices.state.pending"
+                        >En attente</span
+                      >
                     }
                   }
                 </td>
@@ -186,11 +295,35 @@
                   @if (state(c) === 'pending') {
                     @if (isProfessor()) {
                       @if (c.partner) {
-                        <button type="button" class="button confirm" [disabled]="busy()" (click)="confirm(c)" i18n="@@mobilityChoices.action.confirm">Confirmer</button>
+                        <button
+                          type="button"
+                          class="button confirm"
+                          [disabled]="busy()"
+                          (click)="confirm(c)"
+                          i18n="@@mobilityChoices.action.confirm"
+                        >
+                          Confirmer
+                        </button>
                       }
-                      <button type="button" class="button danger reject" [disabled]="busy()" (click)="openReject(c)" i18n="@@mobilityChoices.action.reject">Refuser</button>
+                      <button
+                        type="button"
+                        class="button danger reject"
+                        [disabled]="busy()"
+                        (click)="openReject(c)"
+                        i18n="@@mobilityChoices.action.reject"
+                      >
+                        Refuser
+                      </button>
                     } @else {
-                      <button type="button" class="button danger cancel" [disabled]="busy()" (click)="openCancel(c)" i18n="@@mobilityChoices.action.cancel">Annuler</button>
+                      <button
+                        type="button"
+                        class="button danger cancel"
+                        [disabled]="busy()"
+                        (click)="openCancel(c)"
+                        i18n="@@mobilityChoices.action.cancel"
+                      >
+                        Annuler
+                      </button>
                     }
                   }
                 </td>
@@ -200,9 +333,13 @@
         </table>
       </div>
     } @else if (isProfessor()) {
-      <p class="state" i18n="@@mobilityChoices.empty.professor">Aucune demande de mobilité pour ce filtre.</p>
+      <p class="state" i18n="@@mobilityChoices.empty.professor">
+        Aucune demande de mobilité pour ce filtre.
+      </p>
     } @else {
-      <p class="state" i18n="@@mobilityChoices.empty.student">Vous n'avez encore introduit aucune demande de mobilité.</p>
+      <p class="state" i18n="@@mobilityChoices.empty.student">
+        Vous n'avez encore introduit aucune demande de mobilité.
+      </p>
     }
   }
 </section>

@@ -7,7 +7,7 @@ public class CsvStringBuilder {
 
   /**
    * Initialize the parameters create a CSV string.
-   * 
+   *
    * @param separator the separator for the CSV fields.
    */
   public CsvStringBuilder(char separator) {
@@ -17,7 +17,7 @@ public class CsvStringBuilder {
 
   /**
    * Write all the strings to the current position into the CSV. Does not return to line.
-   * 
+   *
    * @param words the string to put into the file.
    */
   public void write(String[] words) {
@@ -29,7 +29,7 @@ public class CsvStringBuilder {
 
   /**
    * Write a string to the current position into the CSV. Does not return to line.
-   * 
+   *
    * @param word the string to put into the CSV.
    */
   public void write(String word) {
@@ -39,7 +39,7 @@ public class CsvStringBuilder {
 
   /**
    * Write all the strings to the current position into the CSV. Return to line after last string.
-   * 
+   *
    * @param line the strings to put into the CSV.
    */
   public void writeLine(String[] line) {
@@ -49,7 +49,7 @@ public class CsvStringBuilder {
 
   /**
    * Close the current CSV file.
-   * 
+   *
    * @return the CSV generated.
    */
   public String close() {

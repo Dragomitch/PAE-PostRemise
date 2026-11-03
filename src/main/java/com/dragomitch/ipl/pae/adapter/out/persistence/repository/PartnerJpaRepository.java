@@ -1,9 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence.repository;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /** The partners; their filtered search is built by {@code JpaPartnerRepositoryAdapter}. */
-public interface PartnerJpaRepository extends JpaRepository<PartnerEntity, Integer> {
-}
+public interface PartnerJpaRepository extends JpaRepository<PartnerEntity, Integer> {}

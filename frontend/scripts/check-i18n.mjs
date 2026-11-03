@@ -4,6 +4,9 @@
 // 1. Re-extracts the messages from the sources into a temporary folder and compares them with
 //    the committed src/locale/messages.xlf (ids + source text; line numbers are ignored).
 //    Fails when a message was added, removed or changed without running `npm run i18n:extract`.
+//    Source texts are compared with their whitespace collapsed and trimmed: how Prettier lays out
+//    a template (an element's text on its own line, a long interpolation split over lines) is not
+//    a change of the message.
 // 2. For every translation file declared in angular.json (`i18n.locales`), checks that each
 //    message has a non-empty <target>, that the <source> copy matches the current source text
 //    (so edited French text flags the translation as outdated), that placeholders match, and
@@ -32,8 +35,17 @@ function parseUnits(xml) {
   return units;
 }
 
+// Whitespace runs as one space, no leading or trailing whitespace (see 1. above).
+function sameText(a, b) {
+  const normalize = (text) => text?.replace(/\s+/g, ' ').trim();
+  return normalize(a) === normalize(b);
+}
+
 function placeholders(text = '') {
-  return [...text.matchAll(/<x\s+id="([^"]+)"/g)].map((m) => m[1]).sort().join(',');
+  return [...text.matchAll(/<x\s+id="([^"]+)"/g)]
+    .map((m) => m[1])
+    .sort()
+    .join(',');
 }
 
 const problems = [];
@@ -55,7 +67,7 @@ try {
   for (const [id, unit] of fresh) {
     if (!committed.has(id)) {
       problems.push(`messages.xlf: new message "${id}" is not extracted`);
-    } else if (committed.get(id).source !== unit.source) {
+    } else if (!sameText(committed.get(id).source, unit.source)) {
       problems.push(`messages.xlf: message "${id}" changed in the sources`);
     }
   }
@@ -72,14 +84,14 @@ try {
   const angular = JSON.parse(readFileSync(join(root, 'angular.json'), 'utf8'));
   for (const project of Object.values(angular.projects)) {
     for (const [locale, config] of Object.entries(project.i18n?.locales ?? {})) {
-      const files = [].concat(typeof config === 'string' ? config : config.translation ?? []);
+      const files = [].concat(typeof config === 'string' ? config : (config.translation ?? []));
       for (const file of files) {
         const translated = parseUnits(readFileSync(join(root, file), 'utf8'));
         for (const [id, unit] of fresh) {
           const t = translated.get(id);
           if (!t || !t.target || !t.target.trim()) {
             problems.push(`${file}: missing ${locale} translation for "${id}"`);
-          } else if (t.source !== unit.source) {
+          } else if (!sameText(t.source, unit.source)) {
             problems.push(`${file}: translation of "${id}" is outdated (French source changed)`);
           } else if (placeholders(t.target) !== placeholders(unit.source)) {
             problems.push(`${file}: placeholders of "${id}" differ from the source`);

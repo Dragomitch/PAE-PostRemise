@@ -5,19 +5,16 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class InMemoryPartnerOptionRepository implements PartnerOptionRepository, ResettableRepository {
+public class InMemoryPartnerOptionRepository
+    implements PartnerOptionRepository, ResettableRepository {
 
   private List<PartnerOption> partnerOptions;
   private PartnerRepository partnerRepository;
 
-  /**
-   * Sole constructor.
-   * 
-   */
+  /** Sole constructor. */
   public InMemoryPartnerOptionRepository(PartnerRepository partnerRepository) {
     partnerOptions = new ArrayList<PartnerOption>();
     this.partnerRepository = partnerRepository;

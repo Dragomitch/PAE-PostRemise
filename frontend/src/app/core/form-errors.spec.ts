@@ -1,10 +1,22 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { ApiProblem } from './api-problem';
-import { clientErrorMessage, fieldMessage, matchingPasswords, unmatchedFieldErrors } from './form-errors';
+import {
+  clientErrorMessage,
+  fieldMessage,
+  matchingPasswords,
+  unmatchedFieldErrors,
+} from './form-errors';
 
 function problemWith(errors: { field: string; message: string }[]): ApiProblem {
-  return new ApiProblem({ status: 400, code: 'VALIDATION_FAILED', title: 't', detail: 'd', errors, fromServer: true });
+  return new ApiProblem({
+    status: 400,
+    code: 'VALIDATION_FAILED',
+    title: 't',
+    detail: 'd',
+    errors,
+    fromServer: true,
+  });
 }
 
 describe('form errors', () => {
@@ -13,7 +25,9 @@ describe('form errors', () => {
       expect(clientErrorMessage(null)).toBeNull();
       expect(clientErrorMessage({ required: true })).toBe('Ce champ est obligatoire.');
       expect(clientErrorMessage({ email: true })).toBe('Saisissez une adresse e-mail valide.');
-      expect(clientErrorMessage({ passwordMismatch: true })).toBe('Les mots de passe ne correspondent pas.');
+      expect(clientErrorMessage({ passwordMismatch: true })).toBe(
+        'Les mots de passe ne correspondent pas.',
+      );
       expect(clientErrorMessage({ minlength: { requiredLength: 3 } })).toBe('Valeur invalide.');
     });
   });
@@ -39,15 +53,22 @@ describe('form errors', () => {
     it('prefers the server field error, trying each server field name', () => {
       const control = new FormControl('', { nonNullable: true });
       const problem = problemWith([{ field: 'option.code', message: 'Option inconnue' }]);
-      expect(fieldMessage(problem, ['option', 'option.code'], control, false)).toBe('Option inconnue');
+      expect(fieldMessage(problem, ['option', 'option.code'], control, false)).toBe(
+        'Option inconnue',
+      );
     });
 
     it('shows client errors only once touched or submitted', () => {
-      const control = new FormControl('', { nonNullable: true, validators: (c) => (c.value ? null : { required: true }) });
+      const control = new FormControl('', {
+        nonNullable: true,
+        validators: (c) => (c.value ? null : { required: true }),
+      });
       expect(fieldMessage(null, ['x'], control, false)).toBeNull();
       expect(fieldMessage(null, ['x'], control, true)).toBe('Ce champ est obligatoire.');
       control.markAsTouched();
-      expect(fieldMessage(problemWith([]), ['x'], control, false)).toBe('Ce champ est obligatoire.');
+      expect(fieldMessage(problemWith([]), ['x'], control, false)).toBe(
+        'Ce champ est obligatoire.',
+      );
       control.setValue('ok');
       expect(fieldMessage(null, ['x'], control, true)).toBeNull();
       expect(fieldMessage(null, [], control, true, { passwordMismatch: true })).toBe(

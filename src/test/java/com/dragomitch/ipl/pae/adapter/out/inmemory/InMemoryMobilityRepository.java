@@ -1,12 +1,11 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +17,8 @@ public class InMemoryMobilityRepository implements MobilityRepository, Resettabl
   private EntityFactory entityFactory;
   private Set<MobilityDto> mobilities = new HashSet<MobilityDto>();
 
-  public InMemoryMobilityRepository(EntityFactory entityFactory, MobilityChoiceRepository mobilityChoiceRepository) {
+  public InMemoryMobilityRepository(
+      EntityFactory entityFactory, MobilityChoiceRepository mobilityChoiceRepository) {
     this.entityFactory = entityFactory;
     this.mobilityChoiceRepository = mobilityChoiceRepository;
   }

@@ -1,9 +1,21 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, HttpErrorResponse, HttpHeaders, provideHttpClient } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  provideHttpClient,
+} from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TimeoutError, of } from 'rxjs';
 
-import { ApiProblem, ClientProblemCode, knownCodeMessage, mapApiProblem, statusFallback, toApiProblem } from './api-problem';
+import {
+  ApiProblem,
+  ClientProblemCode,
+  knownCodeMessage,
+  mapApiProblem,
+  statusFallback,
+  toApiProblem,
+} from './api-problem';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
 
@@ -12,7 +24,9 @@ describe('toApiProblem (through HttpClient)', () => {
   let controller: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     http = TestBed.inject(HttpClient);
     controller = TestBed.inject(HttpTestingController);
   });
@@ -20,7 +34,9 @@ describe('toApiProblem (through HttpClient)', () => {
   afterEach(() => controller.verify());
 
   /** Performs a GET through mapApiProblem() and returns the emitted problem. */
-  function failWith(respond: (req: ReturnType<HttpTestingController['expectOne']>) => void): ApiProblem {
+  function failWith(
+    respond: (req: ReturnType<HttpTestingController['expectOne']>) => void,
+  ): ApiProblem {
     let problem: ApiProblem | undefined;
     http
       .get('/api/1.0/thing')
@@ -78,7 +94,10 @@ describe('toApiProblem (through HttpClient)', () => {
     );
     expect(problem.code).toBe('VALIDATION_FAILED');
     expect(problem.errors.length).toBe(3);
-    expect(problem.fieldErrors).toEqual({ email: ['Adresse invalide', 'Trop longue'], username: ['Obligatoire'] });
+    expect(problem.fieldErrors).toEqual({
+      email: ['Adresse invalide', 'Trop longue'],
+      username: ['Obligatoire'],
+    });
     expect(problem.fieldError('email')).toBe('Adresse invalide Trop longue');
     expect(problem.fieldError('password')).toBeNull();
   });
@@ -97,7 +116,10 @@ describe('toApiProblem (through HttpClient)', () => {
 
   it('falls back to the title, then to the status message, when detail and code are unusable', () => {
     const withTitle = failWith((req) =>
-      req.flush({ title: 'Erreur métier', code: 'SOMETHING_NEW' }, { status: 422, statusText: 'Unprocessable' }),
+      req.flush(
+        { title: 'Erreur métier', code: 'SOMETHING_NEW' },
+        { status: 422, statusText: 'Unprocessable' },
+      ),
     );
     expect(withTitle.detail).toBe('Erreur métier');
     expect(withTitle.code).toBe('SOMETHING_NEW');
@@ -149,7 +171,10 @@ describe('toApiProblem (through HttpClient)', () => {
 
   it('maps a proxy timeout page (504) to TIMEOUT', () => {
     const problem = failWith((req) =>
-      req.flush('<html>504 Gateway Time-out</html>', { status: 504, statusText: 'Gateway Timeout' }),
+      req.flush('<html>504 Gateway Time-out</html>', {
+        status: 504,
+        statusText: 'Gateway Timeout',
+      }),
     );
     expect(problem.code).toBe(ClientProblemCode.TIMEOUT);
   });
@@ -167,11 +192,15 @@ describe('toApiProblem (through HttpClient)', () => {
   });
 
   it('maps 401 and 403 without a problem body to UNAUTHENTICATED and ACCESS_DENIED', () => {
-    const unauthenticated = failWith((req) => req.flush(null, { status: 401, statusText: 'Unauthorized' }));
+    const unauthenticated = failWith((req) =>
+      req.flush(null, { status: 401, statusText: 'Unauthorized' }),
+    );
     expect(unauthenticated.code).toBe(ClientProblemCode.UNAUTHENTICATED);
     expect(unauthenticated.detail).toBe(knownCodeMessage('UNAUTHENTICATED')!);
 
-    const denied = failWith((req) => req.flush('Forbidden', { status: 403, statusText: 'Forbidden' }));
+    const denied = failWith((req) =>
+      req.flush('Forbidden', { status: 403, statusText: 'Forbidden' }),
+    );
     expect(denied.code).toBe(ClientProblemCode.ACCESS_DENIED);
     expect(denied.detail).toBe(knownCodeMessage('ACCESS_DENIED')!);
   });
@@ -217,7 +246,9 @@ describe('toApiProblem (direct)', () => {
   });
 
   it('uses the status of the problem body when the HTTP status is unknown', () => {
-    const problem = toApiProblem(new HttpErrorResponse({ status: 0, error: { code: 'X', status: 418 } }));
+    const problem = toApiProblem(
+      new HttpErrorResponse({ status: 0, error: { code: 'X', status: 418 } }),
+    );
     expect(problem.status).toBe(418);
     const noStatus = toApiProblem(new HttpErrorResponse({ status: 0, error: { code: 'X' } }));
     expect(noStatus.status).toBe(0);
@@ -225,7 +256,9 @@ describe('toApiProblem (direct)', () => {
   });
 
   it('derives the code from the status when the problem has none', () => {
-    const problem = toApiProblem(new HttpErrorResponse({ status: 404, error: { title: 'Introuvable' } }));
+    const problem = toApiProblem(
+      new HttpErrorResponse({ status: 404, error: { title: 'Introuvable' } }),
+    );
     expect(problem.code).toBe(ClientProblemCode.NOT_FOUND);
     expect(problem.detail).toBe('Introuvable');
   });

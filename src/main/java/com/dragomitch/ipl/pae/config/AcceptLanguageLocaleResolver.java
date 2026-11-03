@@ -10,10 +10,10 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 /**
  * Chooses the language of a request among the supported ones from its {@code Accept-Language}
  * header, with the RFC 4647 "lookup" matching of {@link Locale#lookup} and the header's quality
- * values ({@code en-US} gives English, {@code de-DE,en;q=0.5} English as well). The default
- * locale is used when the header is missing, malformed or matches no supported language
- * ({@code *}, {@code de}): unlike {@link AcceptHeaderLocaleResolver}, which then answers with
- * the servlet container's locale, the result never depends on the server.
+ * values ({@code en-US} gives English, {@code de-DE,en;q=0.5} English as well). The default locale
+ * is used when the header is missing, malformed or matches no supported language ({@code *}, {@code
+ * de}): unlike {@link AcceptHeaderLocaleResolver}, which then answers with the servlet container's
+ * locale, the result never depends on the server.
  */
 public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
 

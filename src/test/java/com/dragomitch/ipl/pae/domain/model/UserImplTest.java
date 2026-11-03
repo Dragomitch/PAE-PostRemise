@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.dragomitch.ipl.pae.domain.model.User;
-import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +16,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Constraints of a user (formerly {@code checkDataIntegrity()}, error codes 201 to 216), including
- * the maximum lengths of the database columns. A sign-up validates the {@code Default} and
- * {@code OnCreate} groups, an edition the {@code Default} group only.
+ * the maximum lengths of the database columns. A sign-up validates the {@code Default} and {@code
+ * OnCreate} groups, an edition the {@code Default} group only.
  */
 class UserImplTest {
 
@@ -69,21 +66,26 @@ class UserImplTest {
         invalid("empty last name (202)", u -> u.setLastName(""), "lastName:NotBlank"),
         invalid("last name too long (212)", u -> u.setLastName("l".repeat(36)), "lastName:Size"),
         invalid("no first name (201)", u -> u.setFirstName(null), "firstName:NotBlank"),
-        invalid("first name too long (211)", u -> u.setFirstName("f".repeat(36)),
-            "firstName:Size"),
+        invalid("first name too long (211)", u -> u.setFirstName("f".repeat(36)), "firstName:Size"),
         invalid("no password (205)", u -> u.setPassword(""), "password:NotBlank"),
-        invalid("password too long (214)", u -> u.setPassword("p".repeat(256)),
-            "password:Size"),
+        invalid("password too long (214)", u -> u.setPassword("p".repeat(256)), "password:Size"),
         invalid("no email (206)", u -> u.setEmail(null), "email:NotBlank"),
         invalid("malformed email (206)", u -> u.setEmail("alice.student.test"), "email:Email"),
-        invalid("email without top-level domain (206)", u -> u.setEmail("alice@localhost"),
+        invalid(
+            "email without top-level domain (206)",
+            u -> u.setEmail("alice@localhost"),
             "email:Email"),
-        invalid("email too long (215)", u -> u.setEmail("x" + LONGEST_EMAIL), "email:Email",
+        invalid(
+            "email too long (215)",
+            u -> u.setEmail("x" + LONGEST_EMAIL),
+            "email:Email",
             "email:Size"),
         invalid("no option (208)", u -> u.setOption(null), "option:NotNull"),
-        invalid("option without code (209)", u -> u.getOption().setCode(null),
-            "option.code:NotBlank"),
-        invalid("option code of 2 characters (216)", u -> u.getOption().setCode("BI"),
+        invalid(
+            "option without code (209)", u -> u.getOption().setCode(null), "option.code:NotBlank"),
+        invalid(
+            "option code of 2 characters (216)",
+            u -> u.getOption().setCode("BI"),
             "option.code:Size"));
   }
 
@@ -103,9 +105,14 @@ class UserImplTest {
   void everyViolationIsReportedAtOnce() {
     User empty = (User) factory.build(User.class);
 
-    assertThat(Violations.onCreate(empty)).containsExactly("email:NotBlank",
-        "firstName:NotBlank", "lastName:NotBlank", "option:NotNull", "password:NotBlank",
-        "username:NotBlank");
+    assertThat(Violations.onCreate(empty))
+        .containsExactly(
+            "email:NotBlank",
+            "firstName:NotBlank",
+            "lastName:NotBlank",
+            "option:NotNull",
+            "password:NotBlank",
+            "username:NotBlank");
   }
 
   @Test
@@ -118,7 +125,8 @@ class UserImplTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"alice@student.test", "a.b-c@mail.example.org", "a+tag@example.org", "x_y@d-1.be"})
+  @ValueSource(
+      strings = {"alice@student.test", "a.b-c@mail.example.org", "a+tag@example.org", "x_y@d-1.be"})
   void acceptedEmailAddresses(String email) {
     user.setEmail(email);
 

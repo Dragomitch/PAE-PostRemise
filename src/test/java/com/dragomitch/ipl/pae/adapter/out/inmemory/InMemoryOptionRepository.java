@@ -1,9 +1,8 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +14,7 @@ public class InMemoryOptionRepository implements OptionRepository {
 
   /**
    * Sole constructor.
-   * 
+   *
    * @param entityFactory builds objects
    */
   public InMemoryOptionRepository(EntityFactory entityFactory) {

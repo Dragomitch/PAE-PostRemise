@@ -1,7 +1,5 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-
 /**
  * The real {@link EntityFactory} outside a Spring context, for the Mockito-based unit tests of the
  * use cases: they work on the real business objects (whose rules they exercise) while the DAOs are
@@ -9,8 +7,7 @@ import com.dragomitch.ipl.pae.domain.model.EntityFactory;
  */
 public final class EntityFactories {
 
-  private EntityFactories() {
-  }
+  private EntityFactories() {}
 
   /** A new factory of the real business objects. */
   public static EntityFactory create() {

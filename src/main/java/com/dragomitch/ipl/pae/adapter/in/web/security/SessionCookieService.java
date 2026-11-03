@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.in.web.security;
 
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.time.Clock;
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,12 +49,13 @@ public class SessionCookieService {
    */
   public String createToken(UserDto user) {
     Instant now = clock.instant();
-    JwtClaimsSet claims = JwtClaimsSet.builder()
-        .subject(String.valueOf(user.getId()))
-        .claim(CurrentUser.ROLE_CLAIM, user.getRole())
-        .issuedAt(now)
-        .expiresAt(now.plus(properties.validity()))
-        .build();
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
+            .subject(String.valueOf(user.getId()))
+            .claim(CurrentUser.ROLE_CLAIM, user.getRole())
+            .issuedAt(now)
+            .expiresAt(now.plus(properties.validity()))
+            .build();
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
     return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
   }

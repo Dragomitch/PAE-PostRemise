@@ -8,8 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * A reason a professor can give to deny a mobility choice ({@code denial_reasons}). The table
- * has no version column.
+ * A reason a professor can give to deny a mobility choice ({@code denial_reasons}). The table has
+ * no version column.
  */
 @Entity
 @Table(name = "denial_reasons")

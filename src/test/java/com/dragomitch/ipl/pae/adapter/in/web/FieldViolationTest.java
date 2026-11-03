@@ -7,7 +7,6 @@ import com.dragomitch.ipl.pae.domain.model.Address;
 import com.dragomitch.ipl.pae.domain.model.Option;
 import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.model.Violations;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,31 +23,29 @@ class FieldViolationTest {
 
   /** A use case whose parameters are validated. */
   static class Service {
-    public void rename(@Positive int id, @NotBlank String name) {
-    }
+    public void rename(@Positive int id, @NotBlank String name) {}
 
-    public void save(@Valid Partner partner) {
-    }
+    public void save(@Valid Partner partner) {}
   }
 
-  record Option(@NotBlank String code) {
-  }
+  record Option(@NotBlank String code) {}
 
-  record Address(@NotBlank String city) {
-  }
+  record Address(@NotBlank String city) {}
 
-  record Partner(@NotNull @Valid Address address, List<@Valid Option> options) {
-  }
+  record Partner(@NotNull @Valid Address address, List<@Valid Option> options) {}
 
   @Test
   void aParameterIsReportedUnderItsName() throws Exception {
     Method rename = Service.class.getMethod("rename", int.class, String.class);
-    Set<ConstraintViolation<Service>> violations = Violations.validator().forExecutables()
-        .validateParameters(new Service(), rename, new Object[] {0, " "});
+    Set<ConstraintViolation<Service>> violations =
+        Violations.validator()
+            .forExecutables()
+            .validateParameters(new Service(), rename, new Object[] {0, " "});
 
     assertThat(FieldViolation.of(violations))
         .extracting(FieldViolation::field, FieldViolation::code)
-        .containsExactly(tuple(rename.getParameters()[0].getName(), "Positive"),
+        .containsExactly(
+            tuple(rename.getParameters()[0].getName(), "Positive"),
             tuple(rename.getParameters()[1].getName(), "NotBlank"));
   }
 
@@ -56,10 +53,13 @@ class FieldViolationTest {
   void thePathOfABeanParameterIsRelativeToTheBean() throws Exception {
     Method save = Service.class.getMethod("save", Partner.class);
     Partner partner = new Partner(new Address(""), List.of(new Option("BIN"), new Option(" ")));
-    Set<ConstraintViolation<Service>> violations = Violations.validator().forExecutables()
-        .validateParameters(new Service(), save, new Object[] {partner});
+    Set<ConstraintViolation<Service>> violations =
+        Violations.validator()
+            .forExecutables()
+            .validateParameters(new Service(), save, new Object[] {partner});
 
-    assertThat(FieldViolation.of(violations)).extracting(FieldViolation::field)
+    assertThat(FieldViolation.of(violations))
+        .extracting(FieldViolation::field)
         .containsExactly("address.city", "options[1].code");
   }
 

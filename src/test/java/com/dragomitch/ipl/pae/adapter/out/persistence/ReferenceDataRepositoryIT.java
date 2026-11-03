@@ -7,17 +7,14 @@ import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,17 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
-  @Autowired
-  private OptionRepository optionRepository;
+  @Autowired private OptionRepository optionRepository;
 
-  @Autowired
-  private ProgrammeRepository programmeRepository;
+  @Autowired private ProgrammeRepository programmeRepository;
 
-  @Autowired
-  private CountryRepository countryRepository;
+  @Autowired private CountryRepository countryRepository;
 
-  @Autowired
-  private DocumentRepository documentRepository;
+  @Autowired private DocumentRepository documentRepository;
 
   @Nested
   class Options {
@@ -50,12 +43,14 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     void findAllReturnsTheFiveIplOptionsInInsertionOrder() {
       List<OptionDto> options = inTransaction(() -> optionRepository.findAll());
 
-      assertThat(options).extracting(OptionDto::getCode, OptionDto::getName).containsExactly(
-          tuple("BIN", "Bachelier en informatique de gestion"),
-          tuple("BBM", "Bachelier en biologie médicale"),
-          tuple("BCH", "Bachelier en chimie"),
-          tuple("BDI", "Bachelier en diététique"),
-          tuple("BIM", "Bachelier en imagerie médicale"));
+      assertThat(options)
+          .extracting(OptionDto::getCode, OptionDto::getName)
+          .containsExactly(
+              tuple("BIN", "Bachelier en informatique de gestion"),
+              tuple("BBM", "Bachelier en biologie médicale"),
+              tuple("BCH", "Bachelier en chimie"),
+              tuple("BDI", "Bachelier en diététique"),
+              tuple("BIM", "Bachelier en imagerie médicale"));
     }
 
     @Test
@@ -81,7 +76,9 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
       List<ProgrammeDto> programmes = inTransaction(() -> programmeRepository.findAll());
 
       assertThat(programmes)
-          .extracting(ProgrammeDto::getId, ProgrammeDto::getProgrammeName,
+          .extracting(
+              ProgrammeDto::getId,
+              ProgrammeDto::getProgrammeName,
               ProgrammeDto::getExternalSoftName)
           .containsExactly(
               tuple(1, "Erasmus+", "Mobility Tool"),
@@ -112,46 +109,50 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @Test
     void findAllReturnsEveryCountrySortedByName() {
       List<Object> namesSortedByTheDatabase = new ArrayList<>();
-      List<CountryDto> countries = inTransaction(() -> {
-        query("SELECT name FROM student_exchange_tools.countries ORDER BY name")
-            .forEach(row -> namesSortedByTheDatabase.add(row.get("name")));
-        return countryRepository.findAll();
-      });
+      List<CountryDto> countries =
+          inTransaction(() -> {
+            query("SELECT name FROM student_exchange_tools.countries ORDER BY name")
+                .forEach(row -> namesSortedByTheDatabase.add(row.get("name")));
+            return countryRepository.findAll();
+          });
 
       assertThat(countries).hasSize(namesSortedByTheDatabase.size()).hasSizeGreaterThan(200);
       // sorted by name with the database collation (accented names such as "Îles Åland")
-      assertThat(countries).extracting(CountryDto::getName)
-          .containsExactlyElementsOf(namesSortedByTheDatabase.stream().map(String.class::cast)
-              .toList())
+      assertThat(countries)
+          .extracting(CountryDto::getName)
+          .containsExactlyElementsOf(
+              namesSortedByTheDatabase.stream().map(String.class::cast).toList())
           .contains("Belgique", "Algérie", "Îles Åland");
-      assertThat(countries).allSatisfy(country -> {
-        assertThat(country.getCountryCode()).hasSize(2);
-        assertThat(country.getProgramme()).isNotNull();
-        assertThat(country.getProgramme().getProgrammeName()).isNotBlank();
-      });
+      assertThat(countries)
+          .allSatisfy(country -> {
+            assertThat(country.getCountryCode()).hasSize(2);
+            assertThat(country.getProgramme()).isNotNull();
+            assertThat(country.getProgramme().getProgrammeName()).isNotBlank();
+          });
     }
 
     @ParameterizedTest
     @CsvSource({
-        "BE, Belgique, 2, Erabel, Mobi-ERABEL",
-        "FR, France, 1, Erasmus+, Mobility Tool",
-        "CA, Canada, 3, FAME, Mobi-FAME",
-        "DZ, Algérie, 3, FAME, Mobi-FAME",
-        // current ISO codes that had a flag but no row
-        "RS, Serbie, 1, Erasmus+, Mobility Tool",
-        "ME, Monténégro, 3, FAME, Mobi-FAME",
-        "SS, Soudan du Sud, 3, FAME, Mobi-FAME",
-        "CW, Curaçao, 3, FAME, Mobi-FAME",
-        "SX, Saint-Martin (partie néerlandaise), 3, FAME, Mobi-FAME",
-        "BQ, 'Bonaire, Saint-Eustache et Saba', 3, FAME, Mobi-FAME",
-        "BL, Saint-Barthélemy, 3, FAME, Mobi-FAME",
-        "GG, Guernesey, 3, FAME, Mobi-FAME",
-        "JE, Jersey, 3, FAME, Mobi-FAME",
-        // former codes, kept because data may reference them
-        "CS, Serbie-et-Monténégro, 3, FAME, Mobi-FAME",
-        "AN, Antilles Néerlandaises, 3, FAME, Mobi-FAME"})
-    void findByIdJoinsTheProgramme(String code, String name, int programmeId,
-        String programmeName, String software) {
+      "BE, Belgique, 2, Erabel, Mobi-ERABEL",
+      "FR, France, 1, Erasmus+, Mobility Tool",
+      "CA, Canada, 3, FAME, Mobi-FAME",
+      "DZ, Algérie, 3, FAME, Mobi-FAME",
+      // current ISO codes that had a flag but no row
+      "RS, Serbie, 1, Erasmus+, Mobility Tool",
+      "ME, Monténégro, 3, FAME, Mobi-FAME",
+      "SS, Soudan du Sud, 3, FAME, Mobi-FAME",
+      "CW, Curaçao, 3, FAME, Mobi-FAME",
+      "SX, Saint-Martin (partie néerlandaise), 3, FAME, Mobi-FAME",
+      "BQ, 'Bonaire, Saint-Eustache et Saba', 3, FAME, Mobi-FAME",
+      "BL, Saint-Barthélemy, 3, FAME, Mobi-FAME",
+      "GG, Guernesey, 3, FAME, Mobi-FAME",
+      "JE, Jersey, 3, FAME, Mobi-FAME",
+      // former codes, kept because data may reference them
+      "CS, Serbie-et-Monténégro, 3, FAME, Mobi-FAME",
+      "AN, Antilles Néerlandaises, 3, FAME, Mobi-FAME"
+    })
+    void findByIdJoinsTheProgramme(
+        String code, String name, int programmeId, String programmeName, String software) {
       CountryDto country = inTransaction(() -> countryRepository.findById(code));
 
       assertThat(country.getCountryCode()).isEqualTo(code);
@@ -191,14 +192,17 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
     @ParameterizedTest
     @CsvSource({"1, 5, 4", "2, 4, 3", "3, 4, 3"})
-    void findAllByProgrammeReturnsTheDepartureAndReturnDocumentsOfThatProgrammeOnly(int programme,
-        int departures, int returns) {
-      List<DocumentDto> documents = inTransaction(() -> documentRepository.findAllByProgramme(programme));
+    void findAllByProgrammeReturnsTheDepartureAndReturnDocumentsOfThatProgrammeOnly(
+        int programme, int departures, int returns) {
+      List<DocumentDto> documents =
+          inTransaction(() -> documentRepository.findAllByProgramme(programme));
 
       assertThat(documents).hasSize(departures + returns);
-      assertThat(documents).filteredOn(d -> d.getCategory() == DocumentDto.DEPARTURE_DOCUMENT)
+      assertThat(documents)
+          .filteredOn(d -> d.getCategory() == DocumentDto.DEPARTURE_DOCUMENT)
           .hasSize(departures);
-      assertThat(documents).filteredOn(d -> d.getCategory() == DocumentDto.RETURN_DOCUMENT)
+      assertThat(documents)
+          .filteredOn(d -> d.getCategory() == DocumentDto.RETURN_DOCUMENT)
           .hasSize(returns);
     }
 
@@ -206,16 +210,18 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     void findAllByProgrammeMapsIdNameCategoryAndProgramme() {
       List<DocumentDto> documents = inTransaction(() -> documentRepository.findAllByProgramme(1));
 
-      assertThat(documents).extracting(DocumentDto::getId, DocumentDto::getName,
-          DocumentDto::getCategory).contains(
+      assertThat(documents)
+          .extracting(DocumentDto::getId, DocumentDto::getName, DocumentDto::getCategory)
+          .contains(
               tuple(1, "Contrat de bourse", 'D'),
               tuple(5, "Preuve du passage des tests linguistiques", 'D'),
               tuple(14, "Attestation séjour", 'R'));
-      assertThat(documents).allSatisfy(document -> {
-        assertThat(document.getProgramme().getId()).isEqualTo(1);
-        // "filled in" belongs to the document of a mobility (MobilityDocumentRepository)
-        assertThat(document.isFilledIn()).isFalse();
-      });
+      assertThat(documents)
+          .allSatisfy(document -> {
+            assertThat(document.getProgramme().getId()).isEqualTo(1);
+            // "filled in" belongs to the document of a mobility (MobilityDocumentRepository)
+            assertThat(document.isFilledIn()).isFalse();
+          });
     }
 
     @ParameterizedTest

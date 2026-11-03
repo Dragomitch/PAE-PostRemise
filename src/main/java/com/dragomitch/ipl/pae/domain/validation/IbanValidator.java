@@ -20,13 +20,12 @@ public class IbanValidator implements ConstraintValidator<Iban, CharSequence> {
       return true;
     }
     String iban = value.toString().toUpperCase(Locale.ROOT);
-    return iban.length() <= MAX_LENGTH && FORMAT.matcher(iban).matches()
-        && hasValidChecksum(iban);
+    return iban.length() <= MAX_LENGTH && FORMAT.matcher(iban).matches() && hasValidChecksum(iban);
   }
 
   /**
-   * ISO 7064 MOD 97-10: the country code and check digits moved to the end, every letter
-   * replaced by two digits (A = 10 ... Z = 35), the number modulo 97 must be 1.
+   * ISO 7064 MOD 97-10: the country code and check digits moved to the end, every letter replaced
+   * by two digits (A = 10 ... Z = 35), the number modulo 97 must be 1.
    */
   static boolean hasValidChecksum(String iban) {
     String rearranged = iban.substring(4) + iban.substring(0, 4);

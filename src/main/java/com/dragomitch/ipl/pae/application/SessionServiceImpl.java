@@ -1,11 +1,10 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InvalidCredentialsException;
-import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
-
+import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,5 +43,4 @@ class SessionServiceImpl implements SessionService {
   public UserDto showAuthenticatedUser(int id) {
     return userRepository.findById(id);
   }
-
 }

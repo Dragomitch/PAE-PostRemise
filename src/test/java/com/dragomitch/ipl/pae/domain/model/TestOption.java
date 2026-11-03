@@ -2,12 +2,10 @@ package com.dragomitch.ipl.pae.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -15,8 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestOption {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private static final String CODE = "BIN";
   private static final String NAME = "Bachelier en informatique de gestion";
@@ -25,9 +22,7 @@ public class TestOption {
   private EntityFactory entityFactory;
   private OptionDto option;
 
-  /**
-   * Creates a new Option instance.
-   */
+  /** Creates a new Option instance. */
   @BeforeEach
   public void setUp() throws Exception {
     entityFactory = context.getBean(EntityFactory.class);
@@ -48,8 +43,7 @@ public class TestOption {
 
   @Test
   public void testSetAndGetVersionTC1() {
-    option.setVersion(VERSION);;
+    option.setVersion(VERSION);
     assertEquals(VERSION, option.getVersion());
   }
-
 }

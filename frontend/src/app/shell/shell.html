@@ -5,7 +5,13 @@
   </a>
 
   <nav class="shell-nav" aria-label="Navigation principale" i18n-aria-label="@@shell.nav.ariaLabel">
-    <a routerLink="/partners" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.partners">Partenaires</a>
+    <a
+      routerLink="/partners"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      i18n="@@shell.nav.partners"
+      >Partenaires</a
+    >
     <a routerLink="/mobility-choices" routerLinkActive="active" ariaCurrentWhenActive="page">
       @if (isProfessor()) {
         <ng-container i18n="@@shell.nav.mobilityChoices">Demandes de mobilité</ng-container>
@@ -14,16 +20,34 @@
       }
     </a>
     @if (isProfessor()) {
-      <a routerLink="/users" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.users">Utilisateurs</a>
+      <a
+        routerLink="/users"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        i18n="@@shell.nav.users"
+        >Utilisateurs</a
+      >
     } @else {
-      <a routerLink="/personal-data" routerLinkActive="active" ariaCurrentWhenActive="page" i18n="@@shell.nav.personalData">Mes données personnelles</a>
+      <a
+        routerLink="/personal-data"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        i18n="@@shell.nav.personalData"
+        >Mes données personnelles</a
+      >
     }
   </nav>
 
   <div class="shell-user">
     <span class="user-name">{{ displayName() }}</span>
     <span class="user-role">{{ roleLabel() }}</span>
-    <button type="button" class="sign-out" (click)="signOut()" [disabled]="signingOut()" [attr.aria-busy]="signingOut()">
+    <button
+      type="button"
+      class="sign-out"
+      (click)="signOut()"
+      [disabled]="signingOut()"
+      [attr.aria-busy]="signingOut()"
+    >
       @if (signingOut()) {
         <ng-container i18n="@@shell.signingOut">Déconnexion…</ng-container>
       } @else {

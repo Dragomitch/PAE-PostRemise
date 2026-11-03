@@ -6,10 +6,8 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -24,8 +22,7 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
 
   private static final String INITIAL_REASON = "L'étudiant part en mobilité pour ce semestre.";
 
-  @Autowired
-  private DenialReasonRepository denialReasonRepository;
+  @Autowired private DenialReasonRepository denialReasonRepository;
 
   private DenialReasonDto reason(String text) {
     DenialReasonDto reason = build(DenialReasonDto.class);
@@ -37,7 +34,8 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
   void findAllReturnsTheReasonsOfInitSql() {
     List<DenialReasonDto> reasons = inTransaction(() -> denialReasonRepository.findAll());
 
-    assertThat(reasons).extracting(DenialReasonDto::getId, DenialReasonDto::getReason)
+    assertThat(reasons)
+        .extracting(DenialReasonDto::getId, DenialReasonDto::getReason)
         .containsExactly(tuple(1, INITIAL_REASON));
   }
 
@@ -63,15 +61,17 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
       assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
       assertThat(denialReasonRepository.findById(created.getId()).getReason())
           .isEqualTo("Places insuffisantes");
-      assertThat(denialReasonRepository.findAll()).extracting(DenialReasonDto::getId)
+      assertThat(denialReasonRepository.findAll())
+          .extracting(DenialReasonDto::getId)
           .containsExactlyInAnyOrder(1, created.getId());
     });
   }
 
   @Test
   void createRejectsAReasonLongerThanTheColumn() {
-    runInTransaction(() -> assertThatThrownBy(() -> denialReasonRepository.create(reason("x".repeat(301))))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> denialReasonRepository.create(reason("x".repeat(301))))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -92,9 +92,12 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
       ghost.setId(31337);
 
       assertThatThrownBy(() -> denialReasonRepository.update(ghost))
-          .isInstanceOf(ConcurrentModificationException.class).hasMessageContaining("31337");
-      assertThat(denialReasonRepository.findAll()).extracting(DenialReasonDto::getReason)
-          .doesNotContain("ghost").hasSize(1);
+          .isInstanceOf(ConcurrentModificationException.class)
+          .hasMessageContaining("31337");
+      assertThat(denialReasonRepository.findAll())
+          .extracting(DenialReasonDto::getReason)
+          .doesNotContain("ghost")
+          .hasSize(1);
     });
   }
 }

@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.in.web;
 
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
@@ -11,6 +10,7 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -55,31 +54,34 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  * </pre>
  *
  * <ul>
- * <li>{@code code} (always present) is an {@link ErrorCode} name, the key clients branch on;</li>
- * <li>{@code title} and {@code detail} are localized from the request {@code Accept-Language}
- * (French by default, English) by the {@code MessageSource}, through Spring's
- * {@link ErrorResponse} message codes: {@code problem.<CODE>.title/detail} for the
- * {@linkplain BusinessException business errors}, {@code problemDetail.title.<exception class>}
- * and {@code problemDetail.<exception class>} for the errors of Spring MVC (405, 415, malformed
- * JSON...), handled natively by {@link ResponseEntityExceptionHandler};</li>
- * <li>{@code errors} lists the broken constraints of a {@code VALIDATION_FAILED} problem:
- * {@code [{"field": "email", "code": "Email", "message": "..."}]};</li>
- * <li>5xx problems never describe the failure: they carry an {@code errorId} also written in the
- * error log with the stack trace.</li>
+ *   <li>{@code code} (always present) is an {@link ErrorCode} name, the key clients branch on;
+ *   <li>{@code title} and {@code detail} are localized from the request {@code Accept-Language}
+ *       (French by default, English) by the {@code MessageSource}, through Spring's {@link
+ *       ErrorResponse} message codes: {@code problem.<CODE>.title/detail} for the {@linkplain
+ *       BusinessException business errors}, {@code problemDetail.title.<exception class>} and
+ *       {@code problemDetail.<exception class>} for the errors of Spring MVC (405, 415, malformed
+ *       JSON...), handled natively by {@link ResponseEntityExceptionHandler};
+ *   <li>{@code errors} lists the broken constraints of a {@code VALIDATION_FAILED} problem: {@code
+ *       [{"field": "email", "code": "Email", "message": "..."}]};
+ *   <li>5xx problems never describe the failure: they carry an {@code errorId} also written in the
+ *       error log with the stack trace.
  * </ul>
  *
- * <p>The 401 and 403 raised by the Spring Security filters are handed to this class by
- * {@code ExceptionResolverSecurityHandler}.
+ * <p>The 401 and 403 raised by the Spring Security filters are handed to this class by {@code
+ * ExceptionResolverSecurityHandler}.
  */
 @RestControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
   /** Problem property: the {@link ErrorCode} name. */
   public static final String CODE = BusinessException.CODE_PROPERTY;
+
   /** Problem property: the {@link FieldViolation}s of a validation failure. */
   public static final String ERRORS = "errors";
+
   /** Problem property: when the error occurred (ISO-8601). */
   public static final String TIMESTAMP = "timestamp";
+
   /** Problem property of a 5xx: the identifier of the error in the logs. */
   public static final String ERROR_ID = "errorId";
 
@@ -93,40 +95,45 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
   /** {@code @Valid @RequestBody} (or a validated model attribute) breaking its constraints. */
   @Override
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-      HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
     return validationFailed(ex, FieldViolation.of(ex.getBindingResult()), headers, request);
   }
 
   /** Constraints on the parameters of a controller method (path variables, query parameters). */
   @Override
   protected ResponseEntity<Object> handleHandlerMethodValidationException(
-      HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status,
+      HandlerMethodValidationException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
       WebRequest request) {
     return validationFailed(ex, FieldViolation.of(ex), headers, request);
   }
 
   /** Constraints of a use case ({@code @Validated} service called with invalid arguments). */
   @ExceptionHandler(ConstraintViolationException.class)
-  public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex,
-      WebRequest request) {
-    return validationFailed(ex, FieldViolation.of(ex.getConstraintViolations()), new HttpHeaders(),
-        request);
+  public ResponseEntity<Object> handleConstraintViolation(
+      ConstraintViolationException ex, WebRequest request) {
+    return validationFailed(
+        ex, FieldViolation.of(ex.getConstraintViolations()), new HttpHeaders(), request);
   }
 
-  private ResponseEntity<Object> validationFailed(Exception ex, List<FieldViolation> errors,
-      HttpHeaders headers, WebRequest request) {
+  private ResponseEntity<Object> validationFailed(
+      Exception ex, List<FieldViolation> errors, HttpHeaders headers, WebRequest request) {
     ProblemDetail body = problem(ex, ErrorCode.VALIDATION_FAILED);
     body.setProperty(ERRORS, errors);
-    return handleExceptionInternal(ex, body, headers, ErrorCode.VALIDATION_FAILED.status(),
-        request);
+    return handleExceptionInternal(
+        ex, body, headers, ErrorCode.VALIDATION_FAILED.status(), request);
   }
 
   // ----- security -----
 
   @ExceptionHandler(AuthenticationException.class)
-  public ResponseEntity<Object> handleAuthentication(AuthenticationException ex,
-      WebRequest request) {
+  public ResponseEntity<Object> handleAuthentication(
+      AuthenticationException ex, WebRequest request) {
     return respond(ex, ErrorCode.UNAUTHENTICATED, request);
   }
 
@@ -144,28 +151,30 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
   // ----- persistence -----
 
   /**
-   * Stale version: the repositories and the use cases throw a {@link ConcurrentModificationException},
-   * Spring Data an {@link OptimisticLockingFailureException}.
+   * Stale version: the repositories and the use cases throw a {@link
+   * ConcurrentModificationException}, Spring Data an {@link OptimisticLockingFailureException}.
    */
-  @ExceptionHandler({ConcurrentModificationException.class,
-      OptimisticLockingFailureException.class})
-  public ResponseEntity<Object> handleConcurrentModification(RuntimeException ex,
-      WebRequest request) {
+  @ExceptionHandler({
+    ConcurrentModificationException.class,
+    OptimisticLockingFailureException.class
+  })
+  public ResponseEntity<Object> handleConcurrentModification(
+      RuntimeException ex, WebRequest request) {
     return respond(ex, ErrorCode.CONCURRENT_MODIFICATION, request);
   }
 
   /** A database constraint refused the change (the SQL error is logged, never returned). */
   @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex,
-      WebRequest request) {
-    log.warn("Data integrity violation on {}: {}", path(request),
-        ex.getMostSpecificCause().toString());
+  public ResponseEntity<Object> handleDataIntegrityViolation(
+      DataIntegrityViolationException ex, WebRequest request) {
+    log.warn(
+        "Data integrity violation on {}: {}", path(request), ex.getMostSpecificCause().toString());
     return respond(ex, ErrorCode.DATA_CONFLICT, request);
   }
 
   @ExceptionHandler(EmptyResultDataAccessException.class)
-  public ResponseEntity<Object> handleEmptyResult(EmptyResultDataAccessException ex,
-      WebRequest request) {
+  public ResponseEntity<Object> handleEmptyResult(
+      EmptyResultDataAccessException ex, WebRequest request) {
     return respond(ex, ErrorCode.RESOURCE_NOT_FOUND, request);
   }
 
@@ -178,34 +187,39 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   private ResponseEntity<Object> respond(Exception ex, ErrorCode code, WebRequest request) {
-    return handleExceptionInternal(ex, problem(ex, code), new HttpHeaders(), code.status(),
-        request);
+    return handleExceptionInternal(
+        ex, problem(ex, code), new HttpHeaders(), code.status(), request);
   }
 
   /**
-   * Builds the problem of an error code with Spring's {@link ErrorResponse} machinery, so that
-   * its title and detail are resolved like those of the other problems.
+   * Builds the problem of an error code with Spring's {@link ErrorResponse} machinery, so that its
+   * title and detail are resolved like those of the other problems.
    */
   private ProblemDetail problem(Exception ex, ErrorCode code, Object... detailArguments) {
-    ProblemDetail problem = ErrorResponse.builder(ex, code.status(), code.name())
-        .type(code.type())
-        .titleMessageCode(code.titleMessageCode())
-        .detailMessageCode(code.detailMessageCode())
-        .detailMessageArguments(detailArguments)
-        .build()
-        .updateAndGetBody(getMessageSource(), LocaleContextHolder.getLocale());
+    ProblemDetail problem =
+        ErrorResponse.builder(ex, code.status(), code.name())
+            .type(code.type())
+            .titleMessageCode(code.titleMessageCode())
+            .detailMessageCode(code.detailMessageCode())
+            .detailMessageArguments(detailArguments)
+            .build()
+            .updateAndGetBody(getMessageSource(), LocaleContextHolder.getLocale());
     problem.setProperty(CODE, code.name());
     return problem;
   }
 
   /**
    * Every response goes through here (the Spring MVC exceptions handled by the superclass
-   * included): the problem gets its {@code code}, {@code type}, {@code instance} and
-   * {@code timestamp}, and the error is logged.
+   * included): the problem gets its {@code code}, {@code type}, {@code instance} and {@code
+   * timestamp}, and the error is logged.
    */
   @Override
-  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
-      HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+  protected ResponseEntity<Object> handleExceptionInternal(
+      Exception ex,
+      @Nullable Object body,
+      HttpHeaders headers,
+      HttpStatusCode statusCode,
+      WebRequest request) {
     ResponseEntity<Object> response =
         super.handleExceptionInternal(ex, body, headers, statusCode, request);
     if (response != null && response.getBody() instanceof ProblemDetail problem) {
@@ -216,8 +230,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return response;
   }
 
-  private void complete(ProblemDetail problem, Exception ex, HttpStatusCode status,
-      WebRequest request) {
+  private void complete(
+      ProblemDetail problem, Exception ex, HttpStatusCode status, WebRequest request) {
     ErrorCode code = codeOf(problem, status);
     problem.setProperty(CODE, code.name());
     if (problem.getType() == null || BLANK_TYPE.equals(problem.getType())) {
@@ -236,13 +250,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       problem.setProperty(ERROR_ID, errorId);
       Locale locale = LocaleContextHolder.getLocale();
       MessageSource messages = getMessageSource();
-      ErrorCode generic =
-          code == ErrorCode.SERVICE_UNAVAILABLE ? code : ErrorCode.INTERNAL_ERROR;
+      ErrorCode generic = code == ErrorCode.SERVICE_UNAVAILABLE ? code : ErrorCode.INTERNAL_ERROR;
       if (messages != null) {
-        problem.setTitle(messages.getMessage(generic.titleMessageCode(), null,
-            HttpStatus.valueOf(status.value()).getReasonPhrase(), locale));
-        problem.setDetail(messages.getMessage(generic.detailMessageCode(),
-            new Object[] {errorId}, null, locale));
+        problem.setTitle(
+            messages.getMessage(
+                generic.titleMessageCode(),
+                null,
+                HttpStatus.valueOf(status.value()).getReasonPhrase(),
+                locale));
+        problem.setDetail(
+            messages.getMessage(generic.detailMessageCode(), new Object[] {errorId}, null, locale));
       } else {
         problem.setDetail(null);
       }
@@ -263,13 +280,17 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return ErrorCode.forStatus(status.value());
   }
 
-  private static void logHandled(Exception ex, HttpStatusCode status, WebRequest request,
-      @Nullable String errorId) {
+  private static void logHandled(
+      Exception ex, HttpStatusCode status, WebRequest request, @Nullable String errorId) {
     if (errorId != null) {
       log.error("Error {} on {}: {}", errorId, path(request), status.value(), ex);
     } else if (log.isInfoEnabled()) {
-      log.info("Handling {} on {}: {}{}", ex.getClass().getSimpleName(), path(request),
-          status.value(), ex.getMessage() == null ? "" : " - " + ex.getMessage());
+      log.info(
+          "Handling {} on {}: {}{}",
+          ex.getClass().getSimpleName(),
+          path(request),
+          status.value(),
+          ex.getMessage() == null ? "" : " - " + ex.getMessage());
     }
   }
 

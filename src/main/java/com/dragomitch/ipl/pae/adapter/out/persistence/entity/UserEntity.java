@@ -10,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
 import java.time.LocalDateTime;
 
 /** A user of the application ({@code users}): a student or a professor. */

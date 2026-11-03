@@ -3,12 +3,10 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -16,8 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestDocument {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String NAME = "Contrat de bourse";
@@ -27,9 +24,7 @@ public class TestDocument {
   private EntityFactory entityFactory;
   private DocumentDto document;
 
-  /**
-   * Creates a new Document instance.
-   */
+  /** Creates a new Document instance. */
   @BeforeEach
   public void setUp() throws Exception {
     entityFactory = context.getBean(EntityFactory.class);
@@ -65,5 +60,4 @@ public class TestDocument {
     document.setVersion(VERSION);
     assertEquals(VERSION, document.getVersion());
   }
-
 }

@@ -3,10 +3,8 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.MobilityDocumentJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The documents each mobility requires, and whether they are filled in. */
@@ -16,8 +14,8 @@ class JpaMobilityDocumentRepositoryAdapter implements MobilityDocumentRepository
   private final MobilityDocumentJpaRepository mobilityDocuments;
   private final PersistenceMapper mapper;
 
-  JpaMobilityDocumentRepositoryAdapter(MobilityDocumentJpaRepository mobilityDocuments,
-      PersistenceMapper mapper) {
+  JpaMobilityDocumentRepositoryAdapter(
+      MobilityDocumentJpaRepository mobilityDocuments, PersistenceMapper mapper) {
     this.mobilityDocuments = mobilityDocuments;
     this.mapper = mapper;
   }
@@ -39,7 +37,8 @@ class JpaMobilityDocumentRepositoryAdapter implements MobilityDocumentRepository
           document.setCategory(entity.getDocument().getCategory().charAt(0));
           document.setFilledIn(entity.isFilledIn());
           return document;
-        }).toList();
+        })
+        .toList();
   }
 
   @Override

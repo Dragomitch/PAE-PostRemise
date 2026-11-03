@@ -1,9 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence.repository;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
-
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 

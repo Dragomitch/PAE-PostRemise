@@ -23,8 +23,6 @@ import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import com.dragomitch.ipl.pae.domain.validation.FilterValueRequired;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Arrays;
@@ -47,41 +45,27 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.validation.beanvalidation.MethodValidationInterceptor;
 
 /**
- * The use cases validate their arguments themselves ({@code @Validated} interfaces with
- * constraints on the parameters), whoever calls them: the rules hold outside the web layer. The
- * messages of the violations come from the application's {@code MessageSource}.
+ * The use cases validate their arguments themselves ({@code @Validated} interfaces with constraints
+ * on the parameters), whoever calls them: the rules hold outside the web layer. The messages of the
+ * violations come from the application's {@code MessageSource}.
  */
 @SpringJUnitConfig(UnitTestConfig.class)
 class MethodValidationTest {
 
-  @Autowired
-  private ApplicationContext context;
-  @Autowired
-  private EntityFactory entityFactory;
-  @Autowired
-  private MessageSource messageSource;
-  @Autowired
-  private UserService userService;
-  @Autowired
-  private UserRepository userRepository;
-  @Autowired
-  private PartnerService partnerService;
-  @Autowired
-  private MobilityService mobilityService;
-  @Autowired
-  private MobilityChoiceService mobilityChoiceService;
-  @Autowired
-  private NominatedStudentService nominatedStudentService;
-  @Autowired
-  private ProgrammeService programmeService;
-  @Autowired
-  private CountryService countryService;
-  @Autowired
-  private OptionService optionService;
-  @Autowired
-  private SessionService sessionService;
-  @Autowired
-  private PaymentService paymentService;
+  @Autowired private ApplicationContext context;
+  @Autowired private EntityFactory entityFactory;
+  @Autowired private MessageSource messageSource;
+  @Autowired private UserService userService;
+  @Autowired private UserRepository userRepository;
+  @Autowired private PartnerService partnerService;
+  @Autowired private MobilityService mobilityService;
+  @Autowired private MobilityChoiceService mobilityChoiceService;
+  @Autowired private NominatedStudentService nominatedStudentService;
+  @Autowired private ProgrammeService programmeService;
+  @Autowired private CountryService countryService;
+  @Autowired private OptionService optionService;
+  @Autowired private SessionService sessionService;
+  @Autowired private PaymentService paymentService;
 
   @AfterEach
   void resetLocale() {
@@ -89,9 +73,19 @@ class MethodValidationTest {
   }
 
   static Stream<Class<?>> useCases() {
-    return Stream.of(AddressService.class, CountryService.class, DenialReasonService.class,
-        MobilityChoiceService.class, MobilityService.class, NominatedStudentService.class, OptionService.class,
-        PartnerService.class, PaymentService.class, ProgrammeService.class, SessionService.class, UserService.class);
+    return Stream.of(
+        AddressService.class,
+        CountryService.class,
+        DenialReasonService.class,
+        MobilityChoiceService.class,
+        MobilityService.class,
+        NominatedStudentService.class,
+        OptionService.class,
+        PartnerService.class,
+        PaymentService.class,
+        ProgrammeService.class,
+        SessionService.class,
+        UserService.class);
   }
 
   @ParameterizedTest
@@ -110,10 +104,11 @@ class MethodValidationTest {
     user.setUsername("u".repeat(21));
     user.setEmail("not an email");
 
-    assertThat(Violations.thrownBy(() -> userService.signup(user))).containsExactly(
-        "signup.user.email:Email", "signup.user.firstName:NotBlank",
-        "signup.user.lastName:NotBlank", "signup.user.option:NotNull",
-        "signup.user.password:NotBlank", "signup.user.username:Size");
+    assertThat(Violations.thrownBy(() -> userService.signup(user)))
+        .containsExactly(
+            "signup.user.email:Email", "signup.user.firstName:NotBlank",
+            "signup.user.lastName:NotBlank", "signup.user.option:NotNull",
+            "signup.user.password:NotBlank", "signup.user.username:Size");
     assertThat(userRepository.findAll()).isEmpty();
   }
 
@@ -128,34 +123,46 @@ class MethodValidationTest {
 
   static Stream<Arguments> invalidCalls() {
     return Stream.of(
-        Arguments.of("promoteToProfessor.userId:Positive",
-            (Call) t -> t.userService.promoteToProfessor(0)),
+        Arguments.of(
+            "promoteToProfessor.userId:Positive", (Call) t -> t.userService.promoteToProfessor(0)),
         Arguments.of("signup.user:NotNull", (Call) t -> t.userService.signup(null)),
         Arguments.of("signin.password:NotBlank", (Call) t -> t.sessionService.signin("jdoe", " ")),
-        Arguments.of("showAuthenticatedUser.id:Positive",
+        Arguments.of(
+            "showAuthenticatedUser.id:Positive",
             (Call) t -> t.sessionService.showAuthenticatedUser(-3)),
         Arguments.of("showOne.id:Positive", (Call) t -> t.partnerService.showOne(0)),
-        Arguments.of("showAll.search.filter:Pattern",
+        Arguments.of(
+            "showAll.search.filter:Pattern",
             (Call) t -> t.partnerService.showAll(new PartnerSearch("name", "x"), "Student", 1)),
-        Arguments.of("showAll.search.value:FilterValueRequired",
+        Arguments.of(
+            "showAll.search.value:FilterValueRequired",
             (Call) t -> t.partnerService.showAll(new PartnerSearch("country", null), "Student", 1)),
-        Arguments.of("showOne.id:Positive",
+        Arguments.of(
+            "showOne.id:Positive",
             (Call) t -> t.mobilityService.showOne(0, UserDto.ROLE_PROFESSOR, 1)),
-        Arguments.of("confirmDocument.document:Positive",
+        Arguments.of(
+            "confirmDocument.document:Positive",
             (Call) t -> t.mobilityService.confirmDocument(1, -1, 1)),
-        Arguments.of("exportDocuments.filter:Pattern",
+        Arguments.of(
+            "exportDocuments.filter:Pattern",
             (Call) t -> t.mobilityService.exportDocuments(1, "X")),
-        Arguments.of("cancel.cancellationReason:Size", (Call) t -> t.mobilityService.cancel(1, 1,
-            "x".repeat(501), 0, 1, UserDto.ROLE_STUDENT)),
-        Arguments.of("cancel.reason:NotBlank", (Call) t -> t.mobilityChoiceService.cancel(1, 1, "")),
+        Arguments.of(
+            "cancel.cancellationReason:Size",
+            (Call)
+                t -> t.mobilityService.cancel(1, 1, "x".repeat(501), 0, 1, UserDto.ROLE_STUDENT)),
+        Arguments.of(
+            "cancel.reason:NotBlank", (Call) t -> t.mobilityChoiceService.cancel(1, 1, "")),
         Arguments.of("reject.reasonId:Positive", (Call) t -> t.mobilityChoiceService.reject(1, 0)),
-        Arguments.of("showAll.filter:Pattern",
+        Arguments.of(
+            "showAll.filter:Pattern",
             (Call) t -> t.mobilityChoiceService.showAll(1, UserDto.ROLE_STUDENT, "mine")),
-        Arguments.of("showOne.id:Positive",
+        Arguments.of(
+            "showOne.id:Positive",
             (Call) t -> t.nominatedStudentService.showOne(0, 1, UserDto.ROLE_PROFESSOR)),
         Arguments.of("showOne.id:Positive", (Call) t -> t.programmeService.showOne(-1)),
         Arguments.of("showOne.countryCode:Size", (Call) t -> t.countryService.showOne("BEL")),
-        Arguments.of("findAllPartnersByOption.optionCode:Size",
+        Arguments.of(
+            "findAllPartnersByOption.optionCode:Size",
             (Call) t -> t.optionService.findAllPartnersByOption("BINF")),
         Arguments.of("showAll.userRole:NotBlank", (Call) t -> t.paymentService.showAll("")));
   }
@@ -179,16 +186,18 @@ class MethodValidationTest {
         (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
 
     LocaleContextHolder.setLocale(Locale.ENGLISH);
-    Map<String, String> english = messages(() -> nominatedStudentService.create(student, 1,
-        UserDto.ROLE_PROFESSOR));
+    Map<String, String> english =
+        messages(() -> nominatedStudentService.create(student, 1, UserDto.ROLE_PROFESSOR));
     LocaleContextHolder.setLocale(Locale.FRENCH);
-    Map<String, String> french = messages(() -> nominatedStudentService.create(student, 1,
-        UserDto.ROLE_PROFESSOR));
+    Map<String, String> french =
+        messages(() -> nominatedStudentService.create(student, 1, UserDto.ROLE_PROFESSOR));
 
-    assertThat(english).containsEntry("create.nominatedStudent.title", "must not be blank")
+    assertThat(english)
+        .containsEntry("create.nominatedStudent.title", "must not be blank")
         .containsEntry("create.nominatedStudent.address", "is required")
         .containsEntry("create.nominatedStudent.nbrPassedYears", "must be greater than 0");
-    assertThat(french).containsEntry("create.nominatedStudent.title", "ne peut pas être vide")
+    assertThat(french)
+        .containsEntry("create.nominatedStudent.title", "ne peut pas être vide")
         .containsEntry("create.nominatedStudent.address", "est obligatoire")
         .containsEntry("create.nominatedStudent.nbrPassedYears", "doit être strictement positif");
   }
@@ -201,13 +210,15 @@ class MethodValidationTest {
     student.setBic("B093");
 
     LocaleContextHolder.setLocale(Locale.ENGLISH);
-    Map<String, String> english = messages(() -> nominatedStudentService.edit(student, 1,
-        UserDto.ROLE_PROFESSOR));
+    Map<String, String> english =
+        messages(() -> nominatedStudentService.edit(student, 1, UserDto.ROLE_PROFESSOR));
 
     assertThat(english)
-        .containsEntry("edit.nominatedStudent.iban",
+        .containsEntry(
+            "edit.nominatedStudent.iban",
             "must be a valid IBAN (for example BE68539007547034, without spaces)")
-        .containsEntry("edit.nominatedStudent.bic",
+        .containsEntry(
+            "edit.nominatedStudent.bic",
             "must be a valid BIC code of 8 or 11 characters (for example GEBABEBB)");
   }
 
@@ -215,8 +226,12 @@ class MethodValidationTest {
     try {
       call.call();
     } catch (ConstraintViolationException ex) {
-      return ex.getConstraintViolations().stream().collect(Collectors.toMap(
-          v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage, (a, b) -> a));
+      return ex.getConstraintViolations().stream()
+          .collect(
+              Collectors.toMap(
+                  v -> v.getPropertyPath().toString(),
+                  ConstraintViolation::getMessage,
+                  (a, b) -> a));
     } catch (Throwable ex) {
       throw new AssertionError("Expected a ConstraintViolationException", ex);
     }
@@ -227,11 +242,14 @@ class MethodValidationTest {
   void theProblemMessagesAreResolvedWithTheirArguments() {
     ErrorCode code = ErrorCode.EMAIL_TAKEN;
 
-    assertThat(messageSource.getMessage(code.detailMessageCode(), new Object[] {"a@b.be"},
-        Locale.ENGLISH)).isEqualTo("The email address “a@b.be” is already associated with an "
-        + "account.");
-    assertThat(messageSource.getMessage(code.detailMessageCode(), new Object[] {"a@b.be"},
-        Locale.FRENCH)).isEqualTo("L’adresse e-mail « a@b.be » est déjà associée à un compte.");
+    assertThat(
+            messageSource.getMessage(
+                code.detailMessageCode(), new Object[] {"a@b.be"}, Locale.ENGLISH))
+        .isEqualTo("The email address “a@b.be” is already associated with an " + "account.");
+    assertThat(
+            messageSource.getMessage(
+                code.detailMessageCode(), new Object[] {"a@b.be"}, Locale.FRENCH))
+        .isEqualTo("L’adresse e-mail « a@b.be » est déjà associée à un compte.");
   }
 
   @Test
@@ -240,8 +258,10 @@ class MethodValidationTest {
     // German request would get English messages
     assertThat(Locale.getDefault().getLanguage()).isEqualTo("en");
 
-    assertThat(messageSource.getMessage(ErrorCode.ACCESS_DENIED.titleMessageCode(), null,
-        Locale.GERMAN)).isEqualTo("Accès refusé");
+    assertThat(
+            messageSource.getMessage(
+                ErrorCode.ACCESS_DENIED.titleMessageCode(), null, Locale.GERMAN))
+        .isEqualTo("Accès refusé");
   }
 
   @Test

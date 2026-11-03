@@ -14,9 +14,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The value is an IBAN (ISO 13616): country code, two check digits and the account number,
- * without spaces, whose check digits are right (ISO 7064 MOD 97-10). {@code null} and the
- * empty string are valid (combine with {@code @NotBlank}).
+ * The value is an IBAN (ISO 13616): country code, two check digits and the account number, without
+ * spaces, whose check digits are right (ISO 7064 MOD 97-10). {@code null} and the empty string are
+ * valid (combine with {@code @NotBlank}).
  */
 @Documented
 @Constraint(validatedBy = IbanValidator.class)

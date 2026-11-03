@@ -2,9 +2,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence.repository;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.MobilityDocumentEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.MobilityDocumentId;
-
 import java.util.List;
-
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,8 +19,9 @@ public interface MobilityDocumentJpaRepository
    * composite key and a version for a detached one.
    */
   @Modifying(flushAutomatically = true)
-  @Query("INSERT INTO MobilityDocumentEntity (id.documentId, id.mobilityId, filledIn, version)"
-      + " VALUES (:documentId, :mobilityId, FALSE, 1)")
+  @Query(
+      "INSERT INTO MobilityDocumentEntity (id.documentId, id.mobilityId, filledIn, version)"
+          + " VALUES (:documentId, :mobilityId, FALSE, 1)")
   void insert(@Param("documentId") int documentId, @Param("mobilityId") int mobilityId);
 
   /** The documents of the mobility with their names and categories, in one query. */
@@ -36,7 +35,8 @@ public interface MobilityDocumentJpaRepository
    * @return the number of links updated: 0 if the document is not linked to the mobility
    */
   @Modifying(flushAutomatically = true, clearAutomatically = true)
-  @Query("UPDATE MobilityDocumentEntity md SET md.filledIn = TRUE, md.version = md.version + 1"
-      + " WHERE md.id.documentId = :documentId AND md.id.mobilityId = :mobilityId")
+  @Query(
+      "UPDATE MobilityDocumentEntity md SET md.filledIn = TRUE, md.version = md.version + 1"
+          + " WHERE md.id.documentId = :documentId AND md.id.mobilityId = :mobilityId")
   int fillIn(@Param("documentId") int documentId, @Param("mobilityId") int mobilityId);
 }

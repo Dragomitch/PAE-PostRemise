@@ -4,15 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Violations;
+import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryAddressRepository;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
-import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryAddressRepository;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
-
+import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -25,8 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestAddressService {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private AddressRepository addressRepository;
@@ -34,9 +32,7 @@ public class TestAddressService {
   private MockDtoFactory mockDtoFactory;
   private AddressDto address;
 
-  /**
-   * Sets up the environment before every test.
-   */
+  /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
     entityFactory = context.getBean(EntityFactory.class);
@@ -46,9 +42,7 @@ public class TestAddressService {
     address = mockDtoFactory.getAddress();
   }
 
-  /**
-   * Cleans up the 'database'.
-   */
+  /** Cleans up the 'database'. */
   @AfterEach
   public void cleanUp() {
     ((InMemoryAddressRepository) addressRepository).empty();
@@ -63,14 +57,17 @@ public class TestAddressService {
 
   @Test
   public void testCreateTC2() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      addressService.create(null);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          addressService.create(null);
+        });
   }
 
   @Test
   public void testCreateTC3() {
-    assertEquals(List.of("create.address.number:Size"),
+    assertEquals(
+        List.of("create.address.number:Size"),
         Violations.thrownBy(() -> {
           address.setNumber("The Number of the beast");
           addressService.create(address);
@@ -79,22 +76,27 @@ public class TestAddressService {
 
   @Test
   public void testCreateTC4() {
-    assertEquals(ErrorCode.UNKNOWN_COUNTRY, Violations.errorCodeOf(() -> {
-      address.getCountry().setCountryCode("ZZ");
-      addressService.create(address);
-    }));
+    assertEquals(
+        ErrorCode.UNKNOWN_COUNTRY,
+        Violations.errorCodeOf(() -> {
+          address.getCountry().setCountryCode("ZZ");
+          addressService.create(address);
+        }));
   }
 
   @Test
   public void testEditTC1() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      addressService.edit(null);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          addressService.edit(null);
+        });
   }
 
   @Test
   public void testEditTC2() {
-    assertEquals(List.of("edit.address.number:Size"),
+    assertEquals(
+        List.of("edit.address.number:Size"),
         Violations.thrownBy(() -> {
           address.setNumber("V for Vendetta");
           addressService.edit(address);
@@ -103,18 +105,22 @@ public class TestAddressService {
 
   @Test
   public void testEditTC3() {
-    assertEquals(ErrorCode.UNKNOWN_COUNTRY, Violations.errorCodeOf(() -> {
-      address.getCountry().setCountryCode("ZZ");
-      addressService.edit(address);
-    }));
+    assertEquals(
+        ErrorCode.UNKNOWN_COUNTRY,
+        Violations.errorCodeOf(() -> {
+          address.getCountry().setCountryCode("ZZ");
+          addressService.edit(address);
+        }));
   }
 
   @Test
   public void testEditTC4() {
-    assertThrows(ResourceNotFoundException.class, () -> {
-      address.setId(69);
-      addressService.edit(address);
-    });
+    assertThrows(
+        ResourceNotFoundException.class,
+        () -> {
+          address.setId(69);
+          addressService.edit(address);
+        });
   }
 
   @Test
@@ -123,5 +129,4 @@ public class TestAddressService {
     addressService.edit(address);
     assertEquals(2, addressRepository.findById(address.getId()).getVersion());
   }
-
 }

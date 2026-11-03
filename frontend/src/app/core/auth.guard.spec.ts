@@ -1,7 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRouteSnapshot, GuardResult, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  GuardResult,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 import { Observable, firstValueFrom, isObservable, of } from 'rxjs';
 
 import { authGuard, roleGuard } from './auth.guard';
@@ -25,7 +32,9 @@ describe('authGuard', () => {
     const result = TestBed.runInInjectionContext(() =>
       authGuard({} as ActivatedRouteSnapshot, { url: '/partners' } as RouterStateSnapshot),
     );
-    const observable: Observable<GuardResult> = isObservable(result) ? result : of(result as GuardResult);
+    const observable: Observable<GuardResult> = isObservable(result)
+      ? result
+      : of(result as GuardResult);
     return firstValueFrom(observable);
   }
 
@@ -52,7 +61,11 @@ describe('authGuard', () => {
     const result = runGuard();
     http.expectOne('/api/1.0/session').flush(
       { code: 'UNAUTHENTICATED', status: 401 },
-      { status: 401, statusText: 'Unauthorized', headers: { 'Content-Type': 'application/problem+json' } },
+      {
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: { 'Content-Type': 'application/problem+json' },
+      },
     );
 
     const outcome = await result;

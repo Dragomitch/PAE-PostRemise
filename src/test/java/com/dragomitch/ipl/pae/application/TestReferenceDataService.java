@@ -8,11 +8,9 @@ import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -24,16 +22,14 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 class TestReferenceDataService {
 
-  @Autowired
-  private CountryService countryService;
-  @Autowired
-  private ProgrammeService programmeService;
-  @Autowired
-  private OptionService optionService;
+  @Autowired private CountryService countryService;
+  @Autowired private ProgrammeService programmeService;
+  @Autowired private OptionService optionService;
 
   @Test
   void everyCountryIsListed() {
-    assertThat(countryService.showAll()).extracting(CountryDto::getCountryCode)
+    assertThat(countryService.showAll())
+        .extracting(CountryDto::getCountryCode)
         .containsExactlyInAnyOrder("GB", "IE");
   }
 
@@ -59,7 +55,8 @@ class TestReferenceDataService {
 
   @Test
   void everyProgrammeIsListed() {
-    assertThat(programmeService.showAll()).extracting(ProgrammeDto::getProgrammeName)
+    assertThat(programmeService.showAll())
+        .extracting(ProgrammeDto::getProgrammeName)
         .containsExactly("Erasmus+");
   }
 
@@ -73,7 +70,8 @@ class TestReferenceDataService {
 
   @Test
   void everyOptionIsListed() {
-    assertThat(optionService.showAll()).extracting(OptionDto::getCode)
+    assertThat(optionService.showAll())
+        .extracting(OptionDto::getCode)
         .containsExactlyInAnyOrder("BIN", "BBM", "BCH", "BDI", "BIM");
   }
 

@@ -1,8 +1,6 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
@@ -12,16 +10,17 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
-import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
-import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
-import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
-import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
-
+import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
+import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
+import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
+import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
+import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -53,9 +52,14 @@ class MobilityServiceImpl implements MobilityService {
   private final UserRepository userRepository;
   private final Clock clock;
 
-  MobilityServiceImpl(MobilityRepository mobilityRepository, NominatedStudentRepository nominatedStudentRepository,
-      DenialReasonRepository denialReasonRepository, MobilityDocumentRepository mobilityDocumentRepository,
-      PartnerService partnerService, ProgrammeService programmeService, UserRepository userRepository,
+  MobilityServiceImpl(
+      MobilityRepository mobilityRepository,
+      NominatedStudentRepository nominatedStudentRepository,
+      DenialReasonRepository denialReasonRepository,
+      MobilityDocumentRepository mobilityDocumentRepository,
+      PartnerService partnerService,
+      ProgrammeService programmeService,
+      UserRepository userRepository,
       Clock clock) {
     this.mobilityRepository = mobilityRepository;
     this.nominatedStudentRepository = nominatedStudentRepository;
@@ -101,7 +105,8 @@ class MobilityServiceImpl implements MobilityService {
     mobility.setProgramme(programmeService.showOne(mobility.getProgramme().getId()));
     // a mobility confirmed with a new partner has no professor in charge
     if (mobility.getProfessorInCharge() != null) {
-      mobility.setProfessorInCharge(userRepository.findById(mobility.getProfessorInCharge().getId()));
+      mobility.setProfessorInCharge(
+          userRepository.findById(mobility.getProfessorInCharge().getId()));
     }
     return mobility;
   }
@@ -118,7 +123,7 @@ class MobilityServiceImpl implements MobilityService {
 
   /**
    * Confirm the encoding of a mobility in an external software.
-   * 
+   *
    * @param id the mobility id
    * @param software the software id
    * @param version the current version of the mobility to update
@@ -146,13 +151,13 @@ class MobilityServiceImpl implements MobilityService {
   /**
    * {@inheritDoc}
    *
-   * <p>A payment is only accepted when the state machine expects it: the first one in
-   * {@value MobilityDto#STATE_TO_BE_PAID} (the departure documents are filled in), the second one
-   * in {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} (every document is filled in); any other
-   * state is a {@link ErrorCode#PAYMENT_NOT_EXPECTED} conflict. After the first payment the
-   * mobility is {@value MobilityDto#STATE_IN_PROGRESS}, or directly
-   * {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when its return documents were already filled
-   * in (no document would be left to move it on).
+   * <p>A payment is only accepted when the state machine expects it: the first one in {@value
+   * MobilityDto#STATE_TO_BE_PAID} (the departure documents are filled in), the second one in
+   * {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} (every document is filled in); any other state is
+   * a {@link ErrorCode#PAYMENT_NOT_EXPECTED} conflict. After the first payment the mobility is
+   * {@value MobilityDto#STATE_IN_PROGRESS}, or directly {@value
+   * MobilityDto#STATE_BALANCE_TO_BE_PAID} when its return documents were already filled in (no
+   * document would be left to move it on).
    */
   @Override
   public MobilityDto confirmPayment(int id, int version) {
@@ -161,24 +166,30 @@ class MobilityServiceImpl implements MobilityService {
       throw new ConcurrentModificationException();
     }
     mobility.checkNotCancelledAndNotClosed();
-    boolean firstPayment = mobility.getState().equals(Mobility.STATE_TO_BE_PAID)
-        && mobility.getFirstPaymentRequestDate() == null;
-    boolean secondPayment = mobility.getState().equals(Mobility.STATE_BALANCE_TO_BE_PAID)
-        && mobility.getFirstPaymentRequestDate() != null;
+    boolean firstPayment =
+        mobility.getState().equals(Mobility.STATE_TO_BE_PAID)
+            && mobility.getFirstPaymentRequestDate() == null;
+    boolean secondPayment =
+        mobility.getState().equals(Mobility.STATE_BALANCE_TO_BE_PAID)
+            && mobility.getFirstPaymentRequestDate() != null;
     if (!firstPayment && !secondPayment) {
       throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
     }
     NominatedStudent nominatedStudent;
-    if ((nominatedStudent = (NominatedStudent) nominatedStudentRepository
-        .findById(mobility.getNominatedStudent().getId())) == null) {
+    if ((nominatedStudent =
+            (NominatedStudent)
+                nominatedStudentRepository.findById(mobility.getNominatedStudent().getId()))
+        == null) {
       throw new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS);
     }
     nominatedStudent.checkBankDetails();
     if (firstPayment) {
       mobility.setFirstPaymentRequestDate(LocalDateTime.now(clock));
       mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
-      mobility.setState(mobility.allReturnDocumentsFilledIn()
-          ? Mobility.STATE_BALANCE_TO_BE_PAID : Mobility.STATE_IN_PROGRESS);
+      mobility.setState(
+          mobility.allReturnDocumentsFilledIn()
+              ? Mobility.STATE_BALANCE_TO_BE_PAID
+              : Mobility.STATE_IN_PROGRESS);
     } else {
       mobility.setSecondPaymentRequestDate(LocalDateTime.now(clock));
       mobility.setState(Mobility.STATE_CLOSED);
@@ -190,10 +201,10 @@ class MobilityServiceImpl implements MobilityService {
   /**
    * {@inheritDoc}
    *
-   * <p>State transitions: {@value MobilityDto#STATE_CREATED} and
-   * {@value MobilityDto#STATE_IN_PREPARATION} become {@value MobilityDto#STATE_TO_BE_PAID} as soon
-   * as every departure document is filled in (also when the first document filled in completes
-   * them), {@value MobilityDto#STATE_IN_PREPARATION} otherwise; {@value MobilityDto#STATE_IN_PROGRESS}
+   * <p>State transitions: {@value MobilityDto#STATE_CREATED} and {@value
+   * MobilityDto#STATE_IN_PREPARATION} become {@value MobilityDto#STATE_TO_BE_PAID} as soon as every
+   * departure document is filled in (also when the first document filled in completes them),
+   * {@value MobilityDto#STATE_IN_PREPARATION} otherwise; {@value MobilityDto#STATE_IN_PROGRESS}
    * becomes {@value MobilityDto#STATE_BALANCE_TO_BE_PAID} when every document is filled in. The
    * other states do not change (a payment is pending). The documents of a cancelled or closed
    * mobility are frozen: {@link ErrorCode#MOBILITY_CANCELLED} / {@link ErrorCode#MOBILITY_CLOSED}.
@@ -212,8 +223,10 @@ class MobilityServiceImpl implements MobilityService {
     String currentState = mobility.getState();
     if (currentState.equals(Mobility.STATE_CREATED)
         || currentState.equals(Mobility.STATE_IN_PREPARATION)) {
-      mobility.setState(mobility.allDepartureDocumentsFilledIn()
-          ? Mobility.STATE_TO_BE_PAID : Mobility.STATE_IN_PREPARATION);
+      mobility.setState(
+          mobility.allDepartureDocumentsFilledIn()
+              ? Mobility.STATE_TO_BE_PAID
+              : Mobility.STATE_IN_PREPARATION);
     } else if (currentState.equals(Mobility.STATE_IN_PROGRESS)) {
       if (mobility.allDepartureDocumentsFilledIn() && mobility.allReturnDocumentsFilledIn()) {
         mobility.setState(Mobility.STATE_BALANCE_TO_BE_PAID);
@@ -225,16 +238,20 @@ class MobilityServiceImpl implements MobilityService {
   }
 
   @Override
-  public MobilityDto cancel(int id, int version, String cancellationReason, int denialReasonId,
-      int userId, String userRole) {
+  public MobilityDto cancel(
+      int id,
+      int version,
+      String cancellationReason,
+      int denialReasonId,
+      int userId,
+      String userRole) {
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
     // The student does not own the mobility: checked first, so that the state and the reasons
     // of the mobility of another student are not disclosed
-    if (userRole.equals(UserDto.ROLE_STUDENT)
-        && userId != mobility.getNominatedStudent().getId()) {
+    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobility.getNominatedStudent().getId()) {
       throw new InsufficientPermissionException();
     }
     mobility.checkNotClosed();
@@ -273,14 +290,20 @@ class MobilityServiceImpl implements MobilityService {
     mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
     CsvStringBuilder csvStringBuilder = new CsvStringBuilder(';');
     String[] mobilityData = mobilityToStringTable(mobility);
-    String[] csvMobilityHeader =
-        {"Nom", "Prénom", "Partenaire", "Type de mobilité", "Programme de mobilité", "Semestre"};
-    String[] csvDocumentsHeader =
-        {"Contrat de bourse", "Convention de stage / Convention d'études", "Charte de l'étudiant",
-            "Document d'engagement", "Preuve du passage des tests linguistiques",
-            "Attestation séjour", "Relevé de notes (SMS) ou certificat de stage (SMP)",
-            "Rapport final (complété en ligne)",
-            "Preuve du passage des tests linguistiques après la mobilité"};
+    String[] csvMobilityHeader = {
+      "Nom", "Prénom", "Partenaire", "Type de mobilité", "Programme de mobilité", "Semestre"
+    };
+    String[] csvDocumentsHeader = {
+      "Contrat de bourse",
+      "Convention de stage / Convention d'études",
+      "Charte de l'étudiant",
+      "Document d'engagement",
+      "Preuve du passage des tests linguistiques",
+      "Attestation séjour",
+      "Relevé de notes (SMS) ou certificat de stage (SMP)",
+      "Rapport final (complété en ligne)",
+      "Preuve du passage des tests linguistiques après la mobilité"
+    };
     Map<String, String> documentsInMobility = new HashMap<String, String>();
     csvStringBuilder.write(csvMobilityHeader);
     csvStringBuilder.writeLine(csvDocumentsHeader);
@@ -288,8 +311,8 @@ class MobilityServiceImpl implements MobilityService {
     List<DocumentDto> documents = mobility.getDocuments();
     for (DocumentDto document : documents) {
       if (isExported(document, filter)) {
-        documentsInMobility.put(document.getName(),
-            document.isFilledIn() ? "Rempli" : "Non-rempli");
+        documentsInMobility.put(
+            document.getName(), document.isFilledIn() ? "Rempli" : "Non-rempli");
       }
     }
     for (String clef : csvDocumentsHeader) {
@@ -319,7 +342,7 @@ class MobilityServiceImpl implements MobilityService {
 
   /**
    * Construct a table of strings to represent the mobilityDto to serialize.
-   * 
+   *
    * @param mobility the mobility to serialize
    * @return a table of strings serializable.
    */
@@ -338,7 +361,7 @@ class MobilityServiceImpl implements MobilityService {
 
   /**
    * Retrieve a mobility with the id passed in parameter.
-   * 
+   *
    * @param mobilityId the id of the mobility we want to retrieve
    * @return a Mobility for the id passed in parameter.
    */
@@ -349,5 +372,4 @@ class MobilityServiceImpl implements MobilityService {
     }
     return mobility;
   }
-
 }

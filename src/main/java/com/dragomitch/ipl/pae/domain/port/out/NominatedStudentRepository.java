@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-
 import java.util.List;
 
 public interface NominatedStudentRepository {
@@ -32,19 +31,19 @@ public interface NominatedStudentRepository {
    * Inserts a nominatedStudent into the database.
    *
    * <p>A nominated student is the student part of a user (same id) and shares the version of that
-   * user: {@code NominatedStudentService.edit} updates both rows with the same expected version. The
-   * row is therefore stored with the version carried by the DTO (the user's), which is also the
+   * user: {@code NominatedStudentService.edit} updates both rows with the same expected version.
+   * The row is therefore stored with the version carried by the DTO (the user's), which is also the
    * version of the returned DTO.
-   * 
+   *
    * @param nominatedStudent , the nominatedStudent to be inserted in the database, carrying the id
-   *        and the version of its user.
+   *     and the version of its user.
    * @return the nominatedStudent inserted in the database, with the stored version
    */
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent);
 
   /**
    * Queries the database for a nominatedStudent based on it's id.
-   * 
+   *
    * @param id : the id of the nominatedStudent we want to find.
    * @return a nominatedStudentDto containing the data we were looking for.
    */
@@ -52,17 +51,16 @@ public interface NominatedStudentRepository {
 
   /**
    * Queries the database for all nominatedStudents.
-   * 
+   *
    * @return a list of all nominatedStudent.
    */
   public List<NominatedStudentDto> findAll();
 
   /**
    * Update a nominatedStudent in the database.
-   * 
+   *
    * @param nominatedStudent : the nominatedStudent to be updated in the database.
    * @return the nominatedStudentDto that has just been updated.
    */
   public NominatedStudentDto update(NominatedStudentDto nominatedStudent);
-
 }

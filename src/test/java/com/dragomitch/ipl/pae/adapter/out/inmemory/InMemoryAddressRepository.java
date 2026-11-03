@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,5 +39,4 @@ public class InMemoryAddressRepository implements AddressRepository, ResettableR
   public void empty() {
     addresses = new ArrayList<AddressDto>();
   }
-
 }

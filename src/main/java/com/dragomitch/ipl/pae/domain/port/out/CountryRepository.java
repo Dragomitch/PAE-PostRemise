@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-
 import java.util.List;
 
 public interface CountryRepository {
@@ -15,7 +14,7 @@ public interface CountryRepository {
 
   /**
    * Queries the database for a country identified by a countryCode.
-   * 
+   *
    * @param countryCode the country_code of the country we want to find
    * @return the countryDto corresponding to the countryCode
    */
@@ -23,7 +22,7 @@ public interface CountryRepository {
 
   /**
    * Queries the database for all countries.
-   * 
+   *
    * @return all countries
    */
   List<CountryDto> findAll();

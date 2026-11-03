@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-
 import java.util.List;
 
 public interface PaymentRepository {
@@ -21,7 +20,6 @@ public interface PaymentRepository {
   String COLUMN_PARTNER = "partner";
   String COLUMN_PARTNER_ID = "partner_id";
 
-
   String COLUMN_PROGRAMME_ID = "programme_id";
   String COLUMN_NAME = "name";
   String COLUMN_COUNTRY_CODE = "country_code";
@@ -37,9 +35,8 @@ public interface PaymentRepository {
 
   /**
    * Queries the database for all payments.
-   * 
+   *
    * @return all payments
    */
   List<PaymentDto> findAll();
-
 }

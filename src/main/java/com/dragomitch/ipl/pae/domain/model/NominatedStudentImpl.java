@@ -1,13 +1,10 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.time.LocalDate;
 import org.springframework.util.StringUtils;
 
@@ -139,10 +136,8 @@ class NominatedStudentImpl extends UserImpl implements NominatedStudent {
 
   @Override
   public void checkBankDetails() {
-    if (!StringUtils.hasText(iban) || !StringUtils.hasText(bankName)
-        || !StringUtils.hasText(bic)) {
+    if (!StringUtils.hasText(iban) || !StringUtils.hasText(bankName) || !StringUtils.hasText(bic)) {
       throw new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS);
     }
   }
-
 }

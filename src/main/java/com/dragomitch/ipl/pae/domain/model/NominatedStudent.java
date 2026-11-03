@@ -11,9 +11,8 @@ public interface NominatedStudent extends NominatedStudentDto {
   /**
    * Checks that the bank details needed to pay the student are known.
    *
-   * @throws com.dragomitch.ipl.pae.domain.exceptions.BusinessException
-   *     {@code INCOMPLETE_BANK_DETAILS} if the IBAN, the BIC or the bank name is missing
+   * @throws com.dragomitch.ipl.pae.domain.exceptions.BusinessException {@code
+   *     INCOMPLETE_BANK_DETAILS} if the IBAN, the BIC or the bank name is missing
    */
   void checkBankDetails();
-
 }

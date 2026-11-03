@@ -1,7 +1,8 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.EncodedResource;
@@ -23,54 +24,49 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
-import javax.sql.DataSource;
-
 /**
  * Base class of every DAO integration test ({@code *IT}, run by maven-failsafe-plugin against a
  * real PostgreSQL, see {@link RepositoryItConfig}).
  *
  * <h2>Single point of transaction handling</h2>
+ *
  * This class is the <strong>only</strong> place of the test suite that knows how connections and
  * transactions are obtained. Tests wrap every DAO call in {@link #inTransaction(Supplier)} or
  * {@link #runInTransaction(Runnable)}, which
+ *
  * <ol>
- *   <li>opens a connection and starts a transaction,</li>
- *   <li>loads the {@linkplain #fixtures() fixtures} of the test class in that transaction,</li>
- *   <li>runs the work, and</li>
- *   <li><strong>always rolls back</strong>, whether the work succeeded or threw.</li>
+ *   <li>opens a connection and starts a transaction,
+ *   <li>loads the {@linkplain #fixtures() fixtures} of the test class in that transaction,
+ *   <li>runs the work, and
+ *   <li><strong>always rolls back</strong>, whether the work succeeded or threw.
  * </ol>
+ *
  * Nothing is ever committed, so tests are isolated from each other and can run in any order.
  *
- * <p>It uses Spring's transaction management, like the application: the work runs in a
- * {@link TransactionTemplate} (the {@code JpaTransactionManager} of {@link RepositoryItConfig})
- * whose status is set to rollback-only, and the fixtures and the helper queries use the
- * transaction-bound connection ({@code DataSourceUtils.getConnection(dataSource)}), the one the
- * entity manager of the transaction uses. The test classes only rely on the helpers below and on
- * the DAO interfaces (the driven ports): they are the contract of the persistence adapters.
+ * <p>It uses Spring's transaction management, like the application: the work runs in a {@link
+ * TransactionTemplate} (the {@code JpaTransactionManager} of {@link RepositoryItConfig}) whose
+ * status is set to rollback-only, and the fixtures and the helper queries use the transaction-bound
+ * connection ({@code DataSourceUtils.getConnection(dataSource)}), the one the entity manager of the
+ * transaction uses. The test classes only rely on the helpers below and on the DAO interfaces (the
+ * driven ports): they are the contract of the persistence adapters.
  *
  * <h2>Fixtures</h2>
+ *
  * Subclasses list classpath SQL scripts in {@link #fixtures()} (see {@code src/test/resources/db/
- * fixtures}). They use explicit ids below 100000; generated ids start at 100000 (see
- * {@code db/it-setup.sql}).
+ * fixtures}). They use explicit ids below 100000; generated ids start at 100000 (see {@code
+ * db/it-setup.sql}).
  */
 @SpringJUnitConfig(RepositoryItConfig.class)
 public abstract class AbstractRepositoryIT {
 
-  @Autowired
-  private DataSource dataSource;
+  @Autowired private DataSource dataSource;
 
-  @Autowired
-  private PlatformTransactionManager transactionManager;
+  @Autowired private PlatformTransactionManager transactionManager;
 
   /** The transaction-bound persistence context of the JPA adapters. */
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
-  @Autowired
-  protected EntityFactory entityFactory;
+  @Autowired protected EntityFactory entityFactory;
 
   /**
    * Classpath locations of the SQL scripts loaded at the start of every transaction, in order.
@@ -89,18 +85,20 @@ public abstract class AbstractRepositoryIT {
    * @return what {@code work} returned (DTOs stay usable after the rollback)
    */
   protected <T> T inTransaction(Supplier<T> work) {
-    return new TransactionTemplate(transactionManager).execute(status -> {
-      // rolled back at the end, even when the work succeeds
-      status.setRollbackOnly();
-      for (String fixture : fixtures()) {
-        withConnection(connection -> {
-          ScriptUtils.executeSqlScript(connection,
-              new EncodedResource(new ClassPathResource(fixture), StandardCharsets.UTF_8));
-          return null;
+    return new TransactionTemplate(transactionManager)
+        .execute(status -> {
+          // rolled back at the end, even when the work succeeds
+          status.setRollbackOnly();
+          for (String fixture : fixtures()) {
+            withConnection(connection -> {
+              ScriptUtils.executeSqlScript(
+                  connection,
+                  new EncodedResource(new ClassPathResource(fixture), StandardCharsets.UTF_8));
+              return null;
+            });
+          }
+          return work.get();
         });
-      }
-      return work.get();
-    });
   }
 
   /**
@@ -116,8 +114,8 @@ public abstract class AbstractRepositoryIT {
   }
 
   /**
-   * Executes an update statement in the current transaction; only valid inside
-   * {@link #inTransaction(Supplier)}.
+   * Executes an update statement in the current transaction; only valid inside {@link
+   * #inTransaction(Supplier)}.
    *
    * @param sql the SQL, with {@code ?} placeholders
    * @param params the parameters
@@ -133,8 +131,8 @@ public abstract class AbstractRepositoryIT {
   }
 
   /**
-   * Runs a query in the current transaction and returns every row as a column-name map; only
-   * valid inside {@link #inTransaction(Supplier)}. Used to check what a DAO really wrote.
+   * Runs a query in the current transaction and returns every row as a column-name map; only valid
+   * inside {@link #inTransaction(Supplier)}. Used to check what a DAO really wrote.
    *
    * @param sql the SQL, with {@code ?} placeholders
    * @param params the parameters

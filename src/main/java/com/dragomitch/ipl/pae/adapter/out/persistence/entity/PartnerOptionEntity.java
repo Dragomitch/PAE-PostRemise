@@ -10,15 +10,14 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 /**
- * An option a partner welcomes ({@code partner_options}), with the department of the partner
- * that hosts its students. The table has no version column.
+ * An option a partner welcomes ({@code partner_options}), with the department of the partner that
+ * hosts its students. The table has no version column.
  */
 @Entity
 @Table(name = "partner_options")
 public class PartnerOptionEntity {
 
-  @EmbeddedId
-  private PartnerOptionId id;
+  @EmbeddedId private PartnerOptionId id;
 
   @MapsId("optionCode")
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

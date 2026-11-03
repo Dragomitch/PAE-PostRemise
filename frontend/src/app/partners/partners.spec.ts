@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { Partner, User } from '../core/models';
@@ -9,10 +13,29 @@ import { Partners, normalize, optionCodes } from './partners';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
 
-const PROFESSOR: User = { id: 1, username: 'prof', firstName: 'Paula', lastName: 'Prof', role: 'Professor' };
-const STUDENT: User = { id: 2, username: 'alice', firstName: 'Alice', lastName: 'Student', role: 'Student' };
+const PROFESSOR: User = {
+  id: 1,
+  username: 'prof',
+  firstName: 'Paula',
+  lastName: 'Prof',
+  role: 'Professor',
+};
+const STUDENT: User = {
+  id: 2,
+  username: 'alice',
+  firstName: 'Alice',
+  lastName: 'Student',
+  role: 'Student',
+};
 
-function partner(id: number, fullName: string, code: string, country: string, options: string[], flags: Partial<Partner> = {}): Partner {
+function partner(
+  id: number,
+  fullName: string,
+  code: string,
+  country: string,
+  options: string[],
+  flags: Partial<Partner> = {},
+): Partner {
   return {
     id,
     fullName,
@@ -26,7 +49,10 @@ function partner(id: number, fullName: string, code: string, country: string, op
 
 const LYON = partner(1, 'Université de Lyon', 'FR', 'France', ['BCH', 'BIN']);
 const BERLIN = partner(2, 'Hochschule Berlin', 'DE', 'Allemagne', ['BIN']);
-const GENT = partner(3, 'Hogeschool Gent', 'BE', 'Belgique', ['BBM'], { official: false, archived: true });
+const GENT = partner(3, 'Hogeschool Gent', 'BE', 'Belgique', ['BBM'], {
+  official: false,
+  archived: true,
+});
 const ALL = [LYON, BERLIN, GENT];
 
 describe('Partners', () => {
@@ -43,7 +69,9 @@ describe('Partners', () => {
     });
     http = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-    TestBed.inject(SessionService).signIn({ username: user.username, password: 'secret' }).subscribe();
+    TestBed.inject(SessionService)
+      .signIn({ username: user.username, password: 'secret' })
+      .subscribe();
     http.expectOne('/api/1.0/session').flush(user);
     fixture = TestBed.createComponent(Partners);
     el = fixture.nativeElement as HTMLElement;
@@ -58,7 +86,8 @@ describe('Partners', () => {
 
   afterEach(() => http.verify());
 
-  const names = () => Array.from(el.querySelectorAll('tbody th[scope=row]')).map((c) => c.textContent?.trim());
+  const names = () =>
+    Array.from(el.querySelectorAll('tbody th[scope=row]')).map((c) => c.textContent?.trim());
   const headers = () => Array.from(el.querySelectorAll('thead th'));
   const header = (index: number) => headers()[index] as HTMLElement;
   const sortBy = (index: number) => {
@@ -87,7 +116,9 @@ describe('Partners', () => {
     it('shows a loading state until the partners arrive', () => {
       const req = open(PROFESSOR);
       expect(req.request.method).toBe('GET');
-      expect(el.querySelector('[role=status]')?.textContent).toContain('Chargement des partenaires');
+      expect(el.querySelector('[role=status]')?.textContent).toContain(
+        'Chargement des partenaires',
+      );
       expect(el.querySelector('table')).toBeNull();
 
       req.flush({ data: ALL });
@@ -98,7 +129,12 @@ describe('Partners', () => {
 
     it('shows the backend problem in an alert, with a retry button', () => {
       open(PROFESSOR).flush(
-        { code: 'ACCESS_DENIED', status: 403, title: 'Interdit', detail: 'Accès refusé par le serveur.' },
+        {
+          code: 'ACCESS_DENIED',
+          status: 403,
+          title: 'Interdit',
+          detail: 'Accès refusé par le serveur.',
+        },
         { status: 403, statusText: 'Forbidden', headers: PROBLEM_HEADERS },
       );
       fixture.detectChanges();
@@ -121,7 +157,9 @@ describe('Partners', () => {
       el.querySelector<HTMLButtonElement>('button.retry')!.click();
       fixture.detectChanges();
       expect(alert()).toBeNull();
-      expect(el.querySelector('[role=status]')?.textContent).toContain('Chargement des partenaires');
+      expect(el.querySelector('[role=status]')?.textContent).toContain(
+        'Chargement des partenaires',
+      );
       http.expectOne('/api/1.0/partners').flush({ data: ALL });
       fixture.detectChanges();
       expect(names().length).toBe(3);
@@ -161,7 +199,9 @@ describe('Partners', () => {
       ]);
       expect(names()).toEqual(['Hochschule Berlin', 'Hogeschool Gent', 'Université de Lyon']);
 
-      const lyon = Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Lyon'))!;
+      const lyon = Array.from(el.querySelectorAll('tbody tr')).find((r) =>
+        r.textContent?.includes('Lyon'),
+      )!;
       const cells = lyon.querySelectorAll('td');
       expect(cells[0].textContent).toContain('France');
       expect(cells[0].querySelector('img')?.getAttribute('src')).toBe('/images/flags/FR.png');
@@ -169,7 +209,9 @@ describe('Partners', () => {
       expect(cells[2].textContent?.trim()).toBe('Oui');
       expect(cells[3].textContent?.trim()).toBe('Non');
 
-      const gent = Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Gent'))!;
+      const gent = Array.from(el.querySelectorAll('tbody tr')).find((r) =>
+        r.textContent?.includes('Gent'),
+      )!;
       expect(gent.querySelectorAll('td')[2].textContent?.trim()).toBe('Non');
       expect(gent.querySelectorAll('td')[3].textContent?.trim()).toBe('Oui');
     });
@@ -179,9 +221,13 @@ describe('Partners', () => {
     });
 
     it('counts the partners shown', () => {
-      expect(el.querySelector('.count')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Partenaires affichés : 3 sur 3');
+      expect(el.querySelector('.count')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        'Partenaires affichés : 3 sur 3',
+      );
       type('berlin');
-      expect(el.querySelector('.count')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Partenaires affichés : 1 sur 3');
+      expect(el.querySelector('.count')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        'Partenaires affichés : 1 sur 3',
+      );
     });
 
     it('is read-only: no form, no edit control', () => {
@@ -190,7 +236,8 @@ describe('Partners', () => {
     });
 
     it('hides the picture of a flag that does not load and keeps the country name', () => {
-      const berlinRow = () => Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Berlin'))!;
+      const berlinRow = () =>
+        Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Berlin'))!;
       berlinRow().querySelector('img')!.dispatchEvent(new Event('error'));
       fixture.detectChanges();
       expect(berlinRow().querySelector('img')).toBeNull();
@@ -281,7 +328,11 @@ describe('Partners', () => {
       it('offers an archived filter: all, active, archived', () => {
         const select = el.querySelector<HTMLSelectElement>('#partners-archived')!;
         expect(el.querySelector('label[for=partners-archived]')?.textContent).toContain('Statut');
-        expect(Array.from(select.options).map((o) => o.value)).toEqual(['all', 'active', 'archived']);
+        expect(Array.from(select.options).map((o) => o.value)).toEqual([
+          'all',
+          'active',
+          'archived',
+        ]);
         expect(select.value).toBe('all');
 
         pick('archived');
@@ -326,7 +377,9 @@ describe('Partners', () => {
     });
 
     it('never applies a stale archived filter to a student', () => {
-      const component = fixture.componentInstance as unknown as { archivedFilter: { set(v: string): void } };
+      const component = fixture.componentInstance as unknown as {
+        archivedFilter: { set(v: string): void };
+      };
       component.archivedFilter.set('archived');
       fixture.detectChanges();
       expect(names().length).toBe(2);

@@ -1,22 +1,20 @@
 package com.dragomitch.ipl.pae.application;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.UnitTestConfig;
+import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPaymentRepository;
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
-import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPaymentRepository;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
-
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
+import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
-
-import java.util.List;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -24,8 +22,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestPaymentService {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private PaymentRepository paymentRepository;
@@ -34,10 +31,7 @@ public class TestPaymentService {
   private PaymentDto payment1;
   private PaymentDto payment2;
 
-
-  /**
-   * Sets up the environment before every test.
-   */
+  /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
     entityFactory = context.getBean(EntityFactory.class);
@@ -50,9 +44,7 @@ public class TestPaymentService {
     ((InMemoryPaymentRepository) paymentRepository).addPayment(payment2);
   }
 
-  /**
-   * Cleans up the 'database'.
-   */
+  /** Cleans up the 'database'. */
   @AfterEach
   public void cleanUp() {
     ((InMemoryPaymentRepository) paymentRepository).empty();
@@ -66,10 +58,10 @@ public class TestPaymentService {
 
   @Test
   public void testShowAllTC2() {
-    assertThrows(InsufficientPermissionException.class, () -> {
-      paymentService.showAll(UserDto.ROLE_STUDENT);
-    });
+    assertThrows(
+        InsufficientPermissionException.class,
+        () -> {
+          paymentService.showAll(UserDto.ROLE_STUDENT);
+        });
   }
-
-
 }

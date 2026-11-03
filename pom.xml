@@ -20,6 +20,9 @@
         <jacoco.version>0.8.16</jacoco.version>
         <embedded-postgres.version>2.2.2</embedded-postgres.version>
         <archunit.version>1.5.1</archunit.version>
+        <!-- Formatting (spotless:check in verify): google-java-format, the style of backend/AGENTS.md -->
+        <spotless.version>3.11.0</spotless.version>
+        <google-java-format.version>2.0.0</google-java-format.version>
         <!-- OpenAPI 3 document (/v3/api-docs) and Swagger UI (/swagger-ui.html): the 3.x line is the
              one built for Spring Boot 4 / Spring Framework 7 (Spring Boot does not manage it) -->
         <springdoc.version>3.2.0</springdoc.version>
@@ -286,6 +289,36 @@
                         <goals>
                             <goal>build-info</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Formatting: google-java-format on the main and test sources. spotless:check runs in
+                 the verify phase, so `mvn verify` (CI) fails on a misformatted file; run
+                 `mvn spotless:apply` to fix it. -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <googleJavaFormat>
+                            <version>${google-java-format.version}</version>
+                        </googleJavaFormat>
+                        <removeUnusedImports/>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
             </plugin>

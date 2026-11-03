@@ -1,8 +1,6 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-
 import java.io.Serializable;
 
 class CountryImpl implements Country, Serializable {
@@ -53,6 +51,4 @@ class CountryImpl implements Country, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
-
 }
