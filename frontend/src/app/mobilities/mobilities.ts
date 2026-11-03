@@ -15,7 +15,12 @@ import { ApiProblem, ClientProblemCode, toApiProblem } from '../core/api-problem
 import { Mobility } from '../core/models';
 import { SessionService } from '../core/session.service';
 import { departureLabel, mobilityTypeLabel } from '../mobility-choices/mobility-choice-labels';
-import { destination, mobilityStateClass, mobilityStateLabel, studentName } from './mobility-labels';
+import {
+  destination,
+  mobilityStateClass,
+  mobilityStateLabel,
+  studentName,
+} from './mobility-labels';
 
 /**
  * Mobilities: every mobility of `GET /api/1.0/mobilities` for a professor ("Gestion des

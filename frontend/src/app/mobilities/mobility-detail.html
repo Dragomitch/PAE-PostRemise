@@ -201,9 +201,13 @@
           <div class="section-header">
             <h2 [id]="'mobility-documents-' + group.category">
               @if (group.category === 'D') {
-                <ng-container i18n="@@mobility.documents.departure">Documents au départ</ng-container>
+                <ng-container i18n="@@mobility.documents.departure"
+                  >Documents au départ</ng-container
+                >
               } @else {
-                <ng-container i18n="@@mobility.documents.return">Documents à l'arrivée</ng-container>
+                <ng-container i18n="@@mobility.documents.return"
+                  >Documents à l'arrivée</ng-container
+                >
               }
             </h2>
             @if (isProfessor()) {
@@ -312,7 +316,10 @@
       <section class="section payments" aria-labelledby="mobility-payments-title">
         <h2 id="mobility-payments-title" i18n="@@mobility.payments.title">Paiements</h2>
         @if (!bankDetailsComplete()) {
-          <p class="notification notification-info bank-details" i18n="@@mobility.payments.bankDetails">
+          <p
+            class="notification notification-info bank-details"
+            i18n="@@mobility.payments.bankDetails"
+          >
             Les données bancaires de l'étudiant sont incomplètes. Complétez-les pour pouvoir
             effectuer les paiements liés à la mobilité.
           </p>

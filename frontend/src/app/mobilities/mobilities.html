@@ -69,9 +69,7 @@
               <td>{{ m.programme.programmeName }}</td>
               <td class="departure">{{ departure(m) }}</td>
               <td class="mobility-state">
-                <span [class]="'badge ' + stateClass(m.state)">{{
-                  stateLabel(m.state)
-                }}</span>
+                <span [class]="'badge ' + stateClass(m.state)">{{ stateLabel(m.state) }}</span>
               </td>
             </tr>
           }

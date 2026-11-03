@@ -248,12 +248,10 @@ export class ApiService {
    * screen reads it again in any case, so the answer is dropped.
    */
   private mobilityChange(path: string, params: Record<string, number>): Observable<void> {
-    return this.http
-      .put<unknown>(`${this.baseUrl}/mobilities/${path}`, null, { params })
-      .pipe(
-        map(() => undefined),
-        mapApiProblem(),
-      );
+    return this.http.put<unknown>(`${this.baseUrl}/mobilities/${path}`, null, { params }).pipe(
+      map(() => undefined),
+      mapApiProblem(),
+    );
   }
 }
 

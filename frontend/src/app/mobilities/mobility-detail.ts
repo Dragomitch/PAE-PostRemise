@@ -30,7 +30,12 @@ import {
 } from '../core/models';
 import { SessionService } from '../core/session.service';
 import { departureLabel, mobilityTypeLabel } from '../mobility-choices/mobility-choice-labels';
-import { destination, mobilityStateClass, mobilityStateLabel, studentName } from './mobility-labels';
+import {
+  destination,
+  mobilityStateClass,
+  mobilityStateLabel,
+  studentName,
+} from './mobility-labels';
 
 /** A state change the professor asked for, waiting for their confirmation in the panel. */
 export type MobilityAction =
