@@ -17,6 +17,13 @@ import xml.etree.ElementTree as ET
 
 
 def junit_totals(pattern):
+    """Sums the test cases of every matching JUnit XML file.
+
+    The counts come from the <testcase> elements, not from the tests/failures/errors/skipped
+    attributes of <testsuite>: Surefire writes the cases of the @Nested classes into the report of
+    their outer class, but its attributes only cover the outer class's own cases, so adding them
+    up undercounts. Each case is counted once, as a failure, an error, a skip or a pass.
+    """
     files = glob.glob(pattern, recursive=True)
     if not files:
         return None
@@ -26,10 +33,15 @@ def junit_totals(pattern):
         root = ET.parse(path).getroot()
         suites = [root] if root.tag == "testsuite" else root.findall("testsuite")
         for suite in suites:
-            for key in ("tests", "failures", "errors", "skipped"):
-                totals[key] += int(float(suite.get(key, 0) or 0))
             totals["time"] += float(suite.get("time", 0) or 0)
             for case in suite.findall("testcase"):
+                totals["tests"] += 1
+                if case.find("failure") is not None:
+                    totals["failures"] += 1
+                elif case.find("error") is not None:
+                    totals["errors"] += 1
+                elif case.find("skipped") is not None:
+                    totals["skipped"] += 1
                 if case.find("failure") is not None or case.find("error") is not None:
                     failed.append(f"{case.get('classname', '')}.{case.get('name', '')}")
     return totals, failed
