@@ -42,6 +42,10 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@types/jasmine"
         update-types: ["version-update:semver-major"]
+      # zone.js follows Angular: @angular/core 20 declares the peer dependency zone.js ~0.15.0, so
+      # the 0.16 bump of #152 failed `npm ci` with ERESOLVE. Lift it with the next Angular major.
+      - dependency-name: "zone.js"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   # e2e/ has its own package.json and lockfile. The Playwright version there must stay compatible
   # with the Chromium that `npx playwright install` fetches in CI (the e2e job).
