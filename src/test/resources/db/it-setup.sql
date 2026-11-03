@@ -1,4 +1,5 @@
--- Run once, right after SQLRessources/init.sql, when the integration-test database is created.
+-- Run once, right after the Flyway migrations (src/main/resources/db/migration), when the
+-- integration-test database is created (RepositoryItConfig).
 --
 -- Generated ids start at 100000 so that they can never collide with the explicit ids used by the
 -- fixtures in db/fixtures (all below 100000), whatever the order in which the tests run: sequence

@@ -5,9 +5,10 @@ services:
       - POSTGRES_DB=${DB_NAME:-testdb}
       - POSTGRES_USER=${DB_USERNAME:-pguser01}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-yoursecurepassword}
+    # The database starts empty: the backend's Flyway migrations create the student_exchange_tools
+    # schema and its reference data at its first start (ADR 0003). Demo data, by hand:
+    # docker compose exec -T db psql -U pguser01 -d testdb -v ON_ERROR_STOP=1 < SQLRessources/demo.sql
     volumes:
-      # Creates the student_exchange_tools schema and its reference data on first start
-      - ./SQLRessources/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       # PostgreSQL 18 images keep their data under /var/lib/postgresql/<major>/docker and
       # declare /var/lib/postgresql as the volume (17 and below used /var/lib/postgresql/data).
       # A volume written by the 16 image cannot be reused as is: pg_upgrade it or start afresh.
@@ -44,7 +45,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      # start-up (Hibernate, schema validation) takes a few seconds: failures in this window
+      # start-up (Flyway migrations, Hibernate) takes a few seconds: failures in this window
       # do not count
       start_period: 40s
 

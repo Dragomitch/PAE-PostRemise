@@ -45,6 +45,8 @@ import tools.jackson.databind.JsonNode;
       "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
       "spring.jpa.properties.jakarta.persistence.database-major-version=16",
       "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+      // no database: Flyway would fail the start-up (FlywayBaselineIT runs the migrations)
+      "spring.flyway.enabled=false",
       "management.health.db.enabled=false"
     })
 @AutoConfigureRestTestClient

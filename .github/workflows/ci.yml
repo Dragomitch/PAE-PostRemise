@@ -138,8 +138,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
-      # Same image and credentials as docker-compose.yml. Service containers cannot mount
-      # files, so init.sql is loaded by a step below.
+      # Same image and credentials as docker-compose.yml. init.sql is loaded by a step below,
+      # before the jar starts: Flyway adopts the database as version 1 (baseline) instead of
+      # creating the schema, the path of a database created before the migrations (ADR 0003).
       postgres:
         image: postgres:18-alpine
         env:
@@ -172,7 +173,7 @@ jobs:
           cache: maven
       - name: Build the jar
         run: mvn -B -ntp -q package -DskipTests -Djacoco.skip=true
-      - name: Load the schema (SQLRessources/init.sql)
+      - name: Load the schema at version 1 (SQLRessources/init.sql)
         run: psql -h localhost -U pguser01 -d testdb -v ON_ERROR_STOP=1 -q -f SQLRessources/init.sql
       - name: Start the app
         run: |
