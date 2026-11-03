@@ -5,5 +5,9 @@ dist/
 coverage/
 reports/
 .angular/
+# The API document (`npm run api:sync` writes it normalized, the CI diffs it byte for byte) and
+# the client generated from it (`npm run api:generate`): never edited by hand
+openapi.json
+src/app/core/api/
 # Documentation: not formatted by Prettier
 *.md
