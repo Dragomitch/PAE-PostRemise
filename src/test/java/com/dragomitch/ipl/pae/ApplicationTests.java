@@ -9,6 +9,8 @@ import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -34,11 +36,17 @@ import org.springframework.http.ResponseEntity;
  * HTTP wiring. None of the requests reach the database, so no PostgreSQL instance is needed:
  * Hibernate is told the database (PostgreSQL 16) instead of reading it from a connection at
  * start-up, and picks its dialect from it.
+ *
+ * <p>For the same reason the database health indicator is switched off here
+ * ({@code management.health.db.enabled=false}), otherwise {@code /actuator/health} would be DOWN
+ * (and slow: the connection pool waits 30 seconds for a database). That the indicator is wired and
+ * counts in the status is checked by {@link ActuatorHealthWithoutDatabaseTests}.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
     "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
     "spring.jpa.properties.jakarta.persistence.database-major-version=16",
-    "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false"})
+    "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+    "management.health.db.enabled=false"})
 class ApplicationTests {
 
   @Autowired
@@ -128,6 +136,48 @@ class ApplicationTests {
 
     assertEquals(HttpStatus.NOT_FOUND,
         rest.getForEntity("/js/doesNotExist.js", String.class).getStatusCode());
+  }
+
+  @Test
+  void healthIsPublicAndShowsNoDetail() {
+    ResponseEntity<JsonNode> response = rest.getForEntity("/actuator/health", JsonNode.class);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("UP", response.getBody().get("status").asText());
+    // show-details=never: nothing about the components (database, disk space) is disclosed
+    assertFalse(response.getBody().has("components"), response.getBody().toString());
+    assertFalse(response.getBody().has("details"), response.getBody().toString());
+    assertFalse(response.getHeaders().containsKey(HttpHeaders.WWW_AUTHENTICATE));
+  }
+
+  @Test
+  void theHealthProbesArePublic() {
+    for (String probe : List.of("/actuator/health/liveness", "/actuator/health/readiness")) {
+      ResponseEntity<String> response = rest.getForEntity(probe, String.class);
+      assertEquals(HttpStatus.OK, response.getStatusCode(), probe);
+      assertEquals("{\"status\":\"UP\"}", response.getBody(), probe);
+    }
+  }
+
+  @Test
+  void otherActuatorEndpointsRequireASession() {
+    for (String path : List.of("/actuator", "/actuator/info", "/actuator/env", "/actuator/metrics",
+        "/actuator/beans")) {
+      ResponseEntity<String> response = rest.getForEntity(path, String.class);
+      assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), path);
+      assertTrue(response.getBody().contains("\"code\":\"UNAUTHENTICATED\""), response.getBody());
+    }
+  }
+
+  @Test
+  void onlyHealthAndInfoAreExposedToASignedInUser() {
+    HttpEntity<Void> session = withSessionCookie(token(1, UserDto.ROLE_PROFESSOR));
+    assertEquals(HttpStatus.OK,
+        rest.exchange("/actuator/info", HttpMethod.GET, session, String.class).getStatusCode());
+    for (String path : List.of("/actuator/env", "/actuator/metrics", "/actuator/beans",
+        "/actuator/heapdump", "/actuator/prometheus", "/actuator/loggers")) {
+      assertEquals(HttpStatus.NOT_FOUND,
+          rest.exchange(path, HttpMethod.GET, session, String.class).getStatusCode(), path);
+    }
   }
 
   @Test
