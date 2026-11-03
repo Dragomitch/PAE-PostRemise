@@ -19,8 +19,9 @@
         <java.version>21</java.version>
         <jacoco.version>0.8.16</jacoco.version>
         <embedded-postgres.version>2.2.2</embedded-postgres.version>
-        <!-- PostgreSQL 18 binaries used by the DAO integration tests (*IT): the major of the
-             postgres image in docker-compose.yml -->
+        <archunit.version>1.4.1</archunit.version>
+        <!-- PostgreSQL 18 binaries used by the repository integration tests (*IT): the major of
+             the postgres image in docker-compose.yml -->
         <embedded-postgres-binaries.version>18.6.0</embedded-postgres-binaries.version>
         <!-- embedded-postgres 2.2 calls commons-lang3 3.18+ APIs; Spring Boot 3.5 manages 3.17.
              Only the tests use commons-lang3 (see mvn dependency:tree). -->
@@ -59,6 +60,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- ArchitectureTest: the hexagonal layering (ADR 0001) fails the build when broken -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
@@ -215,7 +223,7 @@
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
-                                        <include>com.dragomitch.ipl.pae.uccontrollers.implementations</include>
+                                        <include>com.dragomitch.ipl.pae.application</include>
                                     </includes>
                                     <limits>
                                         <limit>

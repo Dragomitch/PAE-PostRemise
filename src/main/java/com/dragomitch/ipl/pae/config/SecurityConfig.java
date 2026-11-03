@@ -1,13 +1,13 @@
 package com.dragomitch.ipl.pae.config;
 
-import com.dragomitch.ipl.pae.security.CsrfCookieFilter;
-import com.dragomitch.ipl.pae.security.CurrentUser;
-import com.dragomitch.ipl.pae.security.ExceptionResolverSecurityHandler;
-import com.dragomitch.ipl.pae.security.RoleClaimAuthoritiesConverter;
-import com.dragomitch.ipl.pae.security.SessionCookieBearerTokenResolver;
-import com.dragomitch.ipl.pae.security.SessionProperties;
-import com.dragomitch.ipl.pae.security.SpaCsrfTokenRequestHandler;
-import com.dragomitch.ipl.pae.web.ApiPaths;
+import com.dragomitch.ipl.pae.adapter.in.web.security.CsrfCookieFilter;
+import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
+import com.dragomitch.ipl.pae.adapter.in.web.security.ExceptionResolverSecurityHandler;
+import com.dragomitch.ipl.pae.adapter.in.web.security.RoleClaimAuthoritiesConverter;
+import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieBearerTokenResolver;
+import com.dragomitch.ipl.pae.adapter.in.web.security.SessionProperties;
+import com.dragomitch.ipl.pae.adapter.in.web.security.SpaCsrfTokenRequestHandler;
+import com.dragomitch.ipl.pae.adapter.in.web.ApiPaths;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 

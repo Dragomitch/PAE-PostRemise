@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.config;
 
-import com.dragomitch.ipl.pae.security.CurrentUserArgumentResolver;
+import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUserArgumentResolver;
 
 import java.util.List;
 import java.util.Locale;
