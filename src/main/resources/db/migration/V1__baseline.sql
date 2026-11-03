@@ -1,6 +1,6 @@
 -- Version 1 of the schema: the baseline (ADR 0003).
 --
--- The student_exchange_tools schema, its tables and constraints, and the reference data the
+-- The tables and constraints of the student_exchange_tools schema and the reference data the
 -- application needs (options, programmes, countries, documents, the denial reason), exactly as
 -- SQLRessources/init.sql creates them; FlywayBaselineIT checks that both produce the same schema
 -- and the same rows. No user, partner or mobility: the demo data set is SQLRessources/demo.sql.
@@ -8,11 +8,13 @@
 -- A database created from init.sql before Flyway (no flyway_schema_history) is adopted as version
 -- 1 by baseline-on-migrate, and this script does not run on it.
 --
+-- The schema itself is created by Flyway before this script runs: it is the schema of
+-- spring.flyway.schemas, which also holds the flyway_schema_history table. (A CREATE SCHEMA IF NOT
+-- EXISTS here would only make PostgreSQL report that the schema exists, a notice Flyway logs as a
+-- warning.)
+--
 -- Merged migrations are never edited: a schema change is a new V<n>__<description>.sql.
 
--- Creates Schema (Flyway may already have created it, as the schema named in spring.flyway.schemas)
-CREATE SCHEMA IF NOT EXISTS student_exchange_tools;
- 
 -- Creates tables
 CREATE TABLE student_exchange_tools.options (
   option_code CHAR(3) PRIMARY KEY,
