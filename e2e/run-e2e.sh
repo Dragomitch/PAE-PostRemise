@@ -82,10 +82,16 @@ step "backend is up" wait_for "$API_URL/options" "$BACKEND_TIMEOUT"
 
 step "API checks (api_e2e.py)" python3 "$HERE/api_e2e.py"
 
-# The dev server proxies /api to the backend under test (frontend/proxy.conf.json targets 8080).
-cat > "$TMP/proxy.conf.json" <<JSON
-{ "/api": { "target": "$APP_URL", "secure": false } }
-JSON
+# The dev server proxies the same paths as frontend/proxy.conf.json (/api, the flag images...),
+# every target replaced by the backend under test, so a path added there is covered here too.
+python3 - "$ROOT/frontend/proxy.conf.json" "$TMP/proxy.conf.json" "$APP_URL" <<'PY'
+import json, sys
+source, target, app_url = sys.argv[1:]
+proxy = json.load(open(source))
+for rule in proxy.values():
+    rule["target"] = app_url
+json.dump(proxy, open(target, "w"), indent=2)
+PY
 echo; echo "=== starting ng serve on port $NG_PORT (log: $NG_LOG)"
 ( cd "$ROOT/frontend" && exec ./node_modules/.bin/ng serve --port "$NG_PORT" \
     --proxy-config "$TMP/proxy.conf.json" --no-open --no-live-reload ) > "$NG_LOG" 2>&1 &

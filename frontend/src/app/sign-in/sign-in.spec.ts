@@ -1,16 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { SignIn } from './sign-in';
 import { knownCodeMessage, statusFallback } from '../core/api-problem';
+import { SessionService } from '../core/session.service';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
 
 describe('SignIn', () => {
   let fixture: ComponentFixture<SignIn>;
   let http: HttpTestingController;
+  let navigate: jasmine.Spy;
   let el: HTMLElement;
 
   beforeEach(() => {
@@ -20,6 +22,7 @@ describe('SignIn', () => {
     });
     fixture = TestBed.createComponent(SignIn);
     http = TestBed.inject(HttpTestingController);
+    navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
     el = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
   });
@@ -67,7 +70,7 @@ describe('SignIn', () => {
     expect(input.getAttribute('aria-describedby')).toBe('signin-username-error');
   });
 
-  it('disables the submit button while the request is in flight, then shows the user', () => {
+  it('disables the submit button while the request is in flight, then goes to the partners', () => {
     fillAndSubmit();
     const req = http.expectOne('/api/1.0/session');
     expect(req.request.body).toEqual({ username: 'jdoe', password: 'secret' });
@@ -78,20 +81,20 @@ describe('SignIn', () => {
     // A second submit while in flight is ignored.
     submit();
     http.expectNone('/api/1.0/session');
+    expect(navigate).not.toHaveBeenCalled();
 
     req.flush({ username: 'jdoe', firstName: 'John' });
     fixture.detectChanges();
+    expect(navigate).toHaveBeenCalledOnceWith(['/partners']);
     expect(button().disabled).toBeFalse();
     expect(button().textContent).toContain('Se connecter');
-    expect(status()?.textContent).toContain('Vous êtes connecté en tant que John.');
     expect(alert()).toBeNull();
   });
 
-  it('greets by username when the first name is unknown', () => {
+  it('remembers the signed-in user in the session', () => {
     fillAndSubmit();
-    http.expectOne('/api/1.0/session').flush({ username: 'jdoe' });
-    fixture.detectChanges();
-    expect(status()?.textContent).toContain('jdoe');
+    http.expectOne('/api/1.0/session').flush({ username: 'jdoe', firstName: 'John', role: 'Student' });
+    expect(TestBed.inject(SessionService).user()?.firstName).toBe('John');
   });
 
   it('shows the backend localized detail in an alert and re-enables the button', () => {
@@ -104,6 +107,8 @@ describe('SignIn', () => {
     expect(alert()?.textContent).toContain('Identifiants refusés par le serveur.');
     expect(button().disabled).toBeFalse();
     expect(status()).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(TestBed.inject(SessionService).user()).toBeNull();
   });
 
   it('falls back to the known-code message when the backend sends no detail', () => {
@@ -154,15 +159,11 @@ describe('SignIn', () => {
     http.expectOne('/api/1.0/session').flush({ username: 'jdoe' });
   });
 
-  it('confirms a fresh registration until the user signs in', () => {
+  it('confirms a fresh registration', () => {
+    expect(status()).toBeNull();
     fixture.componentRef.setInput('registered', 'true');
     fixture.detectChanges();
     expect(status()?.textContent).toContain('Votre compte a été créé');
-
-    fillAndSubmit();
-    http.expectOne('/api/1.0/session').flush({ username: 'jdoe', firstName: 'John' });
-    fixture.detectChanges();
     expect(el.querySelectorAll('[role=status]').length).toBe(1);
-    expect(status()?.textContent).toContain('John');
   });
 });

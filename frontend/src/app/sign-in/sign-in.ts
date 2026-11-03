@@ -1,12 +1,11 @@
 import { Component, booleanAttribute, computed, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ApiService } from '../api.service';
 import { ApiProblem, toApiProblem } from '../core/api-problem';
 import { fieldMessage, unmatchedFieldErrors } from '../core/form-errors';
-import { User } from '../core/models';
+import { SessionService } from '../core/session.service';
 
 const FIELDS = ['username', 'password'] as const;
 type Field = (typeof FIELDS)[number];
@@ -18,7 +17,8 @@ type Field = (typeof FIELDS)[number];
   styleUrl: './sign-in.css',
 })
 export class SignIn {
-  private readonly api = inject(ApiService);
+  private readonly session = inject(SessionService);
+  private readonly router = inject(Router);
 
   /** `?registered=true` after a successful sign-up (bound by withComponentInputBinding). */
   readonly registered = input(false, { transform: booleanAttribute });
@@ -30,7 +30,6 @@ export class SignIn {
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly problem = signal<ApiProblem | null>(null);
-  protected readonly user = signal<User | null>(null);
   protected readonly otherErrors = computed(() => unmatchedFieldErrors(this.problem(), FIELDS));
 
   protected errorFor(field: Field): string | null {
@@ -48,12 +47,11 @@ export class SignIn {
     }
     this.submitting.set(true);
     this.problem.set(null);
-    this.user.set(null);
-    this.api
-      .login(this.form.getRawValue())
+    this.session
+      .signIn(this.form.getRawValue())
       .pipe(finalize(() => this.submitting.set(false)))
       .subscribe({
-        next: (user) => this.user.set(user),
+        next: () => void this.router.navigate(['/partners']),
         error: (error: unknown) => this.problem.set(toApiProblem(error)),
       });
   }

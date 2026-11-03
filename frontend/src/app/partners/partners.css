@@ -1,0 +1,152 @@
+:host {
+  display: block;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  min-width: 15rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #8a94a3;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.count {
+  margin: 0 0 0.5rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.state {
+  padding: 1.5rem 0;
+  color: #4a5568;
+}
+
+.retry {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #8a1c14;
+  border-radius: 4px;
+  background: #fff;
+  color: #8a1c14;
+  font: inherit;
+  cursor: pointer;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #dde2ea;
+  text-align: left;
+  vertical-align: middle;
+}
+
+thead th {
+  background: #f2f5f9;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+th[scope='row'] {
+  font-weight: 600;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sort:hover,
+.sort:focus-visible {
+  text-decoration: underline;
+}
+
+.sort-indicator {
+  color: #5b6677;
+  font-size: 0.75rem;
+}
+
+th[aria-sort='ascending'] .sort-indicator,
+th[aria-sort='descending'] .sort-indicator {
+  color: #1f3a5f;
+}
+
+.country {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.options {
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.badge-yes {
+  background: #e7f5ea;
+  color: #1d5b2c;
+}
+
+.badge-archived {
+  background: #fdf0d9;
+  color: #7a4b00;
+}
+
+.badge-no {
+  background: #eef1f5;
+  color: #4a5568;
+}
