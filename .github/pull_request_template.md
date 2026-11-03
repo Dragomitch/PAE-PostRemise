@@ -37,6 +37,11 @@ which the agents' GitHub tooling stores wrapped in backticks):
 
 <a href="https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png"><img src="https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png" alt="alt text" width="700"></a>
 
+Full size: https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png
+
+(the tooling sometimes wraps an image URL in backticks; the "Full size" line keeps a working link,
+and one image per message, further ones in one comment each, is the safest)
+
 <commit-sha> is the full sha of a commit of the branch that contains the image. On a Forgejo mirror
 the image URL is https://<host>/Dragomitch/PAE-PostRemise/raw/commit/<commit-sha>/docs/screenshots/<topic>/<file>.png
 and the page is the same path under /src/commit/<commit-sha>/.
