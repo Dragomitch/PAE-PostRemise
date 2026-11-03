@@ -5,6 +5,9 @@ import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Sign-in, current user and sign-out. The session is a signed JWT in the {@code session} cookie.
  */
+@Tag(name = "Session", description = "Sign-in, the signed-in user, sign-out (the session cookie).")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/session")
 public class SessionController {
@@ -42,6 +46,11 @@ public class SessionController {
   }
 
   /** Public. Checks the credentials and opens a session (sets the {@code session} cookie). */
+  @ApiResponse(responseCode = "200", description = "Signed in: the response sets the session "
+      + "cookie (HttpOnly, SameSite=Lax) holding the session JWT",
+      headers = @Header(name = HttpHeaders.SET_COOKIE, description = "session=<JWT>"))
+  @ApiResponse(responseCode = "401",
+      description = "Unknown username or wrong password (INVALID_CREDENTIALS)")
   @PostMapping
   public ResponseEntity<UserDto> signin(@RequestBody @Valid SignInRequest credentials) {
     UserDto user = sessionService.signin(credentials.username(), credentials.password());
