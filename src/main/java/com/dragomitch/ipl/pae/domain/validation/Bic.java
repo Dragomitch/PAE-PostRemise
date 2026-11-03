@@ -16,9 +16,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The value is a BIC / SWIFT code (ISO 9362): 4 letters (bank), 2 letters (country), 2 letters
- * or digits (location) and optionally 3 letters or digits (branch), i.e. 8 or 11 characters.
- * {@code null} and the empty string are valid (combine with {@code @NotBlank}).
+ * The value is a BIC / SWIFT code (ISO 9362): 4 letters (bank), 2 letters (country), 2 letters or
+ * digits (location) and optionally 3 letters or digits (branch), i.e. 8 or 11 characters. {@code
+ * null} and the empty string are valid (combine with {@code @NotBlank}).
  */
 @Documented
 @Constraint(validatedBy = {})

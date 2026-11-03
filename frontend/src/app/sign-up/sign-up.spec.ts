@@ -57,11 +57,22 @@ describe('SignUp', () => {
 
   const button = () => el.querySelector<HTMLButtonElement>('button[type=submit]')!;
   const alert = () => el.querySelector('[role=alert]');
-  const errorOf = (id: string) => el.querySelector(`#signup-${id}-error`)?.textContent?.trim() ?? null;
+  const errorOf = (id: string) =>
+    el.querySelector(`#signup-${id}-error`)?.textContent?.trim() ?? null;
 
   it('renders a labelled control for every field, with the IPL options', () => {
-    for (const id of ['lastName', 'firstName', 'username', 'password', 'reenterPassword', 'email', 'option']) {
-      expect(el.querySelector(`label[for=signup-${id}]`)).withContext(id).not.toBeNull();
+    for (const id of [
+      'lastName',
+      'firstName',
+      'username',
+      'password',
+      'reenterPassword',
+      'email',
+      'option',
+    ]) {
+      expect(el.querySelector(`label[for=signup-${id}]`))
+        .withContext(id)
+        .not.toBeNull();
     }
     const options = Array.from(el.querySelectorAll<HTMLOptionElement>('#signup-option option'));
     expect(options.map((o) => o.value)).toEqual(['', 'BIN', 'BBM', 'BCH', 'BDI', 'BIM']);
@@ -129,7 +140,9 @@ describe('SignUp', () => {
     expect(errorOf('option')).toBe('Option inconnue.');
     expect(errorOf('username')).toBeNull();
     expect(el.querySelector('#signup-email')?.getAttribute('aria-invalid')).toBe('true');
-    expect(el.querySelector('#signup-email')?.getAttribute('aria-describedby')).toBe('signup-email-error');
+    expect(el.querySelector('#signup-email')?.getAttribute('aria-describedby')).toBe(
+      'signup-email-error',
+    );
     expect(button().disabled).toBeFalse();
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -139,7 +152,10 @@ describe('SignUp', () => {
     submit();
     http
       .expectOne('/api/1.0/users')
-      .flush({ code: 'USERNAME_TAKEN', status: 409 }, { status: 409, statusText: 'Conflict', headers: PROBLEM_HEADERS });
+      .flush(
+        { code: 'USERNAME_TAKEN', status: 409 },
+        { status: 409, statusText: 'Conflict', headers: PROBLEM_HEADERS },
+      );
     fixture.detectChanges();
     expect(alert()?.textContent).toContain(knownCodeMessage('USERNAME_TAKEN')!);
     expect(alert()?.querySelector('ul')).toBeNull();

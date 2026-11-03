@@ -51,6 +51,7 @@ frontend/
 │       ├── messages.xlf           # extracted French source catalog (generated, committed)
 │       └── messages.en.xlf        # English translations (hand-maintained)
 ├── scripts/check-i18n.mjs         # CI guard: stale catalog / missing or outdated translations
+├── eslint.config.js  .prettierrc  .prettierignore   # npm run lint / npm run format
 ├── angular.json  karma.conf.js  proxy.conf.json  nginx.conf  Dockerfile
 └── package.json
 ```
@@ -59,8 +60,15 @@ frontend/
 
 ### Code Style
 
-- Use the Angular CLI formatting tools (`ng lint`).
-- Prefer single quotes and end files with a newline.
+- `npm run lint` (`ng lint`, angular-eslint) checks `src/**/*.ts` and `src/**/*.html` with the
+  recommended TypeScript, stylistic, Angular, template and template accessibility rules
+  (`eslint.config.js`). Fix the findings; turning a rule off needs a reason in a comment.
+- `npm run format` (Prettier) formats the sources and the configuration files (`.prettierrc`:
+  single quotes, 100 columns, the Angular parser for the templates; `.prettierignore` leaves out
+  the lock file, the build output and the Markdown files). `npm run format:check` reports the files
+  it would change without touching them. `eslint-config-prettier` keeps ESLint out of the layout.
+- The CI frontend job runs `npm run lint` and `npm run format:check` before the build and the
+  tests: run both, or `npm run format` first, before committing.
 - Keep components small and focused.
 - Never hard-code user-facing text without an i18n marker (see below).
 
@@ -162,7 +170,7 @@ What protects the catalogs:
 | --- | --- |
 | Id missing from `messages.en.xlf` | `ng build` (`i18nMissingTranslation: "error"`) and `i18n:check` |
 | `<trans-unit>` present but `<target>` missing (Angular silently uses the French source) | `i18n:check` |
-| French text changed but English not updated | `i18n:check` (compares the `<source>` copies) |
+| French text changed but English not updated | `i18n:check` (compares the `<source>` copies, whitespace collapsed and trimmed, so a template reformatted by Prettier is not a change) |
 | `messages.xlf` not re-extracted | `i18n:check` |
 | Obsolete translations | `i18n:check` |
 

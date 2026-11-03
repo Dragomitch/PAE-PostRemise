@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.core.Ordered;
@@ -45,8 +44,7 @@ class CorsConfigTest {
     CorsConfiguration config =
         configFor(" http://localhost:4200 , https://ema.example.org,, ", "/api/1.0/session");
 
-    assertEquals(List.of(DEV_ORIGIN, "https://ema.example.org"),
-        config.getAllowedOrigins());
+    assertEquals(List.of(DEV_ORIGIN, "https://ema.example.org"), config.getAllowedOrigins());
   }
 
   @Test
@@ -71,10 +69,12 @@ class CorsConfigTest {
     assertNull(chain.getRequest(), "a preflight must not reach security or the API");
     assertEquals(DEV_ORIGIN, response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     assertEquals("true", response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    assertEquals(String.join(",", CorsConfig.ALLOWED_METHODS),
+    assertEquals(
+        String.join(",", CorsConfig.ALLOWED_METHODS),
         response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS));
     assertEquals("content-type", response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS));
-    assertEquals(String.valueOf(CorsConfig.MAX_AGE_SECONDS),
+    assertEquals(
+        String.valueOf(CorsConfig.MAX_AGE_SECONDS),
         response.getHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE));
   }
 
@@ -103,8 +103,8 @@ class CorsConfigTest {
     assertSame(request, chain.getRequest());
     assertEquals(DEV_ORIGIN, response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     assertEquals("true", response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    assertEquals("Content-Disposition",
-        response.getHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS));
+    assertEquals(
+        "Content-Disposition", response.getHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS));
   }
 
   @Test
@@ -136,7 +136,8 @@ class CorsConfigTest {
   }
 
   private CorsFilter filter(String allowedOrigins) {
-    return corsConfig.corsFilterRegistration(corsConfig.corsConfigurationSource(allowedOrigins))
+    return corsConfig
+        .corsFilterRegistration(corsConfig.corsConfigurationSource(allowedOrigins))
         .getFilter();
   }
 

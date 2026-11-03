@@ -3,18 +3,14 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-import com.dragomitch.ipl.pae.UnitTestConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -22,8 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestPartner {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String LEGALNAME = "SpeculoosFactory";

@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,17 +14,16 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface UserService {
 
-
   /**
    * Return a list of all stored users.
-   * 
+   *
    * @return a list of users
    */
   List<UserDto> showAll();
 
   /**
    * Registers a new user.
-   * 
+   *
    * @param user the user to create
    */
   @Validated({Default.class, OnCreate.class})
@@ -33,23 +31,23 @@ public interface UserService {
 
   /**
    * Changes the role of the user to professor.
-   * 
+   *
    * @param userId the id of the user to promote
-   * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if there is no
-   *         such user (404)
+   * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if there is no such
+   *     user (404)
    * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
   void promoteToProfessor(@Positive int userId);
 
   /**
-   * Changes the role of the user having that username to professor. This is the natural entry
-   * point when only the login is known (a professor promoting a colleague who just signed up);
-   * {@link #promoteToProfessor(int)} serves the id-based API route.
+   * Changes the role of the user having that username to professor. This is the natural entry point
+   * when only the login is known (a professor promoting a colleague who just signed up); {@link
+   * #promoteToProfessor(int)} serves the id-based API route.
    *
    * @param username the username of the user to promote
    * @return the user, with its new role and version
-   * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if there is no
-   *         such user (404)
+   * @throws com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException if there is no such
+   *     user (404)
    * @throws java.util.ConcurrentModificationException if the user changed since it was read (409)
    */
   UserDto promoteToProfessorByUsername(
@@ -57,12 +55,11 @@ public interface UserService {
 
   /**
    * Updates the user's information. Note: This method should not be called explicitly.
-   * 
+   *
    * @param user the UserDto containing the new data
    * @param userId the id of the currently signed in user
    * @param role the role of the currently signed in user
    * @return the updated UserDto container.
    */
   UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotBlank String role);
-
 }

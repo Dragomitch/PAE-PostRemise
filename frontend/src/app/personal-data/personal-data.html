@@ -2,15 +2,22 @@
   <h1 id="personal-data-heading" i18n="@@personalData.heading">Mes données personnelles</h1>
 
   @if (loading()) {
-    <p class="state" role="status" i18n="@@personalData.loading">Chargement de vos données personnelles…</p>
+    <p class="state" role="status" i18n="@@personalData.loading">
+      Chargement de vos données personnelles…
+    </p>
   } @else if (loadProblem(); as p) {
     <div class="notification notification-danger" role="alert">
       <p>{{ p.detail }}</p>
-      <button type="button" class="retry" (click)="load()" i18n="@@personalData.retry">Réessayer</button>
+      <button type="button" class="retry" (click)="load()" i18n="@@personalData.retry">
+        Réessayer
+      </button>
     </div>
   } @else {
     @if (!record()) {
-      <p class="notification notification-info intro" i18n="@@personalData.new">Vous n’avez pas encore encodé vos données personnelles : complétez le formulaire puis sauvegardez.</p>
+      <p class="notification notification-info intro" i18n="@@personalData.new">
+        Vous n’avez pas encore encodé vos données personnelles : complétez le formulaire puis
+        sauvegardez.
+      </p>
     }
 
     <div class="notice" role="status">
@@ -30,20 +37,31 @@
           </ul>
         }
         @if (conflict()) {
-          <button type="button" class="retry reload" (click)="load()" i18n="@@personalData.reload">Recharger mes données</button>
+          <button type="button" class="retry reload" (click)="load()" i18n="@@personalData.reload">
+            Recharger mes données
+          </button>
         }
       </div>
     }
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate aria-labelledby="personal-data-heading">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+      aria-labelledby="personal-data-heading"
+    >
       <div class="sections">
         <fieldset class="section">
           <legend i18n="@@personalData.section.general">Informations générales</legend>
           <div class="form-group">
             <label for="personal-data-title" i18n="@@personalData.title.label">Titre</label>
-            <select id="personal-data-title" class="input" formControlName="title"
-                    [attr.aria-invalid]="!!errorFor('title')"
-                    [attr.aria-describedby]="describedBy('title')">
+            <select
+              id="personal-data-title"
+              class="input"
+              formControlName="title"
+              [attr.aria-invalid]="!!errorFor('title')"
+              [attr.aria-describedby]="describedBy('title')"
+            >
               <option value="" disabled i18n="@@personalData.choose">Choisissez…</option>
               @for (o of titles; track o.value) {
                 <option [value]="o.value">{{ o.label }}</option>
@@ -55,27 +73,47 @@
           </div>
           <div class="form-group">
             <label for="personal-data-lastName" i18n="@@personalData.lastName.label">Nom</label>
-            <input id="personal-data-lastName" class="input" type="text" formControlName="lastName" [attr.maxlength]="maxLengths.lastName" autocomplete="family-name"
-                   [attr.aria-invalid]="!!errorFor('lastName')"
-                   [attr.aria-describedby]="describedBy('lastName')">
+            <input
+              id="personal-data-lastName"
+              class="input"
+              type="text"
+              formControlName="lastName"
+              [attr.maxlength]="maxLengths.lastName"
+              autocomplete="family-name"
+              [attr.aria-invalid]="!!errorFor('lastName')"
+              [attr.aria-describedby]="describedBy('lastName')"
+            />
             @if (errorFor('lastName'); as message) {
               <p class="field-error" id="personal-data-lastName-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
-            <label for="personal-data-firstName" i18n="@@personalData.firstName.label">Prénom</label>
-            <input id="personal-data-firstName" class="input" type="text" formControlName="firstName" [attr.maxlength]="maxLengths.firstName" autocomplete="given-name"
-                   [attr.aria-invalid]="!!errorFor('firstName')"
-                   [attr.aria-describedby]="describedBy('firstName')">
+            <label for="personal-data-firstName" i18n="@@personalData.firstName.label"
+              >Prénom</label
+            >
+            <input
+              id="personal-data-firstName"
+              class="input"
+              type="text"
+              formControlName="firstName"
+              [attr.maxlength]="maxLengths.firstName"
+              autocomplete="given-name"
+              [attr.aria-invalid]="!!errorFor('firstName')"
+              [attr.aria-describedby]="describedBy('firstName')"
+            />
             @if (errorFor('firstName'); as message) {
               <p class="field-error" id="personal-data-firstName-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-gender" i18n="@@personalData.gender.label">Sexe</label>
-            <select id="personal-data-gender" class="input" formControlName="gender"
-                    [attr.aria-invalid]="!!errorFor('gender')"
-                    [attr.aria-describedby]="describedBy('gender')">
+            <select
+              id="personal-data-gender"
+              class="input"
+              formControlName="gender"
+              [attr.aria-invalid]="!!errorFor('gender')"
+              [attr.aria-describedby]="describedBy('gender')"
+            >
               <option value="" disabled i18n="@@personalData.choose">Choisissez…</option>
               @for (o of genders; track o.value) {
                 <option [value]="o.value">{{ o.label }}</option>
@@ -86,20 +124,36 @@
             }
           </div>
           <div class="form-group">
-            <label for="personal-data-birthdate" i18n="@@personalData.birthdate.label">Date de naissance</label>
-            <input id="personal-data-birthdate" class="input" type="date" formControlName="birthdate" autocomplete="bday"
-                   [attr.aria-invalid]="!!errorFor('birthdate')"
-                   [attr.aria-describedby]="describedBy('birthdate')">
+            <label for="personal-data-birthdate" i18n="@@personalData.birthdate.label"
+              >Date de naissance</label
+            >
+            <input
+              id="personal-data-birthdate"
+              class="input"
+              type="date"
+              formControlName="birthdate"
+              autocomplete="bday"
+              [attr.aria-invalid]="!!errorFor('birthdate')"
+              [attr.aria-describedby]="describedBy('birthdate')"
+            />
             @if (errorFor('birthdate'); as message) {
               <p class="field-error" id="personal-data-birthdate-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
-            <label for="personal-data-nationality" i18n="@@personalData.nationality.label">Nationalité</label>
-            <select id="personal-data-nationality" class="input" formControlName="nationality"
-                    [attr.aria-invalid]="!!errorFor('nationality')"
-                    [attr.aria-describedby]="describedBy('nationality')">
-              <option value="" disabled i18n="@@personalData.country.placeholder">Choisissez un pays</option>
+            <label for="personal-data-nationality" i18n="@@personalData.nationality.label"
+              >Nationalité</label
+            >
+            <select
+              id="personal-data-nationality"
+              class="input"
+              formControlName="nationality"
+              [attr.aria-invalid]="!!errorFor('nationality')"
+              [attr.aria-describedby]="describedBy('nationality')"
+            >
+              <option value="" disabled i18n="@@personalData.country.placeholder">
+                Choisissez un pays
+              </option>
               @for (c of countries(); track c.countryCode) {
                 <option [value]="c.countryCode">{{ c.name }}</option>
               }
@@ -114,55 +168,98 @@
           <legend i18n="@@personalData.section.address">Adresse</legend>
           <div class="form-group">
             <label for="personal-data-street" i18n="@@personalData.street.label">Rue</label>
-            <input id="personal-data-street" class="input" type="text" formControlName="street" [attr.maxlength]="maxLengths.street" autocomplete="address-line1"
-                   [attr.aria-invalid]="!!errorFor('street')"
-                   [attr.aria-describedby]="describedBy('street')">
+            <input
+              id="personal-data-street"
+              class="input"
+              type="text"
+              formControlName="street"
+              [attr.maxlength]="maxLengths.street"
+              autocomplete="address-line1"
+              [attr.aria-invalid]="!!errorFor('street')"
+              [attr.aria-describedby]="describedBy('street')"
+            />
             @if (errorFor('street'); as message) {
               <p class="field-error" id="personal-data-street-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-number" i18n="@@personalData.number.label">Numéro</label>
-            <input id="personal-data-number" class="input" type="text" formControlName="number" [attr.maxlength]="maxLengths.number"
-                   [attr.aria-invalid]="!!errorFor('number')"
-                   [attr.aria-describedby]="describedBy('number')">
+            <input
+              id="personal-data-number"
+              class="input"
+              type="text"
+              formControlName="number"
+              [attr.maxlength]="maxLengths.number"
+              [attr.aria-invalid]="!!errorFor('number')"
+              [attr.aria-describedby]="describedBy('number')"
+            />
             @if (errorFor('number'); as message) {
               <p class="field-error" id="personal-data-number-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-region" i18n="@@personalData.region.label">Région</label>
-            <input id="personal-data-region" class="input" type="text" formControlName="region" [attr.maxlength]="maxLengths.region" placeholder="Optionnel" i18n-placeholder="@@personalData.optional"
-                   [attr.aria-invalid]="!!errorFor('region')"
-                   [attr.aria-describedby]="describedBy('region')">
+            <input
+              id="personal-data-region"
+              class="input"
+              type="text"
+              formControlName="region"
+              [attr.maxlength]="maxLengths.region"
+              placeholder="Optionnel"
+              i18n-placeholder="@@personalData.optional"
+              [attr.aria-invalid]="!!errorFor('region')"
+              [attr.aria-describedby]="describedBy('region')"
+            />
             @if (errorFor('region'); as message) {
               <p class="field-error" id="personal-data-region-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-city" i18n="@@personalData.city.label">Ville</label>
-            <input id="personal-data-city" class="input" type="text" formControlName="city" [attr.maxlength]="maxLengths.city" autocomplete="address-level2"
-                   [attr.aria-invalid]="!!errorFor('city')"
-                   [attr.aria-describedby]="describedBy('city')">
+            <input
+              id="personal-data-city"
+              class="input"
+              type="text"
+              formControlName="city"
+              [attr.maxlength]="maxLengths.city"
+              autocomplete="address-level2"
+              [attr.aria-invalid]="!!errorFor('city')"
+              [attr.aria-describedby]="describedBy('city')"
+            />
             @if (errorFor('city'); as message) {
               <p class="field-error" id="personal-data-city-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
-            <label for="personal-data-postalCode" i18n="@@personalData.postalCode.label">Code postal</label>
-            <input id="personal-data-postalCode" class="input" type="text" formControlName="postalCode" [attr.maxlength]="maxLengths.postalCode" autocomplete="postal-code"
-                   [attr.aria-invalid]="!!errorFor('postalCode')"
-                   [attr.aria-describedby]="describedBy('postalCode')">
+            <label for="personal-data-postalCode" i18n="@@personalData.postalCode.label"
+              >Code postal</label
+            >
+            <input
+              id="personal-data-postalCode"
+              class="input"
+              type="text"
+              formControlName="postalCode"
+              [attr.maxlength]="maxLengths.postalCode"
+              autocomplete="postal-code"
+              [attr.aria-invalid]="!!errorFor('postalCode')"
+              [attr.aria-describedby]="describedBy('postalCode')"
+            />
             @if (errorFor('postalCode'); as message) {
               <p class="field-error" id="personal-data-postalCode-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-country" i18n="@@personalData.country.label">Pays</label>
-            <select id="personal-data-country" class="input" formControlName="country"
-                    [attr.aria-invalid]="!!errorFor('country')"
-                    [attr.aria-describedby]="describedBy('country')">
-              <option value="" disabled i18n="@@personalData.country.placeholder">Choisissez un pays</option>
+            <select
+              id="personal-data-country"
+              class="input"
+              formControlName="country"
+              [attr.aria-invalid]="!!errorFor('country')"
+              [attr.aria-describedby]="describedBy('country')"
+            >
+              <option value="" disabled i18n="@@personalData.country.placeholder">
+                Choisissez un pays
+              </option>
               @for (c of countries(); track c.countryCode) {
                 <option [value]="c.countryCode">{{ c.name }}</option>
               }
@@ -176,19 +273,36 @@
         <fieldset class="section">
           <legend i18n="@@personalData.section.contact">Contact</legend>
           <div class="form-group">
-            <label for="personal-data-phoneNumber" i18n="@@personalData.phoneNumber.label">Téléphone</label>
-            <input id="personal-data-phoneNumber" class="input" type="tel" formControlName="phoneNumber" [attr.maxlength]="maxLengths.phoneNumber" autocomplete="tel" placeholder="0032486372854"
-                   [attr.aria-invalid]="!!errorFor('phoneNumber')"
-                   [attr.aria-describedby]="describedBy('phoneNumber')">
+            <label for="personal-data-phoneNumber" i18n="@@personalData.phoneNumber.label"
+              >Téléphone</label
+            >
+            <input
+              id="personal-data-phoneNumber"
+              class="input"
+              type="tel"
+              formControlName="phoneNumber"
+              [attr.maxlength]="maxLengths.phoneNumber"
+              autocomplete="tel"
+              placeholder="0032486372854"
+              [attr.aria-invalid]="!!errorFor('phoneNumber')"
+              [attr.aria-describedby]="describedBy('phoneNumber')"
+            />
             @if (errorFor('phoneNumber'); as message) {
               <p class="field-error" id="personal-data-phoneNumber-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-email" i18n="@@personalData.email.label">E-mail</label>
-            <input id="personal-data-email" class="input" type="email" formControlName="email" [attr.maxlength]="maxLengths.email" autocomplete="email"
-                   [attr.aria-invalid]="!!errorFor('email')"
-                   [attr.aria-describedby]="describedBy('email')">
+            <input
+              id="personal-data-email"
+              class="input"
+              type="email"
+              formControlName="email"
+              [attr.maxlength]="maxLengths.email"
+              autocomplete="email"
+              [attr.aria-invalid]="!!errorFor('email')"
+              [attr.aria-describedby]="describedBy('email')"
+            />
             @if (errorFor('email'); as message) {
               <p class="field-error" id="personal-data-email-error">{{ message }}</p>
             }
@@ -198,41 +312,79 @@
         <fieldset class="section">
           <legend i18n="@@personalData.section.bank">Données bancaires</legend>
           <div class="form-group">
-            <label for="personal-data-iban" i18n="@@personalData.iban.label">N° de compte (IBAN)</label>
-            <input id="personal-data-iban" class="input" type="text" formControlName="iban" autocomplete="off" spellcheck="false"
-                   [attr.aria-invalid]="!!errorFor('iban')"
-                   [attr.aria-describedby]="describedBy('iban')">
+            <label for="personal-data-iban" i18n="@@personalData.iban.label"
+              >N° de compte (IBAN)</label
+            >
+            <input
+              id="personal-data-iban"
+              class="input"
+              type="text"
+              formControlName="iban"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="!!errorFor('iban')"
+              [attr.aria-describedby]="describedBy('iban')"
+            />
             @if (errorFor('iban'); as message) {
               <p class="field-error" id="personal-data-iban-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-bankName" i18n="@@personalData.bankName.label">Banque</label>
-            <input id="personal-data-bankName" class="input" type="text" formControlName="bankName" [attr.maxlength]="maxLengths.bankName"
-                   [attr.aria-invalid]="!!errorFor('bankName')"
-                   [attr.aria-describedby]="describedBy('bankName')">
+            <input
+              id="personal-data-bankName"
+              class="input"
+              type="text"
+              formControlName="bankName"
+              [attr.maxlength]="maxLengths.bankName"
+              [attr.aria-invalid]="!!errorFor('bankName')"
+              [attr.aria-describedby]="describedBy('bankName')"
+            />
             @if (errorFor('bankName'); as message) {
               <p class="field-error" id="personal-data-bankName-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
             <label for="personal-data-bic" i18n="@@personalData.bic.label">Code BIC</label>
-            <input id="personal-data-bic" class="input" type="text" formControlName="bic" autocomplete="off" spellcheck="false"
-                   [attr.aria-invalid]="!!errorFor('bic')"
-                   [attr.aria-describedby]="describedBy('bic')">
+            <input
+              id="personal-data-bic"
+              class="input"
+              type="text"
+              formControlName="bic"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="!!errorFor('bic')"
+              [attr.aria-describedby]="describedBy('bic')"
+            />
             @if (errorFor('bic'); as message) {
               <p class="field-error" id="personal-data-bic-error">{{ message }}</p>
             }
           </div>
           <div class="form-group">
-            <label for="personal-data-cardHolder" i18n="@@personalData.cardHolder.label">Titulaire du compte</label>
-            <input id="personal-data-cardHolder" class="input" type="text" formControlName="cardHolder" [attr.maxlength]="maxLengths.cardHolder" placeholder="Optionnel" i18n-placeholder="@@personalData.optional"
-                   [attr.aria-invalid]="!!errorFor('cardHolder')"
-                   [attr.aria-describedby]="describedBy('cardHolder', 'personal-data-cardHolder-hint')">
+            <label for="personal-data-cardHolder" i18n="@@personalData.cardHolder.label"
+              >Titulaire du compte</label
+            >
+            <input
+              id="personal-data-cardHolder"
+              class="input"
+              type="text"
+              formControlName="cardHolder"
+              [attr.maxlength]="maxLengths.cardHolder"
+              placeholder="Optionnel"
+              i18n-placeholder="@@personalData.optional"
+              [attr.aria-invalid]="!!errorFor('cardHolder')"
+              [attr.aria-describedby]="describedBy('cardHolder', 'personal-data-cardHolder-hint')"
+            />
             @if (errorFor('cardHolder'); as message) {
               <p class="field-error" id="personal-data-cardHolder-error">{{ message }}</p>
             } @else {
-              <p class="hint" id="personal-data-cardHolder-hint" i18n="@@personalData.cardHolder.hint">Laissez vide si le compte est à votre nom.</p>
+              <p
+                class="hint"
+                id="personal-data-cardHolder-hint"
+                i18n="@@personalData.cardHolder.hint"
+              >
+                Laissez vide si le compte est à votre nom.
+              </p>
             }
           </div>
         </fieldset>
@@ -240,10 +392,20 @@
         <fieldset class="section">
           <legend i18n="@@personalData.section.academic">Données académiques</legend>
           <div class="form-group">
-            <label for="personal-data-nbrPassedYears" i18n="@@personalData.nbrPassedYears.label">Année(s) réussie(s) dans l’enseignement supérieur</label>
-            <input id="personal-data-nbrPassedYears" class="input" type="number" formControlName="nbrPassedYears" min="1" step="1" inputmode="numeric"
-                   [attr.aria-invalid]="!!errorFor('nbrPassedYears')"
-                   [attr.aria-describedby]="describedBy('nbrPassedYears')">
+            <label for="personal-data-nbrPassedYears" i18n="@@personalData.nbrPassedYears.label"
+              >Année(s) réussie(s) dans l’enseignement supérieur</label
+            >
+            <input
+              id="personal-data-nbrPassedYears"
+              class="input"
+              type="number"
+              formControlName="nbrPassedYears"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              [attr.aria-invalid]="!!errorFor('nbrPassedYears')"
+              [attr.aria-describedby]="describedBy('nbrPassedYears')"
+            />
             @if (errorFor('nbrPassedYears'); as message) {
               <p class="field-error" id="personal-data-nbrPassedYears-error">{{ message }}</p>
             }
@@ -252,7 +414,15 @@
       </div>
 
       <div class="actions">
-        <button type="submit" class="button primary" [disabled]="submitting()" [attr.aria-busy]="submitting()" i18n="@@personalData.submit">Sauvegarder</button>
+        <button
+          type="submit"
+          class="button primary"
+          [disabled]="submitting()"
+          [attr.aria-busy]="submitting()"
+          i18n="@@personalData.submit"
+        >
+          Sauvegarder
+        </button>
       </div>
     </form>
   }

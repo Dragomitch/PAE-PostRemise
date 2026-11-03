@@ -1,7 +1,5 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.DenialReason;
-
 import java.io.Serializable;
 
 class DenialReasonImpl implements DenialReason, Serializable {
@@ -40,5 +38,4 @@ class DenialReasonImpl implements DenialReason, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
 }

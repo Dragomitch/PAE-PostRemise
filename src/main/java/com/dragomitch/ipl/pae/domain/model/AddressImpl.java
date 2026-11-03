@@ -1,8 +1,6 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Address;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-
 import java.io.Serializable;
 
 class AddressImpl implements Address, Serializable {
@@ -97,6 +95,4 @@ class AddressImpl implements Address, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
-
 }

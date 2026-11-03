@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.out.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -18,8 +17,7 @@ public class MobilityDocumentId implements Serializable {
   @Column(name = "mobility_id")
   private Integer mobilityId;
 
-  protected MobilityDocumentId() {
-  }
+  protected MobilityDocumentId() {}
 
   public MobilityDocumentId(Integer documentId, Integer mobilityId) {
     this.documentId = documentId;
@@ -36,7 +34,8 @@ public class MobilityDocumentId implements Serializable {
 
   @Override
   public boolean equals(Object other) {
-    return other instanceof MobilityDocumentId id && Objects.equals(documentId, id.documentId)
+    return other instanceof MobilityDocumentId id
+        && Objects.equals(documentId, id.documentId)
         && Objects.equals(mobilityId, id.mobilityId);
   }
 

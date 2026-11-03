@@ -5,14 +5,11 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.UserJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.stereotype.Repository;
 
 /** The users of the application: students and professors. */
@@ -22,8 +19,7 @@ class JpaUserRepositoryAdapter implements UserRepository {
   private final UserJpaRepository users;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   JpaUserRepositoryAdapter(UserJpaRepository users, PersistenceMapper mapper) {
     this.users = users;
@@ -62,43 +58,50 @@ class JpaUserRepositoryAdapter implements UserRepository {
    */
   @Override
   public UserDto findBy(String columnName, String columnValue) {
-    Optional<UserEntity> user = switch (columnName) {
-      case COLUMN_USERNAME -> users.findFirstWithOptionByUsernameOrderById(columnValue);
-      case COLUMN_EMAIL -> users.findFirstWithOptionByEmailOrderById(columnValue);
-      case COLUMN_LAST_NAME -> users.findFirstWithOptionByLastNameOrderById(columnValue);
-      case COLUMN_FIRST_NAME -> users.findFirstWithOptionByFirstNameOrderById(columnValue);
-      case COLUMN_ROLE -> users.findFirstWithOptionByRoleOrderById(columnValue);
-      default -> throw new IllegalArgumentException("Users cannot be looked up by " + columnName);
-    };
+    Optional<UserEntity> user =
+        switch (columnName) {
+          case COLUMN_USERNAME -> users.findFirstWithOptionByUsernameOrderById(columnValue);
+          case COLUMN_EMAIL -> users.findFirstWithOptionByEmailOrderById(columnValue);
+          case COLUMN_LAST_NAME -> users.findFirstWithOptionByLastNameOrderById(columnValue);
+          case COLUMN_FIRST_NAME -> users.findFirstWithOptionByFirstNameOrderById(columnValue);
+          case COLUMN_ROLE -> users.findFirstWithOptionByRoleOrderById(columnValue);
+          default ->
+              throw new IllegalArgumentException("Users cannot be looked up by " + columnName);
+        };
     return user.map(mapper::user).orElse(null);
   }
 
   @Override
   public int promoteToProfessor(int userId, int expectedVersion) {
-    return promoted(users.updateRoleById(userId, UserDto.ROLE_PROFESSOR, expectedVersion),
-        userId, expectedVersion);
+    return promoted(
+        users.updateRoleById(userId, UserDto.ROLE_PROFESSOR, expectedVersion),
+        userId,
+        expectedVersion);
   }
 
   @Override
   public int promoteToProfessor(String username, int expectedVersion) {
-    return promoted(users.updateRoleByUsername(username, UserDto.ROLE_PROFESSOR, expectedVersion),
-        username, expectedVersion);
+    return promoted(
+        users.updateRoleByUsername(username, UserDto.ROLE_PROFESSOR, expectedVersion),
+        username,
+        expectedVersion);
   }
 
   /**
    * {@inheritDoc}
    *
-   * @throws ConcurrentModificationException if the user does not exist or its version is not
-   *         the DTO's (it was changed since it was read)
+   * @throws ConcurrentModificationException if the user does not exist or its version is not the
+   *     DTO's (it was changed since it was read)
    */
   @Override
   public void update(UserDto user) {
-    UserEntity entity = users.findById(user.getId())
-        .filter(found -> found.getVersion() == user.getVersion())
-        .orElseThrow(ConcurrentModificationException::new);
+    UserEntity entity =
+        users
+            .findById(user.getId())
+            .filter(found -> found.getVersion() == user.getVersion())
+            .orElseThrow(ConcurrentModificationException::new);
     copy(user, entity);
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        user.getVersion());
+    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion, user.getVersion());
     user.setVersion(entity.getVersion());
   }
 

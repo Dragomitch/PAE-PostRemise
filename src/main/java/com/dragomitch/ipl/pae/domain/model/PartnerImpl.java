@@ -1,10 +1,8 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Partner;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -82,7 +80,6 @@ public class PartnerImpl implements Partner, Serializable {
   @Override
   public int getEmployeeCount() {
     return this.employeeCount;
-
   }
 
   @Override
@@ -194,5 +191,4 @@ public class PartnerImpl implements Partner, Serializable {
   public void setArchivable(boolean archivable) {
     this.archivable = archivable;
   }
-
 }

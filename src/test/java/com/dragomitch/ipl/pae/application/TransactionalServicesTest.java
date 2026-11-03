@@ -31,11 +31,12 @@ class TransactionalServicesTest {
 
     for (BeanDefinition service : services) {
       Class<?> type = ClassUtils.forName(service.getBeanClassName(), null);
-      assertNotNull(type.getAnnotation(Transactional.class),
+      assertNotNull(
+          type.getAnnotation(Transactional.class),
           type.getName() + " must be annotated with @Transactional");
     }
-    Set<String> names = services.stream().map(BeanDefinition::getBeanClassName)
-        .collect(Collectors.toSet());
+    Set<String> names =
+        services.stream().map(BeanDefinition::getBeanClassName).collect(Collectors.toSet());
     assertTrue(names.size() >= 12, "every use case is scanned: " + names);
   }
 }

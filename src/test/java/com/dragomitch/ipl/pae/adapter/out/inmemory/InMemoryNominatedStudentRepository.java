@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -12,11 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * In-memory {@link NominatedStudentRepository} following the JDBC contract: a nominated student has the
- * id of its user (primary key), is stored with the version carried by the DTO, and is updated
+ * In-memory {@link NominatedStudentRepository} following the JDBC contract: a nominated student has
+ * the id of its user (primary key), is stored with the version carried by the DTO, and is updated
  * with optimistic locking.
  */
-public class InMemoryNominatedStudentRepository implements NominatedStudentRepository, ResettableRepository {
+public class InMemoryNominatedStudentRepository
+    implements NominatedStudentRepository, ResettableRepository {
 
   private Map<Integer, NominatedStudentDto> nominatedStudents;
   // the stored versions, kept apart because the stored DTO is shared with the callers
@@ -67,5 +67,4 @@ public class InMemoryNominatedStudentRepository implements NominatedStudentRepos
     nominatedStudents = new LinkedHashMap<Integer, NominatedStudentDto>();
     versions = new HashMap<Integer, Integer>();
   }
-
 }

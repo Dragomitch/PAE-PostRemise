@@ -14,13 +14,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
-
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -28,27 +27,25 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
 @Import(WebTestConfig.class)
 class UserControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private EntityFactory entityFactory;
+  @Autowired private EntityFactory entityFactory;
 
-  @MockitoBean
-  private UserService userService;
+  @MockitoBean private UserService userService;
 
-  private static final String VALID_SIGNUP = "{\"username\":\"jdoe\",\"password\":\"secret123\","
-      + "\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
-      + "\"option\":{\"code\":\"BIN\"}}";
+  private static final String VALID_SIGNUP =
+      "{\"username\":\"jdoe\",\"password\":\"secret123\","
+          + "\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
+          + "\"option\":{\"code\":\"BIN\"}}";
 
   private UserDto user(int id, String username) {
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
@@ -64,11 +61,15 @@ class UserControllerTest {
   void signupReadsTheUserFromTheJsonBodyAndHidesThePassword() throws Exception {
     when(userService.signup(any())).thenReturn(user(5, "jdoe"));
 
-    mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"username\":\"jdoe\",\"password\":\"secret123\",\"firstName\":\"John\","
-                + "\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
-                + "\"option\":{\"code\":\"BIN\"},\"unknownField\":1}"))
+    mockMvc
+        .perform(
+            post(ApiPaths.BASE + "/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"jdoe\",\"password\":\"secret123\",\"firstName\":\"John\","
+                        + "\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
+                        + "\"option\":{\"code\":\"BIN\"},\"unknownField\":1}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(5))
         .andExpect(jsonPath("$.username").value("jdoe"))
@@ -86,10 +87,15 @@ class UserControllerTest {
 
   @Test
   void signupBusinessErrorsAreProblems() throws Exception {
-    when(userService.signup(any())).thenThrow(new BusinessException(ErrorCode.USERNAME_TAKEN, "jdoe"));
+    when(userService.signup(any()))
+        .thenThrow(new BusinessException(ErrorCode.USERNAME_TAKEN, "jdoe"));
 
-    mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
-            .contentType(MediaType.APPLICATION_JSON).content(VALID_SIGNUP))
+    mockMvc
+        .perform(
+            post(ApiPaths.BASE + "/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_SIGNUP))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value("USERNAME_TAKEN"))
         .andExpect(jsonPath("$.detail").value("Le nom d’utilisateur « jdoe » est déjà utilisé."));
@@ -97,19 +103,30 @@ class UserControllerTest {
 
   @Test
   void signupChecksThePasswordAndTheOtherConstraintsTogether() throws Exception {
-    mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
-            .contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"jdoe\"}"))
+    mockMvc
+        .perform(
+            post(ApiPaths.BASE + "/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"jdoe\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
-        .andExpect(jsonPath("$.errors[*].field").value(org.hamcrest.Matchers.containsInAnyOrder(
-            "password", "firstName", "lastName", "email", "option")));
+        .andExpect(
+            jsonPath("$.errors[*].field")
+                .value(
+                    org.hamcrest.Matchers.containsInAnyOrder(
+                        "password", "firstName", "lastName", "email", "option")));
     verifyNoInteractions(userService);
   }
 
   @Test
   void aMalformedBodyIs400() throws Exception {
-    mockMvc.perform(post(ApiPaths.BASE + "/users").with(csrf())
-            .contentType(MediaType.APPLICATION_JSON).content("{not json"))
+    mockMvc
+        .perform(
+            post(ApiPaths.BASE + "/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{not json"))
         .andExpect(status().isBadRequest());
   }
 
@@ -117,7 +134,8 @@ class UserControllerTest {
   void showAllIsWrappedInData() throws Exception {
     when(userService.showAll()).thenReturn(List.of(user(1, "prof"), user(2, "stud")));
 
-    mockMvc.perform(get(ApiPaths.BASE + "/users").with(TestUsers.professor()))
+    mockMvc
+        .perform(get(ApiPaths.BASE + "/users").with(TestUsers.professor()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(2))
         .andExpect(jsonPath("$.data[1].username").value("stud"))
@@ -126,8 +144,8 @@ class UserControllerTest {
 
   @Test
   void promoteTakesTheIdFromThePath() throws Exception {
-    mockMvc.perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf())
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf()).with(TestUsers.professor()))
         .andExpect(status().isOk());
     verify(userService).promoteToProfessor(3);
   }
@@ -136,8 +154,12 @@ class UserControllerTest {
   void aConcurrentPromotionIsAConflictProblem() throws Exception {
     doThrow(new ConcurrentModificationException()).when(userService).promoteToProfessor(3);
 
-    mockMvc.perform(put(ApiPaths.BASE + "/users/3/promote").with(csrf())
-            .with(TestUsers.professor()).header("Accept-Language", "en"))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/3/promote")
+                .with(csrf())
+                .with(TestUsers.professor())
+                .header("Accept-Language", "en"))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()))
         .andExpect(jsonPath("$.detail").isNotEmpty());
@@ -148,8 +170,11 @@ class UserControllerTest {
     when(userService.promoteToProfessorByUsername("bob"))
         .thenThrow(new ConcurrentModificationException());
 
-    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote").with(csrf())
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/by-username/bob/promote")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value(ErrorCode.CONCURRENT_MODIFICATION.name()));
   }
@@ -159,16 +184,22 @@ class UserControllerTest {
     when(userService.promoteToProfessorByUsername("nobody"))
         .thenThrow(new ResourceNotFoundException());
 
-    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/nobody/promote").with(csrf())
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/by-username/nobody/promote")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.name()));
   }
 
   @Test
   void promotingATooLongUsernameIsAValidationProblem() throws Exception {
-    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/" + "x".repeat(21) + "/promote")
-            .with(csrf()).with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/by-username/" + "x".repeat(21) + "/promote")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.name()))
         .andExpect(jsonPath("$.errors[0].field").value("username"))
@@ -183,8 +214,11 @@ class UserControllerTest {
     promoted.setVersion(2);
     when(userService.promoteToProfessorByUsername("Bob.Dupont")).thenReturn(promoted);
 
-    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/Bob.Dupont/promote").with(csrf())
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/by-username/Bob.Dupont/promote")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(4))
         .andExpect(jsonPath("$.role").value(UserDto.ROLE_PROFESSOR))
@@ -195,8 +229,8 @@ class UserControllerTest {
 
   @Test
   void promoteByUsernameNeedsTheCsrfToken() throws Exception {
-    mockMvc.perform(put(ApiPaths.BASE + "/users/by-username/bob/promote")
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(put(ApiPaths.BASE + "/users/by-username/bob/promote").with(TestUsers.professor()))
         .andExpect(status().isForbidden());
   }
 
@@ -205,10 +239,16 @@ class UserControllerTest {
     when(userService.edit(any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT)))
         .thenReturn(user(2, "stud"));
 
-    mockMvc.perform(put(ApiPaths.BASE + "/users/edit").with(csrf()).with(TestUsers.student())
-            .contentType(MediaType.APPLICATION_JSON).content("{\"id\":2,\"username\":\"stud\","
-                + "\"firstName\":\"S\",\"lastName\":\"T\",\"email\":\"s@t.be\","
-                + "\"option\":{\"code\":\"BIN\"}}"))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/users/edit")
+                .with(csrf())
+                .with(TestUsers.student())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"id\":2,\"username\":\"stud\","
+                        + "\"firstName\":\"S\",\"lastName\":\"T\",\"email\":\"s@t.be\","
+                        + "\"option\":{\"code\":\"BIN\"}}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("stud"));
 

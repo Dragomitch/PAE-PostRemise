@@ -51,5 +51,4 @@ public interface PaymentDto {
   int getVersion();
 
   void setVersion(int version);
-
 }

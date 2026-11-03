@@ -8,13 +8,10 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.repository.NominatedStuden
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The personal data of the students nominated for a mobility. */
@@ -24,18 +21,17 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
   private final NominatedStudentJpaRepository students;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
-  JpaNominatedStudentRepositoryAdapter(NominatedStudentJpaRepository students,
-      PersistenceMapper mapper) {
+  JpaNominatedStudentRepositoryAdapter(
+      NominatedStudentJpaRepository students, PersistenceMapper mapper) {
     this.students = students;
     this.mapper = mapper;
   }
 
   /**
-   * Stores the personal data of the user (the DTO's id) with the DTO's version, and writes them
-   * at once (their key is not generated).
+   * Stores the personal data of the user (the DTO's id) with the DTO's version, and writes them at
+   * once (their key is not generated).
    */
   @Override
   public NominatedStudentDto create(NominatedStudentDto nominatedStudent) {
@@ -65,18 +61,20 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
    *
    * <p>The address is not changed.
    *
-   * @throws ConcurrentModificationException if the student does not exist or their version is
-   *         not the DTO's (they were changed since they were read)
+   * @throws ConcurrentModificationException if the student does not exist or their version is not
+   *     the DTO's (they were changed since they were read)
    */
   @Override
   public NominatedStudentDto update(NominatedStudentDto nominatedStudent) {
-    NominatedStudentEntity entity = students.findById(nominatedStudent.getId())
-        .filter(found -> found.getVersion() != null
-            && found.getVersion() == nominatedStudent.getVersion())
-        .orElseThrow(ConcurrentModificationException::new);
+    NominatedStudentEntity entity =
+        students
+            .findById(nominatedStudent.getId())
+            .filter(found ->
+                found.getVersion() != null && found.getVersion() == nominatedStudent.getVersion())
+            .orElseThrow(ConcurrentModificationException::new);
     copy(nominatedStudent, entity);
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        nominatedStudent.getVersion());
+    Versions.flushIncrementingVersion(
+        entityManager, entity, entity::getVersion, nominatedStudent.getVersion());
     nominatedStudent.setVersion(entity.getVersion());
     return nominatedStudent;
   }
@@ -85,8 +83,8 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
   private void copy(NominatedStudentDto student, NominatedStudentEntity entity) {
     entity.setTitle(student.getTitle());
     entity.setBirthdate(student.getBirthdate().atStartOfDay());
-    entity.setNationality(entityManager.getReference(CountryEntity.class,
-        student.getNationality().getCountryCode()));
+    entity.setNationality(
+        entityManager.getReference(CountryEntity.class, student.getNationality().getCountryCode()));
     entity.setPhoneNumber(student.getPhoneNumber());
     entity.setGender(student.getGender());
     entity.setPassedYearsCount(student.getNbrPassedYears());

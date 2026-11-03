@@ -4,10 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.model.Address;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +15,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestAddress {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String STREET = "Rue de l'aurée du bois";
@@ -34,9 +30,7 @@ public class TestAddress {
   private CountryDto countryDto;
   private static final String COUNTRY_CODE = "BE";
 
-  /**
-   * Creates a new Address instance.
-   */
+  /** Creates a new Address instance. */
   @BeforeEach
   public void setUp() throws Exception {
     entityFactory = context.getBean(EntityFactory.class);

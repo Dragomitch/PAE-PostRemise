@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -15,19 +14,21 @@ import jakarta.validation.groups.ConvertGroup;
 import jakarta.validation.groups.Default;
 import java.time.LocalDateTime;
 
-/**
- * An application of a student for a mobility. Lengths: {@code mobility_choices}.
- */
+/** An application of a student for a mobility. Lengths: {@code mobility_choices}. */
 public interface MobilityChoiceDto extends Entity {
 
   /** Highest preference order of a mobility choice (1 = first choice). */
   int MAX_ORDER_CHOICE = 3;
+
   /** Highest term (1 = first term, 2 = second term). */
   int MAX_TERM_CHOICE = 2;
+
   /** Studies abroad. */
   String MOBILITY_TYPE_SMS = "SMS";
+
   /** Internship abroad. */
   String MOBILITY_TYPE_SMP = "SMP";
+
   int CANCELLATION_REASON_MAX_LENGTH = 500;
 
   /** The applicant, referenced by id. */
@@ -38,8 +39,9 @@ public interface MobilityChoiceDto extends Entity {
 
   void setUser(UserDto user);
 
-  @Schema(description = "Rank of this choice among the applications of the student "
-      + "(1 = first choice).")
+  @Schema(
+      description =
+          "Rank of this choice among the applications of the student " + "(1 = first choice).")
   @Min(1)
   @Max(MAX_ORDER_CHOICE)
   int getPreferenceOrder();
@@ -48,7 +50,8 @@ public interface MobilityChoiceDto extends Entity {
 
   @Schema(description = "SMS (studies abroad) or SMP (internship abroad).")
   @NotBlank
-  @Pattern(regexp = "(" + MOBILITY_TYPE_SMS + "|" + MOBILITY_TYPE_SMP + ")?",
+  @Pattern(
+      regexp = "(" + MOBILITY_TYPE_SMS + "|" + MOBILITY_TYPE_SMP + ")?",
       message = "{pae.validation.mobilityType.message}")
   String getMobilityType();
 

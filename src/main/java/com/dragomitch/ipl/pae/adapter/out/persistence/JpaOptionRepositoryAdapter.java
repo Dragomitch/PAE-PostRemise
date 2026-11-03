@@ -3,9 +3,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.OptionJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
-
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The study options of the school (reference data). */

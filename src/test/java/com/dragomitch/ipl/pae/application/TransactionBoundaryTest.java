@@ -18,7 +18,6 @@ import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ConcurrentModificationException;
@@ -27,20 +26,20 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * The transaction boundaries of the use cases, with the real Spring transaction manager on a
- * mocked JDBC connection: one transaction (one connection) per use-case call, commit on success,
- * rollback when the use case throws, read-only connections for the queries, and the
- * optimistic-locking error of a DAO update rolls back and reaches the caller.
+ * The transaction boundaries of the use cases, with the real Spring transaction manager on a mocked
+ * JDBC connection: one transaction (one connection) per use-case call, commit on success, rollback
+ * when the use case throws, read-only connections for the queries, and the optimistic-locking error
+ * of a DAO update rolls back and reaches the caller.
  *
  * <p>The application runs a {@code JpaTransactionManager}; a {@code DataSourceTransactionManager}
  * is enough here, where the DAOs are mocks: the boundaries are the {@code @Transactional} use-case
@@ -72,20 +71,15 @@ class TransactionBoundaryTest {
     }
   }
 
-  @Autowired
-  private Connection connection;
+  @Autowired private Connection connection;
 
-  @Autowired
-  private DataSource dataSource;
+  @Autowired private DataSource dataSource;
 
-  @Autowired
-  private UserService userService;
+  @Autowired private UserService userService;
 
-  @Autowired
-  private EntityFactory entityFactory;
+  @Autowired private EntityFactory entityFactory;
 
-  @MockitoBean
-  private UserRepository userRepository;
+  @MockitoBean private UserRepository userRepository;
 
   private UserDto student;
 

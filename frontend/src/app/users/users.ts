@@ -44,7 +44,10 @@ export class Users {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly locale = inject(LOCALE_ID);
-  private readonly collator = new Intl.Collator(this.locale, { sensitivity: 'base', numeric: true });
+  private readonly collator = new Intl.Collator(this.locale, {
+    sensitivity: 'base',
+    numeric: true,
+  });
   private readonly dateFormat = new Intl.DateTimeFormat(this.locale, { dateStyle: 'medium' });
 
   protected readonly loading = signal(true);
@@ -144,9 +147,13 @@ export class Users {
       )
       .subscribe({
         next: () => {
-          this.users.update((users) => users.map((u) => (u.id === user.id ? { ...u, role: ROLE_PROFESSOR } : u)));
+          this.users.update((users) =>
+            users.map((u) => (u.id === user.id ? { ...u, role: ROLE_PROFESSOR } : u)),
+          );
           this.pending.set(null);
-          this.notice.set($localize`:@@users.notice.promoted:${fullName(user)}:NAME: est maintenant professeur.`);
+          this.notice.set(
+            $localize`:@@users.notice.promoted:${fullName(user)}:NAME: est maintenant professeur.`,
+          );
         },
         error: (error: unknown) => this.fail(toApiProblem(error), this.promoteProblem),
       });

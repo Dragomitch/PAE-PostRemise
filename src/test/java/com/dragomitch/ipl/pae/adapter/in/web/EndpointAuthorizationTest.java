@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
@@ -20,7 +20,6 @@ import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
-
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,10 +28,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -50,7 +49,10 @@ class EndpointAuthorizationTest {
 
   /** Who may call an endpoint. */
   enum Access {
-    PUBLIC, PROFESSOR, STUDENT, PROFESSOR_OR_STUDENT;
+    PUBLIC,
+    PROFESSOR,
+    STUDENT,
+    PROFESSOR_OR_STUDENT;
 
     boolean allows(String role) {
       return switch (this) {
@@ -61,34 +63,21 @@ class EndpointAuthorizationTest {
     }
   }
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private EntityFactory entityFactory;
+  @Autowired private EntityFactory entityFactory;
 
-  @MockitoBean
-  private CountryService countryService;
-  @MockitoBean
-  private DenialReasonService denialReasonService;
-  @MockitoBean
-  private MobilityChoiceService mobilityChoiceService;
-  @MockitoBean
-  private MobilityService mobilityService;
-  @MockitoBean
-  private NominatedStudentService nominatedStudentService;
-  @MockitoBean
-  private OptionService optionService;
-  @MockitoBean
-  private PartnerService partnerService;
-  @MockitoBean
-  private PaymentService paymentService;
-  @MockitoBean
-  private ProgrammeService programmeService;
-  @MockitoBean
-  private SessionService sessionService;
-  @MockitoBean
-  private UserService userService;
+  @MockitoBean private CountryService countryService;
+  @MockitoBean private DenialReasonService denialReasonService;
+  @MockitoBean private MobilityChoiceService mobilityChoiceService;
+  @MockitoBean private MobilityService mobilityService;
+  @MockitoBean private NominatedStudentService nominatedStudentService;
+  @MockitoBean private OptionService optionService;
+  @MockitoBean private PartnerService partnerService;
+  @MockitoBean private PaymentService paymentService;
+  @MockitoBean private ProgrammeService programmeService;
+  @MockitoBean private SessionService sessionService;
+  @MockitoBean private UserService userService;
 
   @BeforeEach
   void signinSucceeds() {
@@ -99,8 +88,8 @@ class EndpointAuthorizationTest {
   }
 
   /**
-   * Every endpoint of the API: method, path (as the legacy UI calls it), JSON body (null when
-   * none) and who may call it.
+   * Every endpoint of the API: method, path (as the legacy UI calls it), JSON body (null when none)
+   * and who may call it.
    */
   static Stream<Arguments> endpoints() {
     return Stream.of(
@@ -122,34 +111,47 @@ class EndpointAuthorizationTest {
         Arguments.of("GET", "/denialReasons", null, Access.PROFESSOR),
         Arguments.of("PUT", "/denialReasons/1", "{\"reason\":\"r\"}", Access.PROFESSOR),
         // mobility choices
-        Arguments.of("POST", "/mobilityChoice", TestBodies.MOBILITY_CHOICE, Access.PROFESSOR_OR_STUDENT),
+        Arguments.of(
+            "POST", "/mobilityChoice", TestBodies.MOBILITY_CHOICE, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices?filter=all", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices/count", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("PUT", "/mobilityChoices/1/cancel?reason=r", null, Access.STUDENT),
         Arguments.of("PUT", "/mobilityChoices/1/reject?reason=1", null, Access.PROFESSOR),
         Arguments.of("PUT", "/mobilityChoices/1/confirm", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/mobilityChoices/1/confirmWithNewPartner", TestBodies.PARTNER,
+        Arguments.of(
+            "PUT",
+            "/mobilityChoices/1/confirmWithNewPartner",
+            TestBodies.PARTNER,
             Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilityChoices/export", null, Access.PROFESSOR),
         // mobilities
         Arguments.of("GET", "/mobilities", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilities/1", null, Access.PROFESSOR_OR_STUDENT),
-        Arguments.of("PUT", "/mobilities/1/confirmProEcoEncoding?version=1", null,
-            Access.PROFESSOR),
-        Arguments.of("PUT", "/mobilities/1/confirmSecondSoftwareEncoding?version=1", null,
-            Access.PROFESSOR),
+        Arguments.of(
+            "PUT", "/mobilities/1/confirmProEcoEncoding?version=1", null, Access.PROFESSOR),
+        Arguments.of(
+            "PUT", "/mobilities/1/confirmSecondSoftwareEncoding?version=1", null, Access.PROFESSOR),
         Arguments.of("PUT", "/mobilities/1/confirmPayment?version=1", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/mobilities/1/confirmDocument?document=2&version=1", null,
-            Access.PROFESSOR),
-        Arguments.of("PUT", "/mobilities/1/cancel?version=1&denialReason=1", null,
+        Arguments.of(
+            "PUT", "/mobilities/1/confirmDocument?document=2&version=1", null, Access.PROFESSOR),
+        Arguments.of(
+            "PUT",
+            "/mobilities/1/cancel?version=1&denialReason=1",
+            null,
             Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/mobilities/1/export", null, Access.PROFESSOR),
         // nominated students
-        Arguments.of("POST", "/nominatedStudents", TestBodies.NOMINATED_STUDENT,
+        Arguments.of(
+            "POST",
+            "/nominatedStudents",
+            TestBodies.NOMINATED_STUDENT,
             Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/nominatedStudents/2", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/nominatedStudents", null, Access.PROFESSOR),
-        Arguments.of("PUT", "/nominatedStudents/2", TestBodies.NOMINATED_STUDENT,
+        Arguments.of(
+            "PUT",
+            "/nominatedStudents/2",
+            TestBodies.NOMINATED_STUDENT,
             Access.PROFESSOR_OR_STUDENT),
         // options
         Arguments.of("GET", "/options", null, Access.PUBLIC),
@@ -157,8 +159,7 @@ class EndpointAuthorizationTest {
         // partners
         Arguments.of("POST", "/partners", TestBodies.PARTNER, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/partners/1", null, Access.PROFESSOR_OR_STUDENT),
-        Arguments.of("GET", "/partners?filter=country&value=BE", null,
-            Access.PROFESSOR_OR_STUDENT),
+        Arguments.of("GET", "/partners?filter=country&value=BE", null, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("PUT", "/partners/1", TestBodies.PARTNER, Access.PROFESSOR),
         Arguments.of("POST", "/partners/1", TestBodies.PARTNER_OPTION, Access.PROFESSOR_OR_STUDENT),
         Arguments.of("GET", "/partners/partnersOptions/1", null, Access.PROFESSOR_OR_STUDENT),
@@ -181,12 +182,13 @@ class EndpointAuthorizationTest {
 
   @ParameterizedTest(name = "{0} {1} anonymously")
   @MethodSource("endpoints")
-  void anonymousCallsAreRejectedUnlessPublic(String method, String path, String body,
-      Access access) throws Exception {
+  void anonymousCallsAreRejectedUnlessPublic(String method, String path, String body, Access access)
+      throws Exception {
     if (access == Access.PUBLIC) {
       mockMvc.perform(call(method, path, body)).andExpect(status().is2xxSuccessful());
     } else {
-      mockMvc.perform(call(method, path, body))
+      mockMvc
+          .perform(call(method, path, body))
           .andExpect(status().isUnauthorized())
           .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -204,13 +206,19 @@ class EndpointAuthorizationTest {
     expectAccess(method, path, body, access, UserDto.ROLE_STUDENT, TestUsers.student());
   }
 
-  private void expectAccess(String method, String path, String body, Access access, String role,
-      RequestPostProcessor user) throws Exception {
+  private void expectAccess(
+      String method,
+      String path,
+      String body,
+      Access access,
+      String role,
+      RequestPostProcessor user)
+      throws Exception {
     if (access.allows(role)) {
-      mockMvc.perform(call(method, path, body).with(user))
-          .andExpect(status().is2xxSuccessful());
+      mockMvc.perform(call(method, path, body).with(user)).andExpect(status().is2xxSuccessful());
     } else {
-      mockMvc.perform(call(method, path, body).with(user))
+      mockMvc
+          .perform(call(method, path, body).with(user))
           .andExpect(status().isForbidden())
           .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
@@ -218,8 +226,8 @@ class EndpointAuthorizationTest {
 
   @ParameterizedTest(name = "{0} {1} without CSRF token")
   @MethodSource("endpoints")
-  void stateChangingCallsNeedTheCsrfToken(String method, String path, String body,
-      Access access) throws Exception {
+  void stateChangingCallsNeedTheCsrfToken(String method, String path, String body, Access access)
+      throws Exception {
     MockHttpServletRequestBuilder builder =
         request(HttpMethod.valueOf(method), API + path).with(TestUsers.professor());
     if (body != null) {
@@ -228,7 +236,8 @@ class EndpointAuthorizationTest {
     if ("GET".equals(method)) {
       mockMvc.perform(builder).andExpect(status().is2xxSuccessful());
     } else {
-      mockMvc.perform(builder)
+      mockMvc
+          .perform(builder)
           .andExpect(status().isForbidden())
           .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
@@ -237,27 +246,36 @@ class EndpointAuthorizationTest {
   @Test
   void pathsAreMatchedCaseInsensitivelyLikeTheFormerRouter() throws Exception {
     // declared /mobilitychoices/{id}/reject and /denialreasons before the migration
-    mockMvc.perform(request(HttpMethod.PUT, API + "/mobilitychoices/1/reject?reason=1")
-        .with(csrf()).with(TestUsers.professor())).andExpect(status().isOk());
-    mockMvc.perform(request(HttpMethod.GET, API + "/denialreasons")
-        .with(TestUsers.professor())).andExpect(status().isOk());
+    mockMvc
+        .perform(
+            request(HttpMethod.PUT, API + "/mobilitychoices/1/reject?reason=1")
+                .with(csrf())
+                .with(TestUsers.professor()))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(request(HttpMethod.GET, API + "/denialreasons").with(TestUsers.professor()))
+        .andExpect(status().isOk());
   }
 
   @Test
   void upperCasePathsNeedAuthenticationToo() throws Exception {
     // the security rules use the case-insensitive parser of the controllers
-    mockMvc.perform(request(HttpMethod.GET, "/API/1.0/users"))
+    mockMvc
+        .perform(request(HttpMethod.GET, "/API/1.0/users"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
-    mockMvc.perform(request(HttpMethod.GET, "/API/1.0/Users").with(TestUsers.student()))
+    mockMvc
+        .perform(request(HttpMethod.GET, "/API/1.0/Users").with(TestUsers.student()))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void unknownApiPathsNeedAuthenticationThenAre404() throws Exception {
-    mockMvc.perform(request(HttpMethod.GET, API + "/doesNotExist"))
+    mockMvc
+        .perform(request(HttpMethod.GET, API + "/doesNotExist"))
         .andExpect(status().isUnauthorized());
-    mockMvc.perform(request(HttpMethod.GET, API + "/doesNotExist").with(TestUsers.student()))
+    mockMvc
+        .perform(request(HttpMethod.GET, API + "/doesNotExist").with(TestUsers.student()))
         .andExpect(status().isNotFound());
   }
 }

@@ -1,12 +1,10 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -157,5 +155,4 @@ class MobilityChoiceImpl implements MobilityChoice, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
 }

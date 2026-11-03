@@ -55,11 +55,19 @@ export class SignUp {
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly problem = signal<ApiProblem | null>(null);
-  protected readonly otherErrors = computed(() => unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS));
+  protected readonly otherErrors = computed(() =>
+    unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS),
+  );
 
   protected errorFor(field: Field): string | null {
     const groupErrors = field === 'reenterPassword' ? this.form.errors : null;
-    return fieldMessage(this.problem(), SERVER_FIELDS[field], this.form.controls[field], this.submitted(), groupErrors);
+    return fieldMessage(
+      this.problem(),
+      SERVER_FIELDS[field],
+      this.form.controls[field],
+      this.submitted(),
+      groupErrors,
+    );
   }
 
   protected submit(): void {
@@ -72,7 +80,14 @@ export class SignUp {
       return;
     }
     const { lastName, firstName, username, password, email, option } = this.form.getRawValue();
-    const request: SignUpRequest = { username, password, firstName, lastName, email, option: { code: option } };
+    const request: SignUpRequest = {
+      username,
+      password,
+      firstName,
+      lastName,
+      email,
+      option: { code: option },
+    };
     this.submitting.set(true);
     this.problem.set(null);
     this.api

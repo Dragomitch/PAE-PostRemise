@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  LOCALE_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -76,7 +84,10 @@ export class PersonalData {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly collator = new Intl.Collator(inject(LOCALE_ID), { sensitivity: 'base', numeric: true });
+  private readonly collator = new Intl.Collator(inject(LOCALE_ID), {
+    sensitivity: 'base',
+    numeric: true,
+  });
 
   protected readonly maxLengths = MAX_LENGTHS;
   protected readonly titles: readonly { value: string; label: string }[] = [
@@ -124,7 +135,9 @@ export class PersonalData {
   protected readonly problem = signal<ApiProblem | null>(null);
   /** The record changed elsewhere since it was read (409): only a reload helps. */
   protected readonly conflict = computed(() => this.problem()?.status === 409);
-  protected readonly otherErrors = computed(() => unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS));
+  protected readonly otherErrors = computed(() =>
+    unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS),
+  );
   /** Success message of the last save, announced politely. */
   protected readonly notice = signal<string | null>(null);
 
@@ -157,7 +170,11 @@ export class PersonalData {
   private fetchRecord(): Observable<NominatedStudent | null> {
     return this.api
       .nominatedStudent(this.session.user()!.id!)
-      .pipe(catchError((problem: ApiProblem) => (problem.status === 404 ? of(null) : throwError(() => problem))));
+      .pipe(
+        catchError((problem: ApiProblem) =>
+          problem.status === 404 ? of(null) : throwError(() => problem),
+        ),
+      );
   }
 
   /** Puts the record in the form, or the account's names and e-mail when there is no record yet. */
@@ -207,7 +224,12 @@ export class PersonalData {
   }
 
   protected errorFor(field: Field): string | null {
-    return fieldMessage(this.problem(), SERVER_FIELDS[field], this.form.controls[field], this.submitted());
+    return fieldMessage(
+      this.problem(),
+      SERVER_FIELDS[field],
+      this.form.controls[field],
+      this.submitted(),
+    );
   }
 
   protected describedBy(field: Field, hint: string | null = null): string | null {
@@ -261,7 +283,9 @@ export class PersonalData {
       return;
     }
     const body = this.body();
-    const request = this.record() ? this.api.updateNominatedStudent(body) : this.api.createNominatedStudent(body);
+    const request = this.record()
+      ? this.api.updateNominatedStudent(body)
+      : this.api.createNominatedStudent(body);
     this.submitting.set(true);
     this.problem.set(null);
     request
@@ -274,7 +298,9 @@ export class PersonalData {
           this.record.set(saved);
           this.fill(saved);
           this.submitted.set(false);
-          this.notice.set($localize`:@@personalData.notice.saved:Les modifications ont bien été enregistrées.`);
+          this.notice.set(
+            $localize`:@@personalData.notice.saved:Les modifications ont bien été enregistrées.`,
+          );
         },
         error: (error: unknown) => this.fail(toApiProblem(error), this.problem),
       });

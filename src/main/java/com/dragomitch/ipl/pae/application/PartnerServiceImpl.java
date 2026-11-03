@@ -11,16 +11,15 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
-import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
-
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -43,9 +42,15 @@ class PartnerServiceImpl implements PartnerService {
   private final ProgrammeRepository programmeRepository;
   private final UserRepository userRepository;
 
-  PartnerServiceImpl(AddressRepository addressRepository, OptionRepository optionRepository, PartnerRepository partnerRepository,
-      PartnerOptionRepository partnerOptionRepository, MobilityChoiceRepository mobilityChoiceRepository,
-      MobilityRepository mobilityRepository, ProgrammeRepository programmeRepository, UserRepository userRepository) {
+  PartnerServiceImpl(
+      AddressRepository addressRepository,
+      OptionRepository optionRepository,
+      PartnerRepository partnerRepository,
+      PartnerOptionRepository partnerOptionRepository,
+      MobilityChoiceRepository mobilityChoiceRepository,
+      MobilityRepository mobilityRepository,
+      ProgrammeRepository programmeRepository,
+      UserRepository userRepository) {
     this.addressRepository = addressRepository;
     this.optionRepository = optionRepository;
     this.partnerRepository = partnerRepository;
@@ -64,7 +69,7 @@ class PartnerServiceImpl implements PartnerService {
     partner.setAddress(addressRepository.create(partner.getAddress()));
     partner = partnerRepository.create(partner);
     List<PartnerOptionDto> options = partner.getOptions();
-    for (PartnerOptionDto partnerOption: options) {
+    for (PartnerOptionDto partnerOption : options) {
       createOption(partner.getId(), partnerOption);
     }
     partner.setProgramme(partner.getAddress().getCountry().getProgramme());
@@ -90,7 +95,8 @@ class PartnerServiceImpl implements PartnerService {
   @Transactional(readOnly = true)
   public List<PartnerDto> showAll(PartnerSearch search, String userRole, int userId) {
     // the value of a filter is required by the constraints of PartnerSearch
-    String filterToUse = search.filter() == null ? PartnerRepository.FILTER_ALL_PARTNERS : search.filter();
+    String filterToUse =
+        search.filter() == null ? PartnerRepository.FILTER_ALL_PARTNERS : search.filter();
     String option;
     UserDto user;
     if ((user = userRepository.findById(userId)) == null) {
@@ -116,7 +122,8 @@ class PartnerServiceImpl implements PartnerService {
       }
     }
     PartnerDto partnerDb = partnerRepository.findById(partner.getId());
-    List<PartnerOptionDto> optionsDb = partnerOptionRepository.findAllOptionsByPartner(partnerDb.getId());
+    List<PartnerOptionDto> optionsDb =
+        partnerOptionRepository.findAllOptionsByPartner(partnerDb.getId());
     List<PartnerOptionDto> optionsToAdd = new LinkedList<PartnerOptionDto>();
     if (partner.getOptions() != null) {
       for (PartnerOptionDto option : partner.getOptions()) {
@@ -127,7 +134,8 @@ class PartnerServiceImpl implements PartnerService {
         }
       }
     }
-    // Options are never removed by an edit, so the partner keeps its existing ones plus the new ones.
+    // Options are never removed by an edit, so the partner keeps its existing ones plus the new
+    // ones.
     if (optionsDb.isEmpty() && optionsToAdd.isEmpty()) {
       throw new BusinessException(ErrorCode.PARTNER_OPTION_REQUIRED);
     }
@@ -164,9 +172,9 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   /**
-   * Tells whether the partner is the one of a mobility choice of the student, still open or
-   * already a mobility (the partners table has no creator: a student reaches a non-official
-   * partner through his own choices only).
+   * Tells whether the partner is the one of a mobility choice of the student, still open or already
+   * a mobility (the partners table has no creator: a student reaches a non-official partner through
+   * his own choices only).
    */
   private boolean usesPartner(int userId, int partnerId) {
     for (MobilityChoiceDto choice : mobilityChoiceRepository.findByUser(userId)) {
@@ -211,9 +219,7 @@ class PartnerServiceImpl implements PartnerService {
     return partnerRepository.update(partner);
   }
 
-  /**
-   * Tells whether a list of partner options already contains an option with the given code.
-   */
+  /** Tells whether a list of partner options already contains an option with the given code. */
   private static boolean containsOption(List<PartnerOptionDto> options, String code) {
     if (code == null) {
       return false;

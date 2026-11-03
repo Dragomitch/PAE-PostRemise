@@ -2,15 +2,13 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-
 import java.util.Objects;
 import java.util.function.Supplier;
 
 /** The version contract of the updates of the driven ports. */
 final class Versions {
 
-  private Versions() {
-  }
+  private Versions() {}
 
   /**
    * Writes the pending changes of a versioned entity and increments its version, even when nothing
@@ -25,8 +23,8 @@ final class Versions {
    * @param version the version of the entity
    * @param readVersion the version the entity had when it was read
    */
-  static void flushIncrementingVersion(EntityManager entityManager, Object entity,
-      Supplier<Integer> version, int readVersion) {
+  static void flushIncrementingVersion(
+      EntityManager entityManager, Object entity, Supplier<Integer> version, int readVersion) {
     entityManager.flush();
     if (Objects.equals(version.get(), readVersion)) {
       entityManager.lock(entity, LockModeType.PESSIMISTIC_FORCE_INCREMENT);

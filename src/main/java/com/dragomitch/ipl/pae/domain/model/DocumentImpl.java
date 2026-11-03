@@ -1,8 +1,6 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-
 import java.io.Serializable;
 
 class DocumentImpl implements Document, Serializable {
@@ -75,5 +73,4 @@ class DocumentImpl implements Document, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
 }

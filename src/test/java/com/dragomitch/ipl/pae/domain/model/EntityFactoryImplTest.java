@@ -3,19 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.model.Address;
-import com.dragomitch.ipl.pae.domain.model.Country;
-import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.Document;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
-import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
-import com.dragomitch.ipl.pae.domain.model.Option;
-import com.dragomitch.ipl.pae.domain.model.Partner;
-import com.dragomitch.ipl.pae.domain.model.PartnerOption;
-import com.dragomitch.ipl.pae.domain.model.Payment;
-import com.dragomitch.ipl.pae.domain.model.Programme;
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
@@ -30,10 +17,8 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -52,8 +37,7 @@ class EntityFactoryImplTest {
         Arguments.of(Document.class, DocumentDto.class, DocumentImpl.class),
         Arguments.of(Mobility.class, MobilityDto.class, MobilityImpl.class),
         Arguments.of(MobilityChoice.class, MobilityChoiceDto.class, MobilityChoiceImpl.class),
-        Arguments.of(NominatedStudent.class, NominatedStudentDto.class,
-            NominatedStudentImpl.class),
+        Arguments.of(NominatedStudent.class, NominatedStudentDto.class, NominatedStudentImpl.class),
         Arguments.of(Option.class, OptionDto.class, OptionImpl.class),
         Arguments.of(Partner.class, PartnerDto.class, PartnerImpl.class),
         Arguments.of(PartnerOption.class, PartnerOptionDto.class, PartnerOptionImpl.class),
@@ -64,15 +48,18 @@ class EntityFactoryImplTest {
 
   @ParameterizedTest(name = "{0} / {1} -> {2}")
   @MethodSource("bindings")
-  void theBusinessAndDtoInterfacesBuildFreshInstancesOfTheSameImplementation(Class<?> business,
-      Class<?> dto, Class<?> implementation) {
+  void theBusinessAndDtoInterfacesBuildFreshInstancesOfTheSameImplementation(
+      Class<?> business, Class<?> dto, Class<?> implementation) {
     Object fromBusiness = factory.build(business);
     Object fromDto = factory.build(dto);
 
     assertThat(fromBusiness).isExactlyInstanceOf(implementation).isInstanceOf(business);
-    assertThat(fromDto).isExactlyInstanceOf(implementation).isInstanceOf(dto)
+    assertThat(fromDto)
+        .isExactlyInstanceOf(implementation)
+        .isInstanceOf(dto)
         .isNotSameAs(fromBusiness);
-    assertThat(factory.getImplementations()).containsEntry(business, implementation)
+    assertThat(factory.getImplementations())
+        .containsEntry(business, implementation)
         .containsEntry(dto, implementation);
   }
 
@@ -93,7 +80,8 @@ class EntityFactoryImplTest {
   @ParameterizedTest
   @ValueSource(classes = {String.class, Entity.class, AddressImpl.class})
   void buildingAnUnboundClassFails(Class<?> unbound) {
-    assertThatThrownBy(() -> factory.build(unbound)).isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> factory.build(unbound))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining(unbound.getName());
   }
 }

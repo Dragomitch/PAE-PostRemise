@@ -14,13 +14,10 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The mobilities: the accepted mobility choices, followed until they are closed. */
@@ -30,8 +27,7 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
   private final MobilityJpaRepository mobilities;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   JpaMobilityRepositoryAdapter(MobilityJpaRepository mobilities, PersistenceMapper mapper) {
     this.mobilities = mobilities;
@@ -66,7 +62,8 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
 
   @Override
   public List<MobilityDto> findByUser(int user) {
-    return mobilities.findWithChoiceByChoiceUserIdOrderById(user).stream().map(this::mobility)
+    return mobilities.findWithChoiceByChoiceUserIdOrderById(user).stream()
+        .map(this::mobility)
         .toList();
   }
 
@@ -74,16 +71,18 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
    * {@inheritDoc}
    *
    * @throws ConcurrentModificationException if the mobility does not exist or its version is not
-   *         the DTO's (it was changed since it was read)
+   *     the DTO's (it was changed since it was read)
    */
   @Override
   public MobilityDto update(MobilityDto mobility) {
-    MobilityEntity entity = mobilities.findById(mobility.getId())
-        .filter(found -> found.getVersion() == mobility.getVersion())
-        .orElseThrow(ConcurrentModificationException::new);
+    MobilityEntity entity =
+        mobilities
+            .findById(mobility.getId())
+            .filter(found -> found.getVersion() == mobility.getVersion())
+            .orElseThrow(ConcurrentModificationException::new);
     copy(mobility, entity);
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        mobility.getVersion());
+    Versions.flushIncrementingVersion(
+        entityManager, entity, entity::getVersion, mobility.getVersion());
     mobility.setVersion(entity.getVersion());
     return mobility;
   }
@@ -98,17 +97,22 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
     entity.setProEcoEncoding(mobility.isEncodedInProEco());
     entity.setSecondSoftwareEncoding(mobility.isEncodedInSecondSoftware());
     entity.setCancellationReason(mobility.getCancellationReason());
-    entity.setDenialReason(mobility.getDenialReason() == null ? null
-        : entityManager.getReference(DenialReasonEntity.class,
-            mobility.getDenialReason().getId()));
-    entity.setProfessorInCharge(mobility.getProfessorInCharge() == null ? null
-        : entityManager.getReference(UserEntity.class, mobility.getProfessorInCharge().getId()));
+    entity.setDenialReason(
+        mobility.getDenialReason() == null
+            ? null
+            : entityManager.getReference(
+                DenialReasonEntity.class, mobility.getDenialReason().getId()));
+    entity.setProfessorInCharge(
+        mobility.getProfessorInCharge() == null
+            ? null
+            : entityManager.getReference(
+                UserEntity.class, mobility.getProfessorInCharge().getId()));
   }
 
   /**
-   * A mobility with its choice's type, year and term; its student (id, names and option code);
-   * its partner (id and full name) and country (code and name), when the choice has them; its
-   * programme (id and name); its denial reason; and its professor in charge (id only).
+   * A mobility with its choice's type, year and term; its student (id, names and option code); its
+   * partner (id and full name) and country (code and name), when the choice has them; its programme
+   * (id and name); its denial reason; and its professor in charge (id only).
    */
   private MobilityDto mobility(MobilityEntity entity) {
     MobilityChoiceEntity choice = entity.getChoice();

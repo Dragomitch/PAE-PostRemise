@@ -3,9 +3,7 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.ProgrammeJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
-
 import java.util.List;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 

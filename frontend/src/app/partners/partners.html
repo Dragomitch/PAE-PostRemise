@@ -4,16 +4,29 @@
   <div class="toolbar">
     <div class="field">
       <label for="partners-filter" i18n="@@partners.filter.label">Filtrer par nom</label>
-      <input id="partners-filter" type="search" autocomplete="off" [value]="nameFilter()" (input)="setNameFilter($event)"
-             placeholder="Nom du partenaire" i18n-placeholder="@@partners.filter.placeholder">
+      <input
+        id="partners-filter"
+        type="search"
+        autocomplete="off"
+        [value]="nameFilter()"
+        (input)="setNameFilter($event)"
+        placeholder="Nom du partenaire"
+        i18n-placeholder="@@partners.filter.placeholder"
+      />
     </div>
     @if (isProfessor()) {
       <div class="field">
         <label for="partners-archived" i18n="@@partners.archivedFilter.label">Statut</label>
-        <select id="partners-archived" [value]="archivedFilter()" (change)="setArchivedFilter($event)">
+        <select
+          id="partners-archived"
+          [value]="archivedFilter()"
+          (change)="setArchivedFilter($event)"
+        >
           <option value="all" i18n="@@partners.archivedFilter.all">Tous les partenaires</option>
           <option value="active" i18n="@@partners.archivedFilter.active">Partenaires actifs</option>
-          <option value="archived" i18n="@@partners.archivedFilter.archived">Partenaires archivés</option>
+          <option value="archived" i18n="@@partners.archivedFilter.archived">
+            Partenaires archivés
+          </option>
         </select>
       </div>
     }
@@ -24,11 +37,20 @@
   } @else if (problem(); as p) {
     <div class="notification notification-danger" role="alert">
       <p>{{ p.detail }}</p>
-      <button type="button" class="retry" (click)="load()" i18n="@@partners.retry">Réessayer</button>
+      <button type="button" class="retry" (click)="load()" i18n="@@partners.retry">
+        Réessayer
+      </button>
     </div>
   } @else {
     <p class="count" role="status" i18n="@@partners.count">
-      Partenaires affichés : {{ rows().length // i18n(ph="SHOWN") }} sur {{ partners().length // i18n(ph="TOTAL") }}
+      Partenaires affichés :
+      {{
+        rows().length // i18n(ph="SHOWN")
+      }}
+      sur
+      {{
+        partners().length // i18n(ph="TOTAL")
+      }}
     </p>
 
     @if (rows().length) {
@@ -45,26 +67,34 @@
               <th scope="col" [attr.aria-sort]="ariaSort('country')">
                 <button type="button" class="sort" (click)="sortBy('country')">
                   <span i18n="@@partners.column.country">Pays</span>
-                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('country') }}</span>
+                  <span class="sort-indicator" aria-hidden="true">{{
+                    sortIndicator('country')
+                  }}</span>
                 </button>
               </th>
               <th scope="col" [attr.aria-sort]="ariaSort('options')">
                 <button type="button" class="sort" (click)="sortBy('options')">
                   <span i18n="@@partners.column.options">Options</span>
-                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('options') }}</span>
+                  <span class="sort-indicator" aria-hidden="true">{{
+                    sortIndicator('options')
+                  }}</span>
                 </button>
               </th>
               <th scope="col" [attr.aria-sort]="ariaSort('official')">
                 <button type="button" class="sort" (click)="sortBy('official')">
                   <span i18n="@@partners.column.official">Officiel</span>
-                  <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('official') }}</span>
+                  <span class="sort-indicator" aria-hidden="true">{{
+                    sortIndicator('official')
+                  }}</span>
                 </button>
               </th>
               @if (isProfessor()) {
                 <th scope="col" [attr.aria-sort]="ariaSort('archived')">
                   <button type="button" class="sort" (click)="sortBy('archived')">
                     <span i18n="@@partners.column.archived">Archivé</span>
-                    <span class="sort-indicator" aria-hidden="true">{{ sortIndicator('archived') }}</span>
+                    <span class="sort-indicator" aria-hidden="true">{{
+                      sortIndicator('archived')
+                    }}</span>
                   </button>
                 </th>
               }
@@ -77,8 +107,15 @@
                 <td>
                   <div class="country">
                     @if (flagUrl(p.address.country.countryCode); as src) {
-                      <img class="flag" [src]="src" alt="" width="24" height="24" loading="lazy"
-                           (error)="flagFailed(p.address.country.countryCode)">
+                      <img
+                        class="flag"
+                        [src]="src"
+                        alt=""
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                        (error)="flagFailed(p.address.country.countryCode)"
+                      />
                     }
                     <span>{{ p.address.country.name }}</span>
                   </div>
@@ -106,7 +143,9 @@
         </table>
       </div>
     } @else if (partners().length) {
-      <p class="state" i18n="@@partners.noMatch">Aucun partenaire ne correspond à votre recherche.</p>
+      <p class="state" i18n="@@partners.noMatch">
+        Aucun partenaire ne correspond à votre recherche.
+      </p>
     } @else {
       <p class="state" i18n="@@partners.empty">Aucun partenaire à afficher.</p>
     }

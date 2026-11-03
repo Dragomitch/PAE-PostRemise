@@ -18,12 +18,9 @@ import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.User;
-import com.dragomitch.ipl.pae.application.MockDtoFactory;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -48,20 +45,17 @@ class UserServiceImplTest {
 
   /** The instant the use case reads from its clock: the dates it sets are asserted exactly. */
   private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 15, 10, 15, 30);
+
   private static final Clock CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
   private static final int USER_ID = 42;
   private static final int PROFESSOR_ID = 2;
   private static final LocalDateTime REGISTERED = LocalDateTime.of(2015, 9, 14, 8, 0);
 
-  @Mock
-  private UserRepository userRepository;
-  @Mock
-  private OptionRepository optionRepository;
-  @Mock
-  private NominatedStudentRepository nominatedStudentRepository;
-  @Mock
-  private PasswordEncoder passwordEncoder;
+  @Mock private UserRepository userRepository;
+  @Mock private OptionRepository optionRepository;
+  @Mock private NominatedStudentRepository nominatedStudentRepository;
+  @Mock private PasswordEncoder passwordEncoder;
 
   private final EntityFactory entityFactory = EntityFactories.create();
   private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
@@ -69,8 +63,9 @@ class UserServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    userService = new UserServiceImpl(userRepository, optionRepository, nominatedStudentRepository, passwordEncoder,
-        CLOCK);
+    userService =
+        new UserServiceImpl(
+            userRepository, optionRepository, nominatedStudentRepository, passwordEncoder, CLOCK);
   }
 
   private UserDto user(int id, String role) {
@@ -80,7 +75,8 @@ class UserServiceImplTest {
   }
 
   private void givenOptionExists(String code) {
-    when(optionRepository.findByCode(code)).thenReturn((OptionDto) entityFactory.build(OptionDto.class));
+    when(optionRepository.findByCode(code))
+        .thenReturn((OptionDto) entityFactory.build(OptionDto.class));
   }
 
   @Nested
@@ -117,19 +113,22 @@ class UserServiceImplTest {
           .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
 
       assertThatBusinessException(() -> userService.signup(user))
-          .hasErrorCode(ErrorCode.USERNAME_TAKEN).hasArguments(user.getUsername());
+          .hasErrorCode(ErrorCode.USERNAME_TAKEN)
+          .hasArguments(user.getUsername());
       verify(userRepository, never()).create(any());
     }
 
     @Test
     void theEmailMustBeFree() {
       UserDto user = newUser();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername())).thenReturn(null);
+      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername()))
+          .thenReturn(null);
       when(userRepository.findBy(UserRepository.COLUMN_EMAIL, user.getEmail()))
           .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
 
       assertThatBusinessException(() -> userService.signup(user))
-          .hasErrorCode(ErrorCode.EMAIL_TAKEN).hasArguments(user.getEmail());
+          .hasErrorCode(ErrorCode.EMAIL_TAKEN)
+          .hasArguments(user.getEmail());
       verify(userRepository, never()).create(any());
     }
 
@@ -139,7 +138,8 @@ class UserServiceImplTest {
       user.getOption().setCode("XYZ");
 
       assertThatBusinessException(() -> userService.signup(user))
-          .hasErrorCode(ErrorCode.UNKNOWN_OPTION).hasArguments("XYZ");
+          .hasErrorCode(ErrorCode.UNKNOWN_OPTION)
+          .hasArguments("XYZ");
       verify(userRepository, never()).create(any());
       verifyNoInteractions(passwordEncoder);
     }
@@ -173,7 +173,8 @@ class UserServiceImplTest {
 
     @Test
     void promotingAProfessorWritesNothing() {
-      when(userRepository.findById(PROFESSOR_ID)).thenReturn(user(PROFESSOR_ID, UserDto.ROLE_PROFESSOR));
+      when(userRepository.findById(PROFESSOR_ID))
+          .thenReturn(user(PROFESSOR_ID, UserDto.ROLE_PROFESSOR));
 
       userService.promoteToProfessor(PROFESSOR_ID);
 
@@ -262,11 +263,14 @@ class UserServiceImplTest {
 
     /** {@link UserRepository#update} copies the new version of the row into the DTO. */
     private void givenUpdateIncrementsTheVersion() {
-      doAnswer(invocation -> {
-        UserDto user = invocation.getArgument(0);
-        user.setVersion(user.getVersion() + 1);
-        return null;
-      }).when(userRepository).update(any());
+      doAnswer(
+              invocation -> {
+                UserDto user = invocation.getArgument(0);
+                user.setVersion(user.getVersion() + 1);
+                return null;
+              })
+          .when(userRepository)
+          .update(any());
     }
 
     /** The data sent by the client, trying to change what it may not. */
@@ -345,8 +349,9 @@ class UserServiceImplTest {
 
     @Test
     void aStudentCannotEditAnotherAccount() {
-      assertThatBusinessException(() -> userService.edit(request(), USER_ID + 1,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(
+              () -> userService.edit(request(), USER_ID + 1, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(userRepository, optionRepository, nominatedStudentRepository);
     }
 
@@ -364,7 +369,8 @@ class UserServiceImplTest {
     @Test
     void theEmailOfAnotherAccountIsTaken() {
       UserDto request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername())).thenReturn(null);
+      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
+          .thenReturn(null);
       when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
           .thenReturn(user(USER_ID + 1, UserDto.ROLE_STUDENT));
 
@@ -377,8 +383,9 @@ class UserServiceImplTest {
     void anUnknownAccountIsNotFound() {
       givenOptionExists("BIN");
 
-      assertThatBusinessException(() -> userService.edit(request(), PROFESSOR_ID,
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(
+              () -> userService.edit(request(), PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(userRepository, never()).update(any());
     }
   }

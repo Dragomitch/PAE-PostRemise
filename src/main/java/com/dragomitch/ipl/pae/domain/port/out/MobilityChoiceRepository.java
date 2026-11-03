@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-
 import java.util.List;
 
 public interface MobilityChoiceRepository {
@@ -29,10 +28,9 @@ public interface MobilityChoiceRepository {
   String FILTER_REJECTED_MOBILITIES_CHOICES = "rejected";
   String FILTER_PASSED_MOBILITIES_CHOICES = "passed";
 
-
   /**
    * Inserts a Mobility choice in the Database.
-   * 
+   *
    * @param mobilityChoice the mobility choice to create.
    * @return the mobilityChoice created.
    */
@@ -40,7 +38,7 @@ public interface MobilityChoiceRepository {
 
   /**
    * Queries the database to find the mobilityChoice where the id is mobilityChoiceId.
-   * 
+   *
    * @param mobilityChoiceId the id we are looking for.
    * @return the mobilityChoiceDto of the mobility choice we were looking for.
    */
@@ -59,10 +57,10 @@ public interface MobilityChoiceRepository {
   List<MobilityChoiceDto> findByPartner(int partnerId);
 
   /**
-   * Return the choices of the current academic year that select that partner and are neither
-   * denied nor cancelled, including those that became a mobility unless that mobility was
-   * cancelled (by the student or by a professor). A partner with such choices cannot be archived.
-   * 
+   * Return the choices of the current academic year that select that partner and are neither denied
+   * nor cancelled, including those that became a mobility unless that mobility was cancelled (by
+   * the student or by a professor). A partner with such choices cannot be archived.
+   *
    * @param partnerId the partner's id to search the mobilities choices for.
    * @return a list of mobility choices for the specified partner
    */
@@ -70,15 +68,14 @@ public interface MobilityChoiceRepository {
 
   /**
    * Queries the database for all mobility choices.
-   * 
+   *
    * @param filter the filter we want to apply to the query. The filter must be one of those:
-   *        passed, active, canceled, rejected, all. Combinations are NOT possible between the
-   *        filters.
+   *     passed, active, canceled, rejected, all. Combinations are NOT possible between the filters.
    * @return all the mobility choices fitting the filter.
-   * @throws org.springframework.dao.InvalidDataAccessApiUsageException wrapping an
-   *         {@code IllegalArgumentException} if the filter is unknown (Spring's exception
-   *         translation of the persistence adapter; the use cases only pass the filters allowed by
-   *         their {@code @Pattern} constraints)
+   * @throws org.springframework.dao.InvalidDataAccessApiUsageException wrapping an {@code
+   *     IllegalArgumentException} if the filter is unknown (Spring's exception translation of the
+   *     persistence adapter; the use cases only pass the filters allowed by their {@code @Pattern}
+   *     constraints)
    */
   List<MobilityChoiceDto> findAll(String filter);
 
@@ -87,12 +84,11 @@ public interface MobilityChoiceRepository {
    * locking; the DTO receives the new version.
    *
    * <p>An empty cancellation reason is stored as NULL on purpose: NULL means "not cancelled" for
-   * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an
-   * empty text would turn the choice into a cancelled one without reason.
+   * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an empty
+   * text would turn the choice into a cancelled one without reason.
    *
    * @param mobilityChoice the mobility choice we are updating.
    * @throws java.util.ConcurrentModificationException if no choice has that id and version
    */
   void update(MobilityChoiceDto mobilityChoice);
-
 }

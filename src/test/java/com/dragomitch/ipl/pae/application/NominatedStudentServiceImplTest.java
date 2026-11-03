@@ -17,13 +17,11 @@ import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
-import com.dragomitch.ipl.pae.application.MockDtoFactory;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * Personal data of the nominated students: who may record, read and change them, the existing
  * countries, the single record per student, the default card holder. The DAOs are Mockito mocks
- * following the contract of {@code NominatedStudentRepositoryIT} (the student shares the id of the user).
+ * following the contract of {@code NominatedStudentRepositoryIT} (the student shares the id of the
+ * user).
  */
 @ExtendWith(MockitoExtension.class)
 class NominatedStudentServiceImplTest {
@@ -48,18 +47,12 @@ class NominatedStudentServiceImplTest {
   private static final int PROFESSOR_ID = 2;
   private static final int ADDRESS_ID = 2001;
 
-  @Mock
-  private NominatedStudentRepository nominatedStudentRepository;
-  @Mock
-  private AddressRepository addressRepository;
-  @Mock
-  private AddressService addressService;
-  @Mock
-  private CountryRepository countryRepository;
-  @Mock
-  private UserRepository userRepository;
-  @Mock
-  private UserService userService;
+  @Mock private NominatedStudentRepository nominatedStudentRepository;
+  @Mock private AddressRepository addressRepository;
+  @Mock private AddressService addressService;
+  @Mock private CountryRepository countryRepository;
+  @Mock private UserRepository userRepository;
+  @Mock private UserService userService;
 
   private final EntityFactory entityFactory = EntityFactories.create();
   private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
@@ -67,8 +60,14 @@ class NominatedStudentServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    nominatedStudentService = new NominatedStudentServiceImpl(nominatedStudentRepository, addressRepository, addressService,
-        countryRepository, userRepository, userService);
+    nominatedStudentService =
+        new NominatedStudentServiceImpl(
+            nominatedStudentRepository,
+            addressRepository,
+            addressService,
+            countryRepository,
+            userRepository,
+            userService);
   }
 
   /** Personal data sent by the client: Irish nationality, address in Great Britain. */
@@ -82,9 +81,12 @@ class NominatedStudentServiceImplTest {
   }
 
   private void givenCountriesExist(NominatedStudentDto student) {
-    for (String code : List.of(student.getNationality().getCountryCode(),
-        student.getAddress().getCountry().getCountryCode())) {
-      when(countryRepository.findById(code)).thenReturn((CountryDto) entityFactory.build(CountryDto.class));
+    for (String code :
+        List.of(
+            student.getNationality().getCountryCode(),
+            student.getAddress().getCountry().getCountryCode())) {
+      when(countryRepository.findById(code))
+          .thenReturn((CountryDto) entityFactory.build(CountryDto.class));
     }
   }
 
@@ -110,12 +112,14 @@ class NominatedStudentServiceImplTest {
   class Create {
 
     private void givenCreationSucceeds() {
-      when(addressRepository.create(any())).thenAnswer(invocation -> {
-        AddressDto address = invocation.getArgument(0);
-        address.setId(ADDRESS_ID);
-        return address;
-      });
-      when(nominatedStudentRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+      when(addressRepository.create(any()))
+          .thenAnswer(invocation -> {
+            AddressDto address = invocation.getArgument(0);
+            address.setId(ADDRESS_ID);
+            return address;
+          });
+      when(nominatedStudentRepository.create(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @ParameterizedTest
@@ -173,9 +177,11 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void aStudentCannotRecordThePersonalDataOfAnotherStudent() {
-      assertThatBusinessException(() -> nominatedStudentService.create(request(), STUDENT_ID + 1,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
-      verifyNoInteractions(countryRepository, userRepository, addressRepository, nominatedStudentRepository);
+      assertThatBusinessException(
+              () -> nominatedStudentService.create(request(), STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
+      verifyNoInteractions(
+          countryRepository, userRepository, addressRepository, nominatedStudentRepository);
     }
 
     @Test
@@ -183,8 +189,10 @@ class NominatedStudentServiceImplTest {
       NominatedStudentDto request = request();
       request.getNationality().setCountryCode("ZZ");
 
-      assertThatBusinessException(() -> nominatedStudentService.create(request, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.UNKNOWN_COUNTRY).hasArguments("ZZ");
+      assertThatBusinessException(
+              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
+          .hasArguments("ZZ");
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
     }
 
@@ -195,8 +203,10 @@ class NominatedStudentServiceImplTest {
       when(countryRepository.findById(request.getNationality().getCountryCode()))
           .thenReturn((CountryDto) entityFactory.build(CountryDto.class));
 
-      assertThatBusinessException(() -> nominatedStudentService.create(request, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.UNKNOWN_COUNTRY).hasArguments("ZZ");
+      assertThatBusinessException(
+              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
+          .hasArguments("ZZ");
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
     }
 
@@ -205,8 +215,10 @@ class NominatedStudentServiceImplTest {
       NominatedStudentDto request = request();
       givenCountriesExist(request);
 
-      assertThatBusinessException(() -> nominatedStudentService.create(request, PROFESSOR_ID,
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.UNKNOWN_USER).hasArguments(STUDENT_ID);
+      assertThatBusinessException(
+              () -> nominatedStudentService.create(request, PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.UNKNOWN_USER)
+          .hasArguments(STUDENT_ID);
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
     }
 
@@ -217,8 +229,9 @@ class NominatedStudentServiceImplTest {
       givenUser(1);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
 
-      assertThatBusinessException(() -> nominatedStudentService.create(request, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ALREADY_NOMINATED);
+      assertThatBusinessException(
+              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ALREADY_NOMINATED);
       verifyNoInteractions(addressRepository);
       verify(nominatedStudentRepository, never()).create(any());
     }
@@ -229,8 +242,7 @@ class NominatedStudentServiceImplTest {
 
     @ParameterizedTest
     @CsvSource({"Student, 42", "Professor, 2"})
-    void theStudentOrAProfessorReadsThePersonalDataWithTheFullAddress(String role,
-        int requester) {
+    void theStudentOrAProfessorReadsThePersonalDataWithTheFullAddress(String role, int requester) {
       NominatedStudentDto stored = storedStudent(1);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(stored);
       AddressDto address = dtos.getAddress();
@@ -246,15 +258,17 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void aStudentCannotReadThePersonalDataOfAnotherStudent() {
-      assertThatBusinessException(() -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID + 1,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(() ->
+              nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(nominatedStudentRepository, addressRepository);
     }
 
     @Test
     void unrecordedPersonalDataAreNotFound() {
-      assertThatBusinessException(() -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(
+              () -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verifyNoInteractions(addressRepository);
     }
   }
@@ -278,11 +292,12 @@ class NominatedStudentServiceImplTest {
       request.getAddress().setId(0);
       givenCountriesExist(request);
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(5));
-      when(nominatedStudentRepository.update(request)).thenAnswer(invocation -> {
-        NominatedStudentDto student = invocation.getArgument(0);
-        student.setVersion(student.getVersion() + 1);
-        return student;
-      });
+      when(nominatedStudentRepository.update(request))
+          .thenAnswer(invocation -> {
+            NominatedStudentDto student = invocation.getArgument(0);
+            student.setVersion(student.getVersion() + 1);
+            return student;
+          });
       AddressDto updatedAddress = (AddressDto) entityFactory.build(AddressDto.class);
       updatedAddress.setVersion(9);
       when(addressService.edit(request.getAddress())).thenReturn(updatedAddress);
@@ -314,9 +329,11 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void aStudentCannotEditThePersonalDataOfAnotherStudent() {
-      assertThatBusinessException(() -> nominatedStudentService.edit(request(), STUDENT_ID + 1,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
-      verifyNoInteractions(countryRepository, nominatedStudentRepository, userService, addressService);
+      assertThatBusinessException(
+              () -> nominatedStudentService.edit(request(), STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
+      verifyNoInteractions(
+          countryRepository, nominatedStudentRepository, userService, addressService);
     }
 
     @Test
@@ -324,8 +341,10 @@ class NominatedStudentServiceImplTest {
       NominatedStudentDto request = request();
       request.getNationality().setCountryCode("ZZ");
 
-      assertThatBusinessException(() -> nominatedStudentService.edit(request, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.UNKNOWN_COUNTRY).hasArguments("ZZ");
+      assertThatBusinessException(
+              () -> nominatedStudentService.edit(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
+          .hasArguments("ZZ");
       verifyNoInteractions(nominatedStudentRepository, userService, addressService);
     }
 
@@ -334,8 +353,9 @@ class NominatedStudentServiceImplTest {
       NominatedStudentDto request = request();
       givenCountriesExist(request);
 
-      assertThatBusinessException(() -> nominatedStudentService.edit(request, STUDENT_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(
+              () -> nominatedStudentService.edit(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(nominatedStudentRepository, never()).update(any());
       verifyNoInteractions(userService, addressService);
       verify(userRepository, never()).findById(anyInt());

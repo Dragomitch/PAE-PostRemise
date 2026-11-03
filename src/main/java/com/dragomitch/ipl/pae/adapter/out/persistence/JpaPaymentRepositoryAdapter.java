@@ -11,11 +11,9 @@ import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The payments requested for the mobilities: a read model over the mobilities. */
@@ -37,8 +35,8 @@ class JpaPaymentRepositoryAdapter implements PaymentRepository {
   }
 
   /**
-   * One payment per request date of a mobility: {@code "D"} for the first request, {@code "R"}
-   * for the second one, by mobility.
+   * One payment per request date of a mobility: {@code "D"} for the first request, {@code "R"} for
+   * the second one, by mobility.
    */
   @Override
   public List<PaymentDto> findAll() {
@@ -55,9 +53,9 @@ class JpaPaymentRepositoryAdapter implements PaymentRepository {
   }
 
   /**
-   * A payment of the mobility: its choice's student (id and names), type, year, term and
-   * programme (id and name), and its partner (id and full name) and country (code and name) when
-   * the choice has them.
+   * A payment of the mobility: its choice's student (id and names), type, year, term and programme
+   * (id and name), and its partner (id and full name) and country (code and name) when the choice
+   * has them.
    */
   private PaymentDto payment(MobilityEntity mobility, LocalDateTime date, String type) {
     MobilityChoiceEntity choice = mobility.getChoice();

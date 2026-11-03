@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.in.web;
 
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -16,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Denial reasons", description = "The reasons a professor gives to reject a mobility "
-    + "choice or cancel a mobility (professors only).")
+@Tag(
+    name = "Denial reasons",
+    description =
+        "The reasons a professor gives to reject a mobility "
+            + "choice or cancel a mobility (professors only).")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/denialReasons")
 @PreAuthorize(ApiPaths.PROFESSOR)
@@ -40,8 +42,8 @@ public class DenialReasonController {
   }
 
   @PutMapping("/{id}")
-  public DenialReasonDto edit(@PathVariable @Positive int id,
-      @RequestBody @Valid DenialReasonDto denialReason) {
+  public DenialReasonDto edit(
+      @PathVariable @Positive int id, @RequestBody @Valid DenialReasonDto denialReason) {
     return denialReasonService.edit(id, denialReason);
   }
 }

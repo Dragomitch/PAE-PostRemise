@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
@@ -27,8 +26,7 @@ public final class Violations {
   private static final ValidatorFactory FACTORY = Validation.buildDefaultValidatorFactory();
   private static final Validator VALIDATOR = FACTORY.getValidator();
 
-  private Violations() {
-  }
+  private Violations() {}
 
   /** A standalone validator (the Spring-configured one is tested separately). */
   public static Validator validator() {
@@ -43,8 +41,8 @@ public final class Violations {
    * @return the broken constraints, sorted; empty when the bean is valid
    */
   public static List<String> of(Object bean, Class<?>... groups) {
-    return describe(VALIDATOR.validate(bean, groups.length == 0 ? new Class<?>[] {Default.class}
-        : groups));
+    return describe(
+        VALIDATOR.validate(bean, groups.length == 0 ? new Class<?>[] {Default.class} : groups));
   }
 
   /** Validates a bean as a creation: {@link Default} and {@link OnCreate} groups. */
@@ -53,8 +51,8 @@ public final class Violations {
   }
 
   /**
-   * The broken constraints of a method validation failure, with their full path
-   * ({@code "signup.user.email:Email"}).
+   * The broken constraints of a method validation failure, with their full path ({@code
+   * "signup.user.email:Email"}).
    *
    * @param call the call expected to fail
    * @return the broken constraints, sorted
@@ -84,8 +82,10 @@ public final class Violations {
 
   private static List<String> describe(Collection<? extends ConstraintViolation<?>> violations) {
     return violations.stream()
-        .map(v -> v.getPropertyPath() + ":"
-            + v.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName())
+        .map(v ->
+            v.getPropertyPath()
+                + ":"
+                + v.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName())
         .sorted()
         .toList();
   }

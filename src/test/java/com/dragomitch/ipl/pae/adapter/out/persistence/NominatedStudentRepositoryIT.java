@@ -8,13 +8,11 @@ import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -26,13 +24,12 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   private static final String STUDENT_BY_ID =
       "SELECT * FROM student_exchange_tools.nominated_students WHERE user_id = ?";
 
-  @Autowired
-  private NominatedStudentRepository nominatedStudentRepository;
+  @Autowired private NominatedStudentRepository nominatedStudentRepository;
 
   @Override
   protected List<String> fixtures() {
-    return List.of("db/fixtures/users.sql", "db/fixtures/partners.sql",
-        "db/fixtures/nominated_students.sql");
+    return List.of(
+        "db/fixtures/users.sql", "db/fixtures/partners.sql", "db/fixtures/nominated_students.sql");
   }
 
   private NominatedStudentDto newStudent(int userId, String cardHolder) {
@@ -97,14 +94,18 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   void findAllReturnsEveryNominatedStudent() {
     List<NominatedStudentDto> students = inTransaction(() -> nominatedStudentRepository.findAll());
 
-    assertThat(students).extracting(NominatedStudentDto::getId).containsExactlyInAnyOrder(1001,
-        1004);
-    assertThat(students).filteredOn(s -> s.getId() == 1004).singleElement().satisfies(david -> {
-      assertThat(david.getCardHolder()).isEqualTo("David Petit");
-      assertThat(david.getBic()).isEqualTo("PSSTFRPPXXX");
-      assertThat(david.getNationality().getName()).isEqualTo("France");
-      assertThat(david.getVersion()).isEqualTo(2);
-    });
+    assertThat(students)
+        .extracting(NominatedStudentDto::getId)
+        .containsExactlyInAnyOrder(1001, 1004);
+    assertThat(students)
+        .filteredOn(s -> s.getId() == 1004)
+        .singleElement()
+        .satisfies(david -> {
+          assertThat(david.getCardHolder()).isEqualTo("David Petit");
+          assertThat(david.getBic()).isEqualTo("PSSTFRPPXXX");
+          assertThat(david.getNationality().getName()).isEqualTo("France");
+          assertThat(david.getVersion()).isEqualTo(2);
+        });
   }
 
   @Test
@@ -116,13 +117,19 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
       NominatedStudentDto created = nominatedStudentRepository.create(student);
 
       assertThat(created.getVersion()).isEqualTo(1);
-      assertThat(queryForRow(STUDENT_BY_ID, 1003)).containsEntry("title", "Mrs")
+      assertThat(queryForRow(STUDENT_BY_ID, 1003))
+          .containsEntry("title", "Mrs")
           .containsEntry("birthdate", Timestamp.valueOf(LocalDate.of(2002, 2, 28).atStartOfDay()))
-          .containsEntry("nationality", "CA").containsEntry("address", 2003)
-          .containsEntry("phone_number", "+15140000009").containsEntry("gender", "F")
-          .containsEntry("passed_years_count", 1).containsEntry("iban", "BE71096123456769")
-          .containsEntry("card_holder", null).containsEntry("bank_name", "BNP Paribas Fortis")
-          .containsEntry("bic", "GEBABEBB").containsEntry("version", 1);
+          .containsEntry("nationality", "CA")
+          .containsEntry("address", 2003)
+          .containsEntry("phone_number", "+15140000009")
+          .containsEntry("gender", "F")
+          .containsEntry("passed_years_count", 1)
+          .containsEntry("iban", "BE71096123456769")
+          .containsEntry("card_holder", null)
+          .containsEntry("bank_name", "BNP Paribas Fortis")
+          .containsEntry("bic", "GEBABEBB")
+          .containsEntry("version", 1);
       NominatedStudentDto found = nominatedStudentRepository.findById(1003);
       assertThat(found.getFirstName()).isEqualTo("Chloé");
       assertThat(found.getNationality().getName()).isEqualTo("Canada");
@@ -130,8 +137,8 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   }
 
   /**
-   * A nominated student shares the version of its user (the use case copies the user's version
-   * into the DTO): the row stores it and the returned DTO carries the same version.
+   * A nominated student shares the version of its user (the use case copies the user's version into
+   * the DTO): the row stores it and the returned DTO carries the same version.
    */
   @Test
   void createStoresAndReturnsTheVersionCarriedByTheDto() {
@@ -140,7 +147,8 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
       student.setVersion(3);
 
       assertThat(nominatedStudentRepository.create(student).getVersion()).isEqualTo(3);
-      assertThat(queryForRow(STUDENT_BY_ID, 1002)).containsEntry("version", 3)
+      assertThat(queryForRow(STUDENT_BY_ID, 1002))
+          .containsEntry("version", 3)
           .containsEntry("card_holder", "Bob Dupont");
       assertThat(nominatedStudentRepository.findById(1002).getVersion()).isEqualTo(3);
     });
@@ -148,16 +156,16 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void createForAnAlreadyNominatedStudentViolatesThePrimaryKey() {
-    runInTransaction(() -> assertThatThrownBy(
-        () -> nominatedStudentRepository.create(newStudent(1001, null)))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> nominatedStudentRepository.create(newStudent(1001, null)))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
   void createForAnUnknownUserIsRejectedByTheForeignKey() {
-    runInTransaction(() -> assertThatThrownBy(
-        () -> nominatedStudentRepository.create(newStudent(9999, null)))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> nominatedStudentRepository.create(newStudent(9999, null)))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -179,21 +187,28 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
       NominatedStudentDto updated = nominatedStudentRepository.update(david);
 
       assertThat(updated.getVersion()).isEqualTo(3);
-      assertThat(queryForRow(STUDENT_BY_ID, 1004)).containsEntry("title", "M")
+      assertThat(queryForRow(STUDENT_BY_ID, 1004))
+          .containsEntry("title", "M")
           .containsEntry("birthdate", Timestamp.valueOf(LocalDateTime.of(2000, 1, 1, 0, 0)))
-          .containsEntry("nationality", "DE").containsEntry("phone_number", "+4915100000")
-          .containsEntry("gender", "O").containsEntry("passed_years_count", 4)
-          .containsEntry("iban", "DE89370400440532013000").containsEntry("card_holder", null)
-          .containsEntry("bank_name", "Commerzbank").containsEntry("bic", "COBADEFFXXX")
-          .containsEntry("address", 2004).containsEntry("version", 3);
+          .containsEntry("nationality", "DE")
+          .containsEntry("phone_number", "+4915100000")
+          .containsEntry("gender", "O")
+          .containsEntry("passed_years_count", 4)
+          .containsEntry("iban", "DE89370400440532013000")
+          .containsEntry("card_holder", null)
+          .containsEntry("bank_name", "Commerzbank")
+          .containsEntry("bic", "COBADEFFXXX")
+          .containsEntry("address", 2004)
+          .containsEntry("version", 3);
     });
   }
 
   @Test
   void aStudentWithoutVersionIsFoundWithVersionZeroAndCannotBeUpdated() {
     runInTransaction(() -> {
-      execute("UPDATE student_exchange_tools.nominated_students SET version = NULL "
-          + "WHERE user_id = 1004");
+      execute(
+          "UPDATE student_exchange_tools.nominated_students SET version = NULL "
+              + "WHERE user_id = 1004");
 
       NominatedStudentDto david = nominatedStudentRepository.findById(1004);
       assertThat(david.getVersion()).isZero();
@@ -213,7 +228,8 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
 
       assertThatThrownBy(() -> nominatedStudentRepository.update(stale))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(queryForRow(STUDENT_BY_ID, 1004)).containsEntry("bank_name", "La Banque Postale")
+      assertThat(queryForRow(STUDENT_BY_ID, 1004))
+          .containsEntry("bank_name", "La Banque Postale")
           .containsEntry("version", 2);
     });
   }

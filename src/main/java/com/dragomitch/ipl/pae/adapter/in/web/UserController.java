@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
+import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
-
+import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Users", description = "Sign-up, the list of users, promotion to professor, edition "
-    + "of the own data.")
+@Tag(
+    name = "Users",
+    description =
+        "Sign-up, the list of users, promotion to professor, edition " + "of the own data.")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/users")
 public class UserController {
@@ -36,8 +37,7 @@ public class UserController {
 
   /** Public: sign-up. The first user becomes a professor, the next ones students. */
   @PostMapping
-  public UserDto signup(
-      @RequestBody @Validated({Default.class, OnCreate.class}) UserDto user) {
+  public UserDto signup(@RequestBody @Validated({Default.class, OnCreate.class}) UserDto user) {
     return userService.signup(user);
   }
 

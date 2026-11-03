@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.config;
 
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUserArgumentResolver;
-
 import java.util.List;
 import java.util.Locale;
 import org.springframework.context.annotation.Bean;
@@ -17,13 +16,13 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * Spring MVC settings of the REST API.
  *
  * <ul>
- * <li>Paths are matched case-insensitively, as the former hand-made router did: the legacy UI
- * calls e.g. {@code /mobilityChoices/1/reject} and {@code /denialReasons} for routes that were
- * declared {@code /mobilitychoices/{id}/reject} and {@code /denialreasons}.</li>
- * <li>Controllers receive the authenticated user as a {@code CurrentUser} argument.</li>
- * <li>The locale of a request (language of the error messages) comes from its
- * {@code Accept-Language} header: French or English, French when the header is missing or asks
- * for another language.</li>
+ *   <li>Paths are matched case-insensitively, as the former hand-made router did: the legacy UI
+ *       calls e.g. {@code /mobilityChoices/1/reject} and {@code /denialReasons} for routes that
+ *       were declared {@code /mobilitychoices/{id}/reject} and {@code /denialreasons}.
+ *   <li>Controllers receive the authenticated user as a {@code CurrentUser} argument.
+ *   <li>The locale of a request (language of the error messages) comes from its {@code
+ *       Accept-Language} header: French or English, French when the header is missing or asks for
+ *       another language.
  * </ul>
  */
 @Configuration
@@ -42,9 +41,9 @@ public class WebConfig implements WebMvcConfigurer {
   public static final Locale DEFAULT_LOCALE = Locale.FRENCH;
 
   /**
-   * The parser of the request mapping patterns, case-insensitive. {@code SecurityConfig} builds
-   * its request matchers with this same parser, so that a path the controllers serve is always
-   * matched by the security rules too ({@code /API/1.0/users} as well as {@code /api/1.0/users}).
+   * The parser of the request mapping patterns, case-insensitive. {@code SecurityConfig} builds its
+   * request matchers with this same parser, so that a path the controllers serve is always matched
+   * by the security rules too ({@code /API/1.0/users} as well as {@code /api/1.0/users}).
    */
   public static final PathPatternParser PATH_PATTERN_PARSER = caseInsensitivePathPatternParser();
 
@@ -55,8 +54,8 @@ public class WebConfig implements WebMvcConfigurer {
   }
 
   /**
-   * Resolves the locale from {@code Accept-Language} among the supported ones. Declared under
-   * the name the {@link DispatcherServlet} looks up, which replaces Spring Boot's default.
+   * Resolves the locale from {@code Accept-Language} among the supported ones. Declared under the
+   * name the {@link DispatcherServlet} looks up, which replaces Spring Boot's default.
    *
    * @return the locale resolver
    */

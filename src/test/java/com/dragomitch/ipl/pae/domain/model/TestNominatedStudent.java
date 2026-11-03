@@ -4,12 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestNominatedStudent {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
   private static final int ID = 1;
   private static final int VERSION = 1;
   private static final String TITLE = "Mr";

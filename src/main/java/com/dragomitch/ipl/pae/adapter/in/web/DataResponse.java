@@ -8,5 +8,4 @@ import java.util.List;
  * @param data the items
  * @param <T> the item type
  */
-public record DataResponse<T>(List<T> data) {
-}
+public record DataResponse<T>(List<T> data) {}

@@ -21,7 +21,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'partners', pathMatch: 'full' },
-      { path: 'partners', component: Partners, title: $localize`:@@route.partners.title:Partenaires - EMA` },
+      {
+        path: 'partners',
+        component: Partners,
+        title: $localize`:@@route.partners.title:Partenaires - EMA`,
+      },
       {
         path: 'mobility-choices',
         component: MobilityChoices,

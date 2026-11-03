@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +16,7 @@ public class InMemoryCountryRepository implements CountryRepository {
 
   /**
    * Sole constructor for explicit invocation.
-   * 
+   *
    * @param entityFactory an on-demand object dispenser
    */
   public InMemoryCountryRepository(EntityFactory entityFactory) {
@@ -54,5 +53,4 @@ public class InMemoryCountryRepository implements CountryRepository {
     }
     return countryList;
   }
-
 }

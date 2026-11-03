@@ -4,10 +4,8 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.DenialReasonEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.DenialReasonJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
-
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -44,14 +42,17 @@ class JpaDenialReasonRepositoryAdapter implements DenialReasonRepository {
   /**
    * {@inheritDoc}
    *
-   * @throws ConcurrentModificationException if the reason does not exist (any more): the table
-   *         has no version column, so a missing row is the only conflict
+   * @throws ConcurrentModificationException if the reason does not exist (any more): the table has
+   *     no version column, so a missing row is the only conflict
    */
   @Override
   public DenialReasonDto update(DenialReasonDto denialReason) {
-    DenialReasonEntity entity = reasons.findById(denialReason.getId())
-        .orElseThrow(() -> new ConcurrentModificationException(
-            "Denial reason " + denialReason.getId() + " does not exist (any more)"));
+    DenialReasonEntity entity =
+        reasons
+            .findById(denialReason.getId())
+            .orElseThrow(() ->
+                new ConcurrentModificationException(
+                    "Denial reason " + denialReason.getId() + " does not exist (any more)"));
     entity.setReason(denialReason.getReason());
     reasons.flush();
     return denialReason;

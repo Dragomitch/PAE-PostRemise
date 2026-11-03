@@ -5,7 +5,6 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
-
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -16,9 +15,8 @@ import java.lang.annotation.Target;
 import org.springframework.util.StringUtils;
 
 /**
- * Class-level (cross-field) constraint of a {@link PartnerSearch}: when a {@code filter} is
- * chosen, its {@code value} is required. The violation is reported on the {@code value}
- * property.
+ * Class-level (cross-field) constraint of a {@link PartnerSearch}: when a {@code filter} is chosen,
+ * its {@code value} is required. The violation is reported on the {@code value} property.
  */
 @Documented
 @Constraint(validatedBy = FilterValueRequired.Validator.class)
@@ -41,7 +39,8 @@ public @interface FilterValueRequired {
         return true;
       }
       context.disableDefaultConstraintViolation();
-      context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
+      context
+          .buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
           .addPropertyNode("value")
           .addConstraintViolation();
       return false;

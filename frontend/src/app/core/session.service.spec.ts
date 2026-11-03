@@ -7,15 +7,29 @@ import { User } from './models';
 import { SessionService } from './session.service';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
-const PROFESSOR: User = { id: 1, username: 'prof', firstName: 'Paula', lastName: 'Prof', role: 'Professor' };
-const STUDENT: User = { id: 2, username: 'alice', firstName: 'Alice', lastName: 'Student', role: 'Student' };
+const PROFESSOR: User = {
+  id: 1,
+  username: 'prof',
+  firstName: 'Paula',
+  lastName: 'Prof',
+  role: 'Professor',
+};
+const STUDENT: User = {
+  id: 2,
+  username: 'alice',
+  firstName: 'Alice',
+  lastName: 'Student',
+  role: 'Student',
+};
 
 describe('SessionService', () => {
   let session: SessionService;
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     session = TestBed.inject(SessionService);
     http = TestBed.inject(HttpTestingController);
   });
@@ -23,10 +37,12 @@ describe('SessionService', () => {
   afterEach(() => http.verify());
 
   function unauthenticated(): void {
-    http.expectOne('/api/1.0/session').flush(
-      { code: 'UNAUTHENTICATED', status: 401, detail: 'Please sign in.' },
-      { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
-    );
+    http
+      .expectOne('/api/1.0/session')
+      .flush(
+        { code: 'UNAUTHENTICATED', status: 401, detail: 'Please sign in.' },
+        { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+      );
   }
 
   it('starts anonymous', () => {
@@ -57,7 +73,9 @@ describe('SessionService', () => {
 
     it('fails with an ApiProblem and stays anonymous when the credentials are refused', () => {
       let problem: unknown;
-      session.signIn({ username: 'prof', password: 'bad' }).subscribe({ error: (e) => (problem = e) });
+      session
+        .signIn({ username: 'prof', password: 'bad' })
+        .subscribe({ error: (e) => (problem = e) });
       unauthenticated();
       expect(problem).toBeInstanceOf(ApiProblem);
       expect(session.user()).toBeNull();

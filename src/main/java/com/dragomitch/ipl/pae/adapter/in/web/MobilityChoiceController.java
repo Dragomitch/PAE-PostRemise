@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,8 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
  * Mobility choices (applications of the students). Note the singular {@code /mobilityChoice} used
  * by the creation, kept for the existing clients.
  */
-@Tag(name = "Mobility choices", description = "The applications of the students, before they "
-    + "become mobilities.")
+@Tag(
+    name = "Mobility choices",
+    description = "The applications of the students, before they " + "become mobilities.")
 @RestController
 @RequestMapping(ApiPaths.BASE)
 public class MobilityChoiceController {
@@ -37,8 +37,7 @@ public class MobilityChoiceController {
    *
    * @param count the number
    */
-  public record CountResponse(int count) {
-  }
+  public record CountResponse(int count) {}
 
   private final MobilityChoiceService mobilityChoiceService;
 
@@ -48,26 +47,34 @@ public class MobilityChoiceController {
 
   @PostMapping("/mobilityChoice")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public MobilityChoiceDto create(@RequestBody @Valid MobilityChoiceDto mobilityChoice,
-      CurrentUser currentUser) {
+  public MobilityChoiceDto create(
+      @RequestBody @Valid MobilityChoiceDto mobilityChoice, CurrentUser currentUser) {
     return mobilityChoiceService.create(mobilityChoice, currentUser.id(), currentUser.role());
   }
 
   /** Every mobility choice matching the filter for a professor, the own ones for a student. */
   @GetMapping("/mobilityChoices")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public DataResponse<MobilityChoiceDto> showAll(@RequestParam(required = false) @Pattern(
-      regexp = MobilityChoiceService.FILTER_REGEXP, message = MobilityChoiceService.FILTER_MESSAGE)
-      String filter, CurrentUser currentUser) {
+  public DataResponse<MobilityChoiceDto> showAll(
+      @RequestParam(required = false)
+          @Pattern(
+              regexp = MobilityChoiceService.FILTER_REGEXP,
+              message = MobilityChoiceService.FILTER_MESSAGE)
+          String filter,
+      CurrentUser currentUser) {
     return new DataResponse<>(
         mobilityChoiceService.showAll(currentUser.id(), currentUser.role(), filter));
   }
 
   @GetMapping("/mobilityChoices/count")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public CountResponse countAll(@RequestParam(required = false) @Pattern(
-      regexp = MobilityChoiceService.FILTER_REGEXP, message = MobilityChoiceService.FILTER_MESSAGE)
-      String filter, CurrentUser currentUser) {
+  public CountResponse countAll(
+      @RequestParam(required = false)
+          @Pattern(
+              regexp = MobilityChoiceService.FILTER_REGEXP,
+              message = MobilityChoiceService.FILTER_MESSAGE)
+          String filter,
+      CurrentUser currentUser) {
     return new CountResponse(
         mobilityChoiceService.countAll(currentUser.id(), currentUser.role(), filter));
   }
@@ -75,8 +82,12 @@ public class MobilityChoiceController {
   @Operation(summary = "Cancels an own mobility choice, with a free-text reason (students)")
   @PutMapping("/mobilityChoices/{id}/cancel")
   @PreAuthorize(ApiPaths.STUDENT)
-  public void cancel(@PathVariable @Positive int id, @RequestParam(required = false) @NotBlank
-      @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH) String reason,
+  public void cancel(
+      @PathVariable @Positive int id,
+      @RequestParam(required = false)
+          @NotBlank
+          @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH)
+          String reason,
       CurrentUser currentUser) {
     mobilityChoiceService.cancel(id, currentUser.id(), reason);
   }
@@ -84,7 +95,8 @@ public class MobilityChoiceController {
   @Operation(summary = "Rejects a mobility choice, with the id of a denial reason (professors)")
   @PutMapping("/mobilityChoices/{id}/reject")
   @PreAuthorize(ApiPaths.PROFESSOR)
-  public void reject(@PathVariable @Positive int id,
+  public void reject(
+      @PathVariable @Positive int id,
       @RequestParam(required = false, defaultValue = "-1") @Positive int reason) {
     mobilityChoiceService.reject(id, reason);
   }
@@ -96,11 +108,14 @@ public class MobilityChoiceController {
     mobilityChoiceService.confirm(id, currentUser.id());
   }
 
-  @Operation(summary = "Creates the partner of the body (non-official when created by a "
-      + "student), sets it as the partner of the mobility choice and confirms it")
+  @Operation(
+      summary =
+          "Creates the partner of the body (non-official when created by a "
+              + "student), sets it as the partner of the mobility choice and confirms it")
   @PutMapping("/mobilityChoices/{id}/confirmWithNewPartner")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
-  public void confirmWithNewPartner(@PathVariable @Positive int id,
+  public void confirmWithNewPartner(
+      @PathVariable @Positive int id,
       @RequestBody @Valid PartnerDto partner,
       CurrentUser currentUser) {
     mobilityChoiceService.confirmWithNewPartner(id, partner, currentUser.id(), currentUser.role());
@@ -110,9 +125,13 @@ public class MobilityChoiceController {
   @Operation(summary = "CSV export of the mobility choices matching the filter")
   @GetMapping(value = "/mobilityChoices/export", produces = ApiPaths.TEXT_CSV_UTF8)
   @PreAuthorize(ApiPaths.PROFESSOR)
-  public String exportAll(@RequestParam(required = false) @Pattern(
-      regexp = MobilityChoiceService.FILTER_REGEXP, message = MobilityChoiceService.FILTER_MESSAGE)
-      String filter, CurrentUser currentUser) {
+  public String exportAll(
+      @RequestParam(required = false)
+          @Pattern(
+              regexp = MobilityChoiceService.FILTER_REGEXP,
+              message = MobilityChoiceService.FILTER_MESSAGE)
+          String filter,
+      CurrentUser currentUser) {
     return mobilityChoiceService.exportAll(currentUser.id(), currentUser.role(), filter);
   }
 }

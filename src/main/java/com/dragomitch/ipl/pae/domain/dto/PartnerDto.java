@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.PhoneNumber;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,9 +12,9 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
- * A partner institution or company. Constraints: {@link jakarta.validation.groups.Default} for
- * an edition, {@code Default} and {@link OnCreate} (at least one option) for a creation.
- * Lengths: {@code partners}.
+ * A partner institution or company. Constraints: {@link jakarta.validation.groups.Default} for an
+ * edition, {@code Default} and {@link OnCreate} (at least one option) for a creation. Lengths:
+ * {@code partners}.
  */
 public interface PartnerDto extends Entity {
 
@@ -95,8 +94,8 @@ public interface PartnerDto extends Entity {
   void setArchivable(boolean archivable);
 
   /**
-   * The options offered; a new partner offers at least one (an edition only adds options). A
-   * {@code null} element is refused ({@code options[i]}: {@code NotNull}).
+   * The options offered; a new partner offers at least one (an edition only adds options). A {@code
+   * null} element is refused ({@code options[i]}: {@code NotNull}).
    */
   @NotEmpty(groups = OnCreate.class)
   List<@NotNull @Valid PartnerOptionDto> getOptions();
@@ -106,5 +105,4 @@ public interface PartnerDto extends Entity {
   ProgrammeDto getProgramme();
 
   void setProgramme(ProgrammeDto programme);
-
 }

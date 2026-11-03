@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.method.HandlerMethod;
 
 /**
- * The parts of {@link OpenApiConfig} that the document served by the application
- * ({@code OpenApiDocumentTest}) does not show: the version without build information and the
- * operations springdoc might hand over without responses or HTTP method.
+ * The parts of {@link OpenApiConfig} that the document served by the application ({@code
+ * OpenApiDocumentTest}) does not show: the version without build information and the operations
+ * springdoc might hand over without responses or HTTP method.
  */
 class OpenApiConfigTest {
 
@@ -31,16 +31,13 @@ class OpenApiConfigTest {
   static class Handlers {
 
     @GetMapping("/public")
-    public void publicRead() {
-    }
+    public void publicRead() {}
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PROFESSOR')")
-    public void change() {
-    }
+    public void change() {}
 
-    public void unmapped() {
-    }
+    public void unmapped() {}
   }
 
   private static HandlerMethod handler(String name) throws NoSuchMethodException {
@@ -70,8 +67,7 @@ class OpenApiConfigTest {
 
   @Test
   void anOperationWithoutResponsesGetsItsErrorResponses() throws Exception {
-    Operation operation = new Operation()
-        .addParametersItem(new Parameter().name("id").in("path"));
+    Operation operation = new Operation().addParametersItem(new Parameter().name("id").in("path"));
 
     OpenApiConfig.customize(operation, handler("change"));
 
@@ -84,8 +80,10 @@ class OpenApiConfigTest {
 
   @Test
   void aPublicReadWithoutParametersHasNoErrorResponseAndNoSecurity() throws Exception {
-    Operation operation = new Operation()
-        .responses(new ApiResponses().addApiResponse("200", new ApiResponse().description("OK")));
+    Operation operation =
+        new Operation()
+            .responses(
+                new ApiResponses().addApiResponse("200", new ApiResponse().description("OK")));
 
     OpenApiConfig.customize(operation, handler("publicRead"));
 
@@ -96,8 +94,8 @@ class OpenApiConfigTest {
 
   @Test
   void aHandlerWithoutRequestMappingIsTreatedAsARead() throws Exception {
-    Operation operation = new Operation().requestBody(
-        new io.swagger.v3.oas.models.parameters.RequestBody());
+    Operation operation =
+        new Operation().requestBody(new io.swagger.v3.oas.models.parameters.RequestBody());
 
     OpenApiConfig.customize(operation, handler("unmapped"));
 
@@ -107,14 +105,18 @@ class OpenApiConfigTest {
 
   @Test
   void aDeclaredErrorResponseIsAProblem() throws Exception {
-    Operation operation = new Operation().responses(new ApiResponses()
-        .addApiResponse("401", new ApiResponse().description("Bad credentials")));
+    Operation operation =
+        new Operation()
+            .responses(
+                new ApiResponses()
+                    .addApiResponse("401", new ApiResponse().description("Bad credentials")));
 
     OpenApiConfig.customize(operation, handler("publicRead"));
 
     ApiResponse unauthorized = operation.getResponses().get("401");
     assertEquals("Bad credentials", unauthorized.getDescription());
-    assertEquals(OpenApiConfig.PROBLEM_DETAIL_REF, unauthorized.getContent()
-        .get("application/problem+json").getSchema().get$ref());
+    assertEquals(
+        OpenApiConfig.PROBLEM_DETAIL_REF,
+        unauthorized.getContent().get("application/problem+json").getSchema().get$ref());
   }
 }

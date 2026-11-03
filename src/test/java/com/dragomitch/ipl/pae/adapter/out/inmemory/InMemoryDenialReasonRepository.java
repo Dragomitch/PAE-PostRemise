@@ -2,12 +2,12 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
-
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class InMemoryDenialReasonRepository implements DenialReasonRepository, ResettableRepository {
+public class InMemoryDenialReasonRepository
+    implements DenialReasonRepository, ResettableRepository {
   private List<DenialReasonDto> denialReasons;
 
   public InMemoryDenialReasonRepository() {
@@ -48,5 +48,4 @@ public class InMemoryDenialReasonRepository implements DenialReasonRepository, R
   public void empty() {
     denialReasons = new ArrayList<DenialReasonDto>();
   }
-
 }

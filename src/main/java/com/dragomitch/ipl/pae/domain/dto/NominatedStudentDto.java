@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.domain.validation.Bic;
 import com.dragomitch.ipl.pae.domain.validation.Iban;
 import com.dragomitch.ipl.pae.domain.validation.PhoneNumber;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,8 +23,10 @@ public interface NominatedStudentDto extends UserDto {
 
   /** Accepted titles (an empty value is reported by {@code @NotBlank} only). */
   String TITLE_REGEXP = "Mr|M|Mrs|Ms";
+
   /** Accepted genders: male, female, other. */
   String GENDER_REGEXP = "M|F|O";
+
   int PHONE_NUMBER_MAX_LENGTH = 15;
   int IBAN_MAX_LENGTH = 31;
   int CARD_HOLDER_MAX_LENGTH = 35;
@@ -100,5 +101,4 @@ public interface NominatedStudentDto extends UserDto {
   String getBic();
 
   void setBic(String bic);
-
 }

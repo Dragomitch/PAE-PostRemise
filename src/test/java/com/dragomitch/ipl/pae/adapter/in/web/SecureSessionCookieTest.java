@@ -7,18 +7,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
-
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -30,14 +29,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @TestPropertySource(properties = {"app.session.cookie-secure=true", "app.session.validity=30m"})
 class SecureSessionCookieTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private EntityFactory entityFactory;
+  @Autowired private EntityFactory entityFactory;
 
-  @MockitoBean
-  private SessionService sessionService;
+  @MockitoBean private SessionService sessionService;
 
   @Test
   void theCookiesAreSecureAndTheSessionLastsTheConfiguredValidity() throws Exception {
@@ -46,13 +42,20 @@ class SecureSessionCookieTest {
     user.setRole(UserDto.ROLE_STUDENT);
     when(sessionService.signin(any(), any())).thenReturn(user);
 
-    Cookie xsrf = mockMvc.perform(get(ApiPaths.BASE + "/session"))
-        .andExpect(cookie().secure("XSRF-TOKEN", true))
-        .andReturn().getResponse().getCookie("XSRF-TOKEN");
-    mockMvc.perform(post(ApiPaths.BASE + "/session")
-            .cookie(xsrf).header("X-XSRF-TOKEN", xsrf.getValue())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"username\":\"stud\",\"password\":\"secret\"}"))
+    Cookie xsrf =
+        mockMvc
+            .perform(get(ApiPaths.BASE + "/session"))
+            .andExpect(cookie().secure("XSRF-TOKEN", true))
+            .andReturn()
+            .getResponse()
+            .getCookie("XSRF-TOKEN");
+    mockMvc
+        .perform(
+            post(ApiPaths.BASE + "/session")
+                .cookie(xsrf)
+                .header("X-XSRF-TOKEN", xsrf.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"stud\",\"password\":\"secret\"}"))
         .andExpect(status().isOk())
         .andExpect(cookie().secure("session", true))
         .andExpect(cookie().maxAge("session", 30 * 60));

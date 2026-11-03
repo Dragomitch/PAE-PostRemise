@@ -6,19 +6,18 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.DenialReasonEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.OptionEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps the JPA entities to the business DTOs handed to the use cases. Each method fills in what
- * the outbound port contracts (asserted by the {@code *RepositoryIT} tests) promise, and reads only the
+ * Maps the JPA entities to the business DTOs handed to the use cases. Each method fills in what the
+ * outbound port contracts (asserted by the {@code *RepositoryIT} tests) promise, and reads only the
  * associations it needs, so a mapping never triggers more lazy loading than its query fetched.
  */
 @Component

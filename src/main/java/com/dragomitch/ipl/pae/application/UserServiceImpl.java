@@ -1,17 +1,16 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.User;
+import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import com.dragomitch.ipl.pae.domain.port.in.UserService;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,8 +33,12 @@ class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final Clock clock;
 
-  UserServiceImpl(UserRepository userRepository, OptionRepository optionRepository, NominatedStudentRepository nominatedStudentRepository,
-      PasswordEncoder passwordEncoder, Clock clock) {
+  UserServiceImpl(
+      UserRepository userRepository,
+      OptionRepository optionRepository,
+      NominatedStudentRepository nominatedStudentRepository,
+      PasswordEncoder passwordEncoder,
+      Clock clock) {
     this.userRepository = userRepository;
     this.optionRepository = optionRepository;
     this.nominatedStudentRepository = nominatedStudentRepository;
@@ -118,7 +121,8 @@ class UserServiceImpl implements UserService {
    * another account, the option exists.
    */
   private void checkBusinessRules(UserDto user) {
-    UserDto existingUser = userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername());
+    UserDto existingUser =
+        userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername());
     if (existingUser != null && existingUser.getId() != user.getId()) {
       throw new BusinessException(ErrorCode.USERNAME_TAKEN, user.getUsername());
     }

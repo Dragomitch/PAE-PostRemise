@@ -2,10 +2,8 @@ package com.dragomitch.ipl.pae.adapter.out.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-
 import java.io.Serializable;
 import java.util.Objects;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -22,8 +20,7 @@ public class PartnerOptionId implements Serializable {
   @Column(name = "partner_id")
   private Integer partnerId;
 
-  protected PartnerOptionId() {
-  }
+  protected PartnerOptionId() {}
 
   public PartnerOptionId(String optionCode, Integer partnerId) {
     this.optionCode = optionCode;
@@ -40,7 +37,8 @@ public class PartnerOptionId implements Serializable {
 
   @Override
   public boolean equals(Object other) {
-    return other instanceof PartnerOptionId id && Objects.equals(optionCode, id.optionCode)
+    return other instanceof PartnerOptionId id
+        && Objects.equals(optionCode, id.optionCode)
         && Objects.equals(partnerId, id.partnerId);
   }
 

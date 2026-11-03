@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.config;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -18,12 +17,12 @@ import org.springframework.web.filter.CorsFilter;
  * Cross-origin configuration for the API, so the Angular dev server (http://localhost:4200 by
  * default) can call the backend directly.
  *
- * <p>CORS is applied by a servlet {@link CorsFilter} registered ahead of every other filter
- * (Spring Security included): preflight requests are answered there and never reach the
- * authentication or CSRF filters. The source is also exposed as the
- * {@code corsConfigurationSource} bean, the name Spring Security's {@code http.cors()} looks up,
- * so the security chain ({@link SecurityConfig}) applies the same policy. Every request header is
- * allowed, {@code X-XSRF-TOKEN} (CSRF token of the web UIs) included.
+ * <p>CORS is applied by a servlet {@link CorsFilter} registered ahead of every other filter (Spring
+ * Security included): preflight requests are answered there and never reach the authentication or
+ * CSRF filters. The source is also exposed as the {@code corsConfigurationSource} bean, the name
+ * Spring Security's {@code http.cors()} looks up, so the security chain ({@link SecurityConfig})
+ * applies the same policy. Every request header is allowed, {@code X-XSRF-TOKEN} (CSRF token of the
+ * web UIs) included.
  *
  * <p>Allowed origins come from the {@code app.cors.allowed-origins} property (comma-separated),
  * which can be overridden with the {@code APP_CORS_ALLOWED_ORIGINS} environment variable or a
@@ -51,10 +50,11 @@ public class CorsConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource(
       @Value("${app.cors.allowed-origins:" + DEFAULT_ALLOWED_ORIGINS + "}") String allowedOrigins) {
-    List<String> origins = Arrays.stream(allowedOrigins.split(","))
-        .map(String::trim)
-        .filter(StringUtils::hasText)
-        .toList();
+    List<String> origins =
+        Arrays.stream(allowedOrigins.split(","))
+            .map(String::trim)
+            .filter(StringUtils::hasText)
+            .toList();
     if (origins.isEmpty()) {
       throw new IllegalArgumentException("app.cors.allowed-origins must list at least one origin");
     }
@@ -77,9 +77,8 @@ public class CorsConfig {
   /**
    * Registers the CORS filter for every request, before Spring Security's filter chain.
    *
-   * <p>The bean is deliberately not called {@code corsFilter}: Spring Security's
-   * {@code http.cors()} looks up a bean of that name and expects a {@link CorsFilter}, not a
-   * registration.
+   * <p>The bean is deliberately not called {@code corsFilter}: Spring Security's {@code
+   * http.cors()} looks up a bean of that name and expects a {@link CorsFilter}, not a registration.
    *
    * @param corsConfigurationSource the CORS policy
    * @return the filter registration

@@ -10,18 +10,15 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Repository;
 
 /** The partners hosting the mobilities, with the options they welcome. */
@@ -29,24 +26,25 @@ import org.springframework.stereotype.Repository;
 class JpaPartnerRepositoryAdapter implements PartnerRepository {
 
   /**
-   * A partner with everything its DTO carries, in one query: its address, the address's country
-   * and that country's programme, and its options with their names.
+   * A partner with everything its DTO carries, in one query: its address, the address's country and
+   * that country's programme, and its options with their names.
    */
-  private static final String SELECT = "SELECT DISTINCT p FROM PartnerEntity p"
-      + " JOIN FETCH p.address a JOIN FETCH a.country c JOIN FETCH c.programme"
-      + " LEFT JOIN FETCH p.options po LEFT JOIN FETCH po.option";
+  private static final String SELECT =
+      "SELECT DISTINCT p FROM PartnerEntity p"
+          + " JOIN FETCH p.address a JOIN FETCH a.country c JOIN FETCH c.programme"
+          + " LEFT JOIN FETCH p.options po LEFT JOIN FETCH po.option";
 
   private static final String ORDER = " ORDER BY p.id";
 
   /** The partner offers the option of the student ({@code :option}). */
-  private static final String OFFERS_OPTION = "EXISTS (SELECT 1 FROM PartnerOptionEntity f"
-      + " WHERE f.partner = p AND f.id.optionCode = :option)";
+  private static final String OFFERS_OPTION =
+      "EXISTS (SELECT 1 FROM PartnerOptionEntity f"
+          + " WHERE f.partner = p AND f.id.optionCode = :option)";
 
   private final PartnerJpaRepository partners;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   JpaPartnerRepositoryAdapter(PartnerJpaRepository partners, PersistenceMapper mapper) {
     this.partners = partners;
@@ -71,10 +69,11 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
 
   @Override
   public PartnerDto findById(int id) {
-    List<PartnerEntity> found = entityManager
-        .createQuery(SELECT + " WHERE p.id = :id", PartnerEntity.class)
-        .setParameter("id", id)
-        .getResultList();
+    List<PartnerEntity> found =
+        entityManager
+            .createQuery(SELECT + " WHERE p.id = :id", PartnerEntity.class)
+            .setParameter("id", id)
+            .getResultList();
     return found.isEmpty() ? null : partner(found.get(0));
   }
 
@@ -84,9 +83,9 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * <p>Professors see every partner matching the filter. Students only see official, non-archived
    * partners offering their option ({@code "all"} and {@code "country"} filters).
    *
-   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
-   *         (a programming error: the API rejects an unknown filter before, with a 400
-   *         {@code VALIDATION_FAILED} problem)
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants (a
+   *     programming error: the API rejects an unknown filter before, with a 400 {@code
+   *     VALIDATION_FAILED} problem)
    */
   @Override
   public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
@@ -119,18 +118,20 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
   /**
    * {@inheritDoc}
    *
-   * @throws ConcurrentModificationException if the partner does not exist or its version is not
-   *         the DTO's (it was changed since it was read)
+   * @throws ConcurrentModificationException if the partner does not exist or its version is not the
+   *     DTO's (it was changed since it was read)
    */
   @Override
   public PartnerDto update(PartnerDto partner) {
-    PartnerEntity entity = partners.findById(partner.getId())
-        .filter(found -> found.getVersion() == partner.getVersion())
-        .orElseThrow(ConcurrentModificationException::new);
+    PartnerEntity entity =
+        partners
+            .findById(partner.getId())
+            .filter(found -> found.getVersion() == partner.getVersion())
+            .orElseThrow(ConcurrentModificationException::new);
     copy(partner, entity);
     entity.setArchived(partner.isArchived());
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        partner.getVersion());
+    Versions.flushIncrementingVersion(
+        entityManager, entity, entity::getVersion, partner.getVersion());
     partner.setVersion(entity.getVersion());
     return partner;
   }
@@ -180,15 +181,18 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
     ProgrammeDto programmeDto = mapper.programmeReference(programme.getId());
     programmeDto.setProgrammeName(programme.getName());
     partner.setProgramme(programmeDto);
-    partner.setOptions(new ArrayList<>(entity.getOptions().stream()
-        .sorted(Comparator.comparing(option -> option.getId().getOptionCode()))
-        .map(option -> {
-          PartnerOptionDto dto = mapper.build(PartnerOptionDto.class);
-          dto.setCode(option.getId().getOptionCode());
-          dto.setDepartement(option.getDepartment());
-          dto.setName(option.getOption().getName());
-          return dto;
-        }).toList()));
+    partner.setOptions(
+        new ArrayList<>(
+            entity.getOptions().stream()
+                .sorted(Comparator.comparing(option -> option.getId().getOptionCode()))
+                .map(option -> {
+                  PartnerOptionDto dto = mapper.build(PartnerOptionDto.class);
+                  dto.setCode(option.getId().getOptionCode());
+                  dto.setDepartement(option.getDepartment());
+                  dto.setName(option.getOption().getName());
+                  return dto;
+                })
+                .toList()));
     return partner;
   }
 }

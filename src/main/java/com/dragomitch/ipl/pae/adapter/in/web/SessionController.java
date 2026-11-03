@@ -1,10 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
+import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
-
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,22 +33,26 @@ public class SessionController {
    * @param username the username
    * @param password the password
    */
-  public record SignInRequest(@NotBlank String username, @NotBlank String password) {
-  }
+  public record SignInRequest(@NotBlank String username, @NotBlank String password) {}
 
   private final SessionService sessionService;
   private final SessionCookieService sessionCookieService;
 
-  public SessionController(SessionService sessionService, SessionCookieService sessionCookieService) {
+  public SessionController(
+      SessionService sessionService, SessionCookieService sessionCookieService) {
     this.sessionService = sessionService;
     this.sessionCookieService = sessionCookieService;
   }
 
   /** Public. Checks the credentials and opens a session (sets the {@code session} cookie). */
-  @ApiResponse(responseCode = "200", description = "Signed in: the response sets the session "
-      + "cookie (HttpOnly, SameSite=Lax) holding the session JWT",
+  @ApiResponse(
+      responseCode = "200",
+      description =
+          "Signed in: the response sets the session "
+              + "cookie (HttpOnly, SameSite=Lax) holding the session JWT",
       headers = @Header(name = HttpHeaders.SET_COOKIE, description = "session=<JWT>"))
-  @ApiResponse(responseCode = "401",
+  @ApiResponse(
+      responseCode = "401",
       description = "Unknown username or wrong password (INVALID_CREDENTIALS)")
   @PostMapping
   public ResponseEntity<UserDto> signin(@RequestBody @Valid SignInRequest credentials) {

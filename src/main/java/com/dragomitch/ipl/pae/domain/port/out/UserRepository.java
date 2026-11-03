@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.util.List;
 
 public interface UserRepository {
@@ -26,7 +25,7 @@ public interface UserRepository {
 
   /**
    * Inserts a user into the database.
-   * 
+   *
    * @param user the user to be inserted in the database
    * @return the userDto inserted into the DB.
    */
@@ -34,7 +33,7 @@ public interface UserRepository {
 
   /**
    * Retrieve a user with the id passed in parameter.
-   * 
+   *
    * @param id the id of the User we want to retrieve from the Database.
    * @return the UserDto corresponding to the user row having the param id as id.
    */
@@ -42,14 +41,14 @@ public interface UserRepository {
 
   /**
    * Queries the database for all users.
-   * 
+   *
    * @return all users.
    */
   List<UserDto> findAll();
 
   /**
    * Queries the database for a tuple matching a certain condition.
-   * 
+   *
    * @param columnName the column to be used in the SQL query
    * @param columnValue the comparison value
    * @return first result found that meets the conditions.
@@ -58,8 +57,8 @@ public interface UserRepository {
 
   /**
    * Changes the role of the user having that id to 'professor' and increments its version, with
-   * optimistic locking. Only the role and the version are written: prefer it to
-   * {@link #update(UserDto)} when the id is known (e.g. from the API path).
+   * optimistic locking. Only the role and the version are written: prefer it to {@link
+   * #update(UserDto)} when the id is known (e.g. from the API path).
    *
    * @param userId the user id
    * @param expectedVersion the version the caller read
@@ -81,14 +80,14 @@ public interface UserRepository {
 
   /**
    * Updates the user data in the database with the contents of the UserDto's fields.
-   * 
+   *
    * @param user the user data to update
    */
   void update(UserDto user);
 
   /**
    * Checks if the users database table is empty.
-   * 
+   *
    * @return true if the table is empty, false otherwise.
    */
   boolean isEmpty();

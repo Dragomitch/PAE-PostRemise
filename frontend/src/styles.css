@@ -1,6 +1,11 @@
 /* Global styles shared by the pages. */
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   margin: 0;
 }
 

@@ -93,14 +93,21 @@ describe('SignIn', () => {
 
   it('remembers the signed-in user in the session', () => {
     fillAndSubmit();
-    http.expectOne('/api/1.0/session').flush({ username: 'jdoe', firstName: 'John', role: 'Student' });
+    http
+      .expectOne('/api/1.0/session')
+      .flush({ username: 'jdoe', firstName: 'John', role: 'Student' });
     expect(TestBed.inject(SessionService).user()?.firstName).toBe('John');
   });
 
   it('shows the backend localized detail in an alert and re-enables the button', () => {
     fillAndSubmit();
     http.expectOne('/api/1.0/session').flush(
-      { code: 'INVALID_CREDENTIALS', status: 401, title: 'Non autorisé', detail: 'Identifiants refusés par le serveur.' },
+      {
+        code: 'INVALID_CREDENTIALS',
+        status: 401,
+        title: 'Non autorisé',
+        detail: 'Identifiants refusés par le serveur.',
+      },
       { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
     );
     fixture.detectChanges();
@@ -115,7 +122,10 @@ describe('SignIn', () => {
     fillAndSubmit();
     http
       .expectOne('/api/1.0/session')
-      .flush({ code: 'INVALID_CREDENTIALS', status: 401 }, { status: 401, statusText: 'Unauthorized' });
+      .flush(
+        { code: 'INVALID_CREDENTIALS', status: 401 },
+        { status: 401, statusText: 'Unauthorized' },
+      );
     fixture.detectChanges();
     expect(alert()?.textContent).toContain(knownCodeMessage('INVALID_CREDENTIALS')!);
   });

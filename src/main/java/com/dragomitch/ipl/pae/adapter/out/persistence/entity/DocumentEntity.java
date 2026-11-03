@@ -7,15 +7,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * A document a programme requires ({@code documents}), filled in before departure
- * ({@code D}) or after return ({@code R}). Reference data, never written by the
- * application: immutable, its {@code version} column is not mapped.
+ * A document a programme requires ({@code documents}), filled in before departure ({@code D}) or
+ * after return ({@code R}). Reference data, never written by the application: immutable, its {@code
+ * version} column is not mapped.
  */
 @Entity
 @Immutable
@@ -36,7 +35,6 @@ public class DocumentEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "programme_id", nullable = false)
   private ProgrammeEntity programme;
-
 
   public Integer getId() {
     return id;
