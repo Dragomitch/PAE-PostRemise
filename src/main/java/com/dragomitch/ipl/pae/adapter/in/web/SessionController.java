@@ -1,8 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.UserMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,11 +38,13 @@ public class SessionController {
 
   private final SessionService sessionService;
   private final SessionCookieService sessionCookieService;
+  private final UserMapper mapper;
 
   public SessionController(
-      SessionService sessionService, SessionCookieService sessionCookieService) {
+      SessionService sessionService, SessionCookieService sessionCookieService, UserMapper mapper) {
     this.sessionService = sessionService;
     this.sessionCookieService = sessionCookieService;
+    this.mapper = mapper;
   }
 
   /** Public. Checks the credentials and opens a session (sets the {@code session} cookie). */
@@ -56,16 +59,16 @@ public class SessionController {
       description = "Unknown username or wrong password (INVALID_CREDENTIALS)")
   @PostMapping
   public ResponseEntity<UserDto> signin(@RequestBody @Valid SignInRequest credentials) {
-    UserDto user = sessionService.signin(credentials.username(), credentials.password());
+    var user = sessionService.signin(credentials.username(), credentials.password());
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, sessionCookieService.sessionCookie(user).toString())
-        .body(user);
+        .body(mapper.toDto(user));
   }
 
   @GetMapping
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public UserDto showAuthenticatedUser(CurrentUser currentUser) {
-    return sessionService.showAuthenticatedUser(currentUser.id());
+    return mapper.toDto(sessionService.showAuthenticatedUser(currentUser.id()));
   }
 
   /** Closes the session: the stateless JWT cannot be revoked, the cookie is removed. */

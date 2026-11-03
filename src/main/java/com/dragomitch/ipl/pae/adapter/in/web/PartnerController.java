@@ -1,8 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
@@ -31,9 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class PartnerController {
 
   private final PartnerService partnerService;
+  private final PartnerMapper mapper;
 
-  public PartnerController(PartnerService partnerService) {
+  public PartnerController(PartnerService partnerService, PartnerMapper mapper) {
     this.partnerService = partnerService;
+    this.mapper = mapper;
   }
 
   /** Creates a partner (students may only create non-official ones). */
@@ -42,13 +45,13 @@ public class PartnerController {
   public PartnerDto create(
       @RequestBody @Validated({Default.class, OnCreate.class}) PartnerDto partner,
       CurrentUser currentUser) {
-    return partnerService.create(partner, currentUser.role());
+    return mapper.toDto(partnerService.create(mapper.toDomain(partner), currentUser.role()));
   }
 
   @GetMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public PartnerDto showOne(@PathVariable @Positive int id) {
-    return partnerService.showOne(id);
+    return mapper.toDto(partnerService.showOne(id));
   }
 
   /**
@@ -61,7 +64,8 @@ public class PartnerController {
     PartnerFilter filter =
         search.filter() == null ? PartnerFilter.ALL : PartnerFilter.fromValue(search.filter());
     return new DataResponse<>(
-        partnerService.showAll(filter, search.value(), currentUser.role(), currentUser.id()));
+        mapper.toPartnerDtos(
+            partnerService.showAll(filter, search.value(), currentUser.role(), currentUser.id())));
   }
 
   @PutMapping("/{id}")
@@ -70,7 +74,7 @@ public class PartnerController {
       @PathVariable @Positive int id,
       @RequestBody @Valid PartnerDto partner,
       CurrentUser currentUser) {
-    return partnerService.edit(id, partner, currentUser.role());
+    return mapper.toDto(partnerService.edit(id, mapper.toDomain(partner), currentUser.role()));
   }
 
   /**
@@ -84,20 +88,21 @@ public class PartnerController {
       @PathVariable @Positive int id,
       @RequestBody @Valid PartnerOptionDto partnerOption,
       CurrentUser currentUser) {
-    partnerService.addOption(id, partnerOption, currentUser.id(), currentUser.role());
+    partnerService.addOption(
+        id, mapper.toDomain(partnerOption), currentUser.id(), currentUser.role());
   }
 
   @Operation(summary = "The options offered by the partner")
   @GetMapping("/partnersOptions/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public List<PartnerOptionDto> findAllPartnerOption(@PathVariable @Positive int id) {
-    return partnerService.findAllPartnerOption(id);
+    return mapper.toPartnerOptionDtos(partnerService.findAllPartnerOption(id));
   }
 
   /** Restores an archived partner (students may only restore official ones). */
   @PutMapping("/{id}/restore")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public PartnerDto restore(@PathVariable @Positive int id, CurrentUser currentUser) {
-    return partnerService.restore(id, currentUser.role());
+    return mapper.toDto(partnerService.restore(id, currentUser.role()));
   }
 }

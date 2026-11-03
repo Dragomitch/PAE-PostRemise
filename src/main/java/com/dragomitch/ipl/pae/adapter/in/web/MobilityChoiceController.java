@@ -1,8 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,9 +53,12 @@ public class MobilityChoiceController {
   static final String FILTER_MESSAGE = "{pae.validation.MobilityChoiceService.filter.message}";
 
   private final MobilityChoiceService mobilityChoiceService;
+  private final PartnerMapper partnerMapper;
 
-  public MobilityChoiceController(MobilityChoiceService mobilityChoiceService) {
+  public MobilityChoiceController(
+      MobilityChoiceService mobilityChoiceService, PartnerMapper partnerMapper) {
     this.mobilityChoiceService = mobilityChoiceService;
+    this.partnerMapper = partnerMapper;
   }
 
   @PostMapping("/mobilityChoice")
@@ -124,7 +128,8 @@ public class MobilityChoiceController {
       @PathVariable @Positive int id,
       @RequestBody @Valid PartnerDto partner,
       CurrentUser currentUser) {
-    mobilityChoiceService.confirmWithNewPartner(id, partner, currentUser.id(), currentUser.role());
+    mobilityChoiceService.confirmWithNewPartner(
+        id, partnerMapper.toDomain(partner), currentUser.id(), currentUser.role());
   }
 
   /** CSV export of the mobility choices matching the filter. */
