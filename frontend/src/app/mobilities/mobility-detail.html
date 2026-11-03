@@ -60,7 +60,12 @@
           </div>
         }
 
-        <form (ngSubmit)="confirm()" novalidate aria-labelledby="mobility-panel-title">
+        <form
+          [formGroup]="form"
+          (ngSubmit)="confirm()"
+          novalidate
+          aria-labelledby="mobility-panel-title"
+        >
           @if (action.kind === 'cancel') {
             <div class="form-group">
               <label for="mobility-cancel-reason" i18n="@@mobility.cancel.reason.label"
@@ -70,7 +75,7 @@
                 #panelField
                 id="mobility-cancel-reason"
                 class="input"
-                [formControl]="reason"
+                formControlName="reason"
                 [attr.aria-invalid]="!!reasonError()"
                 [attr.aria-describedby]="reasonError() ? 'mobility-cancel-reason-error' : null"
               >

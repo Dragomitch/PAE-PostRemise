@@ -132,18 +132,29 @@ describe('Mobilities', () => {
     expect(rows().map((r) => r.dataset['id'])).toEqual(['7', '3', '9', '1']);
   });
 
+  it('sorts the students without a first name before the others of the same last name', () => {
+    const anonymous = mobility(7, '', '', 2026, 1, 'Créée');
+    anonymous.nominatedStudent = { id: 17 };
+    const lastOnly = mobility(9, '', 'Tester', 2026, 1, 'Créée');
+    lastOnly.nominatedStudent = { id: 19, lastName: 'Tester' };
+    const zoe = mobility(11, 'Zoe', 'Tester', 2026, 1, 'Créée');
+    show([anonymous, CLOSED, lastOnly, zoe]);
+    expect(rows().map((r) => r.dataset['id'])).toEqual(['7', '9', '1', '11']);
+  });
+
   it('shows the country when the mobility has no partner, and drops a missing flag', () => {
     const noPartner = { ...CLOSED, partner: null };
     const noCountry = { ...RUNNING, country: null };
     show([noPartner, noCountry]);
-    const flag = rows()[0].querySelector<HTMLImageElement>('img.flag')!;
+    const row = (id: number) => el.querySelector(`tbody tr[data-id="${id}"]`)!;
+    const flag = row(1).querySelector<HTMLImageElement>('img.flag')!;
     expect(flag.getAttribute('src')).toBe('/images/flags/FR.png');
-    expect(rows()[0].textContent).toContain('France');
+    expect(row(1).textContent).toContain('France');
     flag.dispatchEvent(new Event('error'));
     fixture.detectChanges();
-    expect(rows()[0].querySelector('img.flag')).toBeNull();
-    expect(rows()[1].querySelector('img.flag')).toBeNull();
-    expect(rows()[1].textContent).toContain('Universite de Lyon');
+    expect(row(1).querySelector('img.flag')).toBeNull();
+    expect(row(3).querySelector('img.flag')).toBeNull();
+    expect(row(3).textContent).toContain('Universite de Lyon');
   });
 
   it("lists a student's own mobilities without the option column", () => {

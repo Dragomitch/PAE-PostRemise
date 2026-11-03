@@ -14,7 +14,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Observable, finalize, switchMap } from 'rxjs';
 
@@ -104,6 +104,8 @@ export class MobilityDetail implements OnInit {
     nonNullable: true,
     validators: Validators.required,
   });
+  /** The panel's form: the denial reason of a cancellation, nothing for the other actions. */
+  protected readonly form = new FormGroup({ reason: this.reason });
   private readonly submitted = signal(false);
   /** Error next to the denial reason: the server's, or "required" once the panel was submitted. */
   protected reasonError(): string | null {

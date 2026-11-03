@@ -104,6 +104,11 @@ describe('MobilityDetail', () => {
 
   const text = (selector: string) =>
     el.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim();
+  /** Text of the children of an item (name and status), one space apart. */
+  const item = (selector: string) =>
+    Array.from(el.querySelector(selector)?.children ?? [])
+      .map((c) => c.textContent?.trim())
+      .join(' ');
   const click = (selector: string) => {
     el.querySelector<HTMLElement>(selector)!.click();
     fixture.detectChanges();
@@ -153,10 +158,10 @@ describe('MobilityDetail', () => {
     expect(text('.student-name')).toBe('Alice Tester');
     expect(el.querySelector('.student a')?.getAttribute('href')).toBe('mailto:alice@example.test');
     expect(text('.iban')).toBe('BE68539007547034');
-    expect(text('.departure-documents li')).toBe('Document 1 Complété');
-    expect(text('.return-documents li')).toBe('Document 14 Complété');
-    expect(text('.pro-eco')).toBe('ProEco Encodé');
-    expect(text('.second-software')).toBe('Mobility Tool Encodé');
+    expect(item('.departure-documents li')).toBe('Document 1 Complété');
+    expect(item('.return-documents li')).toBe('Document 14 Complété');
+    expect(item('.pro-eco')).toBe('ProEco Encodé');
+    expect(item('.second-software')).toBe('Mobility Tool Encodé');
     const first = el.querySelector('.first-payment time')!;
     expect(first.getAttribute('datetime')).toBe('2026-11-03');
     expect(text('.first-payment')).toBe('Effectué le 3 nov. 2026');
@@ -232,7 +237,7 @@ describe('MobilityDetail', () => {
 
   it('confirms a document with its id and the version', () => {
     show(mobility());
-    expect(text('.departure-documents li')).toBe('Document 1 Complété');
+    expect(item('.departure-documents li')).toBe('Document 1 Complété');
     click('.return-documents li[data-document="14"] button.confirm-document');
     expect(text('.action-panel h2')).toBe('Confirmer un document');
     expect(text('.action-panel .question')).toBe(
@@ -257,13 +262,13 @@ describe('MobilityDetail', () => {
     http.expectOne(URL).flush(mobility({ version: 6, encodedInProEco: true }));
     fixture.detectChanges();
     expect(text('.notice')).toBe("L'encodage dans ProEco est confirmé.");
-    expect(text('.pro-eco')).toBe('ProEco Encodé');
+    expect(item('.pro-eco')).toBe('ProEco Encodé');
 
     click('.second-software button');
     expect(text('.action-panel .question')).toBe(
       'La mobilité de Alice Tester est-elle encodée dans Mobility Tool ?',
     );
-    expect(text('.notice')).toBeUndefined();
+    expect(text('.notice')).toBe('');
     submitPanel();
     put('/api/1.0/mobilities/1/confirmSecondSoftwareEncoding?version=6').flush(null);
     http
@@ -275,7 +280,7 @@ describe('MobilityDetail', () => {
 
   it('names the second software generically when the programme has none', () => {
     show(mobility({ programme: { id: 3, programmeName: 'FAME' } }));
-    expect(text('.second-software')).toBe('Logiciel du programme Confirmer');
+    expect(item('.second-software')).toBe('Logiciel du programme Confirmer');
   });
 
   it('shows a stale version (409) in the panel with a button that reloads the mobility', () => {
@@ -291,7 +296,7 @@ describe('MobilityDetail', () => {
     http.expectOne(URL).flush(mobility({ version: 6, encodedInProEco: true }));
     fixture.detectChanges();
     expect(el.querySelector('.action-panel')).toBeNull();
-    expect(text('.pro-eco')).toBe('ProEco Encodé');
+    expect(item('.pro-eco')).toBe('ProEco Encodé');
   });
 
   it('lists the field errors of another refusal, without the reload button', () => {
@@ -348,8 +353,8 @@ describe('MobilityDetail', () => {
     expect(text('.cancellation-reason')).toBe('Désistement');
     expect(text('.state-before-cancellation')).toBe('A payer');
     expect(el.querySelector('button.cancel-mobility')).toBeNull();
-    expect(text('.return-documents li')).toBe('Document 14 À compléter');
-    expect(text('.pro-eco')).toBe('ProEco Non encodé');
+    expect(item('.return-documents li')).toBe('Document 14 À compléter');
+    expect(item('.pro-eco')).toBe('ProEco Non encodé');
   });
 
   it('shows the server error of the denial reason next to the list', () => {
@@ -411,7 +416,7 @@ describe('MobilityDetail', () => {
     expect(el.querySelector('a.export')).toBeNull();
     expect(el.querySelector('.cancellation')).toBeNull();
     expect(el.querySelectorAll('button').length).toBe(0);
-    expect(text('.return-documents li')).toBe('Document 14 À compléter');
+    expect(item('.return-documents li')).toBe('Document 14 À compléter');
     expect(text('.first-payment')).toBe('À effectuer');
   });
 
