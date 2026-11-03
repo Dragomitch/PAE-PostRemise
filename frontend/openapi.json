@@ -1,0 +1,4576 @@
+{
+  "components": {
+    "schemas": {
+      "AddressDto": {
+        "properties": {
+          "city": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CountryDto"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "number": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string"
+          },
+          "postalCode": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string"
+          },
+          "region": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          },
+          "street": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city",
+          "country",
+          "number",
+          "postalCode",
+          "region",
+          "street"
+        ],
+        "type": "object"
+      },
+      "CountResponse": {
+        "properties": {
+          "count": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CountryDto": {
+        "properties": {
+          "countryCode": {
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "version": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "programme"
+        ],
+        "type": "object"
+      },
+      "DataResponseMobilityChoiceDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MobilityChoiceDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DataResponseMobilityDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MobilityDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DataResponsePartnerDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DataResponsePaymentDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DataResponseUserDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DenialReasonDto": {
+        "properties": {
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
+      "DocumentDto": {
+        "properties": {
+          "category": {
+            "description": "D (departure document) or R (return document).",
+            "type": "string"
+          },
+          "filledIn": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MobilityChoiceDto": {
+        "properties": {
+          "academicYear": {
+            "exclusiveMinimum": 0,
+            "format": "int32",
+            "type": "integer"
+          },
+          "cancellationReason": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CountryDto"
+          },
+          "denialReason": {
+            "$ref": "#/components/schemas/DenialReasonDto"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "mobilityType": {
+            "description": "SMS (studies abroad) or SMP (internship abroad).",
+            "minLength": 1,
+            "pattern": "(SMS|SMP)?",
+            "type": "string"
+          },
+          "partner": {
+            "$ref": "#/components/schemas/PartnerDto"
+          },
+          "preferenceOrder": {
+            "description": "Rank of this choice among the applications of the student (1 = first choice).",
+            "format": "int32",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "submissionDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "term": {
+            "description": "Term of the academic year (1 = first term, 2 = second term).",
+            "format": "int32",
+            "maximum": 2,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mobilityType",
+          "programme",
+          "user"
+        ],
+        "type": "object"
+      },
+      "MobilityDto": {
+        "properties": {
+          "academicYear": {
+            "exclusiveMinimum": 0,
+            "format": "int32",
+            "type": "integer"
+          },
+          "cancellationReason": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CountryDto"
+          },
+          "denialReason": {
+            "$ref": "#/components/schemas/DenialReasonDto"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentDto"
+            },
+            "type": "array"
+          },
+          "encodedInProEco": {
+            "type": "boolean"
+          },
+          "encodedInSecondSoftware": {
+            "type": "boolean"
+          },
+          "firstPaymentRequestDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "mobilityType": {
+            "description": "SMS (studies abroad) or SMP (internship abroad).",
+            "minLength": 1,
+            "pattern": "(SMS|SMP)?",
+            "type": "string"
+          },
+          "nominatedStudent": {
+            "$ref": "#/components/schemas/NominatedStudentDto"
+          },
+          "partner": {
+            "$ref": "#/components/schemas/PartnerDto"
+          },
+          "preferenceOrder": {
+            "description": "Rank of this choice among the applications of the student (1 = first choice).",
+            "format": "int32",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "proEcoEncoding": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "professorInCharge": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "secondPaymentRequestDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "secondSoftwareEncoding": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "state": {
+            "description": "Créée, En préparation (a document is filled in), A payer (every departure document is filled in), En cours (first payment), Solde à payer (every document is filled in), Terminée (second payment) or Annulée.",
+            "enum": [
+              "Créée",
+              "En préparation",
+              "A payer",
+              "En cours",
+              "Solde à payer",
+              "Terminée",
+              "Annulée"
+            ],
+            "type": "string"
+          },
+          "stateBeforeCancellation": {
+            "description": "The state the mobility was in when it was cancelled.",
+            "type": "string"
+          },
+          "submissionDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "term": {
+            "description": "Term of the academic year (1 = first term, 2 = second term).",
+            "format": "int32",
+            "maximum": 2,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mobilityType",
+          "programme",
+          "user"
+        ],
+        "type": "object"
+      },
+      "NominatedStudentDto": {
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "bankName": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          },
+          "bic": {
+            "minLength": 1,
+            "pattern": "([A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?)?",
+            "type": "string"
+          },
+          "birthdate": {
+            "format": "date",
+            "type": "string"
+          },
+          "cardHolder": {
+            "maxLength": 35,
+            "minLength": 0,
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "firstName": {
+            "maxLength": 35,
+            "minLength": 0,
+            "type": "string"
+          },
+          "gender": {
+            "minLength": 1,
+            "pattern": "(M|F|O)?",
+            "type": "string"
+          },
+          "iban": {
+            "maxLength": 31,
+            "minLength": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "lastName": {
+            "maxLength": 35,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/CountryDto"
+          },
+          "nbrPassedYears": {
+            "exclusiveMinimum": 0,
+            "format": "int32",
+            "type": "integer"
+          },
+          "option": {
+            "$ref": "#/components/schemas/OptionDto"
+          },
+          "password": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "phoneNumber": {
+            "maxLength": 15,
+            "minLength": 0,
+            "pattern": "(\\+?[0-9(][0-9 ./()-]*[0-9])?",
+            "type": "string"
+          },
+          "registrationDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "title": {
+            "minLength": 1,
+            "pattern": "(Mr|M|Mrs|Ms)?",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "address",
+          "bankName",
+          "bic",
+          "birthdate",
+          "email",
+          "firstName",
+          "gender",
+          "iban",
+          "lastName",
+          "nationality",
+          "option",
+          "phoneNumber",
+          "title",
+          "username"
+        ],
+        "type": "object"
+      },
+      "OptionDto": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PartnerDto": {
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "archivable": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "businessName": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "employeeCount": {
+            "exclusiveMinimum": 0,
+            "format": "int32",
+            "type": "integer"
+          },
+          "fullName": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "legalName": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "official": {
+            "type": "boolean"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerOptionDto"
+            },
+            "type": "array"
+          },
+          "organisationType": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          },
+          "phoneNumber": {
+            "maxLength": 15,
+            "minLength": 0,
+            "pattern": "(\\+?[0-9(][0-9 ./()-]*[0-9])?",
+            "type": "string"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "status": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "website": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "businessName",
+          "email",
+          "fullName",
+          "legalName",
+          "organisationType",
+          "phoneNumber"
+        ],
+        "type": "object"
+      },
+      "PartnerOptionDto": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "departement": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "departement"
+        ],
+        "type": "object"
+      },
+      "PaymentDto": {
+        "properties": {
+          "academicYear": {
+            "type": "string"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CountryDto"
+          },
+          "mobilityChoiceId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "mobilityType": {
+            "type": "string"
+          },
+          "nominatedStudent": {
+            "$ref": "#/components/schemas/NominatedStudentDto"
+          },
+          "partner": {
+            "$ref": "#/components/schemas/PartnerDto"
+          },
+          "paymentDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "paymentType": {
+            "type": "string"
+          },
+          "programme": {
+            "$ref": "#/components/schemas/ProgrammeDto"
+          },
+          "term": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "version": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ProblemDetail": {
+        "description": "An RFC 9457 problem (`application/problem+json`), the body of every error response. `title` and `detail` are localized from `Accept-Language` (fr, en).",
+        "properties": {
+          "code": {
+            "description": "The error code (an `ErrorCode` name), always present: the key clients branch on.",
+            "enum": [
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE",
+              "UNAUTHENTICATED",
+              "INVALID_CREDENTIALS",
+              "ACCESS_DENIED",
+              "RESOURCE_NOT_FOUND",
+              "VALIDATION_FAILED",
+              "MALFORMED_REQUEST",
+              "METHOD_NOT_ALLOWED",
+              "NOT_ACCEPTABLE",
+              "UNSUPPORTED_MEDIA_TYPE",
+              "PAYLOAD_TOO_LARGE",
+              "CONCURRENT_MODIFICATION",
+              "DATA_CONFLICT",
+              "USERNAME_TAKEN",
+              "EMAIL_TAKEN",
+              "UNKNOWN_OPTION",
+              "UNKNOWN_USER",
+              "MOBILITY_CHOICE_ALREADY_CONFIRMED",
+              "MOBILITY_CHOICE_CLOSED",
+              "PARTNER_REQUIRED_TO_CONFIRM",
+              "PROFESSOR_CANNOT_APPLY",
+              "COUNTRY_CHANGE_NOT_ALLOWED",
+              "UNKNOWN_COUNTRY",
+              "UNKNOWN_PROGRAMME",
+              "UNKNOWN_DENIAL_REASON",
+              "MOBILITY_CANCELLED",
+              "MOBILITY_CLOSED",
+              "DEPARTURE_DOCUMENTS_INCOMPLETE",
+              "RETURN_DOCUMENTS_INCOMPLETE",
+              "DOCUMENTS_INCOMPLETE",
+              "UNKNOWN_DOCUMENT",
+              "INCOMPLETE_BANK_DETAILS",
+              "PAYMENT_NOT_EXPECTED",
+              "DENIAL_REASON_REQUIRED",
+              "CANCELLATION_REASON_REQUIRED",
+              "ALREADY_NOMINATED",
+              "PARTNER_HAS_MOBILITY_CHOICES",
+              "PARTNER_NOT_ARCHIVED",
+              "PARTNER_OPTION_REQUIRED"
+            ],
+            "type": "string"
+          },
+          "detail": {
+            "description": "An explanation of this occurrence; a 5xx never describes the failure.",
+            "type": "string"
+          },
+          "errorId": {
+            "description": "5xx only: the identifier of the error in the server log.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "errors": {
+            "description": "The broken constraints of a VALIDATION_FAILED problem.",
+            "items": {
+              "description": "A broken constraint.",
+              "properties": {
+                "code": {
+                  "description": "The constraint (`NotBlank`, `Email`, `Size`...).",
+                  "type": "string"
+                },
+                "field": {
+                  "description": "The property path of the value (`email`, `options[0].code`) or a parameter name.",
+                  "type": "string"
+                },
+                "message": {
+                  "description": "The message, localized from `Accept-Language`.",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "instance": {
+            "description": "The path of the request.",
+            "format": "uri",
+            "type": "string"
+          },
+          "status": {
+            "description": "The HTTP status code.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "timestamp": {
+            "description": "When the error occurred.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": {
+            "description": "A short summary of the problem.",
+            "type": "string"
+          },
+          "type": {
+            "description": "`urn:pae:problem:<code>`.",
+            "example": "urn:pae:problem:username-taken",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "status",
+          "timestamp",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "ProgrammeDto": {
+        "properties": {
+          "externalSoftName": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "programmeName": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "externalSoftName",
+          "programmeName"
+        ],
+        "type": "object"
+      },
+      "SignInRequest": {
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "username": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object"
+      },
+      "UserDto": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "firstName": {
+            "maxLength": 35,
+            "minLength": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "lastName": {
+            "maxLength": 35,
+            "minLength": 0,
+            "type": "string"
+          },
+          "option": {
+            "$ref": "#/components/schemas/OptionDto"
+          },
+          "password": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "registrationDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "option",
+          "username"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "csrfHeader": {
+        "description": "The value of the `XSRF-TOKEN` cookie, required on every state-changing request (POST, PUT, DELETE), sign-in included, unless the session token is sent in an `Authorization: Bearer` header.",
+        "in": "header",
+        "name": "X-XSRF-TOKEN",
+        "type": "apiKey"
+      },
+      "sessionCookie": {
+        "description": "The session JWT, set by `POST /api/1.0/session` (HttpOnly cookie). API clients may send the same token in an `Authorization: Bearer` header.",
+        "in": "cookie",
+        "name": "session",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "REST API of the Erasmus Management Application (EMA): sign-in, users, mobility choices, mobilities, partners and reference data. Sign in with `POST /api/1.0/session`: the response sets the `session` cookie, which the browser then sends with every call. State-changing requests also need the `X-XSRF-TOKEN` header, holding the value of the `XSRF-TOKEN` cookie. Errors are RFC 9457 problems (`application/problem+json`, schema `ProblemDetail`), localized from `Accept-Language` (fr, en).",
+    "title": "Erasmus Management Application API",
+    "version": "1.0-SNAPSHOT"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/1.0/countries": {
+      "get": {
+        "operationId": "showAll_9",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CountryDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Countries"
+        ]
+      }
+    },
+    "/api/1.0/countries/{code}": {
+      "get": {
+        "operationId": "showOne_4",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "maxLength": 2,
+              "minLength": 2,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Countries"
+        ]
+      }
+    },
+    "/api/1.0/denialReasons": {
+      "get": {
+        "operationId": "showAll_3",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DenialReasonDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Denial reasons"
+        ]
+      },
+      "post": {
+        "operationId": "create_3",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DenialReasonDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DenialReasonDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Denial reasons"
+        ]
+      }
+    },
+    "/api/1.0/denialReasons/{id}": {
+      "put": {
+        "operationId": "edit_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DenialReasonDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DenialReasonDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Denial reasons"
+        ]
+      }
+    },
+    "/api/1.0/mobilities": {
+      "get": {
+        "operationId": "showAll_8",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponseMobilityDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}": {
+      "get": {
+        "operationId": "showOne_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobilityDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/cancel": {
+      "put": {
+        "operationId": "cancel_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cancellationReason",
+            "required": false,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "denialReason",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobilityDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Cancels the mobility: a professor gives a denialReason id, a student a free-text cancellationReason",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/confirmDocument": {
+      "put": {
+        "operationId": "confirmDocument",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "document",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobilityDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Records that a document of the mobility is filled in (may move it to En préparation, A payer or Solde à payer)",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/confirmPayment": {
+      "put": {
+        "operationId": "confirmPayment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobilityDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Records the next payment: the first one in A payer (moves to En cours, or to Solde à payer when every document is filled in), the second one in Solde à payer (moves to Terminée)",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/confirmProEcoEncoding": {
+      "put": {
+        "operationId": "confirmProEcoEncoding",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Records that the mobility is encoded in ProEco",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/confirmSecondSoftwareEncoding": {
+      "put": {
+        "operationId": "confirmSecondSoftwareEncoding",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Records that the mobility is encoded in the software of its programme",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilities/{id}/export": {
+      "get": {
+        "operationId": "exportDocuments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "pattern": "D|DF|R|RF",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv;charset=UTF-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "CSV export of the documents of the mobility, optionally filtered",
+        "tags": [
+          "Mobilities"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoice": {
+      "post": {
+        "operationId": "create_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobilityChoiceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobilityChoiceDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices": {
+      "get": {
+        "operationId": "showAll_7",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "pattern": "all|active|canceled|rejected|passed",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponseMobilityChoiceDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/count": {
+      "get": {
+        "operationId": "countAll",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "pattern": "all|active|canceled|rejected|passed",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/export": {
+      "get": {
+        "operationId": "exportAll",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "pattern": "all|active|canceled|rejected|passed",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv;charset=UTF-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "CSV export of the mobility choices matching the filter",
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/{id}/cancel": {
+      "put": {
+        "operationId": "cancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reason",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Cancels an own mobility choice, with a free-text reason (students)",
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/{id}/confirm": {
+      "put": {
+        "operationId": "confirm",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Confirms a mobility choice with its partner: it becomes a mobility",
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/{id}/confirmWithNewPartner": {
+      "put": {
+        "operationId": "confirmWithNewPartner",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Creates the partner of the body (non-official when created by a student), sets it as the partner of the mobility choice and confirms it",
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/mobilityChoices/{id}/reject": {
+      "put": {
+        "operationId": "reject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reason",
+            "required": false,
+            "schema": {
+              "default": -1,
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Rejects a mobility choice, with the id of a denial reason (professors)",
+        "tags": [
+          "Mobility choices"
+        ]
+      }
+    },
+    "/api/1.0/nominatedStudents": {
+      "get": {
+        "operationId": "showAll_2",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NominatedStudentDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Nominated students"
+        ]
+      },
+      "post": {
+        "operationId": "create_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NominatedStudentDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NominatedStudentDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Nominated students"
+        ]
+      }
+    },
+    "/api/1.0/nominatedStudents/{id}": {
+      "get": {
+        "operationId": "showOne_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NominatedStudentDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Nominated students"
+        ]
+      },
+      "put": {
+        "operationId": "edit_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NominatedStudentDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NominatedStudentDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Nominated students"
+        ]
+      }
+    },
+    "/api/1.0/options": {
+      "get": {
+        "operationId": "showAll_6",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OptionDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [],
+        "tags": [
+          "Options"
+        ]
+      }
+    },
+    "/api/1.0/options/{optionCode}": {
+      "get": {
+        "operationId": "findAllPartnersByOption",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "optionCode",
+            "required": true,
+            "schema": {
+              "maxLength": 3,
+              "minLength": 3,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PartnerDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "The partners offering the option",
+        "tags": [
+          "Options"
+        ]
+      }
+    },
+    "/api/1.0/partners": {
+      "get": {
+        "operationId": "showAll_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "pattern": "archived|country",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "value",
+            "required": false,
+            "schema": {
+              "maxLength": 255,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponsePartnerDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Partners"
+        ]
+      },
+      "post": {
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Partners"
+        ]
+      }
+    },
+    "/api/1.0/partners/partnersOptions/{id}": {
+      "get": {
+        "operationId": "findAllPartnerOption",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PartnerOptionDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "The options offered by the partner",
+        "tags": [
+          "Partners"
+        ]
+      }
+    },
+    "/api/1.0/partners/{id}": {
+      "get": {
+        "operationId": "showOne",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Partners"
+        ]
+      },
+      "post": {
+        "operationId": "addOption",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerOptionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Adds an option to the partner",
+        "tags": [
+          "Partners"
+        ]
+      },
+      "put": {
+        "operationId": "edit_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Partners"
+        ]
+      }
+    },
+    "/api/1.0/partners/{id}/restore": {
+      "put": {
+        "operationId": "restore",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Partners"
+        ]
+      }
+    },
+    "/api/1.0/payments": {
+      "get": {
+        "operationId": "showAll_5",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponsePaymentDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/1.0/programmes": {
+      "get": {
+        "operationId": "showAll_4",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProgrammeDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Programmes"
+        ]
+      }
+    },
+    "/api/1.0/programmes/{id}": {
+      "get": {
+        "operationId": "showOne_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Programmes"
+        ]
+      }
+    },
+    "/api/1.0/session": {
+      "delete": {
+        "operationId": "signout",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Session"
+        ]
+      },
+      "get": {
+        "operationId": "showAuthenticatedUser",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Session"
+        ]
+      },
+      "post": {
+        "operationId": "signin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "Signed in: the response sets the session cookie (HttpOnly, SameSite=Lax) holding the session JWT",
+            "headers": {
+              "Set-Cookie": {
+                "description": "session=<JWT>",
+                "style": "simple"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown username or wrong password (INVALID_CREDENTIALS)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": []
+          }
+        ],
+        "tags": [
+          "Session"
+        ]
+      }
+    },
+    "/api/1.0/users": {
+      "get": {
+        "operationId": "showAll",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponseUserDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      },
+      "post": {
+        "operationId": "signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/1.0/users/by-username/{username}/promote": {
+      "put": {
+        "operationId": "promoteToProfessorByUsername",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "maxLength": 20,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/1.0/users/edit": {
+      "put": {
+        "operationId": "edit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Updates the data of the signed-in user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/1.0/users/{id}/promote": {
+      "put": {
+        "operationId": "promoteToProfessor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Invalid request: a broken constraint (VALIDATION_FAILED, the fields in `errors`) or an unreadable body or parameter (MALFORMED_REQUEST)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "No valid session (UNAUTHENTICATED)"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Role not allowed, or CSRF token missing or invalid (ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Unknown resource (RESOURCE_NOT_FOUND)"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Conflict with the current state: stale version (CONCURRENT_MODIFICATION), database constraint (DATA_CONFLICT) or a state rule (e.g. MOBILITY_CANCELLED, USERNAME_TAKEN)"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": "Business rule broken (e.g. UNKNOWN_COUNTRY, DENIAL_REASON_REQUIRED)"
+          }
+        },
+        "security": [
+          {
+            "csrfHeader": [],
+            "sessionCookie": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "sessionCookie": []
+    }
+  ],
+  "tags": [
+    {
+      "description": "The reasons a professor gives to reject a mobility choice or cancel a mobility (professors only).",
+      "name": "Denial reasons"
+    },
+    {
+      "description": "The applications of the students, before they become mobilities.",
+      "name": "Mobility choices"
+    },
+    {
+      "description": "Sign-in, the signed-in user, sign-out (the session cookie).",
+      "name": "Session"
+    },
+    {
+      "description": "Confirmed mobility choices: documents, software encodings, payments, cancellation.",
+      "name": "Mobilities"
+    },
+    {
+      "description": "Sign-up, the list of users, promotion to professor, edition of the own data.",
+      "name": "Users"
+    },
+    {
+      "description": "Reference data: the countries.",
+      "name": "Countries"
+    },
+    {
+      "description": "Personal and bank data of the students selected for a mobility.",
+      "name": "Nominated students"
+    },
+    {
+      "description": "Partner institutions and companies, and the options they offer.",
+      "name": "Partners"
+    },
+    {
+      "description": "Reference data: the mobility programmes.",
+      "name": "Programmes"
+    },
+    {
+      "description": "Reference data: the study options (public list, shown on the sign-up form).",
+      "name": "Options"
+    },
+    {
+      "description": "The payments of the mobilities (professors only).",
+      "name": "Payments"
+    }
+  ]
+}

@@ -559,6 +559,32 @@ describe('ApiService', () => {
         get.flush(USER);
       });
 
+      // The requests are built by the generated client (core/api, `npm run api:generate`) but
+      // sent with the application's HttpClient: its interceptors and the problem mapping apply.
+      it('sends the requests of the generated client through the application interceptors', () => {
+        document.cookie = `${cookie}=token-456; path=/`;
+        let problem: ApiProblem | undefined;
+
+        service.cancelMobility(4, 7, 2).subscribe({ error: (e: ApiProblem) => (problem = e) });
+        const put = http.expectOne((r) => r.url === '/api/1.0/mobilities/4/cancel');
+        expect(put.request.method).toBe('PUT');
+        expect(put.request.params.get('version')).toBe('7');
+        expect(put.request.params.get('denialReason')).toBe('2');
+        expect(put.request.headers.get('X-XSRF-TOKEN')).toBe('token-456');
+        expect(put.request.headers.get('Accept-Language')).toBe('en');
+        put.flush(
+          { code: 'MOBILITY_CANCELLED', status: 409, detail: 'Already cancelled.' },
+          {
+            status: 409,
+            statusText: 'Conflict',
+            headers: { 'Content-Type': 'application/problem+json' },
+          },
+        );
+        expect(problem).toBeInstanceOf(ApiProblem);
+        expect(problem?.code).toBe('MOBILITY_CANCELLED');
+        expect(problem?.detail).toBe('Already cancelled.');
+      });
+
       it('never sends the token to another origin', () => {
         document.cookie = `${cookie}=token-123; path=/`;
 

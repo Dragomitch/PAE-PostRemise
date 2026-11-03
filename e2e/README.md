@@ -77,7 +77,7 @@ git-ignored; in CI they are uploaded as the `e2e-results` artifact, with the app
 
 ## Running locally
 
-Prerequisites: Java 21 and Maven, Node 20+, Python 3, `psql`, a PostgreSQL database, and
+Prerequisites: Java 21 and Maven, Node 22+, Python 3, `psql`, a PostgreSQL database, and
 `npm ci` done in `frontend/`.
 
 ```bash

@@ -46,6 +46,17 @@ updates:
       # the 0.16 bump of #152 failed `npm ci` with ERESOLVE. Lift it with the next Angular major.
       - dependency-name: "zone.js"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # The lint tools move with the Angular major: angular-eslint 20.x is the line for Angular 20
+      # and declares the eslint and typescript-eslint ranges it works with (#177 and #178 failed
+      # `npm ci` on eslint 10 and angular-eslint 22). Bump the three together with ng update.
+      - dependency-name: "angular-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-eslint/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
 
   # e2e/ has its own package.json and lockfile. The Playwright version there must stay compatible
   # with the Chromium that `npx playwright install` fetches in CI (the e2e job).
