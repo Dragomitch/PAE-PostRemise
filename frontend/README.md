@@ -17,6 +17,18 @@ API calls go to relative `/api/...` URLs; the dev server forwards them to the ba
 the `XSRF-TOKEN` cookie back as the `X-XSRF-TOKEN` header on mutating requests (Spring Security
 SPA setup); keep URLs relative for it to work.
 
+## Screens
+
+- `/signin`, `/signup`: public.
+- `/partners`: the read-only list of partners (name, country with flag, options, official, and for
+  professors the archived flag and an archived filter), sortable by column and filterable by name.
+  It lives in the application shell (header with the signed-in user and role, navigation, sign-out).
+  Country flags are the backend's `/images/flags/<code>.png` files (proxied by `proxy.conf.json` and
+  `nginx.conf`).
+- Authenticated routes sit behind `authGuard` (`src/app/core/auth.guard.ts`): `SessionService`
+  asks `GET /api/1.0/session` once per page load, anonymous visitors are sent to `/signin`, and a
+  successful sign-in goes to `/partners`.
+
 ## Internationalization
 
 The UI uses Angular's built-in, compile-time i18n (`@angular/localize`). French (`fr`) is the

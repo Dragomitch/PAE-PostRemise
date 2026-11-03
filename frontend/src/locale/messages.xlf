@@ -6,14 +6,21 @@
         <source>Connexion - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">7</context>
+          <context context-type="linenumber">10</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.signup.title" datatype="html">
         <source>Inscription - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">8</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="route.partners.title" datatype="html">
+        <source>Partenaires - EMA</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="problem.code.invalidCredentials" datatype="html">
@@ -135,6 +142,196 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="partners.title" datatype="html">
+        <source>Partenaires</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.filter.label" datatype="html">
+        <source>Filtrer par nom</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">6,7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.filter.placeholder" datatype="html">
+        <source>Nom du partenaire</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.archivedFilter.label" datatype="html">
+        <source>Statut</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.archivedFilter.all" datatype="html">
+        <source>Tous les partenaires</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">14,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.archivedFilter.active" datatype="html">
+        <source>Partenaires actifs</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">15,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.archivedFilter.archived" datatype="html">
+        <source>Partenaires archivés</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">16,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.loading" datatype="html">
+        <source>Chargement des partenaires…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">23,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.retry" datatype="html">
+        <source>Réessayer</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">27,29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.count" datatype="html">
+        <source> Partenaires affichés : <x id="SHOWN" equiv-text="{{ rows().length // i18n(ph=&quot;SHOWN&quot;) }}"/> sur <x id="TOTAL" equiv-text="{{ partners().length // i18n(ph=&quot;TOTAL&quot;) }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">31,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.column.name" datatype="html">
+        <source>Nom du partenaire</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.column.country" datatype="html">
+        <source>Pays</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">47,48</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.column.options" datatype="html">
+        <source>Options</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">53,54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.column.official" datatype="html">
+        <source>Officiel</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">59,60</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.column.archived" datatype="html">
+        <source>Archivé</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">66,67</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.yes" datatype="html">
+        <source>Oui</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">87,88</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">95,96</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.no" datatype="html">
+        <source>Non</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">89,90</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">97,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.noMatch" datatype="html">
+        <source>Aucun partenaire ne correspond à votre recherche.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">107,109</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="partners.empty" datatype="html">
+        <source>Aucun partenaire à afficher.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/partners/partners.html</context>
+          <context context-type="linenumber">109,113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.tagline" datatype="html">
+        <source>Gestion des mobilités Erasmus</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">4,7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.nav.ariaLabel" datatype="html">
+        <source>Navigation principale</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.nav.partners" datatype="html">
+        <source>Partenaires</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">8,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.signingOut" datatype="html">
+        <source>Déconnexion…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">16,17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.signOut" datatype="html">
+        <source>Se déconnecter</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">18,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="role.professor" datatype="html">
+        <source>Professeur</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="role.student" datatype="html">
+        <source>Étudiant</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="signin.title" datatype="html">
         <source>Bienvenue à bord</source>
         <context-group purpose="location">
@@ -149,53 +346,46 @@
           <context context-type="linenumber">6,10</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="signin.success" datatype="html">
-        <source> Vous êtes connecté en tant que <x id="NAME" equiv-text="{{ u.firstName || u.username // i18n(ph=&quot;NAME&quot;) }}"/>. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">12,13</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="signin.username.label" datatype="html">
         <source>Nom d&apos;utilisateur</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">31,32</context>
+          <context context-type="linenumber">25,26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.password.label" datatype="html">
         <source>Mot de passe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">40,41</context>
+          <context context-type="linenumber">34,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.submitting" datatype="html">
         <source>Connexion en cours…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">50,52</context>
+          <context context-type="linenumber">44,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.submit" datatype="html">
         <source>Se connecter</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">52,54</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.noAccount" datatype="html">
         <source>Vous n&apos;avez pas encore de compte ?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">52,53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.signupLink" datatype="html">
         <source>Inscrivez-vous</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/sign-in/sign-in.html</context>
-          <context context-type="linenumber">59,62</context>
+          <context context-type="linenumber">53,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signup.title" datatype="html">

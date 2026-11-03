@@ -1,15 +1,9 @@
 <div class="card">
   <h1 i18n="@@signin.title">Bienvenue à bord</h1>
 
-  @if (registered() && !user()) {
+  @if (registered()) {
     <div class="notification notification-success" role="status" i18n="@@signin.registered">
       Votre compte a été créé. Vous pouvez maintenant vous connecter.
-    </div>
-  }
-
-  @if (user(); as u) {
-    <div class="notification notification-success" role="status" i18n="@@signin.success">
-      Vous êtes connecté en tant que {{ u.firstName || u.username // i18n(ph="NAME") }}.
     </div>
   }
 
