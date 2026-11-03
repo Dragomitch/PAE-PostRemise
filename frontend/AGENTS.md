@@ -41,6 +41,7 @@ frontend/
 │   │   ├── language-switcher/
 │   │   ├── shell/                 # layout of the authenticated routes (header, nav, sign-out)
 │   │   ├── partners/              # read-only partners list (sort, name filter, archived filter)
+│   │   ├── mobility-choices/      # student: own choices, creation form, cancel; professor: filter, count, confirm, reject, CSV export
 │   │   ├── sign-in/  sign-up/
 │   │   └── api.service.ts
 │   └── locale/
@@ -211,6 +212,14 @@ Frontend pieces:
   `/images/flags/<countryCode>.png`, served by the backend (`proxy.conf.json`, `nginx.conf`).
 - `POST /api/1.0/users` with the user object as body:
   `{username, password, firstName, lastName, email, option: {code}}`
+- Mobility choices: `GET /api/1.0/mobilityChoices[?filter=]` and `GET /mobilityChoices/count[?filter=]`
+  (`{data: [...]}` and `{count}`; the filter, `active` by default, applies to a professor only:
+  `all`, `active`, `canceled`, `rejected`, `passed`), `POST /mobilityChoice` (singular) with
+  `{user: {id}, preferenceOrder, mobilityType, academicYear, term, programme: {id}, country?: {countryCode}, partner?: {id}}`,
+  `PUT /mobilityChoices/{id}/cancel?reason=<text>` (student), `PUT /mobilityChoices/{id}/reject?reason=<denial reason id>`
+  and `PUT /mobilityChoices/{id}/confirm` (professor), `GET /mobilityChoices/export?filter=` (CSV, opened by
+  the browser in a new tab). Reference data as plain arrays: `GET /programmes`, `GET /countries` (each with
+  its `programme`), `GET /denialReasons`. `GET /mobilities` tells which choices became mobilities (same id).
 
 The sign-up option list is static (`BIN`, `BBM`, `BCH`, `BDI`, `BIM`, from `SQLRessources/init.sql`)
 until the backend exposes an options endpoint in the new API.

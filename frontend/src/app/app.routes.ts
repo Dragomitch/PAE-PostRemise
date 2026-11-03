@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth.guard';
+import { MobilityChoices } from './mobility-choices/mobility-choices';
 import { Partners } from './partners/partners';
 import { Shell } from './shell/shell';
 import { SignIn } from './sign-in/sign-in';
@@ -18,6 +19,11 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'partners', pathMatch: 'full' },
       { path: 'partners', component: Partners, title: $localize`:@@route.partners.title:Partenaires - EMA` },
+      {
+        path: 'mobility-choices',
+        component: MobilityChoices,
+        title: $localize`:@@route.mobilityChoices.title:Demandes de mobilité - EMA`,
+      },
     ],
   },
   { path: '**', redirectTo: 'partners' },

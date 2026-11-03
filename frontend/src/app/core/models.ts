@@ -59,3 +59,58 @@ export interface Partner {
 export interface DataResponse<T> {
   data: T[];
 }
+
+/** A mobility programme (`ProgrammeDto`): Erasmus+, Erabel, FAME. */
+export interface Programme {
+  id: number;
+  programmeName: string;
+}
+
+/** A country of `GET /api/1.0/countries`, with the programme its mobilities belong to. */
+export interface ProgrammeCountry extends Country {
+  programme: { id: number };
+}
+
+/** A reason a professor gives when rejecting a mobility choice (`DenialReasonDto`). */
+export interface DenialReason {
+  id: number;
+  reason: string;
+}
+
+/** Studies abroad (`SMS`) or internship abroad (`SMP`), see `MobilityChoiceDto`. */
+export type MobilityType = 'SMS' | 'SMP';
+
+/**
+ * Filters of `GET /api/1.0/mobilityChoices` for a professor (`MobilityChoiceService.FILTER_REGEXP`):
+ * `active` (the default of the API) is the current year's pending choices.
+ */
+export type MobilityChoiceFilter = 'active' | 'all' | 'canceled' | 'rejected' | 'passed';
+
+/** A mobility choice as listed by `GET /api/1.0/mobilityChoices` (only the members the screen reads). */
+export interface MobilityChoice {
+  id: number;
+  user: { id: number; firstName?: string; lastName?: string };
+  preferenceOrder: number;
+  mobilityType: MobilityType;
+  academicYear: number;
+  /** 1: departure in September, 2: departure in February. */
+  term: number;
+  programme: { id: number; programmeName?: string };
+  country?: { countryCode: string; name?: string } | null;
+  partner?: { id: number; fullName?: string } | null;
+  submissionDate?: string;
+  denialReason?: { id: number; reason?: string } | null;
+  cancellationReason?: string | null;
+}
+
+/** Body of `POST /api/1.0/mobilityChoice`: the references are sent by id (or country code). */
+export interface MobilityChoiceRequest {
+  user: { id: number };
+  preferenceOrder: number;
+  mobilityType: MobilityType;
+  academicYear: number;
+  term: number;
+  programme: { id: number };
+  country?: { countryCode: string };
+  partner?: { id: number };
+}
