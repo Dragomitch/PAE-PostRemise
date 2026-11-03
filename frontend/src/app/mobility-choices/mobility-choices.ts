@@ -30,7 +30,10 @@ import {
 } from './mobility-choice-labels';
 
 /** What the open panel above the table does with the chosen row. */
-type Panel = { action: 'cancel' | 'reject'; choice: MobilityChoice };
+interface Panel {
+  action: 'cancel' | 'reject';
+  choice: MobilityChoice;
+}
 
 interface Loaded {
   choices: MobilityChoice[];
