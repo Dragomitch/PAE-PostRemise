@@ -76,7 +76,9 @@ import org.springframework.web.servlet.LocaleResolver;
  * {@code @PreAuthorize} ({@code ROLE_PROFESSOR} / {@code ROLE_STUDENT} from the {@code role}
  * claim). The static web UI, its client-side routes and the error page are public. So is
  * {@code GET /actuator/health} (and its sub-paths), which the Docker health check calls without a
- * session; any other {@code /actuator/**} path requires an authenticated user.</li>
+ * session; any other {@code /actuator/**} path requires an authenticated user. The OpenAPI
+ * document ({@code GET /v3/api-docs}) and the Swagger UI ({@code /swagger-ui.html}) are public
+ * as well: they describe the API and hold no data ({@link OpenApiConfig}).</li>
  * <li><b>CSRF</b>: the double-submit cookie pattern for single-page applications: the
  * {@code XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
  * back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.</li>
@@ -97,6 +99,13 @@ public class SecurityConfig {
 
   /** Base path of the Actuator endpoints ({@code management.endpoints.web.base-path}). */
   private static final String ACTUATOR_BASE = "/actuator";
+
+  /** The OpenAPI document ({@code springdoc.api-docs.path}) and its variants (YAML, groups). */
+  static final String OPENAPI_DOCUMENT = "/v3/api-docs";
+  /** The Swagger UI entry point ({@code springdoc.swagger-ui.path}), redirecting to its files. */
+  static final String SWAGGER_UI = "/swagger-ui.html";
+  /** The files of the Swagger UI. */
+  static final String SWAGGER_UI_RESOURCES = "/swagger-ui/**";
 
   private static final String HMAC_ALGORITHM = "HmacSHA256";
   private static final int MIN_SECRET_BYTES = 32;
@@ -196,6 +205,9 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, ACTUATOR_BASE + "/health", ACTUATOR_BASE + "/health/**")
                 .permitAll()
             .requestMatchers(ACTUATOR_BASE + "/**").authenticated()
+            // the OpenAPI document and the Swagger UI (OpenApiConfig) describe the API, no data
+            .requestMatchers(HttpMethod.GET, OPENAPI_DOCUMENT, OPENAPI_DOCUMENT + "/**",
+                SWAGGER_UI, SWAGGER_UI_RESOURCES).permitAll()
             // the web UI: static files and client-side routes
             .anyRequest().permitAll())
         .oauth2ResourceServer(oauth2 -> oauth2

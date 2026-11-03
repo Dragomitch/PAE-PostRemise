@@ -5,6 +5,8 @@ import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Users", description = "Sign-up, the list of users, promotion to professor, edition "
+    + "of the own data.")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/users")
 public class UserController {
@@ -62,6 +66,7 @@ public class UserController {
     return userService.promoteToProfessorByUsername(username);
   }
 
+  @Operation(summary = "Updates the data of the signed-in user")
   @PutMapping("/edit")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public UserDto edit(@RequestBody @Valid UserDto user, CurrentUser currentUser) {

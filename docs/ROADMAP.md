@@ -49,7 +49,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S16 | Flyway via Spring Boot auto-configuration | Manual `init.sql` | Versioned migrations (see C12) | 💡 |
 | S17 | Spring Boot Actuator (health incl. DB, info, metrics, Prometheus) | No health endpoint | Docker/Compose health checks, monitoring | ✅ #137 PR (health with the database indicator and info only; metrics and Prometheus stay unexposed) |
 | S18 | Structured logging (Boot 3.4 `logging.structured.format.console=ecs`) and request correlation IDs (Micrometer Tracing) | Plain text logs | Searchable logs | 💡 |
-| S19 | springdoc-openapi: generated OpenAPI 3 + Swagger UI; generate the Angular client from it | API contract only in code | Typed frontend client, contract tests | 💡 |
+| S19 | springdoc-openapi: generated OpenAPI 3 + Swagger UI; generate the Angular client from it | API contract only in code | Typed frontend client, contract tests | ✅ [#166](https://github.com/Dragomitch/PAE-PostRemise/pull/166) for the document and the UI (springdoc-openapi 3.2.0: `GET /v3/api-docs`, `/swagger-ui.html`, issue #158); 💡 Angular client generated from the document |
 | S20 | Jackson CSV (`jackson-dataformat-csv`) or an `HttpMessageConverter` for the exports | `CsvStringBuilder`/`CsvEncoderServerSide` | Declarative CSV columns | 💡 |
 | S21 | `Clock` bean injected instead of `LocalDateTime.now()` (8 call sites) | Time-dependent logic hard to test | Deterministic tests | ✅ #137 PR |
 | S22 | Testcontainers with `@ServiceConnection` (Boot 3.1+) for integration tests in CI | Embedded PostgreSQL (fine locally) | Same engine/version as production, zero config | 💡 |
