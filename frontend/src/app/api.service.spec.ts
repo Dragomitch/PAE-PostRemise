@@ -7,7 +7,7 @@ import { MOCK_PLATFORM_LOCATION_CONFIG } from '@angular/common/testing';
 import { ApiService, mobilityChoicesExportUrl } from './api.service';
 import { appConfig } from './app.config';
 import { ApiProblem } from './core/api-problem';
-import { MobilityChoice, MobilityChoiceRequest, Partner, SignUpRequest, User } from './core/models';
+import { MobilityChoice, MobilityChoiceRequest, NominatedStudent, Partner, SignUpRequest, User } from './core/models';
 
 const USER: User = { id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'j@d.be' };
 
@@ -291,6 +291,88 @@ describe('ApiService', () => {
         http.match(() => true).forEach((req) => req.flush(null, { status: 500, statusText: 'Server Error' }));
         expect(problems.length).toBe(9);
         expect(problems.every((p) => p instanceof ApiProblem && p.code === 'SERVER_ERROR')).toBeTrue();
+      });
+    });
+
+    describe('personal data and users', () => {
+      const STUDENT = {
+        id: 2,
+        username: 'alice',
+        firstName: 'Alice',
+        lastName: 'Tester',
+        email: 'alice@example.test',
+        option: { code: 'BIN' },
+        title: 'Ms',
+        birthdate: '2001-04-12',
+        nationality: { countryCode: 'BE' },
+        address: { street: 'Rue de la Loi', number: '16', city: 'Bruxelles', postalCode: '1000', region: '', country: { countryCode: 'BE' } },
+        phoneNumber: '+32470000001',
+        gender: 'F',
+        nbrPassedYears: 1,
+        iban: 'BE68539007547034',
+        bankName: 'Belfius',
+        bic: 'GKCCBEBB',
+        cardHolder: '',
+        version: 3,
+      } satisfies NominatedStudent;
+
+      it('reads the personal data of a student with GET /nominatedStudents/{id}', () => {
+        let student: NominatedStudent | undefined;
+        service.nominatedStudent(2).subscribe((s) => (student = s));
+        const req = http.expectOne('/api/1.0/nominatedStudents/2');
+        expect(req.request.method).toBe('GET');
+        req.flush(STUDENT);
+        expect(student).toEqual(STUDENT);
+      });
+
+      it('fails with a RESOURCE_NOT_FOUND problem while the personal data were never saved', () => {
+        let problem: ApiProblem | undefined;
+        service.nominatedStudent(2).subscribe({ error: (e: ApiProblem) => (problem = e) });
+        http.expectOne('/api/1.0/nominatedStudents/2').flush(
+          { code: 'RESOURCE_NOT_FOUND', status: 404, detail: 'La ressource demandée n’existe pas.' },
+          { status: 404, statusText: 'Not Found', headers: { 'Content-Type': 'application/problem+json' } },
+        );
+        expect(problem?.status).toBe(404);
+        expect(problem?.code).toBe('RESOURCE_NOT_FOUND');
+      });
+
+      it('creates the personal data with POST /nominatedStudents, the student itself as body', () => {
+        let saved: NominatedStudent | undefined;
+        service.createNominatedStudent(STUDENT).subscribe((s) => (saved = s));
+        const req = http.expectOne('/api/1.0/nominatedStudents');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(STUDENT);
+        req.flush({ ...STUDENT, version: 1 });
+        expect(saved?.version).toBe(1);
+      });
+
+      it('updates the personal data with PUT /nominatedStudents/{id} and returns the new version', () => {
+        let saved: NominatedStudent | undefined;
+        service.updateNominatedStudent(STUDENT).subscribe((s) => (saved = s));
+        const req = http.expectOne('/api/1.0/nominatedStudents/2');
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toEqual(STUDENT);
+        req.flush({ ...STUDENT, version: 4 });
+        expect(saved?.version).toBe(4);
+      });
+
+      it('lists the users from GET /users, unwrapping the data member', () => {
+        let users: User[] | undefined;
+        service.users().subscribe((u) => (users = u));
+        const req = http.expectOne('/api/1.0/users');
+        expect(req.request.method).toBe('GET');
+        req.flush({ data: [USER] });
+        expect(users).toEqual([USER]);
+      });
+
+      it('promotes a user with PUT /users/{id}/promote and no body', () => {
+        let done = false;
+        service.promoteUser(3).subscribe(() => (done = true));
+        const req = http.expectOne('/api/1.0/users/3/promote');
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toBeNull();
+        req.flush(null);
+        expect(done).toBeTrue();
       });
     });
 

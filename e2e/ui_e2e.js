@@ -1,8 +1,9 @@
 // UI walk on the real app: Angular sign-up and sign-in, then every legacy UI view as a professor
 // and as a student, then the Angular mobility choices screen as the student alice (her list, a
-// creation through the form) and as prof (active list and count, rejection, filter "all").
+// creation through the form) and as prof (active list and count, rejection, filter "all"), then
+// alice's personal data (a phone number changed through the form) and prof's users table.
 // Expects the data created by api_e2e.py (users prof and alice, a completed mobility with its two
-// payments). Prints one PASS/FAIL line per check, exits 1 on a failure.
+// payments, alice's personal data). Prints one PASS/FAIL line per check, exits 1 on a failure.
 //
 // Environment:
 //   APP_URL         legacy UI and API served by the jar (default http://localhost:8080)
@@ -200,6 +201,53 @@ function watch(page, name, problems) {
   const all = await choiceRows(prof).count();
   ok(all > 0 && all === await shownCount(prof) && all === await apiCount(prof, 'all'), `angular prof: filter "all" lists ${all} choice(s), count shown ${await shownCount(prof)}`);
   await prof.screenshot({ path: path.join(SHOTS, '42-angular-prof-mobility-choices-all.png'), fullPage: true });
+
+  // --- Angular: alice's personal data, then prof's users table -----------------------------
+  // alice changes her phone number through the form and the API must return it; prof's table must
+  // list the accounts of GET /users with their role. The promotion is opened and cancelled only:
+  // the roles stay as api_e2e.py left them.
+  const apiGet = (page, url) => page.evaluate(async u => (await fetch(u)).json(), url);
+  const myRecord = async page => apiGet(page, `/api/1.0/nominatedStudents/${(await apiGet(page, '/api/1.0/session')).id}`);
+  await alice.click('nav a[href="/personal-data"]');
+  await alice.waitForFunction(() => document.querySelector('#personal-data-phoneNumber')?.value, null, { timeout: 5000 }).catch(() => {});
+  const record = await myRecord(alice);
+  const shownRecord = await alice.evaluate(() => Object.fromEntries(
+    ['lastName', 'birthdate', 'nationality', 'phoneNumber', 'iban', 'nbrPassedYears'].map(f => [f, document.querySelector(`#personal-data-${f}`)?.value])));
+  ok(shownRecord.lastName === record.lastName && shownRecord.birthdate === record.birthdate && shownRecord.nationality === record.nationality.countryCode
+    && shownRecord.phoneNumber === record.phoneNumber && shownRecord.iban === record.iban && Number(shownRecord.nbrPassedYears) === record.nbrPassedYears,
+    `angular alice: /personal-data shows her record ${JSON.stringify(shownRecord)}`);
+  const phone = '+32470000099';
+  await alice.fill('#personal-data-phoneNumber', phone);
+  const [saved] = await Promise.all([
+    alice.waitForResponse(r => /\/api\/1\.0\/nominatedStudents\/\d+$/.test(r.url()) && r.request().method() === 'PUT'),
+    alice.click('app-personal-data button[type="submit"]'),
+  ]);
+  ok(saved.status() === 200, `angular alice: personal data saved through the form -> PUT ${saved.status()}`);
+  await alice.waitForSelector('app-personal-data .notification-success', { timeout: 5000 }).catch(() => {});
+  const updated = await myRecord(alice);
+  ok(updated.phoneNumber === phone && updated.version === record.version + 1,
+    `angular alice: GET /nominatedStudents/{id} returns the new phone number ${updated.phoneNumber} (version ${record.version} -> ${updated.version})`);
+  await alice.screenshot({ path: path.join(SHOTS, '50-angular-alice-personal-data.png'), fullPage: true });
+
+  await prof.click('nav a[href="/users"]');
+  await prof.waitForSelector('app-users table');
+  const roleNames = { Professor: 'Professeur', Student: 'Étudiant' };
+  const apiUsers = (await apiGet(prof, '/api/1.0/users')).data.map(u => `${u.username}:${roleNames[u.role]}`).sort();
+  const shownUsers = (await prof.$$eval('app-users tbody tr', trs => trs.map(tr => `${tr.dataset.username}:${tr.querySelector('.role').textContent.trim()}`))).sort();
+  ok(apiUsers.length > 0 && shownUsers.join() === apiUsers.join(), `angular prof: /users lists the ${apiUsers.length} user(s) of GET /users with their role ${JSON.stringify(shownUsers)}`);
+  const students = apiUsers.filter(u => u.endsWith(':Étudiant')).map(u => u.split(':')[0]);
+  const promotable = (await prof.$$eval('app-users tbody tr', trs => trs.filter(tr => tr.querySelector('button.promote')).map(tr => tr.dataset.username))).sort();
+  ok(students.length > 0 && promotable.join() === students.join(), `angular prof: "Promouvoir" is offered to the students only ${JSON.stringify(promotable)}`);
+  await prof.screenshot({ path: path.join(SHOTS, '60-angular-prof-users.png'), fullPage: true });
+  const promotions = [];
+  prof.on('request', r => { if (/\/promote$/.test(r.url())) promotions.push(r.url()); });
+  await prof.click('app-users tbody tr button.promote');
+  await prof.waitForSelector('app-users .promote-panel');
+  await prof.screenshot({ path: path.join(SHOTS, '61-angular-prof-users-promote.png'), fullPage: true });
+  await prof.click('app-users .promote-panel button.cancel');
+  await prof.waitForTimeout(300);
+  ok(promotions.length === 0 && await prof.locator('app-users .promote-panel').count() === 0,
+    'angular prof: "Promouvoir" asks for a confirmation, cancelled without any request');
 
   await browser.close();
   for (const p of problems) results.push([false, p]);

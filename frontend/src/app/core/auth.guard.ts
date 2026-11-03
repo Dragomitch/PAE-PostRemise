@@ -16,3 +16,14 @@ export const authGuard: CanActivateFn = () => {
   }
   return session.restore().pipe(map((user) => (user ? true : router.createUrlTree(['/signin']))));
 };
+
+/**
+ * Lets through the users having `role` and sends the others to `/partners`, the screen of every
+ * role. For the children of the shell route, whose `authGuard` already made sure the user is known.
+ */
+export function roleGuard(role: string): CanActivateFn {
+  return () => {
+    const router = inject(Router);
+    return inject(SessionService).user()?.role === role || router.createUrlTree(['/partners']);
+  };
+}

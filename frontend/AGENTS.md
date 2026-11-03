@@ -36,12 +36,15 @@ frontend/
 │   │   │   ├── form-errors.ts             # client/server field error helpers
 │   │   │   ├── locales.ts                 # supported locales (fr, en)
 │   │   │   ├── session.service.ts         # signed-in user (GET/POST/DELETE /session), signal-based
-│   │   │   ├── auth.guard.ts              # anonymous visitors -> /signin
+│   │   │   ├── auth.guard.ts              # anonymous visitors -> /signin; roleGuard(role): other roles -> /partners
+│   │   │   ├── roles.ts                   # role labels ("Professeur", "Étudiant")
 │   │   │   └── models.ts                  # API DTOs
 │   │   ├── language-switcher/
 │   │   ├── shell/                 # layout of the authenticated routes (header, nav, sign-out)
 │   │   ├── partners/              # read-only partners list (sort, name filter, archived filter)
 │   │   ├── mobility-choices/      # student: own choices, creation form, cancel; professor: filter, count, confirm, reject, CSV export
+│   │   ├── personal-data/         # student: own nominated-student record (create, then update with its version)
+│   │   ├── users/                 # professor: every account, promotion of a student after a confirmation
 │   │   ├── sign-in/  sign-up/
 │   │   └── api.service.ts
 │   └── locale/
@@ -220,6 +223,12 @@ Frontend pieces:
   and `PUT /mobilityChoices/{id}/confirm` (professor), `GET /mobilityChoices/export?filter=` (CSV, opened by
   the browser in a new tab). Reference data as plain arrays: `GET /programmes`, `GET /countries` (each with
   its `programme`), `GET /denialReasons`. `GET /mobilities` tells which choices became mobilities (same id).
+- Personal data (student): `GET /api/1.0/nominatedStudents/{id}` with the signed-in user's id (404 until the
+  first save), `POST /nominatedStudents` for the first save, then `PUT /nominatedStudents/{id}`. The body is
+  the whole record (the user's `id`, `username`, `option`, names and e-mail included) with `version`, the
+  nationality and the address country as `{countryCode}`, `birthdate` as `yyyy-MM-dd`; a stale version
+  answers 409 `CONCURRENT_MODIFICATION` and the screen offers to reload the record.
+- Users (professor): `GET /api/1.0/users` -> `{data: [...]}`, `PUT /users/{id}/promote` (no body, no answer).
 
 The sign-up option list is static (`BIN`, `BBM`, `BCH`, `BDI`, `BIM`, from `SQLRessources/init.sql`)
 until the backend exposes an options endpoint in the new API.
@@ -228,7 +237,9 @@ until the backend exposes an options endpoint in the new API.
 
 Routing is defined in `app.routes.ts`; route titles are localized with `$localize`.
 `/signin` and `/signup` are public. Every other screen is a child of the `Shell` route, guarded by
-`authGuard`: a signed-in user is known from the sign-in of this page load or from
+`authGuard` (screens of one role add `roleGuard(ROLE_STUDENT)` for `/personal-data` or
+`roleGuard(ROLE_PROFESSOR)` for `/users`, which sends the other role to `/partners`; the shell only
+links the screens of the user's role): a signed-in user is known from the sign-in of this page load or from
 `GET /api/1.0/session` (`SessionService.restore()`), otherwise the visitor is redirected to
 `/signin`. A successful sign-in navigates to `/partners`; `/` and unknown paths redirect to
 `/partners` (so anonymous visitors end on `/signin`). A 401 while a screen loads (expired session)

@@ -5,6 +5,8 @@ export interface Credentials {
 
 export interface OptionRef {
   code: string;
+  /** Sent by the API when it reads an option, never needed in a request. */
+  name?: string;
 }
 
 /** Body of `POST /api/1.0/users` (sent as is, not wrapped). */
@@ -30,6 +32,9 @@ export interface User {
   email?: string;
   role?: string;
   option?: OptionRef;
+  /** `yyyy-MM-ddTHH:mm:ss[.SSSSSS]`, local time of the server. */
+  registrationDate?: string;
+  version?: number;
 }
 
 /** Country of a partner's address (`CountryDto`), identified by its ISO 3166-1 alpha-2 code. */
@@ -53,6 +58,51 @@ export interface Partner {
   options: PartnerOption[];
   official: boolean;
   archived: boolean;
+}
+
+/** A country referenced by its code (nationality, country of an address), with its name when read. */
+export interface CountryRef {
+  countryCode: string;
+  name?: string;
+}
+
+/** A postal address (`AddressDto`); the region may be empty but is always sent. */
+export interface Address {
+  id?: number;
+  version?: number;
+  street: string;
+  number: string;
+  city: string;
+  postalCode: string;
+  region: string | null;
+  country: CountryRef;
+}
+
+/**
+ * The personal data of a nominated student (`NominatedStudentDto`), on top of their user account
+ * (whose names, e-mail, username and option are part of the same object). The id is the user's.
+ */
+export interface NominatedStudent extends User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** `M` (Madame), `Mr` (Monsieur) or `Ms` (Mademoiselle) in the legacy form; the API also accepts `Mrs`. */
+  title: string;
+  /** `yyyy-MM-dd`. */
+  birthdate: string;
+  nationality: CountryRef;
+  address: Address;
+  phoneNumber: string;
+  /** `M`, `F` or `O`. */
+  gender: string;
+  /** Years already passed in higher education, at least 1. */
+  nbrPassedYears: number;
+  iban: string;
+  bankName: string;
+  bic: string;
+  /** The holder of the bank account; the API stores the student's name when it is empty. */
+  cardHolder?: string | null;
 }
 
 /** Collection responses are wrapped in `{ "data": [...] }`. */

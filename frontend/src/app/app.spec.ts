@@ -4,7 +4,9 @@ import { App } from './app';
 import { routes } from './app.routes';
 import { authGuard } from './core/auth.guard';
 import { Partners } from './partners/partners';
+import { PersonalData } from './personal-data/personal-data';
 import { Shell } from './shell/shell';
+import { Users } from './users/users';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -51,5 +53,16 @@ describe('routes', () => {
   it('send the root and unknown paths to the partners (the guard sends anonymous visitors to sign-in)', () => {
     expect(shell.children!.find((r) => r.path === '')?.redirectTo).toBe('partners');
     expect(byPath.get('**')?.redirectTo).toBe('partners');
+  });
+
+  it('limit the personal data to the students and the users to the professors', () => {
+    const personalData = shell.children!.find((r) => r.path === 'personal-data')!;
+    const users = shell.children!.find((r) => r.path === 'users')!;
+    expect(personalData.component).toBe(PersonalData);
+    expect(personalData.title).toBe('Mes données personnelles - EMA');
+    expect(personalData.canActivate?.length).toBe(1);
+    expect(users.component).toBe(Users);
+    expect(users.title).toBe('Utilisateurs - EMA');
+    expect(users.canActivate?.length).toBe(1);
   });
 });

@@ -28,6 +28,8 @@ describe('Shell', () => {
           { path: 'signin', component: Page },
           { path: 'partners', component: Page },
           { path: 'mobility-choices', component: Page },
+          { path: 'personal-data', component: Page },
+          { path: 'users', component: Page },
         ]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -79,6 +81,32 @@ describe('Shell', () => {
   it('calls them "my mobility choices" for a student', async () => {
     await setup(STUDENT);
     expect(el.querySelectorAll('nav a')[1].textContent?.trim()).toBe('Mes demandes de mobilité');
+  });
+
+  const navLinks = () => Array.from(el.querySelectorAll<HTMLAnchorElement>('nav a')).map((a) => [a.textContent?.trim(), a.getAttribute('href')]);
+
+  it('links the users screen for a professor only', async () => {
+    await setup(PROFESSOR);
+    expect(navLinks()).toEqual([
+      ['Partenaires', '/partners'],
+      ['Demandes de mobilité', '/mobility-choices'],
+      ['Utilisateurs', '/users'],
+    ]);
+    await router.navigateByUrl('/users');
+    fixture.detectChanges();
+    expect(el.querySelectorAll('nav a')[2].getAttribute('aria-current')).toBe('page');
+  });
+
+  it("links the student's personal data for a student only", async () => {
+    await setup(STUDENT);
+    expect(navLinks()).toEqual([
+      ['Partenaires', '/partners'],
+      ['Mes demandes de mobilité', '/mobility-choices'],
+      ['Mes données personnelles', '/personal-data'],
+    ]);
+    await router.navigateByUrl('/personal-data');
+    fixture.detectChanges();
+    expect(el.querySelectorAll('nav a')[2].classList).toContain('active');
   });
 
   it('shows the name and the role of a professor', async () => {

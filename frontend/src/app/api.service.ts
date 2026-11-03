@@ -10,6 +10,7 @@ import {
   MobilityChoice,
   MobilityChoiceFilter,
   MobilityChoiceRequest,
+  NominatedStudent,
   Partner,
   Programme,
   ProgrammeCountry,
@@ -138,6 +139,42 @@ export class ApiService {
   /** A professor confirms a choice that has a partner: it becomes a mobility. */
   confirmMobilityChoice(id: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/mobilityChoices/${id}/confirm`, null).pipe(mapApiProblem());
+  }
+
+  /**
+   * The personal data of the nominated student having the user id `id` (a student may only read
+   * their own). Fails with a `RESOURCE_NOT_FOUND` problem (404) until they were saved once.
+   */
+  nominatedStudent(id: number): Observable<NominatedStudent> {
+    return this.http.get<NominatedStudent>(`${this.baseUrl}/nominatedStudents/${id}`).pipe(mapApiProblem());
+  }
+
+  /** Saves the personal data of a student for the first time and returns them with their version. */
+  createNominatedStudent(student: NominatedStudent): Observable<NominatedStudent> {
+    return this.http.post<NominatedStudent>(`${this.baseUrl}/nominatedStudents`, student).pipe(mapApiProblem());
+  }
+
+  /**
+   * Updates the personal data of the student `student.id`. The version must be the one last read
+   * (a stale one fails with a 409 `CONCURRENT_MODIFICATION` problem); the answer carries the new one.
+   */
+  updateNominatedStudent(student: NominatedStudent): Observable<NominatedStudent> {
+    return this.http
+      .put<NominatedStudent>(`${this.baseUrl}/nominatedStudents/${student.id}`, student)
+      .pipe(mapApiProblem());
+  }
+
+  /** Every user account (professor only), unwrapped from `{data: [...]}`. */
+  users(): Observable<User[]> {
+    return this.http.get<DataResponse<User>>(`${this.baseUrl}/users`).pipe(
+      map((response) => response.data),
+      mapApiProblem(),
+    );
+  }
+
+  /** A professor promotes the user `id` to professor (a professor is left unchanged). */
+  promoteUser(id: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/users/${id}/promote`, null).pipe(mapApiProblem());
   }
 }
 

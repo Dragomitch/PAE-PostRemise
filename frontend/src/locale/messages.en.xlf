@@ -1182,6 +1182,522 @@
           <context context-type="linenumber">40</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="route.personalData.title" datatype="html">
+        <source>Mes données personnelles - EMA</source>
+        <target state="translated">My personal data - EMA</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="route.users.title" datatype="html">
+        <source>Utilisateurs - EMA</source>
+        <target state="translated">Users - EMA</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.heading" datatype="html">
+        <source>Mes données personnelles</source>
+        <target state="translated">My personal data</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">2,5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.loading" datatype="html">
+        <source>Chargement de vos données personnelles…</source>
+        <target state="translated">Loading your personal data…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">5,6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.retry" datatype="html">
+        <source>Réessayer</source>
+        <target state="translated">Try again</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">9,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.new" datatype="html">
+        <source>Vous n’avez pas encore encodé vos données personnelles : complétez le formulaire puis sauvegardez.</source>
+        <target state="translated">You have not entered your personal data yet: fill in the form, then save.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">13,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.reload" datatype="html">
+        <source>Recharger mes données</source>
+        <target state="translated">Reload my data</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">33,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.section.general" datatype="html">
+        <source>Informations générales</source>
+        <target state="translated">General information</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.title.label" datatype="html">
+        <source>Titre</source>
+        <target state="translated">Title</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">43,44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.choose" datatype="html">
+        <source>Choisissez…</source>
+        <target state="translated">Choose…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">47,48</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">79,80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.lastName.label" datatype="html">
+        <source>Nom</source>
+        <target state="translated">Last name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">57,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.firstName.label" datatype="html">
+        <source>Prénom</source>
+        <target state="translated">First name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">66,67</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.gender.label" datatype="html">
+        <source>Sexe</source>
+        <target state="translated">Gender</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">75,76</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.birthdate.label" datatype="html">
+        <source>Date de naissance</source>
+        <target state="translated">Date of birth</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">89,90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.nationality.label" datatype="html">
+        <source>Nationalité</source>
+        <target state="translated">Nationality</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">98,99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.country.placeholder" datatype="html">
+        <source>Choisissez un pays</source>
+        <target state="translated">Choose a country</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">102,103</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">165,166</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.section.address" datatype="html">
+        <source>Adresse</source>
+        <target state="translated">Address</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">114,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.street.label" datatype="html">
+        <source>Rue</source>
+        <target state="translated">Street</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">116,117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.number.label" datatype="html">
+        <source>Numéro</source>
+        <target state="translated">Number</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">125,126</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.region.label" datatype="html">
+        <source>Région</source>
+        <target state="translated">Region</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">134,135</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.optional" datatype="html">
+        <source>Optionnel</source>
+        <target state="translated">Optional</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">135</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.city.label" datatype="html">
+        <source>Ville</source>
+        <target state="translated">City</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">143,144</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.postalCode.label" datatype="html">
+        <source>Code postal</source>
+        <target state="translated">Postal code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">152,153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.country.label" datatype="html">
+        <source>Pays</source>
+        <target state="translated">Country</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">161,162</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.section.contact" datatype="html">
+        <source>Contact</source>
+        <target state="translated">Contact</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">177,178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.phoneNumber.label" datatype="html">
+        <source>Téléphone</source>
+        <target state="translated">Phone</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">179,180</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.email.label" datatype="html">
+        <source>E-mail</source>
+        <target state="translated">Email</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">188,189</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.section.bank" datatype="html">
+        <source>Données bancaires</source>
+        <target state="translated">Bank details</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">199,200</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.iban.label" datatype="html">
+        <source>N° de compte (IBAN)</source>
+        <target state="translated">Account number (IBAN)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">201,202</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.bankName.label" datatype="html">
+        <source>Banque</source>
+        <target state="translated">Bank</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">210,211</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.bic.label" datatype="html">
+        <source>Code BIC</source>
+        <target state="translated">BIC code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">219,220</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.cardHolder.label" datatype="html">
+        <source>Titulaire du compte</source>
+        <target state="translated">Account holder</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">228,229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.cardHolder.hint" datatype="html">
+        <source>Laissez vide si le compte est à votre nom.</source>
+        <target state="translated">Leave empty if the account is in your name.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">235,238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.section.academic" datatype="html">
+        <source>Données académiques</source>
+        <target state="translated">Academic data</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">241,242</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.nbrPassedYears.label" datatype="html">
+        <source>Année(s) réussie(s) dans l’enseignement supérieur</source>
+        <target state="translated">Year(s) passed in higher education</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">243,244</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.submit" datatype="html">
+        <source>Sauvegarder</source>
+        <target state="translated">Save</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.html</context>
+          <context context-type="linenumber">255,257</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.title.m" datatype="html">
+        <source>Madame</source>
+        <target state="translated">Mrs</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">83</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.title.mr" datatype="html">
+        <source>Monsieur</source>
+        <target state="translated">Mr</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.title.ms" datatype="html">
+        <source>Mademoiselle</source>
+        <target state="translated">Miss</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.gender.m" datatype="html">
+        <source>Homme</source>
+        <target state="translated">Male</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">88</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.gender.f" datatype="html">
+        <source>Femme</source>
+        <target state="translated">Female</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">89</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.gender.o" datatype="html">
+        <source>Autre</source>
+        <target state="translated">Other</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="personalData.notice.saved" datatype="html">
+        <source>Les modifications ont bien été enregistrées.</source>
+        <target state="translated">Your changes have been saved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/personal-data/personal-data.ts</context>
+          <context context-type="linenumber">277</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.nav.users" datatype="html">
+        <source>Utilisateurs</source>
+        <target state="translated">Users</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">17,19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.nav.personalData" datatype="html">
+        <source>Mes données personnelles</source>
+        <target state="translated">My personal data</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">19,23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.title" datatype="html">
+        <source>Gestion des utilisateurs</source>
+        <target state="translated">User management</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.promote.title" datatype="html">
+        <source>Promouvoir un utilisateur</source>
+        <target state="translated">Promote a user</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.promote.question" datatype="html">
+        <source>Promouvoir <x id="NAME" equiv-text="{{ fullName(user) // i18n(ph=&quot;NAME&quot;) }}"/> (<x id="USERNAME" equiv-text="{{ user.username // i18n(ph=&quot;USERNAME&quot;) }}"/>) au rôle de professeur ? Cette action est définitive.</source>
+        <target state="translated">Promote <x id="NAME" equiv-text="{{ fullName(user) // i18n(ph=&quot;NAME&quot;) }}"/> (<x id="USERNAME" equiv-text="{{ user.username // i18n(ph=&quot;USERNAME&quot;) }}"/>) to professor? This cannot be undone.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">13,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.promote.confirm" datatype="html">
+        <source>Promouvoir</source>
+        <target state="translated">Promote</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">22,23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.promote.cancel" datatype="html">
+        <source>Annuler</source>
+        <target state="translated">Cancel</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">23,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.loading" datatype="html">
+        <source>Chargement des utilisateurs…</source>
+        <target state="translated">Loading the users…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">29,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.retry" datatype="html">
+        <source>Réessayer</source>
+        <target state="translated">Try again</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">33,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.count" datatype="html">
+        <source>Nombre d&apos;utilisateurs : <x id="COUNT" equiv-text="{{ users().length // i18n(ph=&quot;COUNT&quot;) }}"/></source>
+        <target state="translated">Number of users: <x id="COUNT" equiv-text="{{ users().length // i18n(ph=&quot;COUNT&quot;) }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">36,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.name" datatype="html">
+        <source>Nom</source>
+        <target state="translated">Name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.username" datatype="html">
+        <source>Nom d&apos;utilisateur</source>
+        <target state="translated">Username</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">42,43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.email" datatype="html">
+        <source>E-mail</source>
+        <target state="translated">Email</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">43,44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.option" datatype="html">
+        <source>Option</source>
+        <target state="translated">Option</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">44,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.role" datatype="html">
+        <source>Rôle</source>
+        <target state="translated">Role</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.registrationDate" datatype="html">
+        <source>Date d&apos;inscription</source>
+        <target state="translated">Registration date</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">46,47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.column.action" datatype="html">
+        <source>Action</source>
+        <target state="translated">Action</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">47,49</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.action.promote" datatype="html">
+        <source>Promouvoir</source>
+        <target state="translated">Promote</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">67,69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.empty" datatype="html">
+        <source>Aucun utilisateur.</source>
+        <target state="translated">No users.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.html</context>
+          <context context-type="linenumber">76,79</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="users.notice.promoted" datatype="html">
+        <source><x id="NAME" equiv-text="fullName(user)"/> est maintenant professeur.</source>
+        <target state="translated"><x id="NAME" equiv-text="fullName(user)"/> is now a professor.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/users/users.ts</context>
+          <context context-type="linenumber">149</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>
