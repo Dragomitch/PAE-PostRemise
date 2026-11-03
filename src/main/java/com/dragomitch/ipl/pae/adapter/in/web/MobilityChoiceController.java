@@ -1,9 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.MobilityMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,18 +55,24 @@ public class MobilityChoiceController {
 
   private final MobilityChoiceService mobilityChoiceService;
   private final PartnerMapper partnerMapper;
+  private final MobilityMapper mapper;
 
   public MobilityChoiceController(
-      MobilityChoiceService mobilityChoiceService, PartnerMapper partnerMapper) {
+      MobilityChoiceService mobilityChoiceService,
+      PartnerMapper partnerMapper,
+      MobilityMapper mapper) {
     this.mobilityChoiceService = mobilityChoiceService;
     this.partnerMapper = partnerMapper;
+    this.mapper = mapper;
   }
 
   @PostMapping("/mobilityChoice")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public MobilityChoiceDto create(
       @RequestBody @Valid MobilityChoiceDto mobilityChoice, CurrentUser currentUser) {
-    return mobilityChoiceService.create(mobilityChoice, currentUser.id(), currentUser.role());
+    return mapper.toDto(
+        mobilityChoiceService.create(
+            mapper.toDomain(mobilityChoice), currentUser.id(), currentUser.role()));
   }
 
   /** Every mobility choice matching the filter for a professor, the own ones for a student. */
@@ -76,7 +83,8 @@ public class MobilityChoiceController {
           String filter,
       CurrentUser currentUser) {
     return new DataResponse<>(
-        mobilityChoiceService.showAll(currentUser.id(), currentUser.role(), filterOf(filter)));
+        mapper.toMobilityChoiceDtos(
+            mobilityChoiceService.showAll(currentUser.id(), currentUser.role(), filterOf(filter))));
   }
 
   @GetMapping("/mobilityChoices/count")
