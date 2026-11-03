@@ -1,6 +1,6 @@
 # ADR 0001: Spring Data JPA persistence, organised as ports and adapters
 
-- **Status:** accepted. Step 1 is implemented; steps 2 and 3 are planned.
+- **Status:** accepted. Steps 1 and 2 are implemented; step 3 is planned.
 - **Discussion:** issue #102 (the questions Q1–Q6 and the owner's answers), PR #91.
 
 ## Context
@@ -44,40 +44,53 @@ Naming, taken from the guide's examples:
 
 | Role | Name | Example |
 |------|------|---------|
-| Driven port (domain) | `XxxRepository` | `PartnerRepository` (today's `PartnerDao`) |
+| Driven port (domain) | `XxxRepository` | `PartnerRepository` (was `PartnerDao`) |
 | Spring Data interface (adapter) | `XxxJpaRepository` | `PartnerJpaRepository` |
-| Driven adapter | `JpaXxxRepositoryAdapter` | `JpaPartnerRepositoryAdapter` (today's `PartnerPersistenceAdapter`) |
+| Driven adapter | `JpaXxxRepositoryAdapter` | `JpaPartnerRepositoryAdapter` (was `PartnerPersistenceAdapter`) |
 | JPA entity (adapter) | `XxxEntity` | `PartnerEntity` |
-| Driving port (domain) | use-case interface | today's `PartnerUcc` |
-| Application service | its implementation | today's `PartnerUccImpl` |
+| Driving port (domain) | `XxxService` | `PartnerService` (was `PartnerUcc`) |
+| Application service | `XxxServiceImpl` | `PartnerServiceImpl` (was `PartnerUccImpl`) |
 
-Target layout:
+Layout (since step 2):
 
 ```
 com.dragomitch.ipl.pae
 ├── domain
-│   ├── model                    business objects and rules, no framework annotation
+│   ├── model                    business objects and rules (XxxImpl behind Xxx, EntityFactory)
+│   ├── dto                      the DTO interfaces the ports exchange (step 3 replaces them)
+│   ├── exceptions               BusinessException, ErrorCode, FatalException
+│   ├── validation               custom constraints (@Iban, @Bic, ...)
+│   ├── util                     DataValidationUtils
 │   └── port
-│       ├── in                   driving ports: the use cases
+│       ├── in                   driving ports: the use cases, XxxService
 │       └── out                  driven ports: XxxRepository
-├── application                  use-case services (@Service, @Transactional)
+├── application                  use-case services, XxxServiceImpl (@Service, @Transactional)
+│   └── export                   CsvStringBuilder
 ├── adapter
-│   ├── in/web                   controllers, web DTOs, their mappers
+│   ├── in/web                   controllers, ApiExceptionHandler, web DTOs (step 3)
+│   │   └── security             session cookie, current user, CSRF
 │   └── out/persistence          JpaXxxRepositoryAdapter, PersistenceMapper
 │       ├── entity               JPA entities (XxxEntity, composite keys)
 │       └── repository           Spring Data interfaces (XxxJpaRepository)
 └── config                       Spring configuration
 ```
 
+The test tree mirrors it; `adapter/out/inmemory` holds the in-memory repositories of the unit
+tests. `ArchitectureTest` (ArchUnit) checks the layering on every build: dependencies point
+inwards, ports are interfaces, driving ports are implemented in `application` only and driven
+ports in `adapter.out.persistence` only, and the domain reaches no persistence, web or security
+package.
+
 ### Steps
 
-1. **JPA adapters behind the existing ports** (done, branch `claude/spring-data-jpa`). Every
-   `XxxDao` is implemented by a JPA adapter in `adapter.out.persistence`. The JDBC DAOs and
-   `DalBackendServices` are deleted. The DAO interfaces and the `*IT` tests are unchanged, apart
-   from the contract changes listed below.
-2. **Packaging and names.** Move the classes into the layout above. Rename `XxxDao` to
-   `XxxRepository`, the adapters to `JpaXxxRepositoryAdapter`, and the use cases into `domain.port.in`
-   and `application`.
+1. **JPA adapters behind the existing ports** (done, #91). Every port is implemented by a JPA
+   adapter in `adapter.out.persistence`. The JDBC DAOs and `DalBackendServices` are deleted. The
+   port interfaces (then `XxxDao`) and the `*IT` tests are unchanged, apart from the contract
+   changes listed below.
+2. **Packaging and names** (done). The classes moved into the layout above. `XxxDao` became
+   `XxxRepository`, `XxxUcc` became `XxxService` (the guide's name for a driving port),
+   `XxxUccImpl` became `XxxServiceImpl`, the adapters became `JpaXxxRepositoryAdapter`, and the
+   in-memory test doubles `InMemoryXxxRepository`. `ArchitectureTest` enforces the layering.
 3. **Pure domain model and web DTOs.** Separate the domain model from the DTO interfaces and
    `EntityFactory`: records for the web DTOs, mapped in `adapter.in.web`. Use typed filters (enums
    instead of strings) and `Optional` results in the driven ports.
@@ -108,7 +121,7 @@ Spring Boot 4 comes after these steps, in its own PR.
   - An unknown id or a stale version throws `ConcurrentModificationException`, answered with a
     409 `CONCURRENT_MODIFICATION`.
   - The two updates whose contract increments the version unconditionally are bulk JPQL updates:
-    `UserDao.promoteToProfessor` and `MobilityDocumentDao.fillInDocument`.
+    `UserRepository.promoteToProfessor` and `MobilityDocumentRepository.fillInDocument`.
 - **Keys.**
   - Composite keys are `@EmbeddedId`s, and `@MapsId` shares a key with the parent: a mobility
     with its choice, a nominated student with their user.
@@ -128,8 +141,8 @@ These are visible to the callers. The `*IT` tests and the port javadoc assert th
    `ApiExceptionHandler` answers with a 409 `DATA_CONFLICT` instead of a 500.
 2. **An unknown filter or lookup column is an `InvalidDataAccessApiUsageException`** wrapping the
    `IllegalArgumentException`: Spring translates an `IllegalArgumentException` thrown by a
-   `@Repository`. This concerns `PartnerDao.findAll`, `MobilityChoiceDao.findAll` and
-   `UserDao.findBy`. It is still a programming error, because the API rejects an unknown filter
+   `@Repository`. This concerns `PartnerRepository.findAll`, `MobilityChoiceRepository.findAll` and
+   `UserRepository.findBy`. It is still a programming error, because the API rejects an unknown filter
    first.
 3. **Lists are ordered by id.** Some JDBC queries had no `ORDER BY`.
 
@@ -139,9 +152,10 @@ The submission time of a new mobility choice is still the database's time, read 
 
 - No more hand-written SQL plumbing. Queries are derived queries, entity graphs or JPQL built
   from constant fragments, with no user input concatenated into them.
-- The DAO interfaces still use the DTO interfaces, so the domain still depends on the shape of
-  the API. Step 3 removes that.
+- The ports still use the DTO interfaces, so the domain still depends on the shape of the API,
+  and the domain still carries Bean Validation, Jackson and a few Spring annotations. Step 3
+  removes that, and tightens `ArchitectureTest` to "no framework in the domain".
 - The tests are unchanged in shape:
-  - the use-case unit tests run against the in-memory mock DAOs;
+  - the use-case unit tests run against the in-memory repositories (`adapter.out.inmemory`);
   - the `*IT` tests (embedded PostgreSQL) are the contract of the driven adapters;
   - the persistence coverage gate (JaCoCo) now guards `adapter.out.persistence`.

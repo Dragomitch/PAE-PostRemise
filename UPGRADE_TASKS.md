@@ -18,6 +18,7 @@ This document tracks the migration of the project from standalone libraries to S
 | 12 | Render the API errors as RFC 9457 problem details with i18n | Done. Spring `ProblemDetail` / `ErrorResponse` (`ApiExceptionHandler` extends `ResponseEntityExceptionHandler`), `ErrorCode` catalogue, messages in French and English (`i18n/messages*.properties`, `Accept-Language`). `errors.json`, `ErrorFormat` and `ErrorManager` are removed. |
 | 13 | Replace the hand-written checks with Bean Validation | Done. Constraints on the DTO interfaces, on the request parameters and on the `@Validated` use cases; `checkDataIntegrity` and the `DataValidationUtils` checks are removed (`DataValidationUtils.isAValidString` remains for the mobility choice persistence adapter). |
 | 14 | Replace the hand-written JDBC DAOs with Spring Data | Done (issue #102, step 1): Spring Data JPA adapters behind the DAO interfaces, `DalBackendServices` removed, N+1 guard (`QueryCountIT`). Decisions and contract changes in [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md). |
+| 15 | Hexagonal packages and names (ports in `domain/port`, services in `application`, adapters in `adapter/in` and `adapter/out`) | Done (issue #102, step 2). `XxxDao` → `XxxRepository`, `XxxUcc` → `XxxService`, `XxxUccImpl` → `XxxServiceImpl`; `ArchitectureTest` (ArchUnit) enforces the layering. |
 
 ## Possible next steps
 - Hexagonal packaging and names (issue #102, step 2), then a pure domain model with web DTOs (step 3): see [ADR 0001](docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md).

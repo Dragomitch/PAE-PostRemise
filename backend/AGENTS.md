@@ -37,7 +37,7 @@ src/
 │   └── webapp/
 └── test/
     ├── java/       # mirrors the main package structure
-    └── java/.../persistence/mocks  # in-memory DAOs used by UnitTestConfig
+    └── java/.../adapter/out/inmemory  # in-memory repositories used by UnitTestConfig
 pom.xml
 ```
 
@@ -89,9 +89,11 @@ mvn spring-boot:run
 
 Requests flow through three layers, all Spring beans:
 
-1. **Controllers** (`web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind and validate the request (JSON `@Valid @RequestBody`, constrained `@PathVariable` / `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only, as RFC 9457 problems.
-2. **Use cases** (`uccontrollers`): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Their interfaces are `@Validated` and declare the constraints of the parameters. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
-3. **DAOs** (`persistence`): see below.
+1. **Controllers** (`adapter/in/web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind and validate the request (JSON `@Valid @RequestBody`, constrained `@PathVariable` / `@RequestParam`, the authenticated `CurrentUser`), call a use case and return its result (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only, as RFC 9457 problems.
+2. **Use cases** (`domain/port/in` interfaces, `application` implementations): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Their interfaces are `@Validated` and declare the constraints of the parameters. Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
+3. **Repositories** (`domain/port/out` interfaces, `adapter/out/persistence` implementations): see below.
+
+The layering is the hexagonal architecture of [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md); `ArchitectureTest` (ArchUnit) fails the build when a dependency points outwards, a port is not an interface, or a port is implemented outside its adapter.
 
 ```java
 @RestController
@@ -100,16 +102,16 @@ public class UserController {
   @GetMapping
   @PreAuthorize(ApiPaths.PROFESSOR)
   public DataResponse<UserDto> showAll() {
-    return new DataResponse<>(userUcc.showAll());
+    return new DataResponse<>(userService.showAll());
   }
 }
 ```
 
-Security (`config/SecurityConfig`, `security`): stateless. Sign-in (`POST /api/1.0/session`, JSON `{username, password}`) issues a signed HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the HttpOnly, SameSite=Lax `session` cookie (`app.session.validity`, default 12h; `app.session.cookie-secure`, default false). The OAuth2 resource server validates it from the cookie or an `Authorization: Bearer` header. `/api/**` requires authentication except `POST /session`, `POST /users` and `GET /options`. CSRF uses the SPA recipe: the `XSRF-TOKEN` cookie must be echoed in the `X-XSRF-TOKEN` header of every state-changing request (`csrf()` in MockMvc tests).
+Security (`config/SecurityConfig`, `adapter/in/web/security`): stateless. Sign-in (`POST /api/1.0/session`, JSON `{username, password}`) issues a signed HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the HttpOnly, SameSite=Lax `session` cookie (`app.session.validity`, default 12h; `app.session.cookie-secure`, default false). The OAuth2 resource server validates it from the cookie or an `Authorization: Bearer` header. `/api/**` requires authentication except `POST /session`, `POST /users` and `GET /options`. CSRF uses the SPA recipe: the `XSRF-TOKEN` cookie must be echoed in the `X-XSRF-TOKEN` header of every state-changing request (`csrf()` in MockMvc tests).
 
 ### Feature Module 2
 
-Persistence is Spring Data JPA (Hibernate), organised as hexagonal ports and adapters: see [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) for the decisions, the target layout and the next steps, and [the glossary](../GLOSSARY.md) for the vocabulary. The DAO interfaces (`persistence`) are the driven ports; each one is implemented by a package-private `@Repository` adapter in `adapter/out/persistence` (`XxxPersistenceAdapter`), which maps the JPA entities (`adapter/out/persistence/entity`, `XxxEntity`) to the DTOs with `PersistenceMapper` and queries through Spring Data interfaces (`adapter/out/persistence/repository`, `XxxJpaRepository`), entity graphs or JPQL built from constant fragments. Unit tests replace the DAOs with the in-memory mocks from `src/test/java/.../persistence/mocks` via `UnitTestConfig` (emptied before each test by `MockDaoResetListener`); the `*IT` tests run the real adapters against an embedded PostgreSQL (`DaoItConfig`, `AbstractDaoIT`).
+Persistence is Spring Data JPA (Hibernate), organised as hexagonal ports and adapters: see [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md) for the decisions, the target layout and the next steps, and [the glossary](../GLOSSARY.md) for the vocabulary. The `XxxRepository` interfaces (`domain/port/out`) are the driven ports; each one is implemented by a package-private `@Repository` adapter in `adapter/out/persistence` (`JpaXxxRepositoryAdapter`), which maps the JPA entities (`adapter/out/persistence/entity`, `XxxEntity`) to the DTOs with `PersistenceMapper` and queries through Spring Data interfaces (`adapter/out/persistence/repository`, `XxxJpaRepository`), entity graphs or JPQL built from constant fragments. Unit tests replace the repositories with the in-memory ones from `src/test/java/.../adapter/out/inmemory` via `UnitTestConfig` (emptied before each test by `InMemoryRepositoryResetListener`); the `*IT` tests run the real adapters against an embedded PostgreSQL (`RepositoryItConfig`, `AbstractRepositoryIT`).
 
 Persistence rules:
 
@@ -118,14 +120,14 @@ Persistence rules:
 - Reference data (options, programmes, countries, documents) is `@Immutable`.
 - An update loads the entity, compares the versions, copies the fields and flushes with `Versions.flushIncrementingVersion`; creates with an assigned key flush at once.
 
-DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow them too):
+Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; the in-memory repositories follow them too):
 
 - Every SQL failure is a Spring `DataAccessException` (exception translation of the `@Repository` adapters) with the `SQLException` as root cause; a constraint violation is a `DataIntegrityViolationException` (409 `DATA_CONFLICT`).
-- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version and increment it even when they change nothing (`Versions.flushIncrementingVersion`, `VersionContractIT`): the partner edit relies on it. `denial_reasons` has no version column, so `DenialReasonDao.update` only detects an unknown id.
+- An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version and increment it even when they change nothing (`Versions.flushIncrementingVersion`, `VersionContractIT`): the partner edit relies on it. `denial_reasons` has no version column, so `DenialReasonRepository.update` only detects an unknown id.
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
-- An unknown `findAll` filter (or `UserDao.findBy` column) is an `InvalidDataAccessApiUsageException` wrapping an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
-- A nominated student shares the id and the version of its user (`NominatedStudentDao.create` stores and returns the DTO's version).
-- `UserDao.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged). An unknown id or username is a 404 `RESOURCE_NOT_FOUND` problem, a stale version a 409 `CONCURRENT_MODIFICATION`, a blank or too long username a 400 `VALIDATION_FAILED`.
+- An unknown `findAll` filter (or `UserRepository.findBy` column) is an `InvalidDataAccessApiUsageException` wrapping an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
+- A nominated student shares the id and the version of its user (`NominatedStudentRepository.create` stores and returns the DTO's version).
+- `UserRepository.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged). An unknown id or username is a 404 `RESOURCE_NOT_FOUND` problem, a stale version a 409 `CONCURRENT_MODIFICATION`, a blank or too long username a 400 `VALIDATION_FAILED`.
 - The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`.
 
 ### Errors, validation and messages
@@ -133,15 +135,15 @@ DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow 
 - **Errors** are RFC 9457 problems (`application/problem+json`) rendered by `web/ApiExceptionHandler` (a `ResponseEntityExceptionHandler`, the only place that formats errors; Spring Boot's own handler is disabled with `spring.mvc.problemdetails.enabled=false`). Members: `type` (`urn:pae:problem:<code>`), localized `title`/`detail`, `status`, `instance`, `code` (always, an `ErrorCode` name), `timestamp`, `errors` for `VALIDATION_FAILED`, `errorId` for 5xx (never any exception text). The full contract and the code table are in the README.
 - **Business errors**: `throw new BusinessException(ErrorCode.X, args...)` (an `ErrorResponseException`). Adding a code: enum constant with its status (400 validation, 404 unknown URL resource, 409 state conflict, 422 business rule), then `problem.X.title` / `problem.X.detail` in **both** `i18n/messages.properties` (French, fallback) and `i18n/messages_en.properties`. Use `’`, not `'`, in messages taking arguments.
 - **Persistence exceptions** are mapped by the handler, never caught in the use cases: `java.util.ConcurrentModificationException` and Spring Data's `OptimisticLockingFailureException` -> 409 `CONCURRENT_MODIFICATION`, `DataIntegrityViolationException` -> 409 `DATA_CONFLICT`, `EmptyResultDataAccessException` -> 404.
-- **Validation**: constraints on the getters of the DTO interfaces (`business/dto`), custom ones in `business/validation`, groups `Default` / `OnCreate` / `Reference` (`ValidationGroups`). Controllers: `@Valid` bodies, constraints on path/query parameters (no class-level `@Validated`: Spring MVC 6.1 method validation). Use cases: `@Validated` interfaces with parameter constraints (declared on the interface only). Only rules needing the database or the state stay as code in the use cases.
+- **Validation**: constraints on the getters of the DTO interfaces (`domain/dto`), custom ones in `domain/validation`, groups `Default` / `OnCreate` / `Reference` (`ValidationGroups`). Controllers: `@Valid` bodies, constraints on path/query parameters (no class-level `@Validated`: Spring MVC 6.1 method validation). Use cases: `@Validated` interfaces with parameter constraints (declared on the interface only). Only rules needing the database or the state stay as code in the use cases.
 - **i18n**: `MessageSource` basename `i18n/messages`, `fallback-to-system-locale=false`; Bean Validation messages resolve from it (`{key}` templates). Locale from `Accept-Language` (fr, en; default fr) via `AcceptLanguageLocaleResolver`, also applied by `ExceptionResolverSecurityHandler` to the 401/403 of the filters.
 - **Tests**: `ProblemDetailsTest` (full problem bodies in fr/en), `MessageBundlesTest` (every key in both languages, every `ErrorCode` translated, every constraint message key translated), `MethodValidationTest` (use cases validated outside the web layer), `Violations` helper for the constraint tests.
 
 ### Business rules of the use cases
 
-- **Mobility states**: `Créée` -> `En préparation` (a document is filled in) -> `A payer` (every departure document is filled in, also when the first document filled in completes them) -> `En cours` (first payment) -> `Solde à payer` (every document is filled in) -> `Terminée` (second payment); `Annulée` from any state but `Terminée`. `MobilityUcc.confirmPayment` accepts the first payment only in `A payer` and the second only in `Solde à payer`, anything else is a 409 `PAYMENT_NOT_EXPECTED`; when the return documents were already filled in during `A payer`, the first payment moves the mobility straight to `Solde à payer`.
+- **Mobility states**: `Créée` -> `En préparation` (a document is filled in) -> `A payer` (every departure document is filled in, also when the first document filled in completes them) -> `En cours` (first payment) -> `Solde à payer` (every document is filled in) -> `Terminée` (second payment); `Annulée` from any state but `Terminée`. `MobilityService.confirmPayment` accepts the first payment only in `A payer` and the second only in `Solde à payer`, anything else is a 409 `PAYMENT_NOT_EXPECTED`; when the return documents were already filled in during `A payer`, the first payment moves the mobility straight to `Solde à payer`.
 - **Frozen mobilities**: a cancelled or closed mobility accepts no filled-in document (`confirmDocument`) and no payment: 409 `MOBILITY_CANCELLED` / `MOBILITY_CLOSED`. The software encodings are only refused on a cancelled mobility (a closed one may still be encoded afterwards).
-- **Options of a partner** (`POST /api/1.0/partners/{id}`, `PartnerUcc.addOption`): a professor may add an option to any partner; a student only to a **non-official** partner that is the partner of one of his own mobility choices or mobilities (the `partners` table has no creator column; a student creates a non-official partner when he confirms a choice with a new partner). Anything else is a 403 `ACCESS_DENIED`, an unknown partner a 404 `RESOURCE_NOT_FOUND`. Official partners are managed by the professors only (as for `create`/`edit`).
+- **Options of a partner** (`POST /api/1.0/partners/{id}`, `PartnerService.addOption`): a professor may add an option to any partner; a student only to a **non-official** partner that is the partner of one of his own mobility choices or mobilities (the `partners` table has no creator column; a student creates a non-official partner when he confirms a choice with a new partner). Anything else is a 403 `ACCESS_DENIED`, an unknown partner a 404 `RESOURCE_NOT_FOUND`. Official partners are managed by the professors only (as for `create`/`edit`).
 - **Lists of a DTO** constrain their elements: `List<@NotNull @Valid PartnerOptionDto> getOptions()` reports a `null` option as `options[i]` / `NotNull` in a 400 `VALIDATION_FAILED` (at creation and at edition), so the use cases never see a `null` element.
 
 ## Testing Strategy
@@ -149,16 +151,16 @@ DAO contracts (asserted by the `*IT` tests against PostgreSQL; the mocks follow 
 ### Unit Testing
 
 - Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
-- Test coverage requirements: the JaCoCo gates of `pom.xml` (`mvn verify`): overall 0.98 lines / 0.91 branches, persistence 0.98 / 0.98, use cases (`uccontrollers.implementations`) 0.98 / 0.97. Raise them as coverage grows, never lower them.
-- Use cases: `*UccImplTest` test the business rules of a service with Mockito DAOs answering as their `*IT` contract says and the real business objects (`EntityFactories.create()`); `Test*Ucc` run the use cases in the `UnitTestConfig` context on the in-memory mock DAOs (emptied before each test by `MockDaoResetListener`). Assert on the returned DTO, the DAO writes and the exact error (`BusinessExceptionAssert`: `ErrorCode` and problem arguments).
+- Test coverage requirements: the JaCoCo gates of `pom.xml` (`mvn verify`): overall 0.98 lines / 0.91 branches, persistence 0.98 / 0.98, use cases (`application`) 0.98 / 0.97. Raise them as coverage grows, never lower them.
+- Use cases: `*ServiceImplTest` test the business rules of a service with Mockito repositories answering as their `*IT` contract says and the real business objects (`EntityFactories.create()`); `Test*Service` run the use cases in the `UnitTestConfig` context on the in-memory repositories (emptied before each test by `InMemoryRepositoryResetListener`). Assert on the returned DTO, the DAO writes and the exact error (`BusinessExceptionAssert`: `ErrorCode` and problem arguments).
 - Test file organization: mirror package structure under `src/test/java`
-- The stateful mock DAOs implement `ResettableMock`; `MockDaoResetListener` (registered for every Spring test in `src/test/resources/META-INF/spring.factories`) empties them before every test method, before the test's own `@BeforeEach`, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
+- The stateful in-memory repositories implement `ResettableRepository`; `InMemoryRepositoryResetListener` (registered for every Spring test in `src/test/resources/META-INF/spring.factories`) empties them before every test method, before the test's own `@BeforeEach`, so tests must not depend on each other. Check with `mvn test -Dsurefire.runOrder=random '-Djunit.jupiter.testmethod.order.default=org.junit.jupiter.api.MethodOrderer$Random'`.
 - Production code never writes to the console (`SourceHygieneTest`); log through SLF4J (`LoggerFactory.getLogger`).
 
 ### Integration Testing
 
-- Test scenarios: every DAO method against the real schema (`*IT`, run by Failsafe in `mvn verify`)
-- Testing tools: an embedded PostgreSQL (io.zonky, no Docker) loaded with `SQLRessources/init.sql`; `AbstractDaoIT` runs each test in a transaction that is always rolled back, with the fixtures of `src/test/resources/db/fixtures`
+- Test scenarios: every repository method against the real schema (`*IT`, run by Failsafe in `mvn verify`)
+- Testing tools: an embedded PostgreSQL (io.zonky, no Docker) loaded with `SQLRessources/init.sql`; `AbstractRepositoryIT` runs each test in a transaction that is always rolled back, with the fixtures of `src/test/resources/db/fixtures`
 
 ### End-to-End Testing
 
@@ -240,7 +242,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Issue 2: Tests fail due to context loading
 
-**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (mock DAOs, no database). Controller tests use `@WebMvcTest` with `@Import(WebTestConfig.class)` (real security chain, JSON mapping) and `@MockBean` use cases; authenticate with `TestUsers.professor()` / `student()` and add `csrf()` to state-changing requests. `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
+**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (in-memory repositories, no database). Controller tests use `@WebMvcTest` with `@Import(WebTestConfig.class)` (real security chain, JSON mapping) and `@MockitoBean` use cases; authenticate with `TestUsers.professor()` / `student()` and add `csrf()` to state-changing requests. `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
 
 ## Reference Resources
 

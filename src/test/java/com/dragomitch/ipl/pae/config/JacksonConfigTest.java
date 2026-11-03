@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.dragomitch.ipl.pae.business.EntityFactory;
-import com.dragomitch.ipl.pae.business.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.business.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.business.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
+import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Import;
  */
 @JsonTest
 @Import(JacksonConfig.class)
-@ComponentScan("com.dragomitch.ipl.pae.business.implementations")
+@ComponentScan("com.dragomitch.ipl.pae.domain.model")
 class JacksonConfigTest {
 
   @Autowired

@@ -33,7 +33,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 |---|---|---|---|---|
 | S1 | Spring MVC `@RestController`s | Custom `RoutingServlet` + `@Route`/`Invoker` reflection | Standard mappings, content negotiation, OpenAPI-able | ✅ #90 |
 | S2 | Spring Security for authn/authz | `SessionManager` + `@Role` checked by hand | Resource-server JWT from cookie, `@PreAuthorize`, CSRF, stateless | ✅ #90 |
-| S3 | `@Transactional` | `UnitOfWork` thread-local semaphore + reflection on `@DaoClass` | Declarative transactions, rollback rules | ✅ #90 |
+| S3 | `@Transactional` | `UnitOfWork` thread-local semaphore + reflection on `@RepositoryClass` | Declarative transactions, rollback rules | ✅ #90 |
 | S4 | RFC 9457 `ProblemDetail`/`ErrorResponse` + `@RestControllerAdvice` | `errors.json` + `ErrorFormat` + numeric codes | Standard error body, `MessageSource` i18n | ✅ #92 (+ frontend #88) |
 | S5 | `MessageSource` + `LocaleResolver` (Accept-Language) | French strings hard-coded | `messages_{fr,en}.properties` | ✅ #92 (+ `@angular/localize` in #88) |
 | S6 | Bean Validation (`@Valid`, `@Validated`, constraints on DTOs, method validation on services) | 171 manual `checkX`/`isAValidX` calls + 8 `checkDataIntegrity` methods | Declarative, reusable, automatically reported as problems | ✅ #92 |
@@ -60,7 +60,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | 💡 |
 | S28 | Caching reference data (`@Cacheable` on countries, options, programmes) | Queried on every page | Fewer DB round-trips | 💡 |
 | S29 | Serve the Angular build from the backend or retire the legacy jQuery UI once the Angular app covers its screens | Two UIs to maintain; legacy one is French-only | One i18n'd UI | 💡 |
-| S30 | Spring Modulith (or ArchUnit) tests to enforce the layering web → service → persistence | Layering by convention | Build fails on violations | 💡 |
+| S30 | Spring Modulith (or ArchUnit) tests to enforce the layering web → service → persistence | Layering by convention | Build fails on violations | ✅ `ArchitectureTest` (ArchUnit) with the hexagonal packages of issue #102 step 2 |
 
 ## 3. Behaviour decisions
 
@@ -74,8 +74,8 @@ each in its own `fix:` commit with the test that proves it.
 | D3 | `confirmPayment` accepted a payment whatever the mobility state. | Fixed in #92: only in "A payer" / "Solde à payer", 409 `PAYMENT_NOT_EXPECTED` otherwise; a programme without departure document starts "A payer" |
 | D4 | `confirmDocument` did not refuse a cancelled or closed mobility. | Fixed in #92 |
 | D5 | `POST /partners/{id}` (add an option) had no ownership check. | Fixed in #92: professors any partner, students only a non-official partner of their own choices |
-| D6 | `PartnerUcc.edit` answered 500 when the option list contained a `null` element. | Fixed in #92: `List<@NotNull @Valid PartnerOptionDto>` |
-| D7 | `DenialReasonDao.update` ignored an unknown id; `NominatedStudent.create` stored the DTO's version but returned 1. | Fixed in #89: 0 rows → `ConcurrentModificationException` (no version column added); `create` returns the stored version |
+| D6 | `PartnerService.edit` answered 500 when the option list contained a `null` element. | Fixed in #92: `List<@NotNull @Valid PartnerOptionDto>` |
+| D7 | `DenialReasonRepository.update` ignored an unknown id; `NominatedStudent.create` stored the DTO's version but returned 1. | Fixed in #89: 0 rows → `ConcurrentModificationException` (no version column added); `create` returns the stored version |
 | D8 | IBANs in `demo.sql` and the fixtures failed the MOD-97 check. | Fixed in #89 |
 | D9 | The `countries` table lacked RS, ME, SS, CW, SX, BQ, BL, GG, JE. | Fixed in #89 (`init.sql` and `SQLRessources/add-missing-countries.sql`); CS and AN kept |
 | D10 | Legacy UI (`src/main/webapp`) is French-only; only server messages are localized. Porting its screens to the Angular app (S29) removes the need to translate it. | Open |
