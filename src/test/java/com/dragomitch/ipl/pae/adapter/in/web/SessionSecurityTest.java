@@ -34,7 +34,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -212,6 +212,16 @@ class SessionSecurityTest {
   @Test
   void aStaleCookieDoesNotPreventSigningIn() throws Exception {
     mockMvc.perform(post(ApiPaths.BASE + "/session").with(csrf())
+            .cookie(new Cookie("session", "stale-token-from-a-previous-key"))
+            .contentType(MediaType.APPLICATION_JSON).content(SIGNIN_BODY))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists("session"));
+  }
+
+  @Test
+  void aStaleCookieDoesNotPreventSigningInWhateverTheCaseOfThePath() throws Exception {
+    // the public endpoints are matched like the controllers, case-insensitively
+    mockMvc.perform(post("/api/1.0/SESSION").with(csrf())
             .cookie(new Cookie("session", "stale-token-from-a-previous-key"))
             .contentType(MediaType.APPLICATION_JSON).content(SIGNIN_BODY))
         .andExpect(status().isOk())

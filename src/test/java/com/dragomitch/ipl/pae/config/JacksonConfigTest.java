@@ -9,7 +9,6 @@ import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,9 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Spring MVC's {@code ObjectMapper} reads the DTO interfaces through the {@link EntityFactory}
+ * Spring MVC's {@code JsonMapper} reads the DTO interfaces through the {@link EntityFactory}
  * bindings and writes the dates the way the web UIs parse them.
  */
 @JsonTest
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Import;
 class JacksonConfigTest {
 
   @Autowired
-  private ObjectMapper mapper;
+  private JsonMapper mapper;
 
   @Autowired
   private EntityFactory entityFactory;
@@ -98,5 +98,18 @@ class JacksonConfigTest {
     assertEquals(1, choice.getTerm());
     assertEquals(2025, choice.getAcademicYear());
     assertEquals(-1, choice.getPartner().getId());
+  }
+
+  @Test
+  void nullSentForAPrimitivePropertyIsReadAsZero() throws Exception {
+    // Jackson 3 refuses it by default (FAIL_ON_NULL_FOR_PRIMITIVES); Jackson 2 read it as 0, and
+    // the legacy forms send it (spring.jackson.deserialization.fail-on-null-for-primitives=false)
+    MobilityChoiceDto choice = mapper.readValue(
+        "{\"id\":null,\"term\":null,\"academicYear\":2025,\"version\":null}",
+        MobilityChoiceDto.class);
+    assertEquals(0, choice.getId());
+    assertEquals(0, choice.getTerm());
+    assertEquals(2025, choice.getAcademicYear());
+    assertEquals(0, choice.getVersion());
   }
 }
