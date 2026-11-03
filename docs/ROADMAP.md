@@ -18,7 +18,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | C6 | Pin third-party actions to commit SHAs (Dependabot keeps them fresh) | Supply-chain hardening | 💡 |
 | C7 | Coverage ratchet: JaCoCo `check` + Karma thresholds fail the build; PR comment shows the delta | Coverage can only go up | ✅ #89 (JaCoCo), #88 (Karma), raised in #92 |
 | C8 | Separate unit (Surefire) and integration (Failsafe, embedded PostgreSQL) suites, both reported | Fast feedback + real SQL checked | ✅ #89 |
-| C9 | Playwright end-to-end smoke job (jar + PostgreSQL service container + legacy UI and Angular) on PRs touching `src/main/webapp`, `frontend` or controllers | The UI regressions (#20/#22) were only caught manually | 💡 |
+| C9 | Playwright end-to-end smoke job (jar + PostgreSQL service container + legacy UI and Angular) on PRs touching `src/main/webapp`, `frontend` or controllers | The UI regressions (#20/#22) were only caught manually | ✅ job `e2e` (*End-to-end (API and Playwright on PostgreSQL)*), scripts in `e2e/`; runs on every PR so that `CI passed` can require it |
 | C10 | Release workflow on tags: build once, push versioned images to GHCR (`backend`, `frontend`), SBOM + provenance (`docker/build-push-action` attestations), GitHub Release with changelog | Reproducible deployable artifacts | 💡 |
 | C11 | Deploy workflow with GitHub Environments (`staging` auto on `master`, `production` with manual approval), secrets (`JWT_SECRET`, DB) per environment | No secrets in the repo, audited promotions | 💡 |
 | C12 | Database migrations with Flyway (baseline = current `init.sql`), run by the app at start-up and checked in CI | Schema changes become reviewable and repeatable | 💡 |
