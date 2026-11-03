@@ -69,13 +69,13 @@ pom.xml
 - **Every change comes through a pull request** against `master`, and the PR links its issue with `Closes #n` so that merging closes it.
 - The PR title is `<type>: <subject>` or `<type>(<scope>): <subject>`, with `<type>` one of `feat`, `fix`, `build`, `ci`, `docs`, `test`, `refactor`, `chore`, `perf`, `style` or `revert` (and an optional `!` before the colon for a breaking change); the `pr-title` job of the CI workflow fails on any other title, and the `CI passed` gate requires that job on pull requests.
 - **The test plan states what was run and the numbers it produced**, never "should work": the exact command and its result, e.g. `mvn -B -ntp clean verify`: N unit tests, N integration tests, 0 failures, `All coverage checks have been met` (with the real numbers in place of N). Run the Maven build in default and in random order (`-Dsurefire.runOrder=random -Dfailsafe.runOrder=random`), `npm run test:ci` when the frontend changes and `docker compose config --quiet` when the Compose file or a Dockerfile does. Say what you could not run.
-- **A PR that changes a screen embeds its screenshots.** Commit the images under `docs/screenshots/<topic>/` on the branch, then reference each one in the PR body with the raw URL of that commit, wrapped in a link to its page, so that the image previews inline and opens in full on click:
+- **A PR that changes a screen embeds its screenshots.** Commit the images under `docs/screenshots/<topic>/` on the branch, then reference each one in the PR body as an HTML image wrapped in a link to its page, so that the image previews inline and opens in full on click:
 
-  ```markdown
-  [![alt text](https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png)](https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png)
+  ```html
+  <a href="https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png"><img src="https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png" alt="alt text" width="700"></a>
   ```
 
-  Use the full sha of a commit, not the branch name, so that the link keeps working after the branch is deleted. On a Forgejo mirror the image URL is `https://<host>/Dragomitch/PAE-PostRemise/raw/commit/<commit-sha>/docs/screenshots/<topic>/<file>.png` and the page is the same path under `/src/commit/<commit-sha>/`.
+  The HTML form, not the Markdown `[![alt](raw)](page)` one: the GitHub tooling the agents post through stores a Markdown image link wrapped in backticks, which renders as code (#162, #166 and #167 had to be rewritten), while `<a>` and `<img>` are stored as written and render on GitHub and on Forgejo. Use the full sha of a commit, not the branch name, so that the link keeps working after the branch is deleted. On a Forgejo mirror the image URL is `https://<host>/Dragomitch/PAE-PostRemise/raw/commit/<commit-sha>/docs/screenshots/<topic>/<file>.png` and the page is the same path under `/src/commit/<commit-sha>/`.
 
 ## Environment Setup
 

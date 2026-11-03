@@ -31,10 +31,11 @@ delete the others, add the end-to-end or manual checks that cover the change.
 
 <!--
 For a change to a screen; write "none" otherwise. Commit the images under
-docs/screenshots/<topic>/ and embed each one with the raw URL of the commit, wrapped in a link to
-its page, so that it previews inline and opens in full on click:
+docs/screenshots/<topic>/ and embed each one as an HTML image wrapped in a link to its page, so
+that it previews inline and opens in full on click (HTML, not the Markdown [![..](..)](..) form,
+which the agents' GitHub tooling stores wrapped in backticks):
 
-[![alt text](https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png)](https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png)
+<a href="https://github.com/Dragomitch/PAE-PostRemise/blob/<commit-sha>/docs/screenshots/<topic>/<file>.png"><img src="https://raw.githubusercontent.com/Dragomitch/PAE-PostRemise/<commit-sha>/docs/screenshots/<topic>/<file>.png" alt="alt text" width="700"></a>
 
 <commit-sha> is the full sha of a commit of the branch that contains the image. On a Forgejo mirror
 the image URL is https://<host>/Dragomitch/PAE-PostRemise/raw/commit/<commit-sha>/docs/screenshots/<topic>/<file>.png
