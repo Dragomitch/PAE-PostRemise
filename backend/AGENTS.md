@@ -19,11 +19,11 @@ This document provides instructions for working on the Java backend of the Erasm
 List the main technologies and tools used in the project:
 
 - **Language**: Java 21
-- **Framework**: Spring Boot 3
+- **Framework**: Spring Boot 4.1 (Spring Framework 7, Spring Security 7, Hibernate ORM 7, Jackson 3)
 - **Database**: PostgreSQL
 - **Build Tool**: Maven
 - **Deployment**: Docker/Docker Compose
-- **Testing**: JUnit 5 (Jupiter) with Mockito and Spring Boot Test
+- **Testing**: JUnit 6 (Jupiter) with Mockito and Spring Boot Test
 
 ## Project Structure
 
@@ -121,7 +121,7 @@ public class UserController {
 }
 ```
 
-Security (`config/SecurityConfig`, `adapter/in/web/security`): stateless. Sign-in (`POST /api/1.0/session`, JSON `{username, password}`) issues a signed HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the HttpOnly, SameSite=Lax `session` cookie (`app.session.validity`, default 12h; `app.session.cookie-secure`, default false). The OAuth2 resource server validates it from the cookie or an `Authorization: Bearer` header. `/api/**` requires authentication except `POST /session`, `POST /users` and `GET /options`. CSRF uses the SPA recipe: the `XSRF-TOKEN` cookie must be echoed in the `X-XSRF-TOKEN` header of every state-changing request (`csrf()` in MockMvc tests).
+Security (`config/SecurityConfig`, `adapter/in/web/security`): stateless. Sign-in (`POST /api/1.0/session`, JSON `{username, password}`) issues a signed HS256 JWT (`sub` = user id, `role`, `iat`, `exp`) in the HttpOnly, SameSite=Lax `session` cookie (`app.session.validity`, default 12h; `app.session.cookie-secure`, default false). The OAuth2 resource server validates it from the cookie or an `Authorization: Bearer` header. `/api/**` requires authentication except `POST /session`, `POST /users` and `GET /options`. The security rules match paths case-insensitively, like the controllers: `SecurityConfig` declares the `PathPatternRequestMatcher.Builder` bean from `WebConfig.PATH_PATTERN_PARSER`, which replaces Spring Boot's case-sensitive default and also serves the `requestMatchers(String...)` shortcuts ([ADR 0002](../docs/adr/0002-spring-boot-4.md)). CSRF uses the SPA recipe: the `XSRF-TOKEN` cookie must be echoed in the `X-XSRF-TOKEN` header of every state-changing request (`csrf()` in MockMvc tests).
 
 ### Feature Module 2
 
@@ -136,13 +136,13 @@ Persistence rules:
 
 Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; the in-memory repositories follow them too):
 
-- Every SQL failure is a Spring `DataAccessException` (exception translation of the `@Repository` adapters) with the `SQLException` as root cause; a constraint violation is a `DataIntegrityViolationException` (409 `DATA_CONFLICT`).
+- Every SQL failure is a Spring `DataAccessException` (exception translation of the `@Repository` adapters) with the `SQLException` as root cause; a constraint violation is a `DataIntegrityViolationException` (409 `DATA_CONFLICT`). Hibernate 7's `EntityManager.find(Class, Object)` returns `null` instead of throwing some of them (HHH-12472), so the Spring Data repositories are built on `StrictFindByIdRepository` (`JpaRepositoriesConfig`), and an adapter that loads by id through its `EntityManager` calls `StrictFindByIdRepository.find`.
 - An update that matches no row throws `ConcurrentModificationException`: stale version (optimistic locking) or unknown id. Updates give the DTO its new version and increment it even when they change nothing (`Versions.flushIncrementingVersion`, `VersionContractIT`): the partner edit relies on it. `denial_reasons` has no version column, so `DenialReasonRepository.update` only detects an unknown id.
 - Optional relations are LEFT-joined and `null` when absent: a partner without option (empty `getOptions()`), a mobility choice / mobility / payment without partner or country.
 - An unknown `findAll` filter (or `UserRepository.findBy` column) is an `InvalidDataAccessApiUsageException` wrapping an `IllegalArgumentException`: a programming error, since the controllers and the `@Validated` use cases reject an unknown filter first (`@Pattern`, 400 `VALIDATION_FAILED` with the `filter` field in `errors`).
 - A nominated student shares the id and the version of its user (`NominatedStudentRepository.create` stores and returns the DTO's version).
 - `UserRepository.promoteToProfessor(int userId, int expectedVersion)` and `promoteToProfessor(String username, int expectedVersion)` write only the role and the version; `UserController`'s `PUT /api/1.0/users/{id}/promote` uses the id variant, `PUT /api/1.0/users/by-username/{username}/promote` the username one (both professors only, CSRF-protected; a professor is left unchanged). An unknown id or username is a 404 `RESOURCE_NOT_FOUND` problem, a stale version a 409 `CONCURRENT_MODIFICATION`, a blank or too long username a 400 `VALIDATION_FAILED`.
-- The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`.
+- The API leaves `null` properties out of the JSON (`NON_NULL`, `JacksonConfig`), as the legacy UI expects; the UI checks optional properties with `== null`, which also covers an explicit `null`. JSON is Jackson 3 (`tools.jackson`; the annotations stay `com.fasterxml.jackson.annotation`): a module is a `JacksonModule` bean and the mapper is customised with a `JsonMapperBuilderCustomizer`. A `null` sent for a primitive property is read as `0`, as with Jackson 2 (`spring.jackson.deserialization.fail-on-null-for-primitives=false`).
 
 ### Errors, validation and messages
 
@@ -164,7 +164,7 @@ Repository contracts (asserted by the `*RepositoryIT` tests against PostgreSQL; 
 
 ### Unit Testing
 
-- Testing framework: JUnit 5 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
+- Testing framework: JUnit 6 (`org.junit.jupiter`); use `assertThrows` instead of `@Test(expected = ...)`
 - Test coverage requirements: the JaCoCo gates of `pom.xml` (`mvn verify`): overall 0.98 lines / 0.91 branches, persistence 0.98 / 0.98, use cases (`application`) 0.98 / 0.97. Raise them as coverage grows, never lower them.
 - Use cases: `*ServiceImplTest` test the business rules of a service with Mockito repositories answering as their `*IT` contract says and the real business objects (`EntityFactories.create()`); `Test*Service` run the use cases in the `UnitTestConfig` context on the in-memory repositories (emptied before each test by `InMemoryRepositoryResetListener`). Assert on the returned DTO, the DAO writes and the exact error (`BusinessExceptionAssert`: `ErrorCode` and problem arguments).
 - Test file organization: mirror package structure under `src/test/java`
@@ -258,7 +258,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Issue 2: Tests fail due to context loading
 
-**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (in-memory repositories, no database). Controller tests use `@WebMvcTest` with `@Import(WebTestConfig.class)` (real security chain, JSON mapping) and `@MockitoBean` use cases; authenticate with `TestUsers.professor()` / `student()` and add `csrf()` to state-changing requests. `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO.
+**Solution**: Unit tests should use `@SpringJUnitConfig(UnitTestConfig.class)` (in-memory repositories, no database). Controller tests use `@WebMvcTest` with `@Import(WebTestConfig.class)` (real security chain, JSON mapping) and `@MockitoBean` use cases; authenticate with `TestUsers.professor()` / `student()` and add `csrf()` to state-changing requests. The security chain is only in the slice because `spring-boot-starter-security-oauth2-resource-server-test` is on the test classpath (Spring Boot 4 moved that auto-configuration out of `spring-security-test`). `@SpringBootTest` loads the real beans; it needs no database as long as the test does not hit a DAO. `ApplicationTests` calls the running server with `RestTestClient` (`@AutoConfigureRestTestClient`).
 
 ## Reference Resources
 
