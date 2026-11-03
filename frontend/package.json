@@ -11,6 +11,9 @@
     "test:ci": "npm run i18n:check && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage",
     "i18n:extract": "ng extract-i18n",
     "i18n:check": "node scripts/check-i18n.mjs",
+    "api:sync": "node scripts/sync-openapi.mjs",
+    "api:generate": "openapi-ts",
+    "api:check": "node scripts/check-openapi-client.mjs",
     "lint": "ng lint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -32,6 +35,7 @@
     "@angular/cli": "^20.3.42",
     "@angular/compiler-cli": "^20.3.34",
     "@angular/localize": "^20.3.34",
+    "@hey-api/openapi-ts": "0.99.0",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "20.7.0",
     "eslint": "^9.39.1",
