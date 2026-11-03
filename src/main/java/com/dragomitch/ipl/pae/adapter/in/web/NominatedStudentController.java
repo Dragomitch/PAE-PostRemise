@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Personal data of the nominated students. A student may only read and write his own data.
  */
+@Tag(name = "Nominated students", description = "Personal and bank data of the students "
+    + "selected for a mobility.")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/nominatedStudents")
 public class NominatedStudentController {

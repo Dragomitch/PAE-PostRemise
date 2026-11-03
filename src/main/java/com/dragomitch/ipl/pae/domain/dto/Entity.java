@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Positive;
 
 /**
@@ -19,6 +20,8 @@ public interface Entity {
 
   public void setId(int id);
 
+  @Schema(description = "Optimistic locking: send back the version that was read; a stale one is "
+      + "refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.")
   public int getVersion();
 
   public void setVersion(int id);

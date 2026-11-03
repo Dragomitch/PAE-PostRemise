@@ -2,6 +2,7 @@ package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -37,12 +38,15 @@ public interface MobilityChoiceDto extends Entity {
 
   void setUser(UserDto user);
 
+  @Schema(description = "Rank of this choice among the applications of the student "
+      + "(1 = first choice).")
   @Min(1)
   @Max(MAX_ORDER_CHOICE)
   int getPreferenceOrder();
 
   void setPreferenceOrder(int preferenceOrder);
 
+  @Schema(description = "SMS (studies abroad) or SMP (internship abroad).")
   @NotBlank
   @Pattern(regexp = "(" + MOBILITY_TYPE_SMS + "|" + MOBILITY_TYPE_SMP + ")?",
       message = "{pae.validation.mobilityType.message}")
@@ -55,6 +59,7 @@ public interface MobilityChoiceDto extends Entity {
 
   void setAcademicYear(int academicYear);
 
+  @Schema(description = "Term of the academic year (1 = first term, 2 = second term).")
   @Min(1)
   @Max(MAX_TERM_CHOICE)
   int getTerm();

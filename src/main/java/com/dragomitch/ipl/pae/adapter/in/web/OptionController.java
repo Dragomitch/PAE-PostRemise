@@ -4,6 +4,8 @@ import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Options", description = "Reference data: the study options (public list, shown on "
+    + "the sign-up form).")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/options")
 public class OptionController {
@@ -29,6 +33,7 @@ public class OptionController {
   }
 
   /** The partners offering an option. */
+  @Operation(summary = "The partners offering the option")
   @GetMapping("/{optionCode}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public List<PartnerDto> findAllPartnersByOption(

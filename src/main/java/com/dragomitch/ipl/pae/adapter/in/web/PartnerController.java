@@ -7,6 +7,8 @@ import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.groups.Default;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Partners", description = "Partner institutions and companies, and the options they "
+    + "offer.")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/partners")
 public class PartnerController {
@@ -67,6 +71,7 @@ public class PartnerController {
    * Adds an option to a partner: any partner for a professor, only a non-official partner of one
    * of his own mobility choices or mobilities for a student (403 otherwise).
    */
+  @Operation(summary = "Adds an option to the partner")
   @PostMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public void addOption(@PathVariable @Positive int id,
@@ -74,6 +79,7 @@ public class PartnerController {
     partnerService.addOption(id, partnerOption, currentUser.id(), currentUser.role());
   }
 
+  @Operation(summary = "The options offered by the partner")
   @GetMapping("/partnersOptions/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public List<PartnerOptionDto> findAllPartnerOption(@PathVariable @Positive int id) {
