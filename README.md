@@ -188,10 +188,16 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 | Frontend | `npm ci`, production build, Karma tests (headless Chrome) with coverage |
 | Workflow lint | `actionlint` on the workflows |
 | Docker | `docker compose config`, backend and frontend image builds |
+| End-to-end | the jar on a PostgreSQL 18 service container: `e2e/run-e2e.sh` (API scenario, Playwright walk of the legacy UI and the Angular app), screenshots and logs uploaded |
 | Test report | publishes a **Test results** check (failures annotated on the diff), a job summary and a sticky PR comment with test counts and coverage |
 | CI passed | single gate job to mark as *required* in branch protection |
 
 Reproduce locally with `mvn verify` and `cd frontend && npm run test:ci`.
+
+## End-to-end tests
+`e2e/` holds an API scenario (Python) and a Playwright walk of the legacy UI and the Angular app,
+run against the packaged jar on PostgreSQL by `e2e/run-e2e.sh`, locally or in the `e2e` CI job.
+See [e2e/README.md](e2e/README.md) for what is checked, the ports and how to run it.
 
 ## Roadmap
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the CI/CD proposals, the Spring / Spring Boot improvements and the behaviour decisions.

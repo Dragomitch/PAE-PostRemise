@@ -31,3 +31,8 @@ Cahiers des charges/WorkDocument Cahier des Charges/
 # Angular build artifacts
 frontend/public/favicon.ico
 
+
+# End-to-end run (e2e/run-e2e.sh)
+e2e/node_modules/
+e2e/screenshots/
+e2e/*.log
