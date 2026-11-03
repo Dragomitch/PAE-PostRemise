@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.ReferenceDataMapper;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,24 +27,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class DenialReasonController {
 
   private final DenialReasonService denialReasonService;
+  private final ReferenceDataMapper mapper;
 
-  public DenialReasonController(DenialReasonService denialReasonService) {
+  public DenialReasonController(
+      DenialReasonService denialReasonService, ReferenceDataMapper mapper) {
     this.denialReasonService = denialReasonService;
+    this.mapper = mapper;
   }
 
   @PostMapping
   public DenialReasonDto create(@RequestBody @Valid DenialReasonDto denialReason) {
-    return denialReasonService.create(denialReason);
+    return mapper.toDto(denialReasonService.create(mapper.toDomain(denialReason)));
   }
 
   @GetMapping
   public List<DenialReasonDto> showAll() {
-    return denialReasonService.showAll();
+    return mapper.toDenialReasonDtos(denialReasonService.showAll());
   }
 
   @PutMapping("/{id}")
   public DenialReasonDto edit(
       @PathVariable @Positive int id, @RequestBody @Valid DenialReasonDto denialReason) {
-    return denialReasonService.edit(id, denialReason);
+    return mapper.toDto(denialReasonService.edit(id, mapper.toDomain(denialReason)));
   }
 }

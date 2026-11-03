@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.OptionDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.ReferenceDataMapper;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,15 +23,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class OptionController {
 
   private final OptionService optionService;
+  private final ReferenceDataMapper mapper;
 
-  public OptionController(OptionService optionService) {
+  public OptionController(OptionService optionService, ReferenceDataMapper mapper) {
     this.optionService = optionService;
+    this.mapper = mapper;
   }
 
   /** Public: the sign-up form lists the options. */
   @GetMapping
   public List<OptionDto> showAll() {
-    return optionService.showAll();
+    return mapper.toOptionDtos(optionService.showAll());
   }
 
   /** The partners offering an option. */

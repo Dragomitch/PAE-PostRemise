@@ -15,5 +15,8 @@ import org.springframework.context.annotation.Import;
  */
 @TestConfiguration(proxyBeanMethods = false)
 @Import({SecurityConfig.class, JacksonConfig.class, SessionCookieService.class})
-@ComponentScan("com.dragomitch.ipl.pae.domain.model")
+@ComponentScan({
+  "com.dragomitch.ipl.pae.domain.model",
+  "com.dragomitch.ipl.pae.adapter.in.web.mapping"
+})
 public class WebTestConfig {}
