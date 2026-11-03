@@ -59,7 +59,7 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | S26 | Layered jar + `spring-boot:build-image` (buildpacks) or `jarmode=tools extract` in the Dockerfile | Fat jar copied as one layer | Smaller, cache-friendly images | ✅ #137 PR (`jarmode=tools extract --layers` in `backend/Dockerfile`) |
 | S27 | Graceful shutdown + readiness/liveness probes (`server.shutdown=graceful`, Actuator probes) | Hard stop | Zero-downtime deploys | ✅ #137 PR (`server.shutdown=graceful`, 20s; liveness and readiness probes) |
 | S28 | Caching reference data (`@Cacheable` on countries, options, programmes) | Queried on every page | Fewer DB round-trips | 💡 |
-| S29 | Serve the Angular build from the backend or retire the legacy jQuery UI once the Angular app covers its screens | Two UIs to maintain; legacy one is French-only | One i18n'd UI | 🚧 shell and partners screen in #142 PR; mobility choices screen (#154) |
+| S29 | Serve the Angular build from the backend or retire the legacy jQuery UI once the Angular app covers its screens | Two UIs to maintain; legacy one is French-only | One i18n'd UI | 🚧 shell and partners screen in #142 PR; mobility choices screen (#154); student's personal data and professor's users screens (#165) |
 | S30 | Spring Modulith (or ArchUnit) tests to enforce the layering web → service → persistence | Layering by convention | Build fails on violations | ✅ `ArchitectureTest` (ArchUnit) with the hexagonal packages of issue #102 step 2 |
 
 ## 3. Behaviour decisions
