@@ -22,8 +22,9 @@ class CsvStringBuilderTest {
     csv.write("Rempli");
 
     String s = String.valueOf(separator);
-    assertThat(csv.close()).isEqualTo("﻿" + "Nom" + s + "Prénom" + s + "\n"
-        + "Martin" + s + "Alice" + s + s + "Rempli" + s);
+    assertThat(csv.close())
+        .isEqualTo(
+            "﻿" + "Nom" + s + "Prénom" + s + "\n" + "Martin" + s + "Alice" + s + s + "Rempli" + s);
   }
 
   @ParameterizedTest

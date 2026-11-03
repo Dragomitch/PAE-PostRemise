@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-
 import java.util.List;
 
 public interface MobilityRepository {
@@ -19,10 +18,9 @@ public interface MobilityRepository {
   String COLUMN_PROF_DENIAL_REASON = "prof_denial_reason";
   String COLUMN_PROFESSOR_IN_CHARGE = "professor_in_charge";
 
-
   /**
    * Inserts a mobility in db.
-   * 
+   *
    * @param mobility the mobility to insert
    * @return the created mobility
    */
@@ -30,7 +28,7 @@ public interface MobilityRepository {
 
   /**
    * Finds a mobility in db.
-   * 
+   *
    * @param id the mobility id to be found
    * @return the mobility found, null if no mobility has been found
    */
@@ -38,14 +36,14 @@ public interface MobilityRepository {
 
   /**
    * Lists all mobilities stored in db.
-   * 
+   *
    * @return a list of all mobilities
    */
   List<MobilityDto> findAll();
 
   /**
    * Lists all mobilities owned by a user.
-   * 
+   *
    * @param user the user id
    * @return a list of mobilities
    */
@@ -53,10 +51,9 @@ public interface MobilityRepository {
 
   /**
    * Updates a mobility in db.
-   * 
+   *
    * @param mobility the mobility to update
    * @return the updated mobility
    */
   MobilityDto update(MobilityDto mobility);
-
 }

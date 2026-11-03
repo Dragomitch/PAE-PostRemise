@@ -10,15 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * A student's wish for a mobility ({@code mobility_choices}): a programme, a term and, possibly,
- * a country and a partner. A professor turns it into a {@link MobilityEntity} (same id) when
+ * A student's wish for a mobility ({@code mobility_choices}): a programme, a term and, possibly, a
+ * country and a partner. A professor turns it into a {@link MobilityEntity} (same id) when
  * confirming it, or denies it with a reason; the student can cancel it.
  */
 @Entity

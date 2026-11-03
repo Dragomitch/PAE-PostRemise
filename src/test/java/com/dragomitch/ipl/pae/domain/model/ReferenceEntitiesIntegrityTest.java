@@ -2,15 +2,8 @@ package com.dragomitch.ipl.pae.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dragomitch.ipl.pae.domain.model.Country;
-import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.Option;
-import com.dragomitch.ipl.pae.domain.model.Programme;
-import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
-
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -19,8 +12,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Constraints of the small reference entities: option, programme, country, denial reason (their
- * former {@code checkDataIntegrity()}), in full ({@code Default} group) and as references
- * ({@code Reference} group: only the identifier).
+ * former {@code checkDataIntegrity()}), in full ({@code Default} group) and as references ({@code
+ * Reference} group: only the identifier).
  */
 class ReferenceEntitiesIntegrityTest {
 
@@ -47,8 +40,14 @@ class ReferenceEntitiesIntegrityTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"NULL, option code, code:NotBlank", "'', empty code, code:NotBlank",
-      "BI, code too short, code:Size", "BINF, code too long, code:Size"}, nullValues = "NULL")
+  @CsvSource(
+      value = {
+        "NULL, option code, code:NotBlank",
+        "'', empty code, code:NotBlank",
+        "BI, code too short, code:Size",
+        "BINF, code too long, code:Size"
+      },
+      nullValues = "NULL")
   void anOptionIsIdentifiedByACodeOfThreeCharacters(String code, String why, String violation) {
     assertThat(Violations.of(option(code, "Informatique"))).as(why).contains(violation);
     assertThat(Violations.of(option(code, "Informatique"), Reference.class)).contains(violation);
@@ -67,12 +66,17 @@ class ReferenceEntitiesIntegrityTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"-1, Erasmus+, Mobility Tool, id:PositiveOrZero",
-      "1, NULL, Mobility Tool, programmeName:NotBlank", "1, '', Tool, programmeName:NotBlank",
-      "1, Erasmus+, NULL, externalSoftName:NotBlank", "1, Erasmus+, '', externalSoftName:NotBlank"},
+  @CsvSource(
+      value = {
+        "-1, Erasmus+, Mobility Tool, id:PositiveOrZero",
+        "1, NULL, Mobility Tool, programmeName:NotBlank",
+        "1, '', Tool, programmeName:NotBlank",
+        "1, Erasmus+, NULL, externalSoftName:NotBlank",
+        "1, Erasmus+, '', externalSoftName:NotBlank"
+      },
       nullValues = "NULL")
-  void aProgrammeNeedsANonNegativeIdAndBothNames(int id, String name, String software,
-      String violation) {
+  void aProgrammeNeedsANonNegativeIdAndBothNames(
+      int id, String name, String software, String violation) {
     assertThat(Violations.of(programme(id, name, software))).containsExactly(violation);
   }
 
@@ -94,11 +98,16 @@ class ReferenceEntitiesIntegrityTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"NULL, Belgique, Erabel, countryCode:NotBlank",
-      "BEL, Belgique, Erabel, countryCode:Size", "BE, '', Erabel, name:NotBlank",
-      "BE, Belgique, '', programme.programmeName:NotBlank"}, nullValues = "NULL")
-  void aCountryChecksItsFieldsAndItsProgramme(String code, String name, String programmeName,
-      String violation) {
+  @CsvSource(
+      value = {
+        "NULL, Belgique, Erabel, countryCode:NotBlank",
+        "BEL, Belgique, Erabel, countryCode:Size",
+        "BE, '', Erabel, name:NotBlank",
+        "BE, Belgique, '', programme.programmeName:NotBlank"
+      },
+      nullValues = "NULL")
+  void aCountryChecksItsFieldsAndItsProgramme(
+      String code, String name, String programmeName, String violation) {
     Country country = (Country) factory.build(Country.class);
     country.setCountryCode(code);
     country.setName(name);
@@ -140,7 +149,6 @@ class ReferenceEntitiesIntegrityTest {
     DenialReason reason = (DenialReason) factory.build(DenialReason.class);
     reason.setReason("x".repeat(length));
 
-    assertThat(Violations.of(reason))
-        .isEqualTo(valid ? List.of() : List.of("reason:Size"));
+    assertThat(Violations.of(reason)).isEqualTo(valid ? List.of() : List.of("reason:Size"));
   }
 }

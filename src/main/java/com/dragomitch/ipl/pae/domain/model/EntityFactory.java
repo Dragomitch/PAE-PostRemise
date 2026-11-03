@@ -6,7 +6,7 @@ public interface EntityFactory {
 
   /**
    * Builds an entity of class {@code cl} and returns it.
-   * 
+   *
    * @param cl the entity class (a business or DTO interface)
    * @return an instantiated entity
    * @throws IllegalArgumentException if no implementation is bound to {@code cl}
@@ -20,5 +20,4 @@ public interface EntityFactory {
    * @return an unmodifiable interface-to-implementation map
    */
   Map<Class<?>, Class<?>> getImplementations();
-
 }

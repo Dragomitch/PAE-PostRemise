@@ -9,12 +9,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
-import com.dragomitch.ipl.pae.domain.model.Violations;
-import com.dragomitch.ipl.pae.domain.validation.Bic;
-import com.dragomitch.ipl.pae.domain.validation.Iban;
-import com.dragomitch.ipl.pae.domain.validation.PhoneNumber;
-
 import java.time.LocalDate;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -83,50 +77,60 @@ class NominatedStudentImplTest {
         invalid("unknown title (602)", s -> s.setTitle("Dr"), "title:Pattern"),
         invalid("no birthdate (604)", s -> s.setBirthdate(null), "birthdate:NotNull"),
         invalid("born today (605)", s -> s.setBirthdate(LocalDate.now()), "birthdate:Past"),
-        invalid("born tomorrow (605)", s -> s.setBirthdate(LocalDate.now().plusDays(1)),
+        invalid(
+            "born tomorrow (605)",
+            s -> s.setBirthdate(LocalDate.now().plusDays(1)),
             "birthdate:Past"),
         invalid("no nationality (606)", s -> s.setNationality(null), "nationality:NotNull"),
-        invalid("nationality without code (900)", s -> s.getNationality().setCountryCode(null),
+        invalid(
+            "nationality without code (900)",
+            s -> s.getNationality().setCountryCode(null),
             "nationality.countryCode:NotBlank"),
-        invalid("nationality code of 3 letters (314)",
-            s -> s.getNationality().setCountryCode("BEL"), "nationality.countryCode:Size"),
+        invalid(
+            "nationality code of 3 letters (314)",
+            s -> s.getNationality().setCountryCode("BEL"),
+            "nationality.countryCode:Size"),
         invalid("no address (608)", s -> s.setAddress(null), "address:NotNull"),
         invalid("invalid address", s -> s.getAddress().setCity(""), "address.city:NotBlank"),
         invalid("no phone number (619)", s -> s.setPhoneNumber(""), "phoneNumber:NotBlank"),
-        invalid("phone number too long (609)", s -> s.setPhoneNumber("+3247000000000001"),
+        invalid(
+            "phone number too long (609)",
+            s -> s.setPhoneNumber("+3247000000000001"),
             "phoneNumber:Size"),
-        invalid("malformed phone number (619)", s -> s.setPhoneNumber("call me"),
+        invalid(
+            "malformed phone number (619)",
+            s -> s.setPhoneNumber("call me"),
             "phoneNumber:PhoneNumber"),
         invalid("no gender (610)", s -> s.setGender(null), "gender:NotBlank"),
         invalid("unknown gender (611)", s -> s.setGender("X"), "gender:Pattern"),
-        invalid("zero passed years (612)", s -> s.setNbrPassedYears(0),
-            "nbrPassedYears:Positive"),
+        invalid("zero passed years (612)", s -> s.setNbrPassedYears(0), "nbrPassedYears:Positive"),
         invalid("no IBAN (613)", s -> s.setIban(null), "iban:NotBlank"),
         invalid("malformed IBAN (613)", s -> s.setIban("BE68-5390"), "iban:Iban"),
-        invalid("IBAN with a wrong checksum (613)", s -> s.setIban("BE68539007547035"),
-            "iban:Iban"),
-        invalid("IBAN longer than the column (613)", s -> s.setIban("LC55HEMM000100010012001200023015"),
+        invalid(
+            "IBAN with a wrong checksum (613)", s -> s.setIban("BE68539007547035"), "iban:Iban"),
+        invalid(
+            "IBAN longer than the column (613)",
+            s -> s.setIban("LC55HEMM000100010012001200023015"),
             "iban:Size"),
-        invalid("card holder too long (614)", s -> s.setCardHolder("x".repeat(36)),
-            "cardHolder:Size"),
+        invalid(
+            "card holder too long (614)", s -> s.setCardHolder("x".repeat(36)), "cardHolder:Size"),
         invalid("no bank name (615)", s -> s.setBankName(null), "bankName:NotBlank"),
-        invalid("bank name too long (616)", s -> s.setBankName("b".repeat(61)),
-            "bankName:Size"),
+        invalid("bank name too long (616)", s -> s.setBankName("b".repeat(61)), "bankName:Size"),
         invalid("no BIC (617)", s -> s.setBic(""), "bic:NotBlank"),
         invalid("malformed BIC (617)", s -> s.setBic("GKCC"), "bic:Bic"),
         invalid("user part: malformed email", s -> s.setEmail("not an email"), "email:Email"),
         invalid("user part: no username", s -> s.setUsername(null), "username:NotBlank"));
   }
 
-  private static Arguments invalid(String name, Consumer<NominatedStudent> change,
-      String violation) {
+  private static Arguments invalid(
+      String name, Consumer<NominatedStudent> change, String violation) {
     return arguments(named(name, change), violation);
   }
 
   @ParameterizedTest(name = "{0} -> {1}")
   @MethodSource("invalidFields")
-  void eachInvalidFieldIsReportedOnItsProperty(Consumer<NominatedStudent> change,
-      String violation) {
+  void eachInvalidFieldIsReportedOnItsProperty(
+      Consumer<NominatedStudent> change, String violation) {
     change.accept(student);
 
     assertThat(Violations.of(student)).containsExactly(violation);
@@ -136,11 +140,23 @@ class NominatedStudentImplTest {
   void everyViolationIsReportedAtOnce() {
     NominatedStudent empty = (NominatedStudent) factory.build(NominatedStudent.class);
 
-    assertThat(Violations.of(empty)).containsExactly("address:NotNull", "bankName:NotBlank",
-        "bic:NotBlank", "birthdate:NotNull", "email:NotBlank", "firstName:NotBlank",
-        "gender:NotBlank", "iban:NotBlank", "lastName:NotBlank", "nationality:NotNull",
-        "nbrPassedYears:Positive", "option:NotNull", "phoneNumber:NotBlank", "title:NotBlank",
-        "username:NotBlank");
+    assertThat(Violations.of(empty))
+        .containsExactly(
+            "address:NotNull",
+            "bankName:NotBlank",
+            "bic:NotBlank",
+            "birthdate:NotNull",
+            "email:NotBlank",
+            "firstName:NotBlank",
+            "gender:NotBlank",
+            "iban:NotBlank",
+            "lastName:NotBlank",
+            "nationality:NotNull",
+            "nbrPassedYears:Positive",
+            "option:NotNull",
+            "phoneNumber:NotBlank",
+            "title:NotBlank",
+            "username:NotBlank");
   }
 
   @ParameterizedTest

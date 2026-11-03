@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.adapter.out.persistence.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FindOption;
-
 import java.util.Optional;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -16,10 +15,10 @@ import org.springframework.util.Assert;
  * <p>Hibernate 7's {@code EntityManager.find(Class, Object)}, which {@link SimpleJpaRepository}
  * calls, catches a generic JDBC or connection error of the {@code SELECT} once it has marked the
  * transaction for rollback, logs it and returns {@code null} (HHH-12472). An adapter would then
- * answer "unknown id" (a 404, or a 409 for an update) for what is a 500. The JPA 3.2
- * {@code find(Class, Object, FindOption...)} loads the entity in the same way (persistence context
- * first) and lets the error through, so that the adapters translate it into a
- * {@code DataAccessException} ({@code RepositoryErrorHandlingIT}).
+ * answer "unknown id" (a 404, or a 409 for an update) for what is a 500. The JPA 3.2 {@code
+ * find(Class, Object, FindOption...)} loads the entity in the same way (persistence context first)
+ * and lets the error through, so that the adapters translate it into a {@code DataAccessException}
+ * ({@code RepositoryErrorHandlingIT}).
  *
  * <p>None of the repositories declares a lock mode or query hints for {@code findById}, which
  * {@link SimpleJpaRepository} would otherwise apply.
@@ -39,8 +38,8 @@ public class StrictFindByIdRepository<T, I> extends SimpleJpaRepository<T, I> {
    * @param entityInformation the metadata of the entity
    * @param entityManager the shared entity manager
    */
-  public StrictFindByIdRepository(JpaEntityInformation<T, ?> entityInformation,
-      EntityManager entityManager) {
+  public StrictFindByIdRepository(
+      JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
     super(entityInformation, entityManager);
     this.entityManager = entityManager;
   }
@@ -52,8 +51,8 @@ public class StrictFindByIdRepository<T, I> extends SimpleJpaRepository<T, I> {
   }
 
   /**
-   * Loads an entity by its id, throwing a database failure instead of returning {@code null}:
-   * the replacement of {@code entityManager.find(type, id)} (see the class comment).
+   * Loads an entity by its id, throwing a database failure instead of returning {@code null}: the
+   * replacement of {@code entityManager.find(type, id)} (see the class comment).
    *
    * @param entityManager the entity manager
    * @param type the entity class

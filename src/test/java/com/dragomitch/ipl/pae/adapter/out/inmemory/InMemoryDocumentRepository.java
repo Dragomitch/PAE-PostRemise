@@ -1,11 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.model.Document;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class InMemoryDocumentRepository implements DocumentRepository {
 
   /**
    * Sole constructor.
-   * 
+   *
    * @param entityFactory a factory for objects
    */
   public InMemoryDocumentRepository(EntityFactory entityFactory) {
@@ -64,7 +63,7 @@ public class InMemoryDocumentRepository implements DocumentRepository {
 
   /**
    * Returns the document bearing the given document id.
-   * 
+   *
    * @param documentId the id to look for
    * @return null if no document found.
    */

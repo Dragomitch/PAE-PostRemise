@@ -10,13 +10,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.model.Mobility;
-import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -51,12 +48,13 @@ class MobilityImplTest {
 
   @ParameterizedTest(name = "[{0}] all={1} departure={2} return={3}")
   @CsvSource({
-      "'',          true,  true,  true",
-      "D+ R+,       true,  true,  true",
-      "D+ D R+,     false, false, true",
-      "D+ R,        false, true,  false",
-      "D R,         false, false, false",
-      "D+ D+,       true,  true,  true"})
+    "'',          true,  true,  true",
+    "D+ R+,       true,  true,  true",
+    "D+ D R+,     false, false, true",
+    "D+ R,        false, true,  false",
+    "D R,         false, false, false",
+    "D+ D+,       true,  true,  true"
+  })
   void documentCompleteness(String documents, boolean all, boolean departure, boolean ret) {
     Mobility mobility = mobility(documents);
 
@@ -64,14 +62,12 @@ class MobilityImplTest {
     assertThat(mobility.allDepartureDocumentsFilledIn()).isEqualTo(departure);
     assertThat(mobility.allReturnDocumentsFilledIn()).isEqualTo(ret);
     assertOutcome(mobility::checkAllDocumentsFilledIn, all, DOCUMENTS_INCOMPLETE);
-    assertOutcome(mobility::checkAllDepartureDocumentsFilledIn, departure,
-        DEPARTURE_DOCUMENTS_INCOMPLETE);
-    assertOutcome(mobility::checkAllReturnDocumentsFilledIn, ret,
-        RETURN_DOCUMENTS_INCOMPLETE);
+    assertOutcome(
+        mobility::checkAllDepartureDocumentsFilledIn, departure, DEPARTURE_DOCUMENTS_INCOMPLETE);
+    assertOutcome(mobility::checkAllReturnDocumentsFilledIn, ret, RETURN_DOCUMENTS_INCOMPLETE);
   }
 
-  private static void assertOutcome(ThrowingCallable check, boolean passes,
-      ErrorCode errorCode) {
+  private static void assertOutcome(ThrowingCallable check, boolean passes, ErrorCode errorCode) {
     if (passes) {
       assertThatCode(check).doesNotThrowAnyException();
     } else {
@@ -83,10 +79,10 @@ class MobilityImplTest {
   void documentChecksNeedTheDocumentsToBeLoaded() {
     Mobility mobility = (Mobility) factory.build(Mobility.class);
 
-    assertThatThrownBy(mobility::allDocumentsFilledIn).isInstanceOf(FatalException.class)
+    assertThatThrownBy(mobility::allDocumentsFilledIn)
+        .isInstanceOf(FatalException.class)
         .hasMessage(FatalException.LAZY_LOADING_ERROR_MSG);
-    assertThatThrownBy(mobility::allDepartureDocumentsFilledIn)
-        .isInstanceOf(FatalException.class);
+    assertThatThrownBy(mobility::allDepartureDocumentsFilledIn).isInstanceOf(FatalException.class);
     assertThatThrownBy(mobility::allReturnDocumentsFilledIn).isInstanceOf(FatalException.class);
     assertThatThrownBy(() -> mobility.fillInDocument(1)).isInstanceOf(FatalException.class);
   }
@@ -121,31 +117,43 @@ class MobilityImplTest {
 
   @ParameterizedTest(name = "state {0}: notCancelled={1} notClosed={2}")
   @CsvSource({
-      "Créée,          true,  true",
-      "En préparation, true,  true",
-      "A payer,        true,  true",
-      "En cours,       true,  true",
-      "Solde à payer,  true,  true",
-      "Terminée,       true,  false",
-      "Annulée,        false, true"})
+    "Créée,          true,  true",
+    "En préparation, true,  true",
+    "A payer,        true,  true",
+    "En cours,       true,  true",
+    "Solde à payer,  true,  true",
+    "Terminée,       true,  false",
+    "Annulée,        false, true"
+  })
   void stateChecks(String state, boolean notCancelled, boolean notClosed) {
     Mobility mobility = (Mobility) factory.build(Mobility.class);
     mobility.setState(state);
 
     assertOutcome(mobility::checkNotCancelled, notCancelled, MOBILITY_CANCELLED);
     assertOutcome(mobility::checkNotClosed, notClosed, MOBILITY_CLOSED);
-    ErrorCode combinedError = !notCancelled ? MOBILITY_CANCELLED
-        : MOBILITY_CLOSED;
-    assertOutcome(mobility::checkNotCancelledAndNotClosed, notCancelled && notClosed,
-        combinedError);
+    ErrorCode combinedError = !notCancelled ? MOBILITY_CANCELLED : MOBILITY_CLOSED;
+    assertOutcome(
+        mobility::checkNotCancelledAndNotClosed, notCancelled && notClosed, combinedError);
   }
 
   @Test
   void theStateConstantsMatchTheValuesStoredInTheDatabase() {
-    assertThat(List.of(MobilityDto.STATE_CREATED, MobilityDto.STATE_IN_PREPARATION,
-        MobilityDto.STATE_TO_BE_PAID, MobilityDto.STATE_IN_PROGRESS,
-        MobilityDto.STATE_BALANCE_TO_BE_PAID, MobilityDto.STATE_CLOSED,
-        MobilityDto.STATE_CANCELLED)).containsExactly("Créée", "En préparation", "A payer",
-            "En cours", "Solde à payer", "Terminée", "Annulée");
+    assertThat(
+            List.of(
+                MobilityDto.STATE_CREATED,
+                MobilityDto.STATE_IN_PREPARATION,
+                MobilityDto.STATE_TO_BE_PAID,
+                MobilityDto.STATE_IN_PROGRESS,
+                MobilityDto.STATE_BALANCE_TO_BE_PAID,
+                MobilityDto.STATE_CLOSED,
+                MobilityDto.STATE_CANCELLED))
+        .containsExactly(
+            "Créée",
+            "En préparation",
+            "A payer",
+            "En cours",
+            "Solde à payer",
+            "Terminée",
+            "Annulée");
   }
 }

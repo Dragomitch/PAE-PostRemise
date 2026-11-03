@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.domain.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import org.junit.jupiter.api.Test;
@@ -12,9 +11,9 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * What remains of {@link DataValidationUtils} (used by a JDBC DAO). The former format checks
- * (IBAN, BIC, email, phone number) are tested as Bean Validation constraints in
- * {@code CustomConstraintsTest}.
+ * What remains of {@link DataValidationUtils} (used by a JDBC DAO). The former format checks (IBAN,
+ * BIC, email, phone number) are tested as Bean Validation constraints in {@code
+ * CustomConstraintsTest}.
  */
 class DataValidationUtilsTest {
 
@@ -36,7 +35,9 @@ class DataValidationUtilsTest {
         DataValidationUtils.class.getDeclaredConstructor();
     constructor.setAccessible(true);
 
-    assertThatThrownBy(constructor::newInstance).isInstanceOf(InvocationTargetException.class)
-        .cause().isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(constructor::newInstance)
+        .isInstanceOf(InvocationTargetException.class)
+        .cause()
+        .isInstanceOf(UnsupportedOperationException.class);
   }
 }

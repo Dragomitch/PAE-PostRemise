@@ -10,15 +10,13 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * The personal data of a student nominated for a mobility ({@code nominated_students}). It
- * shares its primary key with the user ({@code user_id}, mapped with {@link MapsId}).
+ * The personal data of a student nominated for a mobility ({@code nominated_students}). It shares
+ * its primary key with the user ({@code user_id}, mapped with {@link MapsId}).
  */
 @Entity
 @Table(name = "nominated_students")

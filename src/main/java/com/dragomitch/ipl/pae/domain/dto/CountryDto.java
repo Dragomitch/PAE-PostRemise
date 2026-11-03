@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +17,10 @@ public interface CountryDto {
   int NAME_MAX_LENGTH = 100;
 
   @NotBlank(groups = {Default.class, Reference.class})
-  @Size(min = CODE_LENGTH, max = CODE_LENGTH, groups = {Default.class, Reference.class})
+  @Size(
+      min = CODE_LENGTH,
+      max = CODE_LENGTH,
+      groups = {Default.class, Reference.class})
   String getCountryCode();
 
   void setCountryCode(String countryCode);

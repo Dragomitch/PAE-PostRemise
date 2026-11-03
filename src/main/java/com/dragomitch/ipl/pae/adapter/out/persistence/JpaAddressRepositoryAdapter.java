@@ -5,12 +5,9 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.CountryEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.AddressJpaRepository;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.ConcurrentModificationException;
-
 import org.springframework.stereotype.Repository;
 
 /** The postal addresses of the partners and of the nominated students. */
@@ -20,8 +17,7 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
   private final AddressJpaRepository addresses;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   JpaAddressRepositoryAdapter(AddressJpaRepository addresses, PersistenceMapper mapper) {
     this.addresses = addresses;
@@ -48,17 +44,19 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
   /**
    * {@inheritDoc}
    *
-   * @throws ConcurrentModificationException if the address does not exist or its version is not
-   *         the DTO's (it was changed since it was read)
+   * @throws ConcurrentModificationException if the address does not exist or its version is not the
+   *     DTO's (it was changed since it was read)
    */
   @Override
   public AddressDto update(AddressDto address) {
-    AddressEntity entity = addresses.findById(address.getId())
-        .filter(found -> found.getVersion() == address.getVersion())
-        .orElseThrow(ConcurrentModificationException::new);
+    AddressEntity entity =
+        addresses
+            .findById(address.getId())
+            .filter(found -> found.getVersion() == address.getVersion())
+            .orElseThrow(ConcurrentModificationException::new);
     copy(address, entity);
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        address.getVersion());
+    Versions.flushIncrementingVersion(
+        entityManager, entity, entity::getVersion, address.getVersion());
     address.setVersion(entity.getVersion());
     return address;
   }
@@ -66,8 +64,8 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
   private void copy(AddressDto address, AddressEntity entity) {
     entity.setStreet(address.getStreet());
     entity.setNumber(address.getNumber());
-    entity.setCountry(entityManager.getReference(CountryEntity.class,
-        address.getCountry().getCountryCode()));
+    entity.setCountry(
+        entityManager.getReference(CountryEntity.class, address.getCountry().getCountryCode()));
     entity.setCity(address.getCity());
     entity.setPostalCode(address.getPostalCode());
     entity.setRegion(address.getRegion());

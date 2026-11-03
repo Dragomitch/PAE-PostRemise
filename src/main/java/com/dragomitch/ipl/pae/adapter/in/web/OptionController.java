@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.adapter.in.web;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Size;
@@ -14,8 +13,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Options", description = "Reference data: the study options (public list, shown on "
-    + "the sign-up form).")
+@Tag(
+    name = "Options",
+    description =
+        "Reference data: the study options (public list, shown on " + "the sign-up form).")
 @RestController
 @RequestMapping(ApiPaths.BASE + "/options")
 public class OptionController {
@@ -38,7 +39,7 @@ public class OptionController {
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public List<PartnerDto> findAllPartnersByOption(
       @PathVariable @Size(min = OptionDto.CODE_LENGTH, max = OptionDto.CODE_LENGTH)
-      String optionCode) {
+          String optionCode) {
     return optionService.findAllPartnersByOption(optionCode);
   }
 }

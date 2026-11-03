@@ -8,12 +8,9 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerOptionJp
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.List;
-
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 
@@ -24,11 +21,10 @@ class JpaPartnerOptionRepositoryAdapter implements PartnerOptionRepository {
   private final PartnerOptionJpaRepository partnerOptions;
   private final PersistenceMapper mapper;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
-  JpaPartnerOptionRepositoryAdapter(PartnerOptionJpaRepository partnerOptions,
-      PersistenceMapper mapper) {
+  JpaPartnerOptionRepositoryAdapter(
+      PartnerOptionJpaRepository partnerOptions, PersistenceMapper mapper) {
     this.partnerOptions = partnerOptions;
     this.mapper = mapper;
   }
@@ -54,22 +50,26 @@ class JpaPartnerOptionRepositoryAdapter implements PartnerOptionRepository {
   /** The partners offering the option, each known by its id only. */
   @Override
   public List<PartnerDto> findAllPartnersByOption(String optionCode) {
-    return partnerOptions.findPartnerIdsByOption(optionCode).stream().map(id -> {
-      PartnerDto partner = mapper.build(PartnerDto.class);
-      partner.setId(id);
-      return partner;
-    }).toList();
+    return partnerOptions.findPartnerIdsByOption(optionCode).stream()
+        .map(id -> {
+          PartnerDto partner = mapper.build(PartnerDto.class);
+          partner.setId(id);
+          return partner;
+        })
+        .toList();
   }
 
   /** The options of the partner: code, department and name. */
   @Override
   public List<PartnerOptionDto> findAllOptionsByPartner(int partnerId) {
-    return partnerOptions.findByPartnerWithOption(partnerId).stream().map(entity -> {
-      PartnerOptionDto option = mapper.build(PartnerOptionDto.class);
-      option.setCode(entity.getId().getOptionCode());
-      option.setDepartement(entity.getDepartment());
-      option.setName(entity.getOption().getName());
-      return option;
-    }).toList();
+    return partnerOptions.findByPartnerWithOption(partnerId).stream()
+        .map(entity -> {
+          PartnerOptionDto option = mapper.build(PartnerOptionDto.class);
+          option.setCode(entity.getId().getOptionCode());
+          option.setDepartement(entity.getDepartment());
+          option.setName(entity.getOption().getName());
+          return option;
+        })
+        .toList();
   }
 }

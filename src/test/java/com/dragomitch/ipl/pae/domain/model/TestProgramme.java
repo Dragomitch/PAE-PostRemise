@@ -2,12 +2,10 @@ package com.dragomitch.ipl.pae.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.dragomitch.ipl.pae.UnitTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -15,8 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestProgramme {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private static final int ID = 1;
   private static final String PROGRAMMENAME = "Erasmus+";
@@ -26,9 +23,7 @@ public class TestProgramme {
   private EntityFactory entityFactory;
   private ProgrammeDto programme;
 
-  /**
-   * Creates a new Programme instance.
-   */
+  /** Creates a new Programme instance. */
   @BeforeEach
   public void setUp() throws Exception {
     entityFactory = context.getBean(EntityFactory.class);

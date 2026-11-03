@@ -16,10 +16,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The value is a phone number: an optional leading {@code +} followed by digits, possibly
- * grouped with spaces, dots, slashes, dashes or parentheses (e.g. {@code +32 2 123 45 67},
- * {@code 0496/43.33.33}). {@code null} and the empty string are valid (combine with
- * {@code @NotBlank}).
+ * The value is a phone number: an optional leading {@code +} followed by digits, possibly grouped
+ * with spaces, dots, slashes, dashes or parentheses (e.g. {@code +32 2 123 45 67}, {@code
+ * 0496/43.33.33}). {@code null} and the empty string are valid (combine with {@code @NotBlank}).
  */
 @Documented
 @Constraint(validatedBy = {})

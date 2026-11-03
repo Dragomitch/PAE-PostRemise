@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.Reference;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -14,9 +13,8 @@ import jakarta.validation.groups.Default;
 import java.time.LocalDateTime;
 
 /**
- * A user account. Constraints: {@link Default} for an edition, {@link Default} and
- * {@link OnCreate} (password required) for a sign-up; lengths are those of the {@code users}
- * table.
+ * A user account. Constraints: {@link Default} for an edition, {@link Default} and {@link OnCreate}
+ * (password required) for a sign-up; lengths are those of the {@code users} table.
  */
 public interface UserDto extends Entity {
 
@@ -33,8 +31,9 @@ public interface UserDto extends Entity {
    * than {@code @Email} alone, which accepts {@code user@localhost}). The empty string matches: it
    * is reported by {@code @NotBlank} only.
    */
-  String EMAIL_REGEXP = "([_A-Za-z0-9+-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*"
-      + "(\\.[A-Za-z]{2,}))?";
+  String EMAIL_REGEXP =
+      "([_A-Za-z0-9+-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*"
+          + "(\\.[A-Za-z]{2,}))?";
 
   @NotBlank
   @Size(max = NAME_MAX_LENGTH)
@@ -84,5 +83,4 @@ public interface UserDto extends Entity {
   String getRole();
 
   void setRole(String role);
-
 }

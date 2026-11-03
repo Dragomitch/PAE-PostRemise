@@ -19,18 +19,20 @@ import tools.jackson.databind.JsonNode;
  * {@code DOWN}, still without any detail, and still without a session. The liveness probe stays UP:
  * a database outage is no reason to restart the application.
  */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-    "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
-    "spring.jpa.properties.jakarta.persistence.database-major-version=16",
-    "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
-    "spring.datasource.url=jdbc:postgresql://localhost:1/unreachable",
-    // the smallest timeout Hikari accepts, so that the check fails at once
-    "spring.datasource.hikari.connection-timeout=250"})
+@SpringBootTest(
+    webEnvironment = WebEnvironment.RANDOM_PORT,
+    properties = {
+      "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
+      "spring.jpa.properties.jakarta.persistence.database-major-version=16",
+      "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+      "spring.datasource.url=jdbc:postgresql://localhost:1/unreachable",
+      // the smallest timeout Hikari accepts, so that the check fails at once
+      "spring.datasource.hikari.connection-timeout=250"
+    })
 @AutoConfigureRestTestClient
 class ActuatorHealthWithoutDatabaseTests {
 
-  @Autowired
-  private RestTestClient rest;
+  @Autowired private RestTestClient rest;
 
   @Test
   void theDatabaseCountsInTheHealthStatus() {

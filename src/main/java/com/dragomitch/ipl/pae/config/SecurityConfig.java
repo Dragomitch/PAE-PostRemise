@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.config;
 
+import com.dragomitch.ipl.pae.adapter.in.web.ApiPaths;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CsrfCookieFilter;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.ExceptionResolverSecurityHandler;
@@ -7,10 +8,7 @@ import com.dragomitch.ipl.pae.adapter.in.web.security.RoleClaimAuthoritiesConver
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieBearerTokenResolver;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionProperties;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SpaCsrfTokenRequestHandler;
-import com.dragomitch.ipl.pae.adapter.in.web.ApiPaths;
-
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-
 import jakarta.servlet.DispatcherType;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -66,25 +64,25 @@ import org.springframework.web.servlet.LocaleResolver;
  * controllers, CSRF protection for the cookie-authenticated browser clients.
  *
  * <ul>
- * <li><b>Authentication</b>: the JWT issued at sign-in ({@code SessionController}) is sent back
- * by browsers in the HttpOnly {@code session} cookie (or by API clients in an
- * {@code Authorization: Bearer} header) and validated by the OAuth2 resource server support
- * (HS256 signature with {@code app.jwt.secret}, {@code exp}, mandatory {@code sub} and
- * {@code role}). No HTTP session is created.</li>
- * <li><b>Authorization</b>: every {@code /api/**} endpoint requires an authenticated user, except
- * the {@linkplain #publicApiEndpoints public ones}; roles are checked on the controllers with
- * {@code @PreAuthorize} ({@code ROLE_PROFESSOR} / {@code ROLE_STUDENT} from the {@code role}
- * claim). The static web UI, its client-side routes and the error page are public. So is
- * {@code GET /actuator/health} (and its sub-paths), which the Docker health check calls without a
- * session; any other {@code /actuator/**} path requires an authenticated user. The OpenAPI
- * document ({@code GET /v3/api-docs}) and the Swagger UI ({@code /swagger-ui.html}) are public
- * as well: they describe the API and hold no data ({@link OpenApiConfig}).</li>
- * <li><b>CSRF</b>: the double-submit cookie pattern for single-page applications: the
- * {@code XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
- * back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.</li>
- * <li><b>Errors</b>: 401 and 403 are rendered by the MVC exception handler
- * ({@code ApiExceptionHandler}) like every other API error: RFC 9457 problems
- * ({@code UNAUTHENTICATED}, {@code ACCESS_DENIED}) localized from {@code Accept-Language}.</li>
+ *   <li><b>Authentication</b>: the JWT issued at sign-in ({@code SessionController}) is sent back
+ *       by browsers in the HttpOnly {@code session} cookie (or by API clients in an {@code
+ *       Authorization: Bearer} header) and validated by the OAuth2 resource server support (HS256
+ *       signature with {@code app.jwt.secret}, {@code exp}, mandatory {@code sub} and {@code
+ *       role}). No HTTP session is created.
+ *   <li><b>Authorization</b>: every {@code /api/**} endpoint requires an authenticated user, except
+ *       the {@linkplain #publicApiEndpoints public ones}; roles are checked on the controllers with
+ *       {@code @PreAuthorize} ({@code ROLE_PROFESSOR} / {@code ROLE_STUDENT} from the {@code role}
+ *       claim). The static web UI, its client-side routes and the error page are public. So is
+ *       {@code GET /actuator/health} (and its sub-paths), which the Docker health check calls
+ *       without a session; any other {@code /actuator/**} path requires an authenticated user. The
+ *       OpenAPI document ({@code GET /v3/api-docs}) and the Swagger UI ({@code /swagger-ui.html})
+ *       are public as well: they describe the API and hold no data ({@link OpenApiConfig}).
+ *   <li><b>CSRF</b>: the double-submit cookie pattern for single-page applications: the {@code
+ *       XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
+ *       back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.
+ *   <li><b>Errors</b>: 401 and 403 are rendered by the MVC exception handler ({@code
+ *       ApiExceptionHandler}) like every other API error: RFC 9457 problems ({@code
+ *       UNAUTHENTICATED}, {@code ACCESS_DENIED}) localized from {@code Accept-Language}.
  * </ul>
  *
  * <p>CORS is handled by the servlet filter of {@link CorsConfig}, ahead of this chain.
@@ -102,8 +100,10 @@ public class SecurityConfig {
 
   /** The OpenAPI document ({@code springdoc.api-docs.path}) and its variants (YAML, groups). */
   static final String OPENAPI_DOCUMENT = "/v3/api-docs";
+
   /** The Swagger UI entry point ({@code springdoc.swagger-ui.path}), redirecting to its files. */
   static final String SWAGGER_UI = "/swagger-ui.html";
+
   /** The files of the Swagger UI. */
   static final String SWAGGER_UI_RESOURCES = "/swagger-ui/**";
 
@@ -119,8 +119,9 @@ public class SecurityConfig {
   static SecretKey buildKey(String secret) {
     byte[] bytes;
     if (secret == null || secret.isBlank()) {
-      logger.warn("app.jwt.secret (JWT_SECRET) is not set: using a random key, "
-          + "sessions will not survive a restart. Set JWT_SECRET outside local development.");
+      logger.warn(
+          "app.jwt.secret (JWT_SECRET) is not set: using a random key, "
+              + "sessions will not survive a restart. Set JWT_SECRET outside local development.");
       bytes = new byte[MIN_SECRET_BYTES];
       new SecureRandom().nextBytes(bytes);
     } else {
@@ -134,11 +135,11 @@ public class SecurityConfig {
   }
 
   /**
-   * Builds the request matchers of this configuration, including the ones behind the
-   * {@code requestMatchers(String...)} shortcuts of the DSL, from the case-insensitive parser of
-   * the controllers ({@link WebConfig#PATH_PATTERN_PARSER}). It replaces Spring Boot's default
-   * builder, which is case-sensitive: with it, {@code /API/1.0/users} would skip the
-   * {@code /api/**} rule while the controllers still serve it.
+   * Builds the request matchers of this configuration, including the ones behind the {@code
+   * requestMatchers(String...)} shortcuts of the DSL, from the case-insensitive parser of the
+   * controllers ({@link WebConfig#PATH_PATTERN_PARSER}). It replaces Spring Boot's default builder,
+   * which is case-sensitive: with it, {@code /API/1.0/users} would skip the {@code /api/**} rule
+   * while the controllers still serve it.
    *
    * @return the request matcher builder
    */
@@ -163,82 +164,102 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http,
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
       RequestMatcher publicApiEndpoints,
-      BearerTokenResolver bearerTokenResolver, JwtAuthenticationConverter jwtAuthenticationConverter,
+      BearerTokenResolver bearerTokenResolver,
+      JwtAuthenticationConverter jwtAuthenticationConverter,
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
       ObjectProvider<LocaleResolver> localeResolver,
-      SessionProperties sessionProperties) throws Exception {
-    ExceptionResolverSecurityHandler errorHandler = new ExceptionResolverSecurityHandler(
-        handlerExceptionResolver, localeResolver.getIfAvailable());
+      SessionProperties sessionProperties)
+      throws Exception {
+    ExceptionResolverSecurityHandler errorHandler =
+        new ExceptionResolverSecurityHandler(
+            handlerExceptionResolver, localeResolver.getIfAvailable());
     CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
     csrfTokenRepository.setCookiePath("/");
-    csrfTokenRepository.setCookieCustomizer(cookie -> cookie
-        .sameSite("Lax")
-        .secure(sessionProperties.cookieSecure()));
+    csrfTokenRepository.setCookieCustomizer(
+        cookie -> cookie.sameSite("Lax").secure(sessionProperties.cookieSecure()));
 
-    http
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    http.sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .requestCache(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
-        .csrf(csrf -> csrf
-            .csrfTokenRepository(csrfTokenRepository)
-            .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-            // The default CsrfAuthenticationStrategy renews the token whenever the session
-            // management filter sees an authentication that is not stored in a session, which,
-            // with stateless JWT authentication, means on every authenticated request: the
-            // XSRF-TOKEN cookie would be expired after each call. The token is per browser, and
-            // sign-in happens in a controller, so there is nothing to renew.
-            .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
-            .withObjectPostProcessor(requireCsrfUnlessAuthorizationHeader()))
+        .csrf(csrf ->
+            csrf.csrfTokenRepository(csrfTokenRepository)
+                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                // The default CsrfAuthenticationStrategy renews the token whenever the session
+                // management filter sees an authentication that is not stored in a session, which,
+                // with stateless JWT authentication, means on every authenticated request: the
+                // XSRF-TOKEN cookie would be expired after each call. The token is per browser, and
+                // sign-in happens in a controller, so there is nothing to renew.
+                .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
+                .withObjectPostProcessor(requireCsrfUnlessAuthorizationHeader()))
         .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-        .authorizeHttpRequests(auth -> auth
-            // SPA fallback (forward:/index.html) and the error page
-            .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-            .requestMatchers(publicApiEndpoints).permitAll()
-            // the String patterns are built by pathPatternRequestMatcherBuilder (case-insensitive)
-            .requestMatchers(ApiPaths.BASE + "/**").authenticated()
-            // the health status (database included) is public: the container health check has no
-            // session. The other exposed endpoint (info) and anything else under /actuator need one.
-            .requestMatchers(HttpMethod.GET, ACTUATOR_BASE + "/health", ACTUATOR_BASE + "/health/**")
+        .authorizeHttpRequests(auth ->
+            auth
+                // SPA fallback (forward:/index.html) and the error page
+                .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR)
                 .permitAll()
-            .requestMatchers(ACTUATOR_BASE + "/**").authenticated()
-            // the OpenAPI document and the Swagger UI (OpenApiConfig) describe the API, no data
-            .requestMatchers(HttpMethod.GET, OPENAPI_DOCUMENT, OPENAPI_DOCUMENT + "/**",
-                SWAGGER_UI, SWAGGER_UI_RESOURCES).permitAll()
-            // the web UI: static files and client-side routes
-            .anyRequest().permitAll())
-        .oauth2ResourceServer(oauth2 -> oauth2
-            .bearerTokenResolver(bearerTokenResolver)
-            .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-            .authenticationEntryPoint(errorHandler)
-            .accessDeniedHandler(errorHandler))
-        .exceptionHandling(exceptions -> exceptions
-            .authenticationEntryPoint(errorHandler)
-            .accessDeniedHandler(errorHandler));
+                .requestMatchers(publicApiEndpoints)
+                .permitAll()
+                // the String patterns are built by pathPatternRequestMatcherBuilder
+                // (case-insensitive)
+                .requestMatchers(ApiPaths.BASE + "/**")
+                .authenticated()
+                // the health status (database included) is public: the container health check has
+                // no
+                // session. The other exposed endpoint (info) and anything else under /actuator need
+                // one.
+                .requestMatchers(
+                    HttpMethod.GET, ACTUATOR_BASE + "/health", ACTUATOR_BASE + "/health/**")
+                .permitAll()
+                .requestMatchers(ACTUATOR_BASE + "/**")
+                .authenticated()
+                // the OpenAPI document and the Swagger UI (OpenApiConfig) describe the API, no data
+                .requestMatchers(
+                    HttpMethod.GET,
+                    OPENAPI_DOCUMENT,
+                    OPENAPI_DOCUMENT + "/**",
+                    SWAGGER_UI,
+                    SWAGGER_UI_RESOURCES)
+                .permitAll()
+                // the web UI: static files and client-side routes
+                .anyRequest()
+                .permitAll())
+        .oauth2ResourceServer(oauth2 ->
+            oauth2
+                .bearerTokenResolver(bearerTokenResolver)
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                .authenticationEntryPoint(errorHandler)
+                .accessDeniedHandler(errorHandler))
+        .exceptionHandling(exceptions ->
+            exceptions.authenticationEntryPoint(errorHandler).accessDeniedHandler(errorHandler));
     return http.build();
   }
 
   /**
-   * The OAuth2 resource server support exempts from CSRF every request on which the
-   * {@link BearerTokenResolver} finds a token, which is right for a token sent in an
-   * {@code Authorization} header (a browser never adds it by itself) but would disable the
-   * protection for the {@code session} cookie, which the browser attaches to cross-site requests.
-   * This post-processor gives the CSRF filter its final rule: every state-changing request needs
-   * the CSRF token unless it carries an {@code Authorization: Bearer} header.
+   * The OAuth2 resource server support exempts from CSRF every request on which the {@link
+   * BearerTokenResolver} finds a token, which is right for a token sent in an {@code Authorization}
+   * header (a browser never adds it by itself) but would disable the protection for the {@code
+   * session} cookie, which the browser attaches to cross-site requests. This post-processor gives
+   * the CSRF filter its final rule: every state-changing request needs the CSRF token unless it
+   * carries an {@code Authorization: Bearer} header.
    */
   private static ObjectPostProcessor<CsrfFilter> requireCsrfUnlessAuthorizationHeader() {
-    RequestMatcher authorizationHeader = request -> {
-      String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-      return header != null && header.regionMatches(true, 0, "Bearer ", 0, 7);
-    };
+    RequestMatcher authorizationHeader =
+        request -> {
+          String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+          return header != null && header.regionMatches(true, 0, "Bearer ", 0, 7);
+        };
     return new ObjectPostProcessor<>() {
       @Override
       public <O extends CsrfFilter> O postProcess(O filter) {
-        filter.setRequireCsrfProtectionMatcher(new AndRequestMatcher(
-            CsrfFilter.DEFAULT_CSRF_MATCHER, new NegatedRequestMatcher(authorizationHeader)));
+        filter.setRequireCsrfProtectionMatcher(
+            new AndRequestMatcher(
+                CsrfFilter.DEFAULT_CSRF_MATCHER, new NegatedRequestMatcher(authorizationHeader)));
         return filter;
       }
     };
@@ -268,8 +289,8 @@ public class SecurityConfig {
 
   /**
    * Decodes and validates session tokens: HS256 signature, {@code exp}/{@code nbf} (with the
-   * default clock skew of 60 seconds), and the claims every session token carries. Tokens issued
-   * by the former presentation layer (no {@code sub}, no {@code exp}) are therefore rejected.
+   * default clock skew of 60 seconds), and the claims every session token carries. Tokens issued by
+   * the former presentation layer (no {@code sub}, no {@code exp}) are therefore rejected.
    *
    * @return the decoder
    */
@@ -277,11 +298,12 @@ public class SecurityConfig {
   public JwtDecoder jwtDecoder() {
     NimbusJwtDecoder decoder =
         NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
-    OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
-        JwtValidators.createDefault(),
-        new JwtClaimValidator<Object>(JwtClaimNames.SUB, Objects::nonNull),
-        new JwtClaimValidator<Object>(JwtClaimNames.EXP, Objects::nonNull),
-        new JwtClaimValidator<Object>(CurrentUser.ROLE_CLAIM, Objects::nonNull));
+    OAuth2TokenValidator<Jwt> validator =
+        new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefault(),
+            new JwtClaimValidator<Object>(JwtClaimNames.SUB, Objects::nonNull),
+            new JwtClaimValidator<Object>(JwtClaimNames.EXP, Objects::nonNull),
+            new JwtClaimValidator<Object>(CurrentUser.ROLE_CLAIM, Objects::nonNull));
     decoder.setJwtValidator(validator);
     return decoder;
   }

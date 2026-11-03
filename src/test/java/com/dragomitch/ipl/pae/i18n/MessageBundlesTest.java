@@ -3,12 +3,7 @@ package com.dragomitch.ipl.pae.i18n;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-import com.dragomitch.ipl.pae.adapter.in.web.ApiExceptionHandler;
-import com.dragomitch.ipl.pae.config.WebConfig;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.validation.FilterValueRequired;
-import com.dragomitch.ipl.pae.domain.validation.Iban;
-
 import jakarta.validation.Constraint;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,8 +39,8 @@ import org.springframework.core.type.filter.RegexPatternTypeFilter;
  * Resilience of the translations: a message missing in one language, an error code without its
  * title or detail, or a constraint whose message key is not translated fails the build.
  *
- * <p>Bundles: {@code i18n/messages.properties} (French, the fallback) and
- * {@code i18n/messages_en.properties}.
+ * <p>Bundles: {@code i18n/messages.properties} (French, the fallback) and {@code
+ * i18n/messages_en.properties}.
  */
 class MessageBundlesTest {
 
@@ -53,22 +48,23 @@ class MessageBundlesTest {
   private static final List<Locale> LANGUAGES = List.of(Locale.FRENCH, Locale.ENGLISH);
 
   /** The exceptions of Spring MVC that ApiExceptionHandler renders with their own messages. */
-  static final List<String> SPRING_EXCEPTIONS = List.of(
-      "org.springframework.web.HttpRequestMethodNotSupportedException",
-      "org.springframework.web.HttpMediaTypeNotSupportedException",
-      "org.springframework.web.HttpMediaTypeNotAcceptableException",
-      "org.springframework.web.bind.MissingServletRequestParameterException",
-      "org.springframework.web.bind.MissingRequestHeaderException",
-      "org.springframework.web.bind.MissingRequestCookieException",
-      "org.springframework.web.bind.UnsatisfiedServletRequestParameterException",
-      "org.springframework.web.bind.ServletRequestBindingException",
-      "org.springframework.web.multipart.support.MissingServletRequestPartException",
-      "org.springframework.web.servlet.resource.NoResourceFoundException",
-      "org.springframework.web.servlet.NoHandlerFoundException",
-      "org.springframework.beans.TypeMismatchException",
-      "org.springframework.web.method.annotation.MethodArgumentTypeMismatchException",
-      "org.springframework.http.converter.HttpMessageNotReadableException",
-      "org.springframework.web.multipart.MaxUploadSizeExceededException");
+  static final List<String> SPRING_EXCEPTIONS =
+      List.of(
+          "org.springframework.web.HttpRequestMethodNotSupportedException",
+          "org.springframework.web.HttpMediaTypeNotSupportedException",
+          "org.springframework.web.HttpMediaTypeNotAcceptableException",
+          "org.springframework.web.bind.MissingServletRequestParameterException",
+          "org.springframework.web.bind.MissingRequestHeaderException",
+          "org.springframework.web.bind.MissingRequestCookieException",
+          "org.springframework.web.bind.UnsatisfiedServletRequestParameterException",
+          "org.springframework.web.bind.ServletRequestBindingException",
+          "org.springframework.web.multipart.support.MissingServletRequestPartException",
+          "org.springframework.web.servlet.resource.NoResourceFoundException",
+          "org.springframework.web.servlet.NoHandlerFoundException",
+          "org.springframework.beans.TypeMismatchException",
+          "org.springframework.web.method.annotation.MethodArgumentTypeMismatchException",
+          "org.springframework.http.converter.HttpMessageNotReadableException",
+          "org.springframework.web.multipart.MaxUploadSizeExceededException");
 
   private static final Pattern MESSAGE_KEY = Pattern.compile("^\\{([^{}]+)\\}$");
   private static final Pattern ARGUMENT = Pattern.compile("\\{\\d+}");
@@ -84,8 +80,9 @@ class MessageBundlesTest {
 
   private static Properties load(String path) throws IOException {
     Properties properties = new Properties();
-    try (Reader reader = new InputStreamReader(new ClassPathResource(path).getInputStream(),
-        StandardCharsets.UTF_8)) {
+    try (Reader reader =
+        new InputStreamReader(
+            new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8)) {
       properties.load(reader);
     }
     return properties;
@@ -109,19 +106,25 @@ class MessageBundlesTest {
 
   @Test
   void noMessageIsBlank() {
-    bundles().forEach(bundle -> bundle.stringPropertyNames().forEach(key ->
-        assertThat(bundle.getProperty(key)).as(key).isNotBlank()));
+    bundles()
+        .forEach(bundle ->
+            bundle
+                .stringPropertyNames()
+                .forEach(key -> assertThat(bundle.getProperty(key)).as(key).isNotBlank()));
   }
 
   @ParameterizedTest
   @EnumSource(ErrorCode.class)
   void everyErrorCodeHasATitleAndADetailInEveryLanguage(ErrorCode code) {
-    bundles().forEach(bundle -> {
-      assertThat(bundle.getProperty(code.titleMessageCode())).as(code.titleMessageCode())
-          .isNotBlank();
-      assertThat(bundle.getProperty(code.detailMessageCode())).as(code.detailMessageCode())
-          .isNotBlank();
-    });
+    bundles()
+        .forEach(bundle -> {
+          assertThat(bundle.getProperty(code.titleMessageCode()))
+              .as(code.titleMessageCode())
+              .isNotBlank();
+          assertThat(bundle.getProperty(code.detailMessageCode()))
+              .as(code.detailMessageCode())
+              .isNotBlank();
+        });
   }
 
   @Test
@@ -144,12 +147,15 @@ class MessageBundlesTest {
   @ParameterizedTest
   @MethodSource("springExceptions")
   void theSpringMvcErrorsHaveATitleAndADetailInEveryLanguage(String exceptionClass) {
-    bundles().forEach(bundle -> {
-      assertThat(bundle.getProperty("problemDetail.title." + exceptionClass))
-          .as("title of " + exceptionClass).isNotBlank();
-      assertThat(bundle.getProperty("problemDetail." + exceptionClass))
-          .as("detail of " + exceptionClass).isNotBlank();
-    });
+    bundles()
+        .forEach(bundle -> {
+          assertThat(bundle.getProperty("problemDetail.title." + exceptionClass))
+              .as("title of " + exceptionClass)
+              .isNotBlank();
+          assertThat(bundle.getProperty("problemDetail." + exceptionClass))
+              .as("detail of " + exceptionClass)
+              .isNotBlank();
+        });
   }
 
   static Stream<String> springExceptions() {
@@ -159,7 +165,8 @@ class MessageBundlesTest {
   @Test
   void theHandledSpringExceptionsExist() {
     for (String exceptionClass : SPRING_EXCEPTIONS) {
-      assertThatCode(() -> Class.forName(exceptionClass)).as(exceptionClass)
+      assertThatCode(() -> Class.forName(exceptionClass))
+          .as(exceptionClass)
           .doesNotThrowAnyException();
     }
   }
@@ -171,20 +178,24 @@ class MessageBundlesTest {
    */
   @Test
   void theProblemMessagesAreValidMessageFormatsWithoutPlainApostrophes() {
-    bundles().forEach(bundle -> bundle.stringPropertyNames().stream()
-        .filter(key -> key.startsWith("problem"))
-        .forEach(key -> {
-          String message = bundle.getProperty(key);
-          assertThat(message).as(key).doesNotContain("'");
-          assertThatCode(() -> new MessageFormat(message, Locale.ROOT)).as(key)
-              .doesNotThrowAnyException();
-        }));
+    bundles()
+        .forEach(bundle ->
+            bundle.stringPropertyNames().stream()
+                .filter(key -> key.startsWith("problem"))
+                .forEach(key -> {
+                  String message = bundle.getProperty(key);
+                  assertThat(message).as(key).doesNotContain("'");
+                  assertThatCode(() -> new MessageFormat(message, Locale.ROOT))
+                      .as(key)
+                      .doesNotThrowAnyException();
+                }));
   }
 
   @Test
   void aProblemDetailHasTheSameArgumentsInEveryLanguage() {
     for (String key : french.stringPropertyNames()) {
-      assertThat(arguments(english.getProperty(key))).as(key)
+      assertThat(arguments(english.getProperty(key)))
+          .as(key)
           .isEqualTo(arguments(french.getProperty(key)));
     }
   }
@@ -200,19 +211,24 @@ class MessageBundlesTest {
 
   /**
    * Every message template of a constraint of the application ({@code {key}}, explicit or the
-   * default one of the annotation) is translated, so that the Spring validator never falls back
-   * on Hibernate Validator's own bundle or shows a raw key.
+   * default one of the annotation) is translated, so that the Spring validator never falls back on
+   * Hibernate Validator's own bundle or shows a raw key.
    */
   @Test
   void everyConstraintMessageOfTheApplicationIsTranslated() {
     Map<String, List<String>> usedKeys = constraintMessageKeys();
 
     assertThat(usedKeys).as("constraint messages found").isNotEmpty();
-    assertThat(usedKeys).containsKeys("jakarta.validation.constraints.NotBlank.message",
-        "jakarta.validation.constraints.Size.message", "pae.validation.Iban.message",
-        "pae.validation.FilterValueRequired.message");
-    usedKeys.forEach((key, users) -> bundles().forEach(bundle ->
-        assertThat(bundle.getProperty(key)).as(key + " used by " + users).isNotBlank()));
+    assertThat(usedKeys)
+        .containsKeys(
+            "jakarta.validation.constraints.NotBlank.message",
+            "jakarta.validation.constraints.Size.message",
+            "pae.validation.Iban.message",
+            "pae.validation.FilterValueRequired.message");
+    usedKeys.forEach((key, users) ->
+        bundles()
+            .forEach(bundle ->
+                assertThat(bundle.getProperty(key)).as(key + " used by " + users).isNotBlank()));
   }
 
   /** The {@code {key}} message templates of the constraints of the application's classes. */
@@ -259,8 +275,7 @@ class MessageBundlesTest {
     return keys;
   }
 
-  private static void collect(Annotation annotation, String user,
-      Map<String, List<String>> keys) {
+  private static void collect(Annotation annotation, String user, Map<String, List<String>> keys) {
     Class<? extends Annotation> annotationType = annotation.annotationType();
     if (annotationType.isAnnotationPresent(Constraint.class)) {
       try {
@@ -290,8 +305,8 @@ class MessageBundlesTest {
 
   @Test
   void theSupportedLanguagesAreFrenchAndEnglish() {
-    assertThat(LANGUAGES).containsExactly(com.dragomitch.ipl.pae.config.WebConfig.DEFAULT_LOCALE,
-        Locale.ENGLISH);
+    assertThat(LANGUAGES)
+        .containsExactly(com.dragomitch.ipl.pae.config.WebConfig.DEFAULT_LOCALE, Locale.ENGLISH);
     assertThat(com.dragomitch.ipl.pae.config.WebConfig.SUPPORTED_LOCALES)
         .containsExactlyElementsOf(LANGUAGES);
   }

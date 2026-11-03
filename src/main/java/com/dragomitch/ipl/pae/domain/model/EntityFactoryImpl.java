@@ -1,19 +1,5 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Address;
-import com.dragomitch.ipl.pae.domain.model.Country;
-import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.Document;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
-import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
-import com.dragomitch.ipl.pae.domain.model.Option;
-import com.dragomitch.ipl.pae.domain.model.Partner;
-import com.dragomitch.ipl.pae.domain.model.PartnerOption;
-import com.dragomitch.ipl.pae.domain.model.Payment;
-import com.dragomitch.ipl.pae.domain.model.Programme;
-import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
@@ -27,12 +13,10 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,13 +35,22 @@ class EntityFactoryImpl implements EntityFactory {
     bind(DenialReasonImpl.class, DenialReasonImpl::new, DenialReason.class, DenialReasonDto.class);
     bind(DocumentImpl.class, DocumentImpl::new, Document.class, DocumentDto.class);
     bind(MobilityImpl.class, MobilityImpl::new, Mobility.class, MobilityDto.class);
-    bind(MobilityChoiceImpl.class, MobilityChoiceImpl::new, MobilityChoice.class,
+    bind(
+        MobilityChoiceImpl.class,
+        MobilityChoiceImpl::new,
+        MobilityChoice.class,
         MobilityChoiceDto.class);
-    bind(NominatedStudentImpl.class, NominatedStudentImpl::new, NominatedStudent.class,
+    bind(
+        NominatedStudentImpl.class,
+        NominatedStudentImpl::new,
+        NominatedStudent.class,
         NominatedStudentDto.class);
     bind(OptionImpl.class, OptionImpl::new, Option.class, OptionDto.class);
     bind(PartnerImpl.class, PartnerImpl::new, Partner.class, PartnerDto.class);
-    bind(PartnerOptionImpl.class, PartnerOptionImpl::new, PartnerOption.class,
+    bind(
+        PartnerOptionImpl.class,
+        PartnerOptionImpl::new,
+        PartnerOption.class,
         PartnerOptionDto.class);
     bind(PaymentImpl.class, PaymentImpl::new, Payment.class, PaymentDto.class);
     bind(ProgrammeImpl.class, ProgrammeImpl::new, Programme.class, ProgrammeDto.class);
@@ -73,7 +66,7 @@ class EntityFactoryImpl implements EntityFactory {
 
   /**
    * Returns a new instance of the implementation bound to the Class cl.
-   * 
+   *
    * @param cl the Class that the caller needs an instance of
    * @return an instance of the given class
    */
@@ -90,5 +83,4 @@ class EntityFactoryImpl implements EntityFactory {
   public Map<Class<?>, Class<?>> getImplementations() {
     return Collections.unmodifiableMap(implementations);
   }
-
 }

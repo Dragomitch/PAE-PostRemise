@@ -1,9 +1,6 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Option;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.io.Serializable;
 
 class OptionImpl implements Option, Serializable {
@@ -12,8 +9,7 @@ class OptionImpl implements Option, Serializable {
 
   private String code;
   private String name;
-  @JsonIgnore
-  private int version;
+  @JsonIgnore private int version;
 
   @Override
   public String getCode() {
@@ -45,6 +41,4 @@ class OptionImpl implements Option, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
-
 }

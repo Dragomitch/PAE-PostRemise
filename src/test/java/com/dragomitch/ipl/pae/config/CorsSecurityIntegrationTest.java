@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -15,10 +14,10 @@ import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.autoconfigure.DispatcherServletAutoConfiguration;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,25 +30,32 @@ import org.springframework.web.bind.annotation.RestController;
  * application wiring is covered by {@code ApplicationTests}.
  */
 @SpringBootTest(classes = {CorsConfig.class, CorsSecurityIntegrationTest.PingController.class})
-@ImportAutoConfiguration({SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class,
-    ServletWebSecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class,
-    WebMvcAutoConfiguration.class, DispatcherServletAutoConfiguration.class,
-    HttpMessageConvertersAutoConfiguration.class, JacksonAutoConfiguration.class})
+@ImportAutoConfiguration({
+  SecurityAutoConfiguration.class,
+  SecurityFilterAutoConfiguration.class,
+  ServletWebSecurityAutoConfiguration.class,
+  UserDetailsServiceAutoConfiguration.class,
+  WebMvcAutoConfiguration.class,
+  DispatcherServletAutoConfiguration.class,
+  HttpMessageConvertersAutoConfiguration.class,
+  JacksonAutoConfiguration.class
+})
 @AutoConfigureMockMvc
 class CorsSecurityIntegrationTest {
 
   private static final String DEV_ORIGIN = "http://localhost:4200";
   private static final String PATH = "/api/1.0/ping";
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
   @Test
   void preflightIsNotBlockedBySpringSecurity() throws Exception {
-    mockMvc.perform(options(PATH)
-            .header(HttpHeaders.ORIGIN, DEV_ORIGIN)
-            .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
-            .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type"))
+    mockMvc
+        .perform(
+            options(PATH)
+                .header(HttpHeaders.ORIGIN, DEV_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type"))
         .andExpect(status().isOk())
         .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, DEV_ORIGIN))
         .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"));
@@ -57,16 +63,19 @@ class CorsSecurityIntegrationTest {
 
   @Test
   void preflightFromUnknownOriginIsForbidden() throws Exception {
-    mockMvc.perform(options(PATH)
-            .header(HttpHeaders.ORIGIN, "http://evil.example.com")
-            .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"))
+    mockMvc
+        .perform(
+            options(PATH)
+                .header(HttpHeaders.ORIGIN, "http://evil.example.com")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"))
         .andExpect(status().isForbidden())
         .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
   }
 
   @Test
   void securityStillRequiresAuthenticationButTheBrowserCanReadTheAnswer() throws Exception {
-    mockMvc.perform(get(PATH).header(HttpHeaders.ORIGIN, DEV_ORIGIN))
+    mockMvc
+        .perform(get(PATH).header(HttpHeaders.ORIGIN, DEV_ORIGIN))
         .andExpect(status().isUnauthorized())
         .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, DEV_ORIGIN));
   }

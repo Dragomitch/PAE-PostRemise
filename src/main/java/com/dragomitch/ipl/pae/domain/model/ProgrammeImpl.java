@@ -1,9 +1,6 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Programme;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.io.Serializable;
 
 public class ProgrammeImpl implements Programme, Serializable {
@@ -13,8 +10,7 @@ public class ProgrammeImpl implements Programme, Serializable {
   private int id;
   private String programName;
   private String externalSoftName;
-  @JsonIgnore
-  private int version;
+  @JsonIgnore private int version;
 
   @Override
   public int getId() {
@@ -56,6 +52,4 @@ public class ProgrammeImpl implements Programme, Serializable {
   public void setVersion(int version) {
     this.version = version;
   }
-
-
 }

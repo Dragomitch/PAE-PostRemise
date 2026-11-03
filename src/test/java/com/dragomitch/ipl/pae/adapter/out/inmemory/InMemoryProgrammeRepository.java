@@ -2,9 +2,7 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +13,7 @@ public class InMemoryProgrammeRepository implements ProgrammeRepository {
 
   /**
    * Sole constructor for explicit invocation.
-   * 
+   *
    * @param entityFactory an on-demand object dispenser
    */
   public InMemoryProgrammeRepository(EntityFactory entityFactory) {

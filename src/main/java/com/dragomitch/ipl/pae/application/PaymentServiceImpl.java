@@ -3,9 +3,8 @@ package com.dragomitch.ipl.pae.application;
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
-import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
-
+import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,5 +26,4 @@ class PaymentServiceImpl implements PaymentService {
     }
     return paymentRepository.findAll();
   }
-
 }

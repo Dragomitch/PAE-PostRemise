@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.adapter.in.web.ApiPaths;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -34,30 +33,31 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The OpenAPI document ({@code GET /v3/api-docs}) served by the running application, compared
- * with the request mappings of the controllers: a new endpoint must appear in it. Like
- * {@code ApplicationTests}, it needs no database (same properties, so the same cached context).
+ * The OpenAPI document ({@code GET /v3/api-docs}) served by the running application, compared with
+ * the request mappings of the controllers: a new endpoint must appear in it. Like {@code
+ * ApplicationTests}, it needs no database (same properties, so the same cached context).
  */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-    "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
-    "spring.jpa.properties.jakarta.persistence.database-major-version=16",
-    "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
-    "management.health.db.enabled=false"})
+@SpringBootTest(
+    webEnvironment = WebEnvironment.RANDOM_PORT,
+    properties = {
+      "spring.jpa.properties.jakarta.persistence.database-product-name=PostgreSQL",
+      "spring.jpa.properties.jakarta.persistence.database-major-version=16",
+      "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+      "management.health.db.enabled=false"
+    })
 @AutoConfigureRestTestClient
 class OpenApiDocumentTest {
 
   private static final String DOCUMENT = "/v3/api-docs";
   private static final String PROBLEM_JSON = "application/problem+json";
 
-  @Autowired
-  private RestTestClient rest;
+  @Autowired private RestTestClient rest;
 
   @Autowired
   @Qualifier("requestMappingHandlerMapping")
   private RequestMappingHandlerMapping handlerMapping;
 
-  @LocalServerPort
-  private int port;
+  @LocalServerPort private int port;
 
   /** The document, fetched without a session. */
   private JsonNode document() {
@@ -82,7 +82,9 @@ class OpenApiDocumentTest {
     // the build-info goal runs before the tests: the version of pom.xml
     assertThat(document.path("info").path("version").asString()).isNotBlank();
     // only the REST API: no web UI route, no error page, no actuator endpoint
-    document.path("paths").propertyNames()
+    document
+        .path("paths")
+        .propertyNames()
         .forEach(path -> assertThat(path).startsWith(ApiPaths.BASE + "/"));
   }
 
@@ -91,8 +93,8 @@ class OpenApiDocumentTest {
     JsonNode paths = document().path("paths");
     List<String> missing = new ArrayList<>();
     int endpoints = 0;
-    for (Map.Entry<RequestMappingInfo, HandlerMethod> entry
-        : handlerMapping.getHandlerMethods().entrySet()) {
+    for (Map.Entry<RequestMappingInfo, HandlerMethod> entry :
+        handlerMapping.getHandlerMethods().entrySet()) {
       // the REST controllers of adapter.in.web, not springdoc's own endpoints
       String controllerPackage = entry.getValue().getBeanType().getPackageName();
       if (!controllerPackage.equals(ApiPaths.class.getPackageName())) {
@@ -122,27 +124,54 @@ class OpenApiDocumentTest {
 
   @Test
   void theProblemDetailSchemaHasTheMembersOfTheApiProblems() {
-    JsonNode schema = document().path("components").path("schemas")
-        .path(OpenApiConfig.PROBLEM_DETAIL);
+    JsonNode schema =
+        document().path("components").path("schemas").path(OpenApiConfig.PROBLEM_DETAIL);
     assertThat(schema.isObject()).as("ProblemDetail schema").isTrue();
     Set<String> properties = new TreeSet<>(schema.path("properties").propertyNames());
-    assertThat(properties).containsExactlyInAnyOrder("type", "title", "status", "detail",
-        "instance", "code", "errors", "timestamp", "errorId");
-    assertThat(schema.path("properties").path("code").path("enum").valueStream()
-        .map(JsonNode::asString)).contains("VALIDATION_FAILED", "UNAUTHENTICATED",
-            "CONCURRENT_MODIFICATION", "USERNAME_TAKEN");
-    assertThat(schema.path("properties").path("errors").path("items").path("properties")
-        .propertyNames()).containsExactlyInAnyOrder("field", "code", "message");
+    assertThat(properties)
+        .containsExactlyInAnyOrder(
+            "type",
+            "title",
+            "status",
+            "detail",
+            "instance",
+            "code",
+            "errors",
+            "timestamp",
+            "errorId");
+    assertThat(
+            schema
+                .path("properties")
+                .path("code")
+                .path("enum")
+                .valueStream()
+                .map(JsonNode::asString))
+        .contains(
+            "VALIDATION_FAILED", "UNAUTHENTICATED", "CONCURRENT_MODIFICATION", "USERNAME_TAKEN");
+    assertThat(
+            schema
+                .path("properties")
+                .path("errors")
+                .path("items")
+                .path("properties")
+                .propertyNames())
+        .containsExactlyInAnyOrder("field", "code", "message");
   }
 
   @Test
   void theErrorResponsesOfTheSignUpReferenceTheProblemDetailSchema() {
-    JsonNode responses = operation(document(), ApiPaths.BASE + "/users", "post")
-        .path("responses");
+    JsonNode responses = operation(document(), ApiPaths.BASE + "/users", "post").path("responses");
     for (String status : List.of("400", "403", "409", "422")) {
-      assertEquals(OpenApiConfig.PROBLEM_DETAIL_REF,
-          responses.path(status).path("content").path(PROBLEM_JSON).path("schema")
-              .path("$ref").asString(), status);
+      assertEquals(
+          OpenApiConfig.PROBLEM_DETAIL_REF,
+          responses
+              .path(status)
+              .path("content")
+              .path(PROBLEM_JSON)
+              .path("schema")
+              .path("$ref")
+              .asString(),
+          status);
     }
     // public: no session, hence no 401
     assertThat(responses.has("401")).isFalse();
@@ -160,9 +189,12 @@ class OpenApiDocumentTest {
           if (status.startsWith("4")) {
             errors.add(method + " " + path + " " + status);
             JsonNode content = responses.path(status).path("content");
-            assertEquals(Set.of(PROBLEM_JSON), Set.copyOf(content.propertyNames()),
+            assertEquals(
+                Set.of(PROBLEM_JSON),
+                Set.copyOf(content.propertyNames()),
                 method + " " + path + " " + status);
-            assertEquals(OpenApiConfig.PROBLEM_DETAIL_REF,
+            assertEquals(
+                OpenApiConfig.PROBLEM_DETAIL_REF,
                 content.path(PROBLEM_JSON).path("schema").path("$ref").asString());
           }
         }
@@ -175,26 +207,45 @@ class OpenApiDocumentTest {
   void theErrorResponsesFollowWhatTheEndpointCanAnswer() {
     JsonNode document = document();
     // a read with a role check and a path variable
-    assertThat(operation(document, ApiPaths.BASE + "/mobilities/{id}", "get")
-        .path("responses").propertyNames())
+    assertThat(
+            operation(document, ApiPaths.BASE + "/mobilities/{id}", "get")
+                .path("responses")
+                .propertyNames())
         .containsExactlyInAnyOrder("200", "400", "401", "403", "404");
     // a state change
-    assertThat(operation(document, ApiPaths.BASE + "/mobilities/{id}/confirmPayment", "put")
-        .path("responses").propertyNames())
+    assertThat(
+            operation(document, ApiPaths.BASE + "/mobilities/{id}/confirmPayment", "put")
+                .path("responses")
+                .propertyNames())
         .containsExactlyInAnyOrder("200", "400", "401", "403", "404", "409", "422");
     // the public list of options: nothing can go wrong for the client
-    assertThat(operation(document, ApiPaths.BASE + "/options", "get")
-        .path("responses").propertyNames()).containsExactly("200");
+    assertThat(
+            operation(document, ApiPaths.BASE + "/options", "get")
+                .path("responses")
+                .propertyNames())
+        .containsExactly("200");
     // the sign-in documents its own 401 (bad credentials) and the session cookie
     JsonNode signin = operation(document, ApiPaths.BASE + "/session", "post").path("responses");
-    assertThat(signin.path("401").path("description").asString())
-        .contains("INVALID_CREDENTIALS");
-    assertEquals(OpenApiConfig.PROBLEM_DETAIL_REF,
-        signin.path("401").path("content").path(PROBLEM_JSON).path("schema").path("$ref")
+    assertThat(signin.path("401").path("description").asString()).contains("INVALID_CREDENTIALS");
+    assertEquals(
+        OpenApiConfig.PROBLEM_DETAIL_REF,
+        signin
+            .path("401")
+            .path("content")
+            .path(PROBLEM_JSON)
+            .path("schema")
+            .path("$ref")
             .asString());
     assertThat(signin.path("200").path("headers").has("Set-Cookie")).isTrue();
-    assertThat(signin.path("200").path("content").path("application/json").path("schema")
-        .path("$ref").asString()).endsWith("/UserDto");
+    assertThat(
+            signin
+                .path("200")
+                .path("content")
+                .path("application/json")
+                .path("schema")
+                .path("$ref")
+                .asString())
+        .endsWith("/UserDto");
   }
 
   @Test
@@ -212,17 +263,21 @@ class OpenApiDocumentTest {
     // the default of the document
     assertEquals("[{\"sessionCookie\":[]}]", document.path("security").toString());
 
-    assertEquals("[{\"sessionCookie\":[]}]",
+    assertEquals(
+        "[{\"sessionCookie\":[]}]",
         operation(document, ApiPaths.BASE + "/users", "get").path("security").toString());
-    assertEquals("[{\"sessionCookie\":[],\"csrfHeader\":[]}]",
+    assertEquals(
+        "[{\"sessionCookie\":[],\"csrfHeader\":[]}]",
         operation(document, ApiPaths.BASE + "/users/edit", "put").path("security").toString());
     // public endpoints: the sign-up and the sign-in need the CSRF token only, the options nothing
-    assertEquals("[{\"csrfHeader\":[]}]",
+    assertEquals(
+        "[{\"csrfHeader\":[]}]",
         operation(document, ApiPaths.BASE + "/users", "post").path("security").toString());
-    assertEquals("[{\"csrfHeader\":[]}]",
+    assertEquals(
+        "[{\"csrfHeader\":[]}]",
         operation(document, ApiPaths.BASE + "/session", "post").path("security").toString());
-    assertEquals("[]",
-        operation(document, ApiPaths.BASE + "/options", "get").path("security").toString());
+    assertEquals(
+        "[]", operation(document, ApiPaths.BASE + "/options", "get").path("security").toString());
   }
 
   @Test
@@ -240,8 +295,11 @@ class OpenApiDocumentTest {
     assertThat(operation(document, ApiPaths.BASE + "/mobilities", "get").has("parameters"))
         .isFalse();
     // the search criteria of the partners are two query parameters
-    assertThat(operation(document, ApiPaths.BASE + "/partners", "get").path("parameters")
-        .valueStream().map(parameter -> parameter.path("name").asString()))
+    assertThat(
+            operation(document, ApiPaths.BASE + "/partners", "get")
+                .path("parameters")
+                .valueStream()
+                .map(parameter -> parameter.path("name").asString()))
         .containsExactly("filter", "value");
   }
 
@@ -252,21 +310,41 @@ class OpenApiDocumentTest {
     assertEquals(1, term.path("minimum").asInt());
     assertEquals(2, term.path("maximum").asInt());
     assertThat(term.path("description").asString()).contains("first term");
-    assertThat(schemas.path("MobilityChoiceDto").path("properties").path("preferenceOrder")
-        .path("description").asString()).contains("first choice");
-    assertThat(schemas.path("MobilityDto").path("properties").path("version")
-        .path("description").asString()).contains("CONCURRENT_MODIFICATION");
+    assertThat(
+            schemas
+                .path("MobilityChoiceDto")
+                .path("properties")
+                .path("preferenceOrder")
+                .path("description")
+                .asString())
+        .contains("first choice");
+    assertThat(
+            schemas
+                .path("MobilityDto")
+                .path("properties")
+                .path("version")
+                .path("description")
+                .asString())
+        .contains("CONCURRENT_MODIFICATION");
     // never sent back by the API
-    assertThat(schemas.path("UserDto").path("properties").path("password").path("writeOnly")
-        .asBoolean()).isTrue();
+    assertThat(
+            schemas
+                .path("UserDto")
+                .path("properties")
+                .path("password")
+                .path("writeOnly")
+                .asBoolean())
+        .isTrue();
   }
 
   @Test
   void theSwaggerUiRedirectsToItsPage() throws Exception {
     HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
-    HttpResponse<String> redirect = client.send(HttpRequest.newBuilder(
-        URI.create("http://localhost:" + port + "/swagger-ui.html")).build(),
-        BodyHandlers.ofString());
+    HttpResponse<String> redirect =
+        client.send(
+            HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/swagger-ui.html"))
+                .build(),
+            BodyHandlers.ofString());
     assertThat(redirect.statusCode()).isBetween(300, 399);
     assertThat(redirect.headers().firstValue("Location").orElse(""))
         .endsWith("/swagger-ui/index.html");

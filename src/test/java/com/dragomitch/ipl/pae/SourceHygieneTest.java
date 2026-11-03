@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -28,8 +27,11 @@ class SourceHygieneTest {
   void productionCodeNeverWritesToTheConsole() throws IOException {
     List<String> offenders;
     try (Stream<Path> files = Files.walk(MAIN_SOURCES)) {
-      offenders = files.filter(file -> file.toString().endsWith(".java"))
-          .flatMap(SourceHygieneTest::consoleOutputLines).toList();
+      offenders =
+          files
+              .filter(file -> file.toString().endsWith(".java"))
+              .flatMap(SourceHygieneTest::consoleOutputLines)
+              .toList();
     }
 
     assertThat(offenders).isEmpty();

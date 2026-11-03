@@ -3,12 +3,12 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
-
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-public class InMemoryMobilityDocumentRepository implements MobilityDocumentRepository, ResettableRepository {
+public class InMemoryMobilityDocumentRepository
+    implements MobilityDocumentRepository, ResettableRepository {
 
   private List<MobilityDocument> mobilityDocuments;
   private DocumentRepository documentRepository;
@@ -34,7 +34,9 @@ public class InMemoryMobilityDocumentRepository implements MobilityDocumentRepos
     List<DocumentDto> docs = new ArrayList<DocumentDto>();
     for (MobilityDocument mobilityDocument : mobilityDocuments) {
       if (mobilityDocument.getMobilityId() == mobilityId) {
-        docs.add(((InMemoryDocumentRepository) documentRepository).findById(mobilityDocument.getDocumentId()));
+        docs.add(
+            ((InMemoryDocumentRepository) documentRepository)
+                .findById(mobilityDocument.getDocumentId()));
       }
     }
     return docs;
@@ -84,5 +86,4 @@ public class InMemoryMobilityDocumentRepository implements MobilityDocumentRepos
       filledIn = true;
     }
   }
-
 }

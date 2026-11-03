@@ -14,13 +14,7 @@ import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Mobility;
-import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
-import com.dragomitch.ipl.pae.domain.model.Partner;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,7 +30,7 @@ public class MockDtoFactory {
 
   /**
    * Return a MobilityChoice mock object.
-   * 
+   *
    * @return a mobilityChoice
    */
   public MobilityChoiceDto getMobilityChoice() {
@@ -58,7 +52,7 @@ public class MockDtoFactory {
 
   /**
    * Return a Mobility mock object.
-   * 
+   *
    * @return a mobility
    */
   public MobilityDto getMobility() {
@@ -87,7 +81,7 @@ public class MockDtoFactory {
 
   /**
    * Return a Document mock object.
-   * 
+   *
    * @return a document
    */
   public DocumentDto getDocument() {
@@ -99,7 +93,7 @@ public class MockDtoFactory {
 
   /**
    * Return a country mock object.
-   * 
+   *
    * @return a country
    */
   public CountryDto getCountry() {
@@ -112,7 +106,7 @@ public class MockDtoFactory {
 
   /**
    * Return a programme mock object.
-   * 
+   *
    * @return a programme
    */
   public ProgrammeDto getProgramme() {
@@ -125,7 +119,7 @@ public class MockDtoFactory {
 
   /**
    * Return a partner mock object.
-   * 
+   *
    * @return a partner
    */
   public PartnerDto getPartner() {
@@ -148,7 +142,7 @@ public class MockDtoFactory {
 
   /**
    * Return a partner mock object.
-   * 
+   *
    * @return a partner
    */
   public DenialReasonDto getDenialReason() {
@@ -159,7 +153,7 @@ public class MockDtoFactory {
 
   /**
    * Return an address mock object.
-   * 
+   *
    * @return an address
    */
   public AddressDto getAddress() {
@@ -180,7 +174,7 @@ public class MockDtoFactory {
 
   /**
    * Return a partnerOption mock object.
-   * 
+   *
    * @return a partnerOption
    */
   public PartnerOptionDto getPartnerOption() {
@@ -193,7 +187,7 @@ public class MockDtoFactory {
 
   /**
    * Return a user mock object.
-   * 
+   *
    * @return a user
    */
   public UserDto getUser(String role) {
@@ -212,7 +206,7 @@ public class MockDtoFactory {
 
   /**
    * Return an option mock object.
-   * 
+   *
    * @return an option
    */
   public OptionDto getOption() {
@@ -224,7 +218,7 @@ public class MockDtoFactory {
 
   /**
    * Return a payment mock object.
-   * 
+   *
    * @return a payment
    */
   public PaymentDto getPayment() {
@@ -250,7 +244,7 @@ public class MockDtoFactory {
 
   /**
    * Return a NominatedStudent mock object.
-   * 
+   *
    * @return a nominatedStudent
    */
   public NominatedStudentDto getNominatedStudent() {

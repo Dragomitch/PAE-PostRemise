@@ -1,14 +1,11 @@
 package com.dragomitch.ipl.pae.domain.model;
 
-import com.dragomitch.ipl.pae.domain.model.Payment;
 import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -27,8 +24,7 @@ public class PaymentImpl implements Payment, Serializable {
   private PartnerDto partner;
   private LocalDateTime paymentDate;
   private String paymentType;
-  @JsonIgnore
-  private int version;
+  @JsonIgnore private int version;
 
   @Override
   public int getMobilityChoiceId() {
@@ -153,5 +149,4 @@ public class PaymentImpl implements Payment, Serializable {
   public static long getSerialversionuid() {
     return serialVersionUID;
   }
-
 }

@@ -6,13 +6,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -26,8 +24,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   private static final String USER_BY_ID =
       "SELECT * FROM student_exchange_tools.users WHERE user_id = ?";
 
-  @Autowired
-  private UserRepository userRepository;
+  @Autowired private UserRepository userRepository;
 
   @Override
   protected List<String> fixtures() {
@@ -51,20 +48,26 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void createInsertsEveryColumnAndReturnsTheGeneratedIdWithVersionOne() {
-    UserDto found = inTransaction(() -> {
-      UserDto created = userRepository.create(newUser("emma", "BDI"));
+    UserDto found =
+        inTransaction(() -> {
+          UserDto created = userRepository.create(newUser("emma", "BDI"));
 
-      assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
-      assertThat(created.getVersion()).isEqualTo(1);
-      Map<String, Object> row = queryForRow(USER_BY_ID, created.getId());
-      assertThat(row).containsEntry("username", "emma").containsEntry("last_name", "Lambert")
-          .containsEntry("first_name", "Emma").containsEntry("email", "emma@student.test")
-          .containsEntry("password", "hash-emma").containsEntry("role", "Student")
-          .containsEntry("option", "BDI").containsEntry("version", 1)
-          .containsEntry("registration_date",
-              Timestamp.valueOf(LocalDateTime.of(2025, 3, 4, 5, 6, 7)));
-      return userRepository.findById(created.getId());
-    });
+          assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
+          assertThat(created.getVersion()).isEqualTo(1);
+          Map<String, Object> row = queryForRow(USER_BY_ID, created.getId());
+          assertThat(row)
+              .containsEntry("username", "emma")
+              .containsEntry("last_name", "Lambert")
+              .containsEntry("first_name", "Emma")
+              .containsEntry("email", "emma@student.test")
+              .containsEntry("password", "hash-emma")
+              .containsEntry("role", "Student")
+              .containsEntry("option", "BDI")
+              .containsEntry("version", 1)
+              .containsEntry(
+                  "registration_date", Timestamp.valueOf(LocalDateTime.of(2025, 3, 4, 5, 6, 7)));
+          return userRepository.findById(created.getId());
+        });
 
     assertThat(found.getUsername()).isEqualTo("emma");
     assertThat(found.getOption().getName()).isEqualTo("Bachelier en diététique");
@@ -73,8 +76,9 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void createWithAnUnknownOptionIsRejectedByTheForeignKey() {
-    runInTransaction(() -> assertThatThrownBy(() -> userRepository.create(newUser("zed", "XYZ")))
-        .isInstanceOf(DataIntegrityViolationException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> userRepository.create(newUser("zed", "XYZ")))
+            .isInstanceOf(DataIntegrityViolationException.class));
   }
 
   @Test
@@ -104,32 +108,38 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   void findAllReturnsEveryUser() {
     List<UserDto> users = inTransaction(() -> userRepository.findAll());
 
-    assertThat(users).extracting(UserDto::getUsername)
+    assertThat(users)
+        .extracting(UserDto::getUsername)
         .containsExactlyInAnyOrder("alice", "bob", "chloe", "david");
-    assertThat(users).filteredOn(u -> u.getId() == 1003).singleElement().satisfies(chloe -> {
-      assertThat(chloe.getFirstName()).isEqualTo("Chloé");
-      assertThat(chloe.getOption().getCode()).isEqualTo("BCH");
-    });
+    assertThat(users)
+        .filteredOn(u -> u.getId() == 1003)
+        .singleElement()
+        .satisfies(chloe -> {
+          assertThat(chloe.getFirstName()).isEqualTo("Chloé");
+          assertThat(chloe.getOption().getCode()).isEqualTo("BCH");
+        });
   }
 
   @Test
   void findAllReturnsAnEmptyListWithoutUsers() {
-    List<UserDto> users = inTransaction(() -> {
-      execute("DELETE FROM student_exchange_tools.users");
-      return userRepository.findAll();
-    });
+    List<UserDto> users =
+        inTransaction(() -> {
+          execute("DELETE FROM student_exchange_tools.users");
+          return userRepository.findAll();
+        });
     assertThat(users).isEmpty();
   }
 
   @ParameterizedTest
   @CsvSource({
-      "username, alice, 1001",
-      "username, david, 1004",
-      "email, bob@prof.test, 1002",
-      "last_name, Leroy, 1003",
-      "first_name, Chloé, 1003",
-      "role, Professor, 1002",
-      "role, Student, 1001"})
+    "username, alice, 1001",
+    "username, david, 1004",
+    "email, bob@prof.test, 1002",
+    "last_name, Leroy, 1003",
+    "first_name, Chloé, 1003",
+    "role, Professor, 1002",
+    "role, Student, 1001"
+  })
   void findByLooksUpAUserByAnyColumn(String column, String value, int expectedId) {
     UserDto user = inTransaction(() -> userRepository.findBy(column, value));
 
@@ -146,9 +156,10 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(strings = {"password", "user_id", "username; DROP TABLE users"})
   void findByRejectsAColumnThatIsNotALookupColumn(String column) {
-    runInTransaction(() -> assertThatThrownBy(() -> userRepository.findBy(column, "x"))
-        .isInstanceOf(InvalidDataAccessApiUsageException.class)
-        .hasCauseInstanceOf(IllegalArgumentException.class));
+    runInTransaction(() ->
+        assertThatThrownBy(() -> userRepository.findBy(column, "x"))
+            .isInstanceOf(InvalidDataAccessApiUsageException.class)
+            .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @Test
@@ -168,13 +179,18 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
       assertThat(david.getVersion()).isEqualTo(3);
       Map<String, Object> row = queryForRow(USER_BY_ID, 1004);
-      assertThat(row).containsEntry("username", "dpetit").containsEntry("last_name", "Petit-Jean")
-          .containsEntry("first_name", "Dave").containsEntry("email", "dave@student.test")
-          .containsEntry("password", "new-hash").containsEntry("option", "BIM")
-          .containsEntry("role", "Professor").containsEntry("version", 3)
+      assertThat(row)
+          .containsEntry("username", "dpetit")
+          .containsEntry("last_name", "Petit-Jean")
+          .containsEntry("first_name", "Dave")
+          .containsEntry("email", "dave@student.test")
+          .containsEntry("password", "new-hash")
+          .containsEntry("option", "BIM")
+          .containsEntry("role", "Professor")
+          .containsEntry("version", 3)
           // the registration date is not updatable
-          .containsEntry("registration_date",
-              Timestamp.valueOf(LocalDateTime.of(2024, 9, 3, 17, 45)));
+          .containsEntry(
+              "registration_date", Timestamp.valueOf(LocalDateTime.of(2024, 9, 3, 17, 45)));
     });
   }
 
@@ -187,7 +203,8 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
       assertThatThrownBy(() -> userRepository.update(stale))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(queryForRow(USER_BY_ID, 1002)).containsEntry("username", "bob")
+      assertThat(queryForRow(USER_BY_ID, 1002))
+          .containsEntry("username", "bob")
           .containsEntry("version", 3);
     });
   }
@@ -208,9 +225,12 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       assertThat(userRepository.promoteToProfessor(1004, 2)).isEqualTo(3);
 
-      assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Professor")
-          .containsEntry("version", 3).containsEntry("username", "david");
-      assertThat(queryForRow(USER_BY_ID, 1003)).containsEntry("role", "Student")
+      assertThat(queryForRow(USER_BY_ID, 1004))
+          .containsEntry("role", "Professor")
+          .containsEntry("version", 3)
+          .containsEntry("username", "david");
+      assertThat(queryForRow(USER_BY_ID, 1003))
+          .containsEntry("role", "Student")
           .containsEntry("version", 1);
     });
   }
@@ -229,12 +249,13 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @ParameterizedTest(name = "user {0}, expected version {1}")
   @CsvSource({"1004, 1", "1004, 3", "424242, 1"})
-  void promoteToProfessorByIdWithAStaleVersionOrAnUnknownIdFailsAndWritesNothing(int id,
-      int version) {
+  void promoteToProfessorByIdWithAStaleVersionOrAnUnknownIdFailsAndWritesNothing(
+      int id, int version) {
     runInTransaction(() -> {
       assertThatThrownBy(() -> userRepository.promoteToProfessor(id, version))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(queryForRow(USER_BY_ID, 1004)).containsEntry("role", "Student")
+      assertThat(queryForRow(USER_BY_ID, 1004))
+          .containsEntry("role", "Student")
           .containsEntry("version", 2);
     });
   }
@@ -246,7 +267,8 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       assertThatThrownBy(() -> userRepository.promoteToProfessor(username, version))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(queryForRow(USER_BY_ID, 1001)).containsEntry("role", "Student")
+      assertThat(queryForRow(USER_BY_ID, 1001))
+          .containsEntry("role", "Student")
           .containsEntry("version", 1);
     });
   }
@@ -258,9 +280,11 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void isEmptyIsTrueWithoutUsers() {
-    assertThat(inTransaction(() -> {
-      execute("DELETE FROM student_exchange_tools.users");
-      return userRepository.isEmpty();
-    })).isTrue();
+    assertThat(
+            inTransaction(() -> {
+              execute("DELETE FROM student_exchange_tools.users");
+              return userRepository.isEmpty();
+            }))
+        .isTrue();
   }
 }

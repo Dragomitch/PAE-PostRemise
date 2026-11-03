@@ -2,12 +2,12 @@ package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InMemoryMobilityChoiceRepository implements MobilityChoiceRepository, ResettableRepository {
+public class InMemoryMobilityChoiceRepository
+    implements MobilityChoiceRepository, ResettableRepository {
 
   private List<MobilityChoiceDto> mobilityChoices;
 
@@ -24,9 +24,13 @@ public class InMemoryMobilityChoiceRepository implements MobilityChoiceRepositor
 
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
-    if (!List.of(FILTER_ALL_MOBILITIES_CHOICES, FILTER_ACTIVE_MOBILITIES_CHOICES,
-        FILTER_CANCELED_MOBILITIES_CHOICES, FILTER_REJECTED_MOBILITIES_CHOICES,
-        FILTER_PASSED_MOBILITIES_CHOICES).contains(filter)) {
+    if (!List.of(
+            FILTER_ALL_MOBILITIES_CHOICES,
+            FILTER_ACTIVE_MOBILITIES_CHOICES,
+            FILTER_CANCELED_MOBILITIES_CHOICES,
+            FILTER_REJECTED_MOBILITIES_CHOICES,
+            FILTER_PASSED_MOBILITIES_CHOICES)
+        .contains(filter)) {
       throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
     }
     return mobilityChoices;
@@ -78,7 +82,8 @@ public class InMemoryMobilityChoiceRepository implements MobilityChoiceRepositor
   public List<MobilityChoiceDto> findByActivePartner(int partnerId) {
     List<MobilityChoiceDto> mobilityChoicesForPartner = new ArrayList<MobilityChoiceDto>();
     for (MobilityChoiceDto mobilityChoices : this.mobilityChoices) {
-      if (mobilityChoices.getPartner() != null && mobilityChoices.getPartner().getId() == partnerId
+      if (mobilityChoices.getPartner() != null
+          && mobilityChoices.getPartner().getId() == partnerId
           && mobilityChoices.getCancellationReason() == null
           && mobilityChoices.getDenialReason() == null
           && mobilityChoices.getAcademicYear() == LocalDate.now().getYear()) {

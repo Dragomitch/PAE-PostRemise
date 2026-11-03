@@ -24,8 +24,10 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
   }
 
   @Override
-  public CurrentUser resolveArgument(MethodParameter parameter,
-      ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+  public CurrentUser resolveArgument(
+      MethodParameter parameter,
+      ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory) {
     return fromAuthentication(SecurityContextHolder.getContext().getAuthentication());
   }
@@ -36,17 +38,18 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
    * @param authentication the authentication of the request, may be null
    * @return the current user
    * @throws AuthenticationCredentialsNotFoundException if the request is not authenticated with a
-   *         session JWT
+   *     session JWT
    */
   static CurrentUser fromAuthentication(Authentication authentication) {
     if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
       throw new AuthenticationCredentialsNotFoundException("No authenticated user");
     }
     try {
-      return new CurrentUser(Integer.parseInt(jwt.getSubject()),
-          jwt.getClaimAsString(CurrentUser.ROLE_CLAIM));
+      return new CurrentUser(
+          Integer.parseInt(jwt.getSubject()), jwt.getClaimAsString(CurrentUser.ROLE_CLAIM));
     } catch (NumberFormatException ex) {
-      throw new AuthenticationCredentialsNotFoundException("Invalid subject in the session JWT", ex);
+      throw new AuthenticationCredentialsNotFoundException(
+          "Invalid subject in the session JWT", ex);
     }
   }
 }

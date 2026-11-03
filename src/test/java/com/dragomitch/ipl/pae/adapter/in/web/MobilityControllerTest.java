@@ -9,33 +9,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
-
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MobilityController.class)
 @Import(WebTestConfig.class)
 class MobilityControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private EntityFactory entityFactory;
+  @Autowired private EntityFactory entityFactory;
 
-  @MockitoBean
-  private MobilityService mobilityService;
+  @MockitoBean private MobilityService mobilityService;
 
   private MobilityDto mobility() {
     MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
@@ -52,7 +48,8 @@ class MobilityControllerTest {
     when(mobilityService.showAll(TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT))
         .thenReturn(List.of(mobility()));
 
-    mockMvc.perform(get(ApiPaths.BASE + "/mobilities").with(TestUsers.student()))
+    mockMvc
+        .perform(get(ApiPaths.BASE + "/mobilities").with(TestUsers.student()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].id").value(4))
         .andExpect(jsonPath("$.data[0].submissionDate").value("2024-02-01 10:15:30"))
@@ -64,7 +61,8 @@ class MobilityControllerTest {
     when(mobilityService.showOne(4, UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
         .thenReturn(mobility());
 
-    mockMvc.perform(get(ApiPaths.BASE + "/mobilities/4").with(TestUsers.student()))
+    mockMvc
+        .perform(get(ApiPaths.BASE + "/mobilities/4").with(TestUsers.student()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("En cours"))
         .andExpect(jsonPath("$.version").value(3));
@@ -74,29 +72,48 @@ class MobilityControllerTest {
   void confirmDocumentTakesTheDocumentAndTheVersionFromTheQuery() throws Exception {
     when(mobilityService.confirmDocument(4, 7, 3)).thenReturn(mobility());
 
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmDocument?document=7&version=3")
-            .with(csrf()).with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmDocument?document=7&version=3")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(4));
   }
 
   @Test
   void encodingConfirmationsAndPaymentTakeTheVersion() throws Exception {
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmProEcoEncoding?version=3")
-        .with(csrf()).with(TestUsers.professor())).andExpect(status().isOk());
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmProEcoEncoding?version=3")
+                .with(csrf())
+                .with(TestUsers.professor()))
+        .andExpect(status().isOk());
     verify(mobilityService).confirmProEcoEncoding(4, 3);
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmSecondSoftwareEncoding?version=3")
-        .with(csrf()).with(TestUsers.professor())).andExpect(status().isOk());
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmSecondSoftwareEncoding?version=3")
+                .with(csrf())
+                .with(TestUsers.professor()))
+        .andExpect(status().isOk());
     verify(mobilityService).confirmSecondSoftwareEncoding(4, 3);
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmPayment?version=3")
-        .with(csrf()).with(TestUsers.professor())).andExpect(status().isOk());
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmPayment?version=3")
+                .with(csrf())
+                .with(TestUsers.professor()))
+        .andExpect(status().isOk());
     verify(mobilityService).confirmPayment(4, 3);
   }
 
   @Test
   void aMissingNumberKeepsTheLegacyMinusOne() throws Exception {
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmPayment").with(csrf())
-        .with(TestUsers.professor())).andExpect(status().isOk());
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmPayment")
+                .with(csrf())
+                .with(TestUsers.professor()))
+        .andExpect(status().isOk());
     verify(mobilityService).confirmPayment(4, -1);
   }
 
@@ -104,8 +121,11 @@ class MobilityControllerTest {
   void aStaleVersionIsTheConcurrentModificationError() throws Exception {
     when(mobilityService.confirmPayment(4, 2)).thenThrow(new ConcurrentModificationException());
 
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/confirmPayment?version=2").with(csrf())
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/confirmPayment?version=2")
+                .with(csrf())
+                .with(TestUsers.professor()))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value("CONCURRENT_MODIFICATION"));
   }
@@ -115,9 +135,13 @@ class MobilityControllerTest {
     when(mobilityService.cancel(4, 3, "Malade", -1, TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT))
         .thenReturn(mobility());
 
-    mockMvc.perform(put(ApiPaths.BASE + "/mobilities/4/cancel")
-            .param("version", "3").param("cancellationReason", "Malade")
-            .with(csrf()).with(TestUsers.student()))
+    mockMvc
+        .perform(
+            put(ApiPaths.BASE + "/mobilities/4/cancel")
+                .param("version", "3")
+                .param("cancellationReason", "Malade")
+                .with(csrf())
+                .with(TestUsers.student()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(4));
   }
@@ -126,8 +150,8 @@ class MobilityControllerTest {
   void exportIsCsv() throws Exception {
     when(mobilityService.exportDocuments(4, "D")).thenReturn("﻿Nom;Prénom;\n");
 
-    mockMvc.perform(get(ApiPaths.BASE + "/mobilities/4/export?filter=D")
-            .with(TestUsers.professor()))
+    mockMvc
+        .perform(get(ApiPaths.BASE + "/mobilities/4/export?filter=D").with(TestUsers.professor()))
         .andExpect(status().isOk())
         .andExpect(content().contentType("text/csv;charset=UTF-8"))
         .andExpect(content().string("﻿Nom;Prénom;\n"));

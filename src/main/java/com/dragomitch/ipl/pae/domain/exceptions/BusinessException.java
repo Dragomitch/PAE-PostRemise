@@ -2,21 +2,21 @@ package com.dragomitch.ipl.pae.domain.exceptions;
 
 import java.util.Arrays;
 import java.util.Objects;
-import org.springframework.http.ProblemDetail;
 import org.jspecify.annotations.Nullable;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.ErrorResponseException;
 
 /**
- * A business rule was broken: the use case refuses the operation with one of the
- * {@linkplain ErrorCode error codes}.
+ * A business rule was broken: the use case refuses the operation with one of the {@linkplain
+ * ErrorCode error codes}.
  *
  * <p>It is a Spring {@link org.springframework.web.ErrorResponse}: it carries its HTTP status and
  * an RFC 9457 {@link ProblemDetail} whose {@code type} and {@code code} come from the error code.
  * The localized {@code title} and {@code detail} are resolved from the {@code MessageSource} by
  * {@link #updateAndGetBody} (called by {@code ResponseEntityExceptionHandler}) with the message
  * codes {@code problem.<CODE>.title} and {@code problem.<CODE>.detail}; the detail may use the
- * {@linkplain #getDetailMessageArguments() arguments} given to the constructor ({@code {0}},
- * {@code {1}}...).
+ * {@linkplain #getDetailMessageArguments() arguments} given to the constructor ({@code {0}}, {@code
+ * {1}}...).
  *
  * <p>Validation constraints are not business exceptions: they are Bean Validation constraints on
  * the DTOs and on the use-case methods, reported as {@link ErrorCode#VALIDATION_FAILED}.
@@ -47,10 +47,14 @@ public class BusinessException extends ErrorResponseException {
    * @param cause the cause, may be null
    * @param detailArguments the arguments of the localized detail message, if it has some
    */
-  public BusinessException(ErrorCode errorCode, @Nullable Throwable cause,
-      Object... detailArguments) {
-    super(Objects.requireNonNull(errorCode, "errorCode").status(), problemOf(errorCode), cause,
-        errorCode.detailMessageCode(), detailArguments);
+  public BusinessException(
+      ErrorCode errorCode, @Nullable Throwable cause, Object... detailArguments) {
+    super(
+        Objects.requireNonNull(errorCode, "errorCode").status(),
+        problemOf(errorCode),
+        cause,
+        errorCode.detailMessageCode(),
+        detailArguments);
     this.errorCode = errorCode;
   }
 

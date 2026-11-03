@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
@@ -22,16 +21,15 @@ import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
+import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
-import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import com.dragomitch.ipl.pae.application.MockDtoFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,22 +53,14 @@ class PartnerServiceImplTest {
   private static final int ADDRESS_ID = 3001;
   private static final int USER_ID = 42;
 
-  @Mock
-  private AddressRepository addressRepository;
-  @Mock
-  private OptionRepository optionRepository;
-  @Mock
-  private PartnerRepository partnerRepository;
-  @Mock
-  private PartnerOptionRepository partnerOptionRepository;
-  @Mock
-  private MobilityChoiceRepository mobilityChoiceRepository;
-  @Mock
-  private MobilityRepository mobilityRepository;
-  @Mock
-  private ProgrammeRepository programmeRepository;
-  @Mock
-  private UserRepository userRepository;
+  @Mock private AddressRepository addressRepository;
+  @Mock private OptionRepository optionRepository;
+  @Mock private PartnerRepository partnerRepository;
+  @Mock private PartnerOptionRepository partnerOptionRepository;
+  @Mock private MobilityChoiceRepository mobilityChoiceRepository;
+  @Mock private MobilityRepository mobilityRepository;
+  @Mock private ProgrammeRepository programmeRepository;
+  @Mock private UserRepository userRepository;
 
   private final EntityFactory entityFactory = EntityFactories.create();
   private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
@@ -78,8 +68,16 @@ class PartnerServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    partnerService = new PartnerServiceImpl(addressRepository, optionRepository, partnerRepository, partnerOptionRepository,
-        mobilityChoiceRepository, mobilityRepository, programmeRepository, userRepository);
+    partnerService =
+        new PartnerServiceImpl(
+            addressRepository,
+            optionRepository,
+            partnerRepository,
+            partnerOptionRepository,
+            mobilityChoiceRepository,
+            mobilityRepository,
+            programmeRepository,
+            userRepository);
   }
 
   private PartnerOptionDto option(String code) {
@@ -90,11 +88,14 @@ class PartnerServiceImplTest {
 
   private void givenOptionsExist(String... codes) {
     for (String code : codes) {
-      when(optionRepository.findByCode(code)).thenReturn((OptionDto) entityFactory.build(OptionDto.class));
+      when(optionRepository.findByCode(code))
+          .thenReturn((OptionDto) entityFactory.build(OptionDto.class));
     }
   }
 
-  /** A partner as {@link PartnerRepository#findById} returns it: ids of its address and programme. */
+  /**
+   * A partner as {@link PartnerRepository#findById} returns it: ids of its address and programme.
+   */
   private PartnerDto givenStoredPartner(boolean official, boolean archived) {
     PartnerDto stored = (PartnerDto) entityFactory.build(PartnerDto.class);
     stored.setId(PARTNER_ID);
@@ -126,21 +127,26 @@ class PartnerServiceImplTest {
     }
 
     private void givenCreationSucceeds() {
-      when(addressRepository.create(any())).thenAnswer(invocation -> {
-        AddressDto address = invocation.getArgument(0);
-        address.setId(ADDRESS_ID);
-        return address;
-      });
-      when(partnerRepository.create(any())).thenAnswer(invocation -> {
-        PartnerDto partner = invocation.getArgument(0);
-        partner.setId(PARTNER_ID);
-        return partner;
-      });
+      when(addressRepository.create(any()))
+          .thenAnswer(invocation -> {
+            AddressDto address = invocation.getArgument(0);
+            address.setId(ADDRESS_ID);
+            return address;
+          });
+      when(partnerRepository.create(any()))
+          .thenAnswer(invocation -> {
+            PartnerDto partner = invocation.getArgument(0);
+            partner.setId(PARTNER_ID);
+            return partner;
+          });
     }
 
     @ParameterizedTest
-    @CsvSource({UserDto.ROLE_PROFESSOR + ", true", UserDto.ROLE_PROFESSOR + ", false",
-        UserDto.ROLE_STUDENT + ", false"})
+    @CsvSource({
+      UserDto.ROLE_PROFESSOR + ", true",
+      UserDto.ROLE_PROFESSOR + ", false",
+      UserDto.ROLE_STUDENT + ", false"
+    })
     void createsThePartnerItsAddressAndItsOptions(String role, boolean official) {
       PartnerDto request = request(official, "BIN", "BIM");
       givenOptionsExist("BIN", "BIM");
@@ -158,8 +164,9 @@ class PartnerServiceImplTest {
 
     @Test
     void aStudentCannotCreateAnOfficialPartner() {
-      assertThatBusinessException(() -> partnerService.create(request(true, "BIN"),
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(
+              () -> partnerService.create(request(true, "BIN"), UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(addressRepository, partnerRepository, partnerOptionRepository);
     }
 
@@ -170,7 +177,8 @@ class PartnerServiceImplTest {
       givenCreationSucceeds();
 
       assertThatBusinessException(() -> partnerService.create(request, UserDto.ROLE_PROFESSOR))
-          .hasErrorCode(ErrorCode.UNKNOWN_OPTION).hasArguments("XYZ");
+          .hasErrorCode(ErrorCode.UNKNOWN_OPTION)
+          .hasArguments("XYZ");
       verify(partnerOptionRepository, never()).create(eq(request.getOptions().get(1)), anyInt());
     }
   }
@@ -234,16 +242,20 @@ class PartnerServiceImplTest {
     void theFilterAndItsValueAreApplied(String filter, String value) {
       givenUserWithOption("BIN");
       List<PartnerDto> partners = List.of(dtos.getPartner());
-      when(partnerRepository.findAll(filter, value, UserDto.ROLE_STUDENT, "BIN")).thenReturn(partners);
+      when(partnerRepository.findAll(filter, value, UserDto.ROLE_STUDENT, "BIN"))
+          .thenReturn(partners);
 
-      assertThat(partnerService.showAll(new PartnerSearch(filter, value), UserDto.ROLE_STUDENT,
-          USER_ID)).isSameAs(partners);
+      assertThat(
+              partnerService.showAll(
+                  new PartnerSearch(filter, value), UserDto.ROLE_STUDENT, USER_ID))
+          .isSameAs(partners);
     }
 
     @Test
     void anUnknownRequesterIsNotFound() {
-      assertThatBusinessException(() -> partnerService.showAll(PartnerSearch.all(),
-          UserDto.ROLE_STUDENT, USER_ID)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(
+              () -> partnerService.showAll(PartnerSearch.all(), UserDto.ROLE_STUDENT, USER_ID))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verifyNoInteractions(partnerRepository);
     }
   }
@@ -263,11 +275,12 @@ class PartnerServiceImplTest {
 
     private void givenUpdatesSucceed() {
       when(addressRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
-      when(partnerRepository.update(any())).thenAnswer(invocation -> {
-        PartnerDto partner = invocation.getArgument(0);
-        partner.setVersion(partner.getVersion() + 1);
-        return partner;
-      });
+      when(partnerRepository.update(any()))
+          .thenAnswer(invocation -> {
+            PartnerDto partner = invocation.getArgument(0);
+            partner.setVersion(partner.getVersion() + 1);
+            return partner;
+          });
     }
 
     @Test
@@ -297,8 +310,8 @@ class PartnerServiceImplTest {
           .thenReturn(List.of(option("BIN")));
       givenUpdatesSucceed();
 
-      partnerService.edit(PARTNER_ID, request(false, (PartnerOptionDto[]) null),
-          UserDto.ROLE_PROFESSOR);
+      partnerService.edit(
+          PARTNER_ID, request(false, (PartnerOptionDto[]) null), UserDto.ROLE_PROFESSOR);
 
       verify(partnerOptionRepository, never()).create(any(), anyInt());
       verify(partnerRepository).update(any());
@@ -309,8 +322,9 @@ class PartnerServiceImplTest {
       givenStoredPartner(true, false);
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID)).thenReturn(List.of());
 
-      assertThatBusinessException(() -> partnerService.edit(PARTNER_ID, request(false),
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.PARTNER_OPTION_REQUIRED);
+      assertThatBusinessException(
+              () -> partnerService.edit(PARTNER_ID, request(false), UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.PARTNER_OPTION_REQUIRED);
       verify(partnerRepository, never()).update(any());
       verifyNoInteractions(addressRepository);
     }
@@ -347,22 +361,25 @@ class PartnerServiceImplTest {
       when(mobilityChoiceRepository.findByPartner(PARTNER_ID))
           .thenReturn(List.of((MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class)));
 
-      assertThatBusinessException(() -> partnerService.edit(PARTNER_ID, request(true),
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.PARTNER_HAS_MOBILITY_CHOICES);
+      assertThatBusinessException(
+              () -> partnerService.edit(PARTNER_ID, request(true), UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.PARTNER_HAS_MOBILITY_CHOICES);
       verify(partnerRepository, never()).update(any());
     }
 
     @Test
     void aStudentCannotEditAPartner() {
-      assertThatBusinessException(() -> partnerService.edit(PARTNER_ID, request(false),
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(
+              () -> partnerService.edit(PARTNER_ID, request(false), UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(partnerRepository, addressRepository, partnerOptionRepository);
     }
 
     @Test
     void anUnknownPartnerIsNotFound() {
-      assertThatBusinessException(() -> partnerService.edit(PARTNER_ID, request(false),
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(
+              () -> partnerService.edit(PARTNER_ID, request(false), UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(partnerRepository, never()).update(any());
     }
   }
@@ -375,8 +392,11 @@ class PartnerServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({UserDto.ROLE_PROFESSOR + ", true", UserDto.ROLE_PROFESSOR + ", false",
-        UserDto.ROLE_STUDENT + ", true"})
+    @CsvSource({
+      UserDto.ROLE_PROFESSOR + ", true",
+      UserDto.ROLE_PROFESSOR + ", false",
+      UserDto.ROLE_STUDENT + ", true"
+    })
     void anArchivedPartnerWithOptionsIsRestored(String role, boolean official) {
       givenStoredPartner(official, true);
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID))
@@ -460,7 +480,8 @@ class PartnerServiceImplTest {
     void aStudentAddsAnOptionToTheUnofficialPartnerOfHisMobilityChoice() {
       givenStoredPartner(false, false);
       givenOptionsExist("BCH");
-      when(mobilityChoiceRepository.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(PARTNER_ID)));
+      when(mobilityChoiceRepository.findByUser(USER_ID))
+          .thenReturn(List.of(choiceWithPartner(PARTNER_ID)));
       PartnerOptionDto option = option("BCH");
 
       partnerService.addOption(PARTNER_ID, option, USER_ID, UserDto.ROLE_STUDENT);
@@ -474,7 +495,8 @@ class PartnerServiceImplTest {
       givenStoredPartner(false, false);
       givenOptionsExist("BCH");
       when(mobilityChoiceRepository.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(0)));
-      when(mobilityRepository.findByUser(USER_ID)).thenReturn(List.of(mobilityWithPartner(PARTNER_ID)));
+      when(mobilityRepository.findByUser(USER_ID))
+          .thenReturn(List.of(mobilityWithPartner(PARTNER_ID)));
       PartnerOptionDto option = option("BCH");
 
       partnerService.addOption(PARTNER_ID, option, USER_ID, UserDto.ROLE_STUDENT);
@@ -486,8 +508,9 @@ class PartnerServiceImplTest {
     void aStudentCannotAddAnOptionToAnOfficialPartner() {
       givenStoredPartner(true, false);
 
-      assertThatBusinessException(() -> partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(() ->
+              partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(partnerOptionRepository, optionRepository);
     }
 
@@ -495,18 +518,20 @@ class PartnerServiceImplTest {
     void aStudentCannotAddAnOptionToAPartnerHeDoesNotUse() {
       givenStoredPartner(false, false);
       when(mobilityChoiceRepository.findByUser(USER_ID)).thenReturn(List.of(choiceWithPartner(0)));
-      when(mobilityRepository.findByUser(USER_ID)).thenReturn(List.of(mobilityWithPartner(0),
-          mobilityWithPartner(PARTNER_ID + 1)));
+      when(mobilityRepository.findByUser(USER_ID))
+          .thenReturn(List.of(mobilityWithPartner(0), mobilityWithPartner(PARTNER_ID + 1)));
 
-      assertThatBusinessException(() -> partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID,
-          UserDto.ROLE_STUDENT)).hasErrorCode(ErrorCode.ACCESS_DENIED);
+      assertThatBusinessException(() ->
+              partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID, UserDto.ROLE_STUDENT))
+          .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(partnerOptionRepository, optionRepository);
     }
 
     @Test
     void anOptionOfAnUnknownPartnerIsNotFound() {
-      assertThatBusinessException(() -> partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID,
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
+      assertThatBusinessException(() ->
+              partnerService.addOption(PARTNER_ID, option("BCH"), USER_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verifyNoInteractions(partnerOptionRepository);
     }
 
@@ -514,8 +539,10 @@ class PartnerServiceImplTest {
     void anUnknownOptionIsNotAdded() {
       givenStoredPartner(true, false);
 
-      assertThatBusinessException(() -> partnerService.addOption(PARTNER_ID, option("XYZ"), USER_ID,
-          UserDto.ROLE_PROFESSOR)).hasErrorCode(ErrorCode.UNKNOWN_OPTION).hasArguments("XYZ");
+      assertThatBusinessException(() ->
+              partnerService.addOption(PARTNER_ID, option("XYZ"), USER_ID, UserDto.ROLE_PROFESSOR))
+          .hasErrorCode(ErrorCode.UNKNOWN_OPTION)
+          .hasArguments("XYZ");
       verifyNoInteractions(partnerOptionRepository);
     }
 

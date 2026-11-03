@@ -14,17 +14,14 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
 /** The mobility choices the students submit, in their order of preference. */
@@ -35,9 +32,10 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
    * A choice with everything its DTO carries, in one query: its student and the student's option
    * (both required), its programme, and its country, denial reason and partner when it has them.
    */
-  private static final String SELECT = "SELECT c FROM MobilityChoiceEntity c"
-      + " JOIN FETCH c.user u JOIN FETCH u.option JOIN FETCH c.programme"
-      + " LEFT JOIN FETCH c.country LEFT JOIN FETCH c.denialReason LEFT JOIN FETCH c.partner";
+  private static final String SELECT =
+      "SELECT c FROM MobilityChoiceEntity c"
+          + " JOIN FETCH c.user u JOIN FETCH u.option JOIN FETCH c.programme"
+          + " LEFT JOIN FETCH c.country LEFT JOIN FETCH c.denialReason LEFT JOIN FETCH c.partner";
 
   private static final String ORDER = " ORDER BY c.id";
 
@@ -51,13 +49,12 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
   /** The choice did not become a mobility that was then denied or cancelled. */
   private static final String NOT_A_CANCELLED_MOBILITY =
       "NOT EXISTS (SELECT 1 FROM MobilityEntity m WHERE m.id = c.id"
-      + " AND (m.denialReason IS NOT NULL OR m.cancellationReason IS NOT NULL))";
+          + " AND (m.denialReason IS NOT NULL OR m.cancellationReason IS NOT NULL))";
 
   private final PersistenceMapper mapper;
   private final Clock clock;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   JpaMobilityChoiceRepositoryAdapter(PersistenceMapper mapper, Clock clock) {
     this.mapper = mapper;
@@ -90,8 +87,8 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
   /** The choice, whether it became a mobility or not. */
   @Override
   public MobilityChoiceDto findById(int mobilityChoiceId) {
-    List<MobilityChoiceEntity> found = where("c.id = :id")
-        .setParameter("id", mobilityChoiceId).getResultList();
+    List<MobilityChoiceEntity> found =
+        where("c.id = :id").setParameter("id", mobilityChoiceId).getResultList();
     return found.isEmpty() ? null : choice(found.get(0));
   }
 
@@ -104,24 +101,28 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
   /** The choices of the partner that did not become mobilities. */
   @Override
   public List<MobilityChoiceDto> findByPartner(int partnerId) {
-    return choices(where("c.partner.id = :partner AND " + NOT_A_MOBILITY)
-        .setParameter("partner", partnerId));
+    return choices(
+        where("c.partner.id = :partner AND " + NOT_A_MOBILITY).setParameter("partner", partnerId));
   }
 
   @Override
   public List<MobilityChoiceDto> findByActivePartner(int partnerId) {
-    return choices(where("c.partner.id = :partner AND c.academicYear = :year AND " + PENDING
-        + " AND " + NOT_A_CANCELLED_MOBILITY)
-        .setParameter("partner", partnerId)
-        .setParameter("year", LocalDate.now(clock).getYear()));
+    return choices(
+        where(
+                "c.partner.id = :partner AND c.academicYear = :year AND "
+                    + PENDING
+                    + " AND "
+                    + NOT_A_CANCELLED_MOBILITY)
+            .setParameter("partner", partnerId)
+            .setParameter("year", LocalDate.now(clock).getYear()));
   }
 
   /**
    * {@inheritDoc}
    *
-   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants
-   *         (a programming error: the API rejects an unknown filter before, with a 400
-   *         {@code VALIDATION_FAILED} problem)
+   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants (a
+   *     programming error: the API rejects an unknown filter before, with a 400 {@code
+   *     VALIDATION_FAILED} problem)
    */
   @Override
   public List<MobilityChoiceDto> findAll(String filter) {
@@ -135,8 +136,9 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
     } else if (FILTER_PASSED_MOBILITIES_CHOICES.equals(filter)) {
       return choices(where("c.academicYear < :year").setParameter("year", year));
     } else if (FILTER_ACTIVE_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(where("c.academicYear = :year AND " + PENDING + " AND " + NOT_A_MOBILITY)
-          .setParameter("year", year));
+      return choices(
+          where("c.academicYear = :year AND " + PENDING + " AND " + NOT_A_MOBILITY)
+              .setParameter("year", year));
     }
     throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
   }
@@ -148,22 +150,23 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
    */
   @Override
   public void update(MobilityChoiceDto mobilityChoice) {
-    MobilityChoiceEntity entity = StrictFindByIdRepository.find(entityManager,
-        MobilityChoiceEntity.class, mobilityChoice.getId());
+    MobilityChoiceEntity entity =
+        StrictFindByIdRepository.find(
+            entityManager, MobilityChoiceEntity.class, mobilityChoice.getId());
     if (entity == null || entity.getVersion() != mobilityChoice.getVersion()) {
       throw new ConcurrentModificationException("The data have been modified before that query");
     }
     copy(mobilityChoice, entity);
     entity.setSubmissionDate(mobilityChoice.getSubmissionDate());
-    Versions.flushIncrementingVersion(entityManager, entity, entity::getVersion,
-        mobilityChoice.getVersion());
+    Versions.flushIncrementingVersion(
+        entityManager, entity, entity::getVersion, mobilityChoice.getVersion());
     mobilityChoice.setVersion(entity.getVersion());
   }
 
   /** The {@link #SELECT} restricted by the condition, by id. */
   private TypedQuery<MobilityChoiceEntity> where(String condition) {
-    return entityManager.createQuery(SELECT + " WHERE " + condition + ORDER,
-        MobilityChoiceEntity.class);
+    return entityManager.createQuery(
+        SELECT + " WHERE " + condition + ORDER, MobilityChoiceEntity.class);
   }
 
   private List<MobilityChoiceDto> choices(TypedQuery<MobilityChoiceEntity> query) {
@@ -181,20 +184,27 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
     entity.setTerm(choice.getTerm());
     entity.setProgramme(
         entityManager.getReference(ProgrammeEntity.class, choice.getProgramme().getId()));
-    entity.setCountry(choice.getCountry() == null ? null
-        : entityManager.getReference(CountryEntity.class, choice.getCountry().getCountryCode()));
-    entity.setDenialReason(choice.getDenialReason() == null ? null
-        : entityManager.getReference(DenialReasonEntity.class, choice.getDenialReason().getId()));
+    entity.setCountry(
+        choice.getCountry() == null
+            ? null
+            : entityManager.getReference(
+                CountryEntity.class, choice.getCountry().getCountryCode()));
+    entity.setDenialReason(
+        choice.getDenialReason() == null
+            ? null
+            : entityManager.getReference(
+                DenialReasonEntity.class, choice.getDenialReason().getId()));
     entity.setCancellationReason(
         isAValidString(choice.getCancellationReason()) ? choice.getCancellationReason() : null);
-    entity.setPartner(choice.getPartner() == null ? null
-        : entityManager.getReference(PartnerEntity.class, choice.getPartner().getId()));
+    entity.setPartner(
+        choice.getPartner() == null
+            ? null
+            : entityManager.getReference(PartnerEntity.class, choice.getPartner().getId()));
   }
 
   /**
    * A choice of {@link #SELECT}: its student carries their id, names and option (code and name),
-   * its programme its id and name, its country its code and name, its partner its id and full
-   * name.
+   * its programme its id and name, its country its code and name, its partner its id and full name.
    */
   private MobilityChoiceDto choice(MobilityChoiceEntity entity) {
     MobilityChoiceDto choice = mapper.build(MobilityChoiceDto.class);
@@ -214,11 +224,11 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
     ProgrammeDto programme = mapper.programmeReference(programmeEntity.getId());
     programme.setProgrammeName(programmeEntity.getName());
     choice.setProgramme(programme);
-    choice.setCountry(entity.getCountry() == null ? null
-        : mapper.countryNamed(entity.getCountry()));
+    choice.setCountry(
+        entity.getCountry() == null ? null : mapper.countryNamed(entity.getCountry()));
     choice.setSubmissionDate(entity.getSubmissionDate());
-    choice.setDenialReason(entity.getDenialReason() == null ? null
-        : mapper.denialReason(entity.getDenialReason()));
+    choice.setDenialReason(
+        entity.getDenialReason() == null ? null : mapper.denialReason(entity.getDenialReason()));
     choice.setCancellationReason(entity.getCancellationReason());
     PartnerEntity partnerEntity = entity.getPartner();
     if (partnerEntity != null) {

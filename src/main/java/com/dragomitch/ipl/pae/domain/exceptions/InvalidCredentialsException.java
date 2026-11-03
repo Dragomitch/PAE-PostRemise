@@ -1,8 +1,8 @@
 package com.dragomitch.ipl.pae.domain.exceptions;
 
 /**
- * Sign-in refused: unknown username or wrong password (the client is not told which). Answered
- * with 401 and the {@link ErrorCode#INVALID_CREDENTIALS} problem.
+ * Sign-in refused: unknown username or wrong password (the client is not told which). Answered with
+ * 401 and the {@link ErrorCode#INVALID_CREDENTIALS} problem.
  */
 public class InvalidCredentialsException extends BusinessException {
 

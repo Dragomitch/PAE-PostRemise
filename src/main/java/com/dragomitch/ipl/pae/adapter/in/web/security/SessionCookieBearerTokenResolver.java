@@ -8,12 +8,12 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
 /**
- * Finds the session JWT of a request: the standard {@code Authorization: Bearer} header first
- * (API clients), then the {@value SessionCookieService#COOKIE_NAME} cookie (browsers).
+ * Finds the session JWT of a request: the standard {@code Authorization: Bearer} header first (API
+ * clients), then the {@value SessionCookieService#COOKIE_NAME} cookie (browsers).
  *
  * <p>Nothing is resolved on the public endpoints (sign-in, sign-up, ...): they do not need a
- * session, and a stale cookie (expired, or signed with a previous key) must not turn a sign-in
- * into a 401.
+ * session, and a stale cookie (expired, or signed with a previous key) must not turn a sign-in into
+ * a 401.
  */
 public class SessionCookieBearerTokenResolver implements BearerTokenResolver {
 

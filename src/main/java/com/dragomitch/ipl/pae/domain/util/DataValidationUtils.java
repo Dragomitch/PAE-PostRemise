@@ -1,10 +1,10 @@
 package com.dragomitch.ipl.pae.domain.util;
 
 /**
- * What remains of the former hand-written validation helpers. The checks of the input data are
- * now Bean Validation constraints (on the DTO getters and on the use-case methods); only
- * {@link #isAValidString(String)} is left because the JDBC {@code MobilityChoiceRepositoryImpl} still
- * uses it. Delete this class when the repositories no longer need it.
+ * What remains of the former hand-written validation helpers. The checks of the input data are now
+ * Bean Validation constraints (on the DTO getters and on the use-case methods); only {@link
+ * #isAValidString(String)} is left because the JDBC {@code MobilityChoiceRepositoryImpl} still uses
+ * it. Delete this class when the repositories no longer need it.
  */
 public final class DataValidationUtils {
 

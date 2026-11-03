@@ -1,7 +1,6 @@
 package com.dragomitch.ipl.pae.domain.dto;
 
 import com.dragomitch.ipl.pae.domain.validation.FilterValueRequired;
-
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -15,8 +14,10 @@ import jakarta.validation.constraints.Size;
  */
 @FilterValueRequired
 public record PartnerSearch(
-    @Pattern(regexp = FILTER_ARCHIVED + "|" + FILTER_COUNTRY,
-        message = "{pae.validation.PartnerSearch.filter.message}") String filter,
+    @Pattern(
+            regexp = FILTER_ARCHIVED + "|" + FILTER_COUNTRY,
+            message = "{pae.validation.PartnerSearch.filter.message}")
+        String filter,
     @Size(max = 255) String value) {
 
   public static final String FILTER_ARCHIVED = "archived";

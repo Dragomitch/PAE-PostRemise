@@ -19,22 +19,20 @@ import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
-import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
+import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
-import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,8 +41,9 @@ import org.springframework.dao.DataAccessException;
 
 /**
  * Every outbound port reports a database failure as a Spring {@link DataAccessException} (the
- * exception translation of the persistence adapters), never as a raw {@code SQLException}, which is kept as the root cause for the logs. The use cases roll
- * back and the API answers 500 with an error id.
+ * exception translation of the persistence adapters), never as a raw {@code SQLException}, which is
+ * kept as the root cause for the logs. The use cases roll back and the API answers 500 with an
+ * error id.
  *
  * <p>The failure is provoked by aborting the transaction first: PostgreSQL then rejects every
  * following statement ("current transaction is aborted").
@@ -52,41 +51,37 @@ import org.springframework.dao.DataAccessException;
 class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
 
   /** Every DAO bean, so that the method source can reach them. */
-  record Repositories(AddressRepository address, CountryRepository country, DenialReasonRepository denialReason,
-      DocumentRepository document, MobilityChoiceRepository mobilityChoice, MobilityRepository mobility,
-      MobilityDocumentRepository mobilityDocument, NominatedStudentRepository nominatedStudent,
-      OptionRepository option, PartnerRepository partner, PartnerOptionRepository partnerOption, PaymentRepository payment,
-      ProgrammeRepository programme, UserRepository user, RepositoryErrorHandlingIT test) {
-  }
+  record Repositories(
+      AddressRepository address,
+      CountryRepository country,
+      DenialReasonRepository denialReason,
+      DocumentRepository document,
+      MobilityChoiceRepository mobilityChoice,
+      MobilityRepository mobility,
+      MobilityDocumentRepository mobilityDocument,
+      NominatedStudentRepository nominatedStudent,
+      OptionRepository option,
+      PartnerRepository partner,
+      PartnerOptionRepository partnerOption,
+      PaymentRepository payment,
+      ProgrammeRepository programme,
+      UserRepository user,
+      RepositoryErrorHandlingIT test) {}
 
-  @Autowired
-  private AddressRepository addressRepository;
-  @Autowired
-  private CountryRepository countryRepository;
-  @Autowired
-  private DenialReasonRepository denialReasonRepository;
-  @Autowired
-  private DocumentRepository documentRepository;
-  @Autowired
-  private MobilityChoiceRepository mobilityChoiceRepository;
-  @Autowired
-  private MobilityRepository mobilityRepository;
-  @Autowired
-  private MobilityDocumentRepository mobilityDocumentRepository;
-  @Autowired
-  private NominatedStudentRepository nominatedStudentRepository;
-  @Autowired
-  private OptionRepository optionRepository;
-  @Autowired
-  private PartnerRepository partnerRepository;
-  @Autowired
-  private PartnerOptionRepository partnerOptionRepository;
-  @Autowired
-  private PaymentRepository paymentRepository;
-  @Autowired
-  private ProgrammeRepository programmeRepository;
-  @Autowired
-  private UserRepository userRepository;
+  @Autowired private AddressRepository addressRepository;
+  @Autowired private CountryRepository countryRepository;
+  @Autowired private DenialReasonRepository denialReasonRepository;
+  @Autowired private DocumentRepository documentRepository;
+  @Autowired private MobilityChoiceRepository mobilityChoiceRepository;
+  @Autowired private MobilityRepository mobilityRepository;
+  @Autowired private MobilityDocumentRepository mobilityDocumentRepository;
+  @Autowired private NominatedStudentRepository nominatedStudentRepository;
+  @Autowired private OptionRepository optionRepository;
+  @Autowired private PartnerRepository partnerRepository;
+  @Autowired private PartnerOptionRepository partnerOptionRepository;
+  @Autowired private PaymentRepository paymentRepository;
+  @Autowired private ProgrammeRepository programmeRepository;
+  @Autowired private UserRepository userRepository;
 
   static Stream<Named<Consumer<Repositories>>> daoCalls() {
     return Stream.of(
@@ -95,17 +90,20 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call("AddressRepository.update", d -> d.address().update(d.test().address())),
         call("CountryRepository.findById", d -> d.country().findById("BE")),
         call("CountryRepository.findAll", d -> d.country().findAll()),
-        call("DenialReasonRepository.create", d -> d.denialReason().create(d.test().denialReason())),
+        call(
+            "DenialReasonRepository.create", d -> d.denialReason().create(d.test().denialReason())),
         call("DenialReasonRepository.findById", d -> d.denialReason().findById(1)),
         call("DenialReasonRepository.findAll", d -> d.denialReason().findAll()),
-        call("DenialReasonRepository.update", d -> d.denialReason().update(d.test().denialReason())),
+        call(
+            "DenialReasonRepository.update", d -> d.denialReason().update(d.test().denialReason())),
         call("DocumentRepository.findAllByProgramme", d -> d.document().findAllByProgramme(1)),
         call("MobilityChoiceRepository.create", d -> d.mobilityChoice().create(d.test().choice())),
         call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1)),
         call("MobilityChoiceRepository.findAll", d -> d.mobilityChoice().findAll("all")),
         call("MobilityChoiceRepository.findByUser", d -> d.mobilityChoice().findByUser(1)),
         call("MobilityChoiceRepository.findByPartner", d -> d.mobilityChoice().findByPartner(1)),
-        call("MobilityChoiceRepository.findByActivePartner",
+        call(
+            "MobilityChoiceRepository.findByActivePartner",
             d -> d.mobilityChoice().findByActivePartner(1)),
         call("MobilityChoiceRepository.update", d -> d.mobilityChoice().update(d.test().choice())),
         call("MobilityRepository.create", d -> d.mobility().create(d.test().mobility())),
@@ -114,22 +112,35 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call("MobilityRepository.findByUser", d -> d.mobility().findByUser(1)),
         call("MobilityRepository.update", d -> d.mobility().update(d.test().mobility())),
         call("MobilityDocumentRepository.create", d -> d.mobilityDocument().create(1, 1)),
-        call("MobilityDocumentRepository.findAllByMobility", d -> d.mobilityDocument().findAllByMobility(1)),
-        call("MobilityDocumentRepository.fillInDocument", d -> d.mobilityDocument().fillInDocument(1, 1)),
-        call("NominatedStudentRepository.create", d -> d.nominatedStudent().create(d.test().student())),
+        call(
+            "MobilityDocumentRepository.findAllByMobility",
+            d -> d.mobilityDocument().findAllByMobility(1)),
+        call(
+            "MobilityDocumentRepository.fillInDocument",
+            d -> d.mobilityDocument().fillInDocument(1, 1)),
+        call(
+            "NominatedStudentRepository.create",
+            d -> d.nominatedStudent().create(d.test().student())),
         call("NominatedStudentRepository.findById", d -> d.nominatedStudent().findById(1)),
         call("NominatedStudentRepository.findAll", d -> d.nominatedStudent().findAll()),
-        call("NominatedStudentRepository.update", d -> d.nominatedStudent().update(d.test().student())),
+        call(
+            "NominatedStudentRepository.update",
+            d -> d.nominatedStudent().update(d.test().student())),
         call("OptionRepository.findByCode", d -> d.option().findByCode("BIN")),
         call("OptionRepository.findAll", d -> d.option().findAll()),
         call("PartnerRepository.create", d -> d.partner().create(d.test().partner())),
         call("PartnerRepository.findById", d -> d.partner().findById(1)),
-        call("PartnerRepository.findAll", d -> d.partner().findAll("all", null, "Professor", "BIN")),
+        call(
+            "PartnerRepository.findAll", d -> d.partner().findAll("all", null, "Professor", "BIN")),
         call("PartnerRepository.update", d -> d.partner().update(d.test().partner())),
-        call("PartnerOptionRepository.create", d -> d.partnerOption().create(d.test().partnerOption(), 1)),
-        call("PartnerOptionRepository.findAllPartnersByOption",
+        call(
+            "PartnerOptionRepository.create",
+            d -> d.partnerOption().create(d.test().partnerOption(), 1)),
+        call(
+            "PartnerOptionRepository.findAllPartnersByOption",
             d -> d.partnerOption().findAllPartnersByOption("BIN")),
-        call("PartnerOptionRepository.findAllOptionsByPartner",
+        call(
+            "PartnerOptionRepository.findAllOptionsByPartner",
             d -> d.partnerOption().findAllOptionsByPartner(1)),
         call("PaymentRepository.findAll", d -> d.payment().findAll()),
         call("ProgrammeRepository.findById", d -> d.programme().findById(1)),
@@ -140,7 +151,8 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call("UserRepository.findBy", d -> d.user().findBy("username", "alice")),
         call("UserRepository.update", d -> d.user().update(d.test().user())),
         call("UserRepository.promoteToProfessor(id)", d -> d.user().promoteToProfessor(1, 1)),
-        call("UserRepository.promoteToProfessor(username)",
+        call(
+            "UserRepository.promoteToProfessor(username)",
             d -> d.user().promoteToProfessor("alice", 1)),
         call("UserRepository.isEmpty", d -> d.user().isEmpty()));
   }
@@ -152,9 +164,23 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
   @ParameterizedTest(name = "{0}")
   @MethodSource("daoCalls")
   void aDatabaseErrorIsReportedAsADataAccessException(Consumer<Repositories> call) {
-    Repositories daos = new Repositories(addressRepository, countryRepository, denialReasonRepository, documentRepository, mobilityChoiceRepository,
-        mobilityRepository, mobilityDocumentRepository, nominatedStudentRepository, optionRepository, partnerRepository,
-        partnerOptionRepository, paymentRepository, programmeRepository, userRepository, this);
+    Repositories daos =
+        new Repositories(
+            addressRepository,
+            countryRepository,
+            denialReasonRepository,
+            documentRepository,
+            mobilityChoiceRepository,
+            mobilityRepository,
+            mobilityDocumentRepository,
+            nominatedStudentRepository,
+            optionRepository,
+            partnerRepository,
+            partnerOptionRepository,
+            paymentRepository,
+            programmeRepository,
+            userRepository,
+            this);
     runInTransaction(() -> {
       abortTransaction();
       // the SQL cause is kept for the logs
@@ -163,7 +189,6 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
           .hasRootCauseInstanceOf(SQLException.class);
     });
   }
-
 
   private void abortTransaction() {
     try {

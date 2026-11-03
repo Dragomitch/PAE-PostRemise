@@ -1,8 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-/**
- * Paths shared by the REST controllers.
- */
+/** Paths shared by the REST controllers. */
 public final class ApiPaths {
 
   /** Prefix of every REST endpoint. */
@@ -13,9 +11,9 @@ public final class ApiPaths {
 
   /** Role expressions for {@code @PreAuthorize}. */
   public static final String PROFESSOR = "hasRole('PROFESSOR')";
+
   public static final String STUDENT = "hasRole('STUDENT')";
   public static final String PROFESSOR_OR_STUDENT = "hasAnyRole('PROFESSOR', 'STUDENT')";
 
-  private ApiPaths() {
-  }
+  private ApiPaths() {}
 }

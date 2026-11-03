@@ -5,9 +5,9 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * The legacy web UI (static/index.html) is a single-page application whose router uses
- * {@code history.pushState} paths such as {@code /partenaires}. Serve index.html for those paths
- * so that reloading or bookmarking a page works; the client-side router then renders it.
+ * The legacy web UI (static/index.html) is a single-page application whose router uses {@code
+ * history.pushState} paths such as {@code /partenaires}. Serve index.html for those paths so that
+ * reloading or bookmarking a page works; the client-side router then renders it.
  */
 @Configuration
 public class WebUiConfig implements WebMvcConfigurer {

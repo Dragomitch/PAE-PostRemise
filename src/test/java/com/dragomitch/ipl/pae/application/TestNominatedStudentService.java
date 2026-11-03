@@ -12,9 +12,6 @@ import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-import com.dragomitch.ipl.pae.domain.validation.Bic;
-import com.dragomitch.ipl.pae.domain.validation.Iban;
-
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -27,8 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig(UnitTestConfig.class)
 public class TestNominatedStudentService {
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   private EntityFactory entityFactory;
   private NominatedStudentRepository nominatedStudentRepository;
@@ -36,9 +32,7 @@ public class TestNominatedStudentService {
   private MockDtoFactory mockDtoFactory;
   private NominatedStudentDto nominatedStud;
 
-  /**
-   * Sets up the environment before every test.
-   */
+  /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
     entityFactory = context.getBean(EntityFactory.class);
@@ -48,9 +42,7 @@ public class TestNominatedStudentService {
     nominatedStud = mockDtoFactory.getNominatedStudent();
   }
 
-  /**
-   * Cleans up the 'database'.
-   */
+  /** Cleans up the 'database'. */
   @AfterEach
   public void cleanUp() {
     ((InMemoryNominatedStudentRepository) nominatedStudentRepository).empty();
@@ -58,14 +50,20 @@ public class TestNominatedStudentService {
 
   @Test
   public void testCreateTC1() {
-    assertThrows(ConstraintViolationException.class, () -> {
-      nominatedStudentService.create(null, 1, UserDto.ROLE_PROFESSOR);
-    });
+    assertThrows(
+        ConstraintViolationException.class,
+        () -> {
+          nominatedStudentService.create(null, 1, UserDto.ROLE_PROFESSOR);
+        });
   }
 
   @Test
   public void testCreateTC2() {
-    assertEquals(List.of("create.nominatedStudent.bic:Bic", "create.nominatedStudent.birthdate:Past", "create.nominatedStudent.iban:Iban"),
+    assertEquals(
+        List.of(
+            "create.nominatedStudent.bic:Bic",
+            "create.nominatedStudent.birthdate:Past",
+            "create.nominatedStudent.iban:Iban"),
         Violations.thrownBy(() -> {
           nominatedStudentRepository.create(nominatedStud);
           nominatedStudentService.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);

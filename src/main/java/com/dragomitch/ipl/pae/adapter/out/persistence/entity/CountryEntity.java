@@ -7,15 +7,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * A country ({@code countries}), identified by its ISO 3166-1 alpha-2 code, with the programme
- * its mobilities belong to. Reference data: the application never writes it, so it is immutable
- * and its {@code version} column is not mapped.
+ * A country ({@code countries}), identified by its ISO 3166-1 alpha-2 code, with the programme its
+ * mobilities belong to. Reference data: the application never writes it, so it is immutable and its
+ * {@code version} column is not mapped.
  */
 @Entity
 @Immutable
@@ -33,7 +32,6 @@ public class CountryEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "programme_id", nullable = false)
   private ProgrammeEntity programme;
-
 
   public String getCode() {
     return code;

@@ -36,7 +36,8 @@ public record FieldViolation(String field, String code, String message) {
       Comparator.comparing(FieldViolation::field).thenComparing(FieldViolation::code);
 
   /**
-   * The violations of a request body or of a model attribute ({@code MethodArgumentNotValidException}).
+   * The violations of a request body or of a model attribute ({@code
+   * MethodArgumentNotValidException}).
    *
    * @param errors the binding and validation errors
    * @return one violation per error, sorted by field
@@ -44,8 +45,8 @@ public record FieldViolation(String field, String code, String message) {
   static List<FieldViolation> of(Errors errors) {
     List<FieldViolation> violations = new ArrayList<>();
     for (ObjectError error : errors.getAllErrors()) {
-      String field = error instanceof FieldError fieldError
-          ? fieldError.getField() : error.getObjectName();
+      String field =
+          error instanceof FieldError fieldError ? fieldError.getField() : error.getObjectName();
       violations.add(new FieldViolation(field, codeOf(error), error.getDefaultMessage()));
     }
     violations.sort(BY_FIELD);
@@ -53,8 +54,8 @@ public record FieldViolation(String field, String code, String message) {
   }
 
   /**
-   * The violations found by Spring MVC's method validation of a controller
-   * ({@code HandlerMethodValidationException}): constraints on {@code @PathVariable} or
+   * The violations found by Spring MVC's method validation of a controller ({@code
+   * HandlerMethodValidationException}): constraints on {@code @PathVariable} or
    * {@code @RequestParam} parameters, or on a request body validated together with them.
    *
    * @param ex the exception
@@ -77,10 +78,10 @@ public record FieldViolation(String field, String code, String message) {
   }
 
   /**
-   * The violations of a Bean Validation {@code ConstraintViolationException}, typically raised
-   * by the method validation of a use case: the method and parameter nodes are left out of the
-   * path, so that {@code signup.user.email} becomes {@code email} and
-   * {@code promoteToProfessor.userId} becomes {@code userId}.
+   * The violations of a Bean Validation {@code ConstraintViolationException}, typically raised by
+   * the method validation of a use case: the method and parameter nodes are left out of the path,
+   * so that {@code signup.user.email} becomes {@code email} and {@code promoteToProfessor.userId}
+   * becomes {@code userId}.
    *
    * @param violations the constraint violations
    * @return one violation per constraint violation, sorted by field
@@ -88,9 +89,11 @@ public record FieldViolation(String field, String code, String message) {
   static List<FieldViolation> of(Iterable<? extends ConstraintViolation<?>> violations) {
     List<FieldViolation> result = new ArrayList<>();
     for (ConstraintViolation<?> violation : violations) {
-      result.add(new FieldViolation(fieldOf(violation.getPropertyPath()),
-          violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-          violation.getMessage()));
+      result.add(
+          new FieldViolation(
+              fieldOf(violation.getPropertyPath()),
+              violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+              violation.getMessage()));
     }
     result.sort(BY_FIELD);
     return result;
@@ -100,8 +103,9 @@ public record FieldViolation(String field, String code, String message) {
     List<Path.Node> nodes = new ArrayList<>();
     path.forEach(nodes::add);
     int start = 0;
-    if (!nodes.isEmpty() && (nodes.get(0).getKind() == ElementKind.METHOD
-        || nodes.get(0).getKind() == ElementKind.CONSTRUCTOR)) {
+    if (!nodes.isEmpty()
+        && (nodes.get(0).getKind() == ElementKind.METHOD
+            || nodes.get(0).getKind() == ElementKind.CONSTRUCTOR)) {
       start = 1;
       // a parameter followed by properties: the path is relative to the parameter
       if (nodes.size() > 2 && nodes.get(1).getKind() == ElementKind.PARAMETER) {
@@ -116,7 +120,8 @@ public record FieldViolation(String field, String code, String message) {
         Object index = node.getIndex() != null ? node.getIndex() : node.getKey();
         field.append('[').append(index == null ? "" : index).append(']');
       }
-      if (node.getName() != null && node.getKind() != ElementKind.CROSS_PARAMETER
+      if (node.getName() != null
+          && node.getKind() != ElementKind.CROSS_PARAMETER
           && node.getKind() != ElementKind.RETURN_VALUE) {
         if (!field.isEmpty()) {
           field.append('.');

@@ -21,7 +21,7 @@ public interface AddressRepository {
 
   /**
    * Inserts an address into the database.
-   * 
+   *
    * @param address the address to be inserted in the database
    * @return the AddressDto inserted into the DB.
    */
@@ -29,7 +29,7 @@ public interface AddressRepository {
 
   /**
    * Retrieve an address with the id passed in parameter.
-   * 
+   *
    * @param id the id of the Address we want to retrieve from the Database.
    * @return the AddressDto corresponding to the address row having the param id as id.
    */
@@ -38,10 +38,9 @@ public interface AddressRepository {
   /**
    * Update an row in the Database with the data provided by the address Object. The id of the row
    * affected is the one into the address object.
-   * 
+   *
    * @param address the new data we want to set for the id
    * @return the addressDto containing the updated data
    */
   AddressDto update(AddressDto address);
-
 }

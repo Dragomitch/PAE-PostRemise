@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 /**
- * The composite keys compare by value, as JPA requires: the persistence context finds an entity
- * by an equal key, not by the same key instance.
+ * The composite keys compare by value, as JPA requires: the persistence context finds an entity by
+ * an equal key, not by the same key instance.
  */
 class EmbeddedIdsTest {
 
@@ -14,7 +14,8 @@ class EmbeddedIdsTest {
   void partnerOptionIdsAreEqualWhenOptionAndPartnerAre() {
     PartnerOptionId id = new PartnerOptionId("BIN", 3001);
 
-    assertThat(id).isEqualTo(new PartnerOptionId("BIN", 3001))
+    assertThat(id)
+        .isEqualTo(new PartnerOptionId("BIN", 3001))
         .hasSameHashCodeAs(new PartnerOptionId("BIN", 3001))
         .isNotEqualTo(new PartnerOptionId("BCH", 3001))
         .isNotEqualTo(new PartnerOptionId("BIN", 3002))
@@ -28,7 +29,8 @@ class EmbeddedIdsTest {
   void mobilityDocumentIdsAreEqualWhenDocumentAndMobilityAre() {
     MobilityDocumentId id = new MobilityDocumentId(1, 5006);
 
-    assertThat(id).isEqualTo(new MobilityDocumentId(1, 5006))
+    assertThat(id)
+        .isEqualTo(new MobilityDocumentId(1, 5006))
         .hasSameHashCodeAs(new MobilityDocumentId(1, 5006))
         .isNotEqualTo(new MobilityDocumentId(2, 5006))
         .isNotEqualTo(new MobilityDocumentId(1, 5007))
