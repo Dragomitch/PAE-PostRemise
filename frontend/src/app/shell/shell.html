@@ -19,6 +19,13 @@
         <ng-container i18n="@@shell.nav.myMobilityChoices">Mes demandes de mobilité</ng-container>
       }
     </a>
+    <a routerLink="/mobilities" routerLinkActive="active" ariaCurrentWhenActive="page">
+      @if (isProfessor()) {
+        <ng-container i18n="@@shell.nav.mobilities">Mobilités</ng-container>
+      } @else {
+        <ng-container i18n="@@shell.nav.myMobilities">Mes mobilités</ng-container>
+      }
+    </a>
     @if (isProfessor()) {
       <a
         routerLink="/users"

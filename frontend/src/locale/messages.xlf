@@ -6,42 +6,56 @@
         <source>Connexion - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.signup.title" datatype="html">
         <source>Inscription - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.partners.title" datatype="html">
         <source>Partenaires - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.mobilityChoices.title" datatype="html">
         <source>Demandes de mobilité - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">32</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="route.mobilities.title" datatype="html">
+        <source>Mobilités - EMA</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="route.mobility.title" datatype="html">
+        <source>Mobilité - EMA</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.routes.ts</context>
+          <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.personalData.title" datatype="html">
         <source>Mes données personnelles - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">39</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="route.users.title" datatype="html">
         <source>Utilisateurs - EMA</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.routes.ts</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="problem.code.invalidCredentials" datatype="html">
@@ -175,6 +189,681 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/language-switcher/language-switcher.html</context>
           <context context-type="linenumber">3,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.title" datatype="html">
+        <source>Gestion des mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">4,6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.title.student" datatype="html">
+        <source>Mes mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">6,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.loading" datatype="html">
+        <source>Chargement des mobilités…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.retry" datatype="html">
+        <source> Réessayer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">16,18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.count" datatype="html">
+        <source> Nombre de mobilités : <x id="COUNT" equiv-text="{{
+        mobilities().length // i18n(ph=&quot;COUNT&quot;)
+      }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">21,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.option" datatype="html">
+        <source>Option</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">31,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.student" datatype="html">
+        <source>Etudiant</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">33,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.partner" datatype="html">
+        <source>Partenaire</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">34,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.type" datatype="html">
+        <source>Type</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.programme" datatype="html">
+        <source>Programme</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">36,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.departure" datatype="html">
+        <source>Départ</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">37,38</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.column.state" datatype="html">
+        <source>Etat</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">38,40</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.empty" datatype="html">
+        <source>Aucune mobilité.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobilities.html</context>
+          <context context-type="linenumber">80,83</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.back" datatype="html">
+        <source>Retour aux mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">5,6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.back.student" datatype="html">
+        <source>Retour à mes mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">7,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.title.loading" datatype="html">
+        <source>Mobilité</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">13,14</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">16,17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.loading" datatype="html">
+        <source>Chargement de la mobilité…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">14,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.retry" datatype="html">
+        <source> Réessayer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">20,22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.title" datatype="html">
+        <source> <x id="STUDENT" equiv-text="{{
+        studentName(m) // i18n(ph=&quot;STUDENT&quot;)
+      }}"/> à <x id="PARTNER" equiv-text="{{
+        destination(m) // i18n(ph=&quot;PARTNER&quot;)
+      }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">25,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.reload" datatype="html">
+        <source> Recharger la mobilité </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">57,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancel.reason.label" datatype="html">
+        <source>Raison de l&apos;annulation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">67,69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancel.reason.placeholder" datatype="html">
+        <source> Choisissez une raison </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">79,81</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancel.reason.loading" datatype="html">
+        <source> Chargement des raisons… </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">86,87</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancel.submit" datatype="html">
+        <source> Annuler la mobilité </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">104,105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.confirm" datatype="html">
+        <source> Confirmer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">115,116</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.close" datatype="html">
+        <source> Fermer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">124,125</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.title" datatype="html">
+        <source>Informations générales</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">133,135</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.type" datatype="html">
+        <source>Type</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">135,136</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.partner" datatype="html">
+        <source>Partenaire</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">137,138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.country" datatype="html">
+        <source>Pays</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">139,140</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.programme" datatype="html">
+        <source>Programme</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">141,142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.departure" datatype="html">
+        <source>Départ</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">143,144</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.state" datatype="html">
+        <source>Etat de la mobilité</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">145,146</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.stateBeforeCancellation" datatype="html">
+        <source> Etat de la mobilité avant annulation </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">151,153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.general.professorInCharge" datatype="html">
+        <source>Professeur responsable</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">156,158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.title" datatype="html">
+        <source>Etudiant</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">163,165</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.name" datatype="html">
+        <source>Nom</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">166</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.email" datatype="html">
+        <source>E-mail</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">167,169</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.option" datatype="html">
+        <source>Option</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">173,174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.phoneNumber" datatype="html">
+        <source>Téléphone</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">175,176</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.iban" datatype="html">
+        <source>IBAN</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">177,178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.bic" datatype="html">
+        <source>BIC</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">180</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.bankName" datatype="html">
+        <source>Banque</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">181,182</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.student.cardHolder" datatype="html">
+        <source>Titulaire du compte</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">183,184</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.documents.departure" datatype="html">
+        <source>Documents au départ</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">205,207</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.documents.return" datatype="html">
+        <source>Documents à l&apos;arrivée</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">209,211</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.export.csv" datatype="html">
+        <source>Exporter en CSV</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">220,222</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.export.filled" datatype="html">
+        <source>Complétés (CSV)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">227,229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.document.filled" datatype="html">
+        <source>Complété</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">238,239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.document.confirm" datatype="html">
+        <source> Confirmer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">247,248</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.document.missing" datatype="html">
+        <source>À compléter</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">250,252</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.documents.none" datatype="html">
+        <source>Aucun document.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">256,259</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.encodings.title" datatype="html">
+        <source> Encodage dans les logiciels externes </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">265,267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.export.all" datatype="html">
+        <source>Tous les documents (CSV)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">272,274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.encoding.done" datatype="html">
+        <source>Encodé</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">279,280</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">297,298</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.encoding.confirm" datatype="html">
+        <source> Confirmer </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">288,289</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">306,307</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.encoding.missing" datatype="html">
+        <source>Non encodé</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">291,293</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">309,311</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.title" datatype="html">
+        <source>Paiements</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">317,318</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.bankDetails" datatype="html">
+        <source> Les données bancaires de l&apos;étudiant sont incomplètes. Complétez-les pour pouvoir effectuer les paiements liés à la mobilité. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">323,326</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.first" datatype="html">
+        <source>Paiement au départ</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">337,338</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.second" datatype="html">
+        <source>Paiement à l&apos;arrivée</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">339,341</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.done" datatype="html">
+        <source>Effectué le <x id="START_TAG_TIME" ctype="x-time" equiv-text="&lt;time [attr.datetime]=&quot;day(date)&quot;&gt;"/><x id="DATE" equiv-text="{{
+                    formatDay(date) // i18n(ph=&quot;DATE&quot;)
+                  }}"/><x id="CLOSE_TAG_TIME" ctype="x-time" equiv-text="&lt;/time&gt;"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">345,349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.confirmFirst" datatype="html">
+        <source>Confirmer le premier paiement</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">360,362</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.confirmSecond" datatype="html">
+        <source>Confirmer le deuxième paiement</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">364,366</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.due" datatype="html">
+        <source>À effectuer</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">369,371</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.payments.notDue" datatype="html">
+        <source>Pas encore dû</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">372,374</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancellation.title" datatype="html">
+        <source>Annulation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">381,383</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancellation.reason" datatype="html">
+        <source>Raison de l&apos;annulation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">384,385</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.cancel.open" datatype="html">
+        <source> Annuler la mobilité </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.html</context>
+          <context context-type="linenumber">395,396</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.encoding.secondSoftware" datatype="html">
+        <source>Logiciel du programme</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">209</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.encoding.title" datatype="html">
+        <source>Confirmer un encodage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">326</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.document.title" datatype="html">
+        <source>Confirmer un document</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">328</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.payment.second.title" datatype="html">
+        <source>Confirmer le deuxième paiement</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">331</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.payment.first.title" datatype="html">
+        <source>Confirmer le premier paiement</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">332</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.cancel.title" datatype="html">
+        <source>Annuler la mobilité</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">334</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.proEco.question" datatype="html">
+        <source>La mobilité de <x id="STUDENT" equiv-text="student"/> est-elle encodée dans ProEco ?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">342</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.secondSoftware.question" datatype="html">
+        <source>La mobilité de <x id="STUDENT" equiv-text="student"/> est-elle encodée dans <x id="SOFTWARE" equiv-text="this.secondSoftware(mobility)"/> ?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">344</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.document.question" datatype="html">
+        <source>Le document « <x id="DOCUMENT" equiv-text="action.document.name"/> » de <x id="STUDENT" equiv-text="student"/> est-il complété ? Cette action est définitive.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">346</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.payment.second.question" datatype="html">
+        <source>Confirmer le paiement à l&apos;arrivée de <x id="STUDENT" equiv-text="student"/> ? Cette action est définitive.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.payment.first.question" datatype="html">
+        <source>Confirmer le paiement au départ de <x id="STUDENT" equiv-text="student"/> ? Cette action est définitive.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">350</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.panel.cancel.question" datatype="html">
+        <source>Annuler la mobilité de <x id="STUDENT" equiv-text="student"/> ? Cette action est définitive.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">352</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.notice.proEco" datatype="html">
+        <source>L&apos;encodage dans ProEco est confirmé.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">359</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.notice.secondSoftware" datatype="html">
+        <source>L&apos;encodage dans <x id="SOFTWARE" equiv-text="this.secondSoftware(mobility)"/> est confirmé.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">361</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.notice.document" datatype="html">
+        <source>Le document « <x id="DOCUMENT" equiv-text="action.document.name"/> » est complété.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">363</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.notice.payment" datatype="html">
+        <source>Le paiement est confirmé.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">365</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobility.notice.cancel" datatype="html">
+        <source>La mobilité est annulée.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-detail.ts</context>
+          <context context-type="linenumber">367</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.created" datatype="html">
+        <source>Créée</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.inPreparation" datatype="html">
+        <source>En préparation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.toBePaid" datatype="html">
+        <source>A payer</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.inProgress" datatype="html">
+        <source>En cours</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.balanceToBePaid" datatype="html">
+        <source>Solde à payer</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.closed" datatype="html">
+        <source>Terminée</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mobilities.state.cancelled" datatype="html">
+        <source>Annulée</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mobilities/mobility-labels.ts</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoiceForm.title" datatype="html">
@@ -608,77 +1297,77 @@
         <source>Actives</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">72</context>
+          <context context-type="linenumber">75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.filter.all" datatype="html">
         <source>Toutes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">73</context>
+          <context context-type="linenumber">76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.filter.canceled" datatype="html">
         <source>Annulées</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">74</context>
+          <context context-type="linenumber">77</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.filter.rejected" datatype="html">
         <source>Rejetées</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.filter.passed" datatype="html">
         <source>Années précédentes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">76</context>
+          <context context-type="linenumber">79</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.summary.preference" datatype="html">
         <source>Préférence <x id="ORDER" equiv-text="choice.preferenceOrder"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">210</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.notice.created" datatype="html">
         <source>La demande de mobilité a été enregistrée.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">234</context>
+          <context context-type="linenumber">237</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.cancel.tooLong" datatype="html">
         <source>La raison ne peut pas dépasser <x id="MAX" equiv-text="CANCELLATION_REASON_MAX_LENGTH"/> caractères.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">280</context>
+          <context context-type="linenumber">283</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.notice.canceled" datatype="html">
         <source>La demande de mobilité a été annulée.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">303</context>
+          <context context-type="linenumber">306</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.notice.rejected" datatype="html">
         <source>La demande de mobilité a été refusée.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">304</context>
+          <context context-type="linenumber">307</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mobilityChoices.notice.confirmed" datatype="html">
         <source>La demande de mobilité a été confirmée.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mobility-choices/mobility-choices.ts</context>
-          <context context-type="linenumber">320</context>
+          <context context-type="linenumber">323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="partners.title" datatype="html">
@@ -1160,32 +1849,46 @@
           <context context-type="linenumber">19,22</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="shell.nav.mobilities" datatype="html">
+        <source>Mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">24,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="shell.nav.myMobilities" datatype="html">
+        <source>Mes mobilités</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shell/shell.html</context>
+          <context context-type="linenumber">26,29</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="shell.nav.users" datatype="html">
         <source>Utilisateurs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shell/shell.html</context>
-          <context context-type="linenumber">28,31</context>
+          <context context-type="linenumber">35,38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="shell.nav.personalData" datatype="html">
         <source>Mes données personnelles</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shell/shell.html</context>
-          <context context-type="linenumber">36,41</context>
+          <context context-type="linenumber">43,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="shell.signingOut" datatype="html">
         <source>Déconnexion…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shell/shell.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">59,60</context>
         </context-group>
       </trans-unit>
       <trans-unit id="shell.signOut" datatype="html">
         <source>Se déconnecter</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shell/shell.html</context>
-          <context context-type="linenumber">54,56</context>
+          <context context-type="linenumber">61,63</context>
         </context-group>
       </trans-unit>
       <trans-unit id="signin.title" datatype="html">
