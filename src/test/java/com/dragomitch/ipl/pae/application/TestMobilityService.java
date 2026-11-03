@@ -16,6 +16,7 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
@@ -64,7 +65,7 @@ public class TestMobilityService {
     // Creates mobility
     MobilityChoiceDto mobilityChoice = mockDtoFactory.getMobilityChoice();
     mobilityChoice.setUser(user);
-    mobilityChoice = mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_STUDENT);
+    mobilityChoice = mobilityChoiceService.create(mobilityChoice, 1, Role.STUDENT);
     mobilityChoiceService.confirm(mobilityChoice.getId(), 1);
   }
 
@@ -156,7 +157,7 @@ public class TestMobilityService {
     assertThrows(
         ConstraintViolationException.class,
         () -> {
-          mobilityService.cancel(-1, 1, null, 1, 1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(-1, 1, null, 1, 1, Role.PROFESSOR);
         });
   }
 
@@ -165,7 +166,7 @@ public class TestMobilityService {
     assertEquals(
         ErrorCode.DENIAL_REASON_REQUIRED,
         Violations.errorCodeOf(() -> {
-          mobilityService.cancel(1, 1, null, -1, 1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(1, 1, null, -1, 1, Role.PROFESSOR);
         }));
   }
 
@@ -174,7 +175,7 @@ public class TestMobilityService {
     assertEquals(
         ErrorCode.CANCELLATION_REASON_REQUIRED,
         Violations.errorCodeOf(() -> {
-          mobilityService.cancel(1, 1, null, 1, 1, UserDto.ROLE_STUDENT);
+          mobilityService.cancel(1, 1, null, 1, 1, Role.STUDENT);
         }));
   }
 
@@ -183,7 +184,7 @@ public class TestMobilityService {
     assertThrows(
         ConstraintViolationException.class,
         () -> {
-          mobilityService.cancel(1, 1, null, 1, -1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(1, 1, null, 1, -1, Role.PROFESSOR);
         });
   }
 
@@ -201,7 +202,7 @@ public class TestMobilityService {
     assertThrows(
         BusinessException.class,
         () -> {
-          mobilityService.cancel(1, 1, null, 99, 1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(1, 1, null, 99, 1, Role.PROFESSOR);
         });
   }
 
@@ -209,14 +210,14 @@ public class TestMobilityService {
   public void testCancelTC7() {
     DenialReasonDto denialReason = denialReasonService.create(mockDtoFactory.getDenialReason());
     MobilityDto mobility =
-        mobilityService.cancel(1, 1, null, denialReason.getId(), 1, UserDto.ROLE_PROFESSOR);
+        mobilityService.cancel(1, 1, null, denialReason.getId(), 1, Role.PROFESSOR);
     assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());
     assertEquals(denialReason.getId(), mobility.getDenialReason().getId());
   }
 
   @Test
   public void testCancelTC8() {
-    MobilityDto mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 1, UserDto.ROLE_STUDENT);
+    MobilityDto mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 1, Role.STUDENT);
     assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());
     assertEquals("Toto 456", mobility.getCancellationReason());
   }

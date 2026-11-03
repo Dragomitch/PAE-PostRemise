@@ -10,6 +10,7 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -21,11 +22,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Mobility choices and their filters. The data set is described in
@@ -156,26 +155,16 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
 
   @ParameterizedTest(name = "filter \"{0}\" -> {1}")
   @CsvSource({
-    "all,       5001;5002;5003;5004;5005;5006;5007",
-    "active,    5001;5002",
-    "canceled,  5003",
-    "rejected,  5004",
-    "passed,    5005"
+    "ALL,       5001;5002;5003;5004;5005;5006;5007",
+    "ACTIVE,    5001;5002",
+    "CANCELED,  5003",
+    "REJECTED,  5004",
+    "PASSED,    5005"
   })
-  void findAllAppliesTheFilter(String filter, String expected) {
+  void findAllAppliesTheFilter(MobilityChoiceFilter filter, String expected) {
     List<MobilityChoiceDto> choices = inTransaction(() -> mobilityChoiceRepository.findAll(filter));
 
     assertThat(ids(choices)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
-  }
-
-  @ParameterizedTest
-  @NullAndEmptySource
-  @ValueSource(strings = {"whatever", "ALL", "active "})
-  void findAllRejectsAnUnknownFilter(String filter) {
-    runInTransaction(() ->
-        assertThatThrownBy(() -> mobilityChoiceRepository.findAll(filter))
-            .isInstanceOf(InvalidDataAccessApiUsageException.class)
-            .hasCauseInstanceOf(IllegalArgumentException.class));
   }
 
   @ParameterizedTest(name = "user {0} -> {1}")
@@ -300,10 +289,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
 
       assertThat(queryForRow(CHOICE_BY_ID, created.getId()))
           .containsEntry("student_cancellation_reason", null);
-      assertThat(
-              ids(
-                  mobilityChoiceRepository.findAll(
-                      MobilityChoiceRepository.FILTER_CANCELED_MOBILITIES_CHOICES)))
+      assertThat(ids(mobilityChoiceRepository.findAll(MobilityChoiceFilter.CANCELED)))
           .containsExactly(5003);
     });
   }

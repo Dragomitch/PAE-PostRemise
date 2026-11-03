@@ -16,7 +16,8 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.User;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
@@ -71,7 +72,7 @@ public class TestPartnerService {
         ConstraintViolationException.class,
         () -> {
           PartnerOptionDto option = mockDtoFactory.getPartnerOption();
-          partnerService.addOption(0, option, 1, User.ROLE_PROFESSOR); // L'id doit être > 0
+          partnerService.addOption(0, option, 1, Role.PROFESSOR); // L'id doit être > 0
         });
   }
 
@@ -81,7 +82,7 @@ public class TestPartnerService {
         ConstraintViolationException.class,
         () -> {
           partnerService.addOption(
-              1, null, 1, User.ROLE_PROFESSOR); // Le PartnerOption doit être différent de null
+              1, null, 1, Role.PROFESSOR); // Le PartnerOption doit être différent de null
         });
   }
 
@@ -93,7 +94,7 @@ public class TestPartnerService {
           PartnerOptionDto option = mockDtoFactory.getPartnerOption();
           option.setCode("");
           partnerService.addOption(
-              1, option, 1, User.ROLE_PROFESSOR); // le code doit être une String valide
+              1, option, 1, Role.PROFESSOR); // le code doit être une String valide
         });
   }
 
@@ -105,7 +106,7 @@ public class TestPartnerService {
           PartnerOptionDto option = mockDtoFactory.getPartnerOption();
           option.setDepartement("");
           partnerService.addOption(
-              1, option, 1, User.ROLE_PROFESSOR); // le departement doit être une String valide
+              1, option, 1, Role.PROFESSOR); // le departement doit être une String valide
         });
   }
 
@@ -118,10 +119,7 @@ public class TestPartnerService {
           PartnerOptionDto option = partner.getOptions().get(0);
           option.setCode("ZZZ");
           partnerService.addOption(
-              1,
-              option,
-              1,
-              User.ROLE_PROFESSOR); // Il doit exister une option avec le bon OptionCode
+              1, option, 1, Role.PROFESSOR); // Il doit exister une option avec le bon OptionCode
         }));
   }
 
@@ -131,27 +129,27 @@ public class TestPartnerService {
         InsufficientPermissionException.class,
         () -> {
           partnerDto.setStatus(true);
-          partnerService.create(partnerDto, User.ROLE_STUDENT);
+          partnerService.create(partnerDto, Role.STUDENT);
         });
   }
 
   @Test
   public void testCreateTC2() {
-    String filter = "all";
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIN";
     String value = "";
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
         0,
-        partnerRepository.findAll(filter, value, User.ROLE_STUDENT, option).size(),
+        partnerRepository.findAll(filter, value, Role.STUDENT, option).size(),
         "There should be only 1 partner");
   }
 
   @Test
   public void testCreateTC3() {
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
         addressRepository.findById(partnerDto.getAddress().getId()),
         partnerDto.getAddress(),
@@ -161,7 +159,7 @@ public class TestPartnerService {
   @Test
   public void testCreateTC4() {
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
         partnerRepository.findById(partnerDto.getId()),
         partnerDto,
@@ -171,7 +169,7 @@ public class TestPartnerService {
   @Test
   public void testCreateTC5() {
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
         partnerRepository.findById(partnerDto.getId()),
         partnerDto,
@@ -180,61 +178,61 @@ public class TestPartnerService {
 
   @Test
   public void testShowAllTC1() {
-    String filter = "all";
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIN";
     String value = "";
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_PROFESSOR);
+    partnerService.create(partnerDto, Role.PROFESSOR);
     assertEquals(
         1,
-        partnerRepository.findAll(filter, value, User.ROLE_PROFESSOR, option).size(),
+        partnerRepository.findAll(filter, value, Role.PROFESSOR, option).size(),
         "There should be only 1 partner");
   }
 
   @Test
   public void testShowAllTC2() {
-    String filter = "all";
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIM";
     String value = "";
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
-    assertEquals(0, partnerRepository.findAll(filter, value, User.ROLE_STUDENT, option).size());
+    partnerService.create(partnerDto, Role.STUDENT);
+    assertEquals(0, partnerRepository.findAll(filter, value, Role.STUDENT, option).size());
   }
 
   @Test
   public void testShowAllTC3() {
-    String filter = "all";
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIN";
     String value = "";
     partnerDto.setStatus(true);
-    partnerService.create(partnerDto, User.ROLE_PROFESSOR);
-    assertEquals(1, partnerRepository.findAll(filter, value, User.ROLE_STUDENT, option).size());
+    partnerService.create(partnerDto, Role.PROFESSOR);
+    assertEquals(1, partnerRepository.findAll(filter, value, Role.STUDENT, option).size());
   }
 
   @Test
   public void testShowAllTC4() {
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     PartnerDto partner = mockDtoFactory.getPartner();
     partner.setStatus(true);
-    partnerService.create(partner, User.ROLE_PROFESSOR);
-    String filter = "all";
+    partnerService.create(partner, Role.PROFESSOR);
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIN";
     String value = "";
-    assertEquals(2, partnerRepository.findAll(filter, value, User.ROLE_PROFESSOR, option).size());
+    assertEquals(2, partnerRepository.findAll(filter, value, Role.PROFESSOR, option).size());
   }
 
   @Test
   public void testShowAllTC5() {
     partnerDto.setStatus(false);
-    partnerService.create(partnerDto, User.ROLE_STUDENT);
+    partnerService.create(partnerDto, Role.STUDENT);
     PartnerDto partner = mockDtoFactory.getPartner();
     partner.setStatus(true);
-    partnerService.create(partner, User.ROLE_PROFESSOR);
-    String filter = "all";
+    partnerService.create(partner, Role.PROFESSOR);
+    PartnerFilter filter = PartnerFilter.ALL;
     String option = "BIN";
     String value = "";
-    assertEquals(1, partnerRepository.findAll(filter, value, User.ROLE_STUDENT, option).size());
+    assertEquals(1, partnerRepository.findAll(filter, value, Role.STUDENT, option).size());
   }
 
   /** Stores a partner directly in the 'database', bypassing the use case (like legacy data). */
@@ -249,7 +247,7 @@ public class TestPartnerService {
   @Test
   public void testCreateWithOneOptionStoresIt() {
     partnerDto.setStatus(false);
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR);
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR);
     List<PartnerOptionDto> stored =
         partnerOptionRepository.findAllOptionsByPartner(created.getId());
     assertEquals(1, stored.size(), "The option given at creation must be stored");
@@ -262,7 +260,7 @@ public class TestPartnerService {
     partnerDto.setOptions(new ArrayList<PartnerOptionDto>());
     assertEquals(
         List.of("create.partner.options:NotEmpty"),
-        Violations.thrownBy(() -> partnerService.create(partnerDto, User.ROLE_PROFESSOR)));
+        Violations.thrownBy(() -> partnerService.create(partnerDto, Role.PROFESSOR)));
     assertNull(partnerRepository.findById(1), "No partner must be created without an option");
   }
 
@@ -272,17 +270,17 @@ public class TestPartnerService {
     partnerDto.setOptions(null);
     assertEquals(
         List.of("create.partner.options:NotEmpty"),
-        Violations.thrownBy(() -> partnerService.create(partnerDto, User.ROLE_STUDENT)));
+        Violations.thrownBy(() -> partnerService.create(partnerDto, Role.STUDENT)));
     assertNull(partnerRepository.findById(1), "No partner must be created without an option");
   }
 
   @Test
   public void testEditKeepsExistingOptionsWhenNoneAreSent() {
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR);
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR);
     PartnerDto changes = mockDtoFactory.getPartner();
     changes.setOptions(new ArrayList<PartnerOptionDto>());
     changes.setFullName("New full name");
-    PartnerDto edited = partnerService.edit(created.getId(), changes, User.ROLE_PROFESSOR);
+    PartnerDto edited = partnerService.edit(created.getId(), changes, Role.PROFESSOR);
     assertEquals("New full name", edited.getFullName());
     assertEquals(1, partnerOptionRepository.findAllOptionsByPartner(created.getId()).size());
   }
@@ -292,13 +290,13 @@ public class TestPartnerService {
     PartnerOptionDto bdi = mockDtoFactory.getPartnerOption();
     bdi.setCode("BDI");
     partnerDto.getOptions().add(bdi);
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR); // BIN + BDI
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR); // BIN + BDI
     PartnerDto changes = mockDtoFactory.getPartner(); // BIN
     PartnerOptionDto sameBdi = mockDtoFactory.getPartnerOption();
     sameBdi.setCode("BDI");
     changes.getOptions().add(sameBdi);
     changes.getOptions().add(mockDtoFactory.getPartnerOption()); // BIN twice in the request
-    partnerService.edit(created.getId(), changes, User.ROLE_PROFESSOR);
+    partnerService.edit(created.getId(), changes, Role.PROFESSOR);
     assertEquals(
         2,
         partnerOptionRepository.findAllOptionsByPartner(created.getId()).size(),
@@ -307,14 +305,13 @@ public class TestPartnerService {
 
   @Test
   public void testEditWithANullOptionIsAValidationFailure() {
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR); // BIN
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR); // BIN
     PartnerDto changes = mockDtoFactory.getPartner();
     changes.getOptions().add(null);
     changes.setFullName("Not saved");
     assertEquals(
         List.of("edit.partner.options[1].<list element>:NotNull"),
-        Violations.thrownBy(
-            () -> partnerService.edit(created.getId(), changes, User.ROLE_PROFESSOR)));
+        Violations.thrownBy(() -> partnerService.edit(created.getId(), changes, Role.PROFESSOR)));
     assertEquals(1, partnerOptionRepository.findAllOptionsByPartner(created.getId()).size());
   }
 
@@ -323,18 +320,18 @@ public class TestPartnerService {
     partnerDto.getOptions().add(null);
     assertEquals(
         List.of("create.partner.options[1].<list element>:NotNull"),
-        Violations.thrownBy(() -> partnerService.create(partnerDto, User.ROLE_PROFESSOR)));
+        Violations.thrownBy(() -> partnerService.create(partnerDto, Role.PROFESSOR)));
     assertNull(partnerRepository.findById(1), "No partner must be created with a null option");
   }
 
   @Test
   public void testEditAddsNewOption() {
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR); // BIN
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR); // BIN
     PartnerDto changes = mockDtoFactory.getPartner();
     PartnerOptionDto bdi = mockDtoFactory.getPartnerOption();
     bdi.setCode("BDI");
     changes.getOptions().add(bdi);
-    partnerService.edit(created.getId(), changes, User.ROLE_PROFESSOR);
+    partnerService.edit(created.getId(), changes, Role.PROFESSOR);
     assertEquals(2, partnerOptionRepository.findAllOptionsByPartner(created.getId()).size());
   }
 
@@ -346,7 +343,7 @@ public class TestPartnerService {
     BusinessException ex =
         assertThrows(
             BusinessException.class,
-            () -> partnerService.edit(stored.getId(), changes, User.ROLE_PROFESSOR));
+            () -> partnerService.edit(stored.getId(), changes, Role.PROFESSOR));
     assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
   }
 
@@ -358,7 +355,7 @@ public class TestPartnerService {
     BusinessException ex =
         assertThrows(
             BusinessException.class,
-            () -> partnerService.edit(stored.getId(), changes, User.ROLE_PROFESSOR));
+            () -> partnerService.edit(stored.getId(), changes, Role.PROFESSOR));
     assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
   }
 
@@ -366,7 +363,7 @@ public class TestPartnerService {
   public void testEditPartnerWithoutOptionsAcceptsANewOption() {
     PartnerDto stored = storeWithoutOptions(false);
     PartnerDto changes = mockDtoFactory.getPartner();
-    partnerService.edit(stored.getId(), changes, User.ROLE_PROFESSOR);
+    partnerService.edit(stored.getId(), changes, Role.PROFESSOR);
     assertEquals(1, partnerOptionRepository.findAllOptionsByPartner(stored.getId()).size());
   }
 
@@ -375,8 +372,7 @@ public class TestPartnerService {
     PartnerDto stored = storeWithoutOptions(true);
     BusinessException ex =
         assertThrows(
-            BusinessException.class,
-            () -> partnerService.restore(stored.getId(), User.ROLE_PROFESSOR));
+            BusinessException.class, () -> partnerService.restore(stored.getId(), Role.PROFESSOR));
     assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
     assertTrue(
         partnerRepository.findById(stored.getId()).isArchived(), "The partner must stay archived");
@@ -386,17 +382,16 @@ public class TestPartnerService {
   public void testRestorePartnerWithAnOption() {
     PartnerDto stored = storeWithoutOptions(true);
     partnerOptionRepository.create(mockDtoFactory.getPartnerOption(), stored.getId());
-    PartnerDto restored = partnerService.restore(stored.getId(), User.ROLE_PROFESSOR);
+    PartnerDto restored = partnerService.restore(stored.getId(), Role.PROFESSOR);
     assertFalse(restored.isArchived());
   }
 
   @Test
   public void testRestoreNotArchivedPartnerIsRejected() {
-    PartnerDto created = partnerService.create(partnerDto, User.ROLE_PROFESSOR);
+    PartnerDto created = partnerService.create(partnerDto, Role.PROFESSOR);
     BusinessException ex =
         assertThrows(
-            BusinessException.class,
-            () -> partnerService.restore(created.getId(), User.ROLE_PROFESSOR));
+            BusinessException.class, () -> partnerService.restore(created.getId(), Role.PROFESSOR));
     assertEquals(ErrorCode.PARTNER_NOT_ARCHIVED, ex.getErrorCode());
   }
 }

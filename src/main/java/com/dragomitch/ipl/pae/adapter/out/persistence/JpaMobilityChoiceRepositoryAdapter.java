@@ -13,6 +13,7 @@ import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -117,30 +118,19 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
             .setParameter("year", LocalDate.now(clock).getYear()));
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants (a
-   *     programming error: the API rejects an unknown filter before, with a 400 {@code
-   *     VALIDATION_FAILED} problem)
-   */
   @Override
-  public List<MobilityChoiceDto> findAll(String filter) {
+  public List<MobilityChoiceDto> findAll(MobilityChoiceFilter filter) {
     int year = LocalDate.now(clock).getYear();
-    if (FILTER_ALL_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(entityManager.createQuery(SELECT + ORDER, MobilityChoiceEntity.class));
-    } else if (FILTER_CANCELED_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(where("c.cancellationReason IS NOT NULL"));
-    } else if (FILTER_REJECTED_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(where("c.denialReason IS NOT NULL"));
-    } else if (FILTER_PASSED_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(where("c.academicYear < :year").setParameter("year", year));
-    } else if (FILTER_ACTIVE_MOBILITIES_CHOICES.equals(filter)) {
-      return choices(
-          where("c.academicYear = :year AND " + PENDING + " AND " + NOT_A_MOBILITY)
-              .setParameter("year", year));
-    }
-    throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
+    return switch (filter) {
+      case ALL -> choices(entityManager.createQuery(SELECT + ORDER, MobilityChoiceEntity.class));
+      case CANCELED -> choices(where("c.cancellationReason IS NOT NULL"));
+      case REJECTED -> choices(where("c.denialReason IS NOT NULL"));
+      case PASSED -> choices(where("c.academicYear < :year").setParameter("year", year));
+      case ACTIVE ->
+          choices(
+              where("c.academicYear = :year AND " + PENDING + " AND " + NOT_A_MOBILITY)
+                  .setParameter("year", year));
+    };
   }
 
   /**

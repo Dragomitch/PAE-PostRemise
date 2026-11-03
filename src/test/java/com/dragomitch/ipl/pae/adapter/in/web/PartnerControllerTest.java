@@ -16,11 +16,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class PartnerControllerTest {
 
   @Test
   void createReadsThePartnerFromTheBodyWithTheRequesterRole() throws Exception {
-    when(partnerService.create(any(), eq(UserDto.ROLE_STUDENT))).thenReturn(partner(8));
+    when(partnerService.create(any(), eq(Role.STUDENT))).thenReturn(partner(8));
 
     mockMvc
         .perform(
@@ -64,15 +64,14 @@ class PartnerControllerTest {
         .andExpect(jsonPath("$.id").value(8));
 
     ArgumentCaptor<PartnerDto> captor = ArgumentCaptor.forClass(PartnerDto.class);
-    verify(partnerService).create(captor.capture(), eq(UserDto.ROLE_STUDENT));
+    verify(partnerService).create(captor.capture(), eq(Role.STUDENT));
     assertEquals(12, captor.getValue().getEmployeeCount());
     assertEquals("BIN", captor.getValue().getOptions().get(0).getCode());
   }
 
   @Test
   void showAllPassesTheFilterAndIsWrappedInData() throws Exception {
-    when(partnerService.showAll(
-            new PartnerSearch("country", "FR"), UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
+    when(partnerService.showAll(PartnerFilter.COUNTRY, "FR", Role.STUDENT, TestUsers.STUDENT_ID))
         .thenReturn(List.of(partner(1), partner(2)));
 
     mockMvc
@@ -85,7 +84,7 @@ class PartnerControllerTest {
   void anOptionAddedByAStudentToAPartnerHeMayNotChangeIsForbidden() throws Exception {
     doThrow(new InsufficientPermissionException())
         .when(partnerService)
-        .addOption(eq(3), any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+        .addOption(eq(3), any(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
 
     mockMvc
         .perform(
@@ -137,7 +136,7 @@ class PartnerControllerTest {
 
   @Test
   void editTakesTheIdFromThePath() throws Exception {
-    when(partnerService.edit(eq(3), any(), eq(UserDto.ROLE_PROFESSOR))).thenReturn(partner(3));
+    when(partnerService.edit(eq(3), any(), eq(Role.PROFESSOR))).thenReturn(partner(3));
 
     mockMvc
         .perform(
@@ -165,7 +164,7 @@ class PartnerControllerTest {
         .andExpect(status().isOk());
     ArgumentCaptor<PartnerOptionDto> captor = ArgumentCaptor.forClass(PartnerOptionDto.class);
     verify(partnerService)
-        .addOption(eq(3), captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+        .addOption(eq(3), captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals("IT", captor.getValue().getDepartement());
 
     when(partnerService.findAllPartnerOption(3)).thenReturn(List.of(captor.getValue()));
@@ -177,7 +176,7 @@ class PartnerControllerTest {
 
   @Test
   void restoreUsesTheRoleOfTheRequester() throws Exception {
-    when(partnerService.restore(3, UserDto.ROLE_STUDENT)).thenReturn(partner(3));
+    when(partnerService.restore(3, Role.STUDENT)).thenReturn(partner(3));
 
     mockMvc
         .perform(

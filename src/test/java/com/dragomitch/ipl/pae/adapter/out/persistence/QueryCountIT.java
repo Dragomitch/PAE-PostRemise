@@ -3,7 +3,9 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
@@ -68,9 +70,7 @@ class QueryCountIT extends AbstractRepositoryIT {
             it -> it.documentRepository.findAllByProgramme(1)),
         read(
             "MobilityChoiceRepository.findAll",
-            it ->
-                it.mobilityChoiceRepository.findAll(
-                    MobilityChoiceRepository.FILTER_ALL_MOBILITIES_CHOICES)),
+            it -> it.mobilityChoiceRepository.findAll(MobilityChoiceFilter.ALL)),
         read("MobilityChoiceRepository.findById", it -> it.mobilityChoiceRepository.findById(5001)),
         read(
             "MobilityChoiceRepository.findByUser",
@@ -87,14 +87,10 @@ class QueryCountIT extends AbstractRepositoryIT {
         read("OptionRepository.findAll", it -> it.optionRepository.findAll()),
         read(
             "PartnerRepository.findAll (professor)",
-            it ->
-                it.partnerRepository.findAll(
-                    PartnerRepository.FILTER_ALL_PARTNERS, "", UserDto.ROLE_PROFESSOR, null)),
+            it -> it.partnerRepository.findAll(PartnerFilter.ALL, "", Role.PROFESSOR, null)),
         read(
             "PartnerRepository.findAll (student)",
-            it ->
-                it.partnerRepository.findAll(
-                    PartnerRepository.FILTER_ALL_PARTNERS, "", UserDto.ROLE_STUDENT, "BIN")),
+            it -> it.partnerRepository.findAll(PartnerFilter.ALL, "", Role.STUDENT, "BIN")),
         read("PartnerRepository.findById", it -> it.partnerRepository.findById(3001)),
         read(
             "PartnerOptionRepository.findAllOptionsByPartner",

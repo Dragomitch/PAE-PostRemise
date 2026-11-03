@@ -18,6 +18,7 @@ import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
@@ -291,7 +292,7 @@ class UserServiceImplTest {
       givenOptionExists("BIN");
       givenStoredUser(UserDto.ROLE_STUDENT);
 
-      UserDto edited = userService.edit(request, requester, role);
+      UserDto edited = userService.edit(request, requester, Role.fromLabel(role));
 
       assertThat(edited.getLastName()).isEqualTo("Martin-Dupont");
       assertThat(edited.getPassword()).isEqualTo("$2a$stored-hash");
@@ -310,7 +311,7 @@ class UserServiceImplTest {
       givenOptionExists("BIN");
       givenStoredUser(UserDto.ROLE_STUDENT);
 
-      assertThat(userService.edit(request, USER_ID, UserDto.ROLE_STUDENT)).isSameAs(request);
+      assertThat(userService.edit(request, USER_ID, Role.STUDENT)).isSameAs(request);
     }
 
     @Test
@@ -325,7 +326,7 @@ class UserServiceImplTest {
       student.setVersion(1);
       when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
 
-      userService.edit(request, USER_ID, UserDto.ROLE_STUDENT);
+      userService.edit(request, USER_ID, Role.STUDENT);
 
       verify(nominatedStudentRepository).update(student);
     }
@@ -342,15 +343,14 @@ class UserServiceImplTest {
       givenUpdateIncrementsTheVersion();
       when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
 
-      userService.edit(request, USER_ID, UserDto.ROLE_STUDENT);
+      userService.edit(request, USER_ID, Role.STUDENT);
 
       verify(nominatedStudentRepository, never()).update(any());
     }
 
     @Test
     void aStudentCannotEditAnotherAccount() {
-      assertThatBusinessException(
-              () -> userService.edit(request(), USER_ID + 1, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request(), USER_ID + 1, Role.STUDENT))
           .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(userRepository, optionRepository, nominatedStudentRepository);
     }
@@ -361,7 +361,7 @@ class UserServiceImplTest {
       when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
           .thenReturn(user(USER_ID + 1, UserDto.ROLE_STUDENT));
 
-      assertThatBusinessException(() -> userService.edit(request, USER_ID, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.USERNAME_TAKEN);
       verify(userRepository, never()).update(any());
     }
@@ -374,7 +374,7 @@ class UserServiceImplTest {
       when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
           .thenReturn(user(USER_ID + 1, UserDto.ROLE_STUDENT));
 
-      assertThatBusinessException(() -> userService.edit(request, USER_ID, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.EMAIL_TAKEN);
       verify(userRepository, never()).update(any());
     }
@@ -383,8 +383,7 @@ class UserServiceImplTest {
     void anUnknownAccountIsNotFound() {
       givenOptionExists("BIN");
 
-      assertThatBusinessException(
-              () -> userService.edit(request(), PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+      assertThatBusinessException(() -> userService.edit(request(), PROFESSOR_ID, Role.PROFESSOR))
           .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(userRepository, never()).update(any());
     }

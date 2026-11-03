@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
@@ -96,8 +97,8 @@ class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto edit(UserDto user, int userId, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT) && user.getId() != userId) {
+  public UserDto edit(UserDto user, int userId, Role userRole) {
+    if (userRole == Role.STUDENT && user.getId() != userId) {
       throw new InsufficientPermissionException();
     }
     checkBusinessRules(user);

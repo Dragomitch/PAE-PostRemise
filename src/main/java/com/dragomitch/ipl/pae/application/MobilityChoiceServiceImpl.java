@@ -16,6 +16,8 @@ import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
@@ -74,12 +76,12 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   }
 
   @Override
-  public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice, int userId, String userRole) {
+  public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice, int userId, Role userRole) {
     checkReferencesExist(mobilityChoice);
-    if (userRole.equals(UserDto.ROLE_STUDENT) && mobilityChoice.getUser().getId() != userId) {
+    if (userRole == Role.STUDENT && mobilityChoice.getUser().getId() != userId) {
       throw new InsufficientPermissionException();
     }
-    if (userRole.equals(UserDto.ROLE_PROFESSOR) && mobilityChoice.getUser().getId() == userId) {
+    if (userRole == Role.PROFESSOR && mobilityChoice.getUser().getId() == userId) {
       throw new BusinessException(ErrorCode.PROFESSOR_CANNOT_APPLY);
     }
     UserDto userDto;
@@ -92,13 +94,11 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MobilityChoiceDto> showAll(int userId, String userRole, String filter) {
-    String filterToUse =
-        filter == null ? MobilityChoiceRepository.FILTER_ACTIVE_MOBILITIES_CHOICES : filter;
+  public List<MobilityChoiceDto> showAll(int userId, Role userRole, MobilityChoiceFilter filter) {
     List<MobilityChoiceDto> mobilityChoices;
-    if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+    if (userRole == Role.PROFESSOR) {
       // Lists all mobility choices in function of filter
-      mobilityChoices = mobilityChoiceRepository.findAll(filterToUse);
+      mobilityChoices = mobilityChoiceRepository.findAll(filter);
     } else {
       // Lists mobility choices owned by the requester
       mobilityChoices = getMobilityChoiceForUser(userId, userId, userRole);
@@ -108,7 +108,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public int countAll(int userId, String userRole, String filter) {
+  public int countAll(int userId, Role userRole, MobilityChoiceFilter filter) {
     return showAll(userId, userRole, filter).size();
   }
 
@@ -178,7 +178,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
     mobility.setProfessorInCharge(userRepository.findById(userId));
     createMobility(mobility, mobilityChoice);
     List<MobilityChoiceDto> mobilityChoices =
-        getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, UserDto.ROLE_PROFESSOR);
+        getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, Role.PROFESSOR);
     for (MobilityChoiceDto choice : mobilityChoices) {
       // the other open choices of the same term are rejected; closed ones are left as they are
       if (choice.getId() != mobilityChoice.getId()
@@ -191,7 +191,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   }
 
   @Override
-  public void confirmWithNewPartner(int id, PartnerDto partner, int userId, String userRole) {
+  public void confirmWithNewPartner(int id, PartnerDto partner, int userId, Role userRole) {
     MobilityChoiceDto mobilityChoice = mobilityChoiceRepository.findById(id);
     if (mobilityChoice == null) {
       throw new ResourceNotFoundException();
@@ -200,10 +200,10 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
         || mobilityChoice.getDenialReason() != null) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
-    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobilityChoice.getUser().getId()) {
+    if (userRole == Role.STUDENT && userId != mobilityChoice.getUser().getId()) {
       throw new InsufficientPermissionException();
     }
-    if (userRole.equals(UserDto.ROLE_STUDENT) && (partner.isOfficial())) {
+    if (userRole == Role.STUDENT && (partner.isOfficial())) {
       throw new InsufficientPermissionException();
     }
     if (mobilityRepository.findById(id) != null) {
@@ -237,7 +237,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public String exportAll(int userId, String userRole, String filter) {
+  public String exportAll(int userId, Role userRole, MobilityChoiceFilter filter) {
     List<MobilityChoiceDto> mobilityChoices = showAll(userId, userRole, filter);
     CsvStringBuilder csvStringBuilder = new CsvStringBuilder(';');
     String[] headerCsv = {
@@ -276,8 +276,8 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
    * @return the list of mobility choices for the userId specified.
    */
   private List<MobilityChoiceDto> getMobilityChoiceForUser(
-      int userId, int onUserId, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT) && onUserId != userId) {
+      int userId, int onUserId, Role userRole) {
+    if (userRole == Role.STUDENT && onUserId != userId) {
       throw new InsufficientPermissionException();
     }
     List<MobilityChoiceDto> mobilityChoices = null;

@@ -5,10 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
@@ -116,7 +116,7 @@ class MethodValidationTest {
   void anEditionDoesNotRequireThePassword() {
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
 
-    assertThat(Violations.thrownBy(() -> userService.edit(user, 1, UserDto.ROLE_STUDENT)))
+    assertThat(Violations.thrownBy(() -> userService.edit(user, 1, Role.STUDENT)))
         .doesNotContain("edit.user.password:NotBlank")
         .contains("edit.user.username:NotBlank");
   }
@@ -132,39 +132,31 @@ class MethodValidationTest {
             (Call) t -> t.sessionService.showAuthenticatedUser(-3)),
         Arguments.of("showOne.id:Positive", (Call) t -> t.partnerService.showOne(0)),
         Arguments.of(
-            "showAll.search.filter:Pattern",
-            (Call) t -> t.partnerService.showAll(new PartnerSearch("name", "x"), "Student", 1)),
+            "showAll.filter:NotNull",
+            (Call) t -> t.partnerService.showAll(null, null, Role.STUDENT, 1)),
         Arguments.of(
-            "showAll.search.value:FilterValueRequired",
-            (Call) t -> t.partnerService.showAll(new PartnerSearch("country", null), "Student", 1)),
-        Arguments.of(
-            "showOne.id:Positive",
-            (Call) t -> t.mobilityService.showOne(0, UserDto.ROLE_PROFESSOR, 1)),
+            "showOne.id:Positive", (Call) t -> t.mobilityService.showOne(0, Role.PROFESSOR, 1)),
         Arguments.of(
             "confirmDocument.document:Positive",
             (Call) t -> t.mobilityService.confirmDocument(1, -1, 1)),
         Arguments.of(
-            "exportDocuments.filter:Pattern",
-            (Call) t -> t.mobilityService.exportDocuments(1, "X")),
-        Arguments.of(
             "cancel.cancellationReason:Size",
-            (Call)
-                t -> t.mobilityService.cancel(1, 1, "x".repeat(501), 0, 1, UserDto.ROLE_STUDENT)),
+            (Call) t -> t.mobilityService.cancel(1, 1, "x".repeat(501), 0, 1, Role.STUDENT)),
         Arguments.of(
             "cancel.reason:NotBlank", (Call) t -> t.mobilityChoiceService.cancel(1, 1, "")),
         Arguments.of("reject.reasonId:Positive", (Call) t -> t.mobilityChoiceService.reject(1, 0)),
         Arguments.of(
-            "showAll.filter:Pattern",
-            (Call) t -> t.mobilityChoiceService.showAll(1, UserDto.ROLE_STUDENT, "mine")),
+            "showAll.filter:NotNull",
+            (Call) t -> t.mobilityChoiceService.showAll(1, Role.STUDENT, null)),
         Arguments.of(
             "showOne.id:Positive",
-            (Call) t -> t.nominatedStudentService.showOne(0, 1, UserDto.ROLE_PROFESSOR)),
+            (Call) t -> t.nominatedStudentService.showOne(0, 1, Role.PROFESSOR)),
         Arguments.of("showOne.id:Positive", (Call) t -> t.programmeService.showOne(-1)),
         Arguments.of("showOne.countryCode:Size", (Call) t -> t.countryService.showOne("BEL")),
         Arguments.of(
             "findAllPartnersByOption.optionCode:Size",
             (Call) t -> t.optionService.findAllPartnersByOption("BINF")),
-        Arguments.of("showAll.userRole:NotBlank", (Call) t -> t.paymentService.showAll("")));
+        Arguments.of("showAll.userRole:NotNull", (Call) t -> t.paymentService.showAll(null)));
   }
 
   /** A call of a use case of this test. */
@@ -187,10 +179,10 @@ class MethodValidationTest {
 
     LocaleContextHolder.setLocale(Locale.ENGLISH);
     Map<String, String> english =
-        messages(() -> nominatedStudentService.create(student, 1, UserDto.ROLE_PROFESSOR));
+        messages(() -> nominatedStudentService.create(student, 1, Role.PROFESSOR));
     LocaleContextHolder.setLocale(Locale.FRENCH);
     Map<String, String> french =
-        messages(() -> nominatedStudentService.create(student, 1, UserDto.ROLE_PROFESSOR));
+        messages(() -> nominatedStudentService.create(student, 1, Role.PROFESSOR));
 
     assertThat(english)
         .containsEntry("create.nominatedStudent.title", "must not be blank")
@@ -211,7 +203,7 @@ class MethodValidationTest {
 
     LocaleContextHolder.setLocale(Locale.ENGLISH);
     Map<String, String> english =
-        messages(() -> nominatedStudentService.edit(student, 1, UserDto.ROLE_PROFESSOR));
+        messages(() -> nominatedStudentService.edit(student, 1, Role.PROFESSOR));
 
     assertThat(english)
         .containsEntry(

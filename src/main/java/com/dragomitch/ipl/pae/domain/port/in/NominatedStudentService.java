@@ -1,8 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -22,7 +22,7 @@ public interface NominatedStudentService {
   NominatedStudentDto create(
       @NotNull @Valid NominatedStudentDto nominatedStudent,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 
   /**
    * Returns the nominated student bearing the given id.
@@ -32,7 +32,7 @@ public interface NominatedStudentService {
    * @param role the role of the currently signed in user
    * @return the student if one was found, null otherwise
    */
-  NominatedStudentDto showOne(@Positive int id, @Positive int userId, @NotBlank String role);
+  NominatedStudentDto showOne(@Positive int id, @Positive int userId, @NotNull Role role);
 
   /**
    * Returns a list containing all of the nominated students in the database.
@@ -52,5 +52,5 @@ public interface NominatedStudentService {
   NominatedStudentDto edit(
       @NotNull @Valid NominatedStudentDto nominatedStudent,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 }

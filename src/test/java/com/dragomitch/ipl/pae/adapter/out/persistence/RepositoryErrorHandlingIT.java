@@ -14,6 +14,9 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
@@ -99,7 +102,9 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call("DocumentRepository.findAllByProgramme", d -> d.document().findAllByProgramme(1)),
         call("MobilityChoiceRepository.create", d -> d.mobilityChoice().create(d.test().choice())),
         call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1)),
-        call("MobilityChoiceRepository.findAll", d -> d.mobilityChoice().findAll("all")),
+        call(
+            "MobilityChoiceRepository.findAll",
+            d -> d.mobilityChoice().findAll(MobilityChoiceFilter.ALL)),
         call("MobilityChoiceRepository.findByUser", d -> d.mobilityChoice().findByUser(1)),
         call("MobilityChoiceRepository.findByPartner", d -> d.mobilityChoice().findByPartner(1)),
         call(
@@ -131,7 +136,8 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call("PartnerRepository.create", d -> d.partner().create(d.test().partner())),
         call("PartnerRepository.findById", d -> d.partner().findById(1)),
         call(
-            "PartnerRepository.findAll", d -> d.partner().findAll("all", null, "Professor", "BIN")),
+            "PartnerRepository.findAll",
+            d -> d.partner().findAll(PartnerFilter.ALL, null, Role.PROFESSOR, "BIN")),
         call("PartnerRepository.update", d -> d.partner().update(d.test().partner())),
         call(
             "PartnerOptionRepository.create",

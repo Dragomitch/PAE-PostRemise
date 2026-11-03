@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,7 +58,10 @@ public class PartnerController {
   @GetMapping
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public DataResponse<PartnerDto> showAll(@Valid PartnerSearch search, CurrentUser currentUser) {
-    return new DataResponse<>(partnerService.showAll(search, currentUser.role(), currentUser.id()));
+    PartnerFilter filter =
+        search.filter() == null ? PartnerFilter.ALL : PartnerFilter.fromValue(search.filter());
+    return new DataResponse<>(
+        partnerService.showAll(filter, search.value(), currentUser.role(), currentUser.id()));
   }
 
   @PutMapping("/{id}")

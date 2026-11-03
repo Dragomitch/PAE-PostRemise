@@ -11,8 +11,10 @@ import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
 import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
@@ -27,6 +29,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -37,11 +40,6 @@ class MobilityServiceImpl implements MobilityService {
 
   private static final int SOFTWARE_PRO_ECO = 1;
   private static final int SOFTWARE_SECOND = 2;
-
-  private static final String DEPARTURE_DOCUMENTS_FILTER = "D";
-  private static final String DEPARTURE_FILLED_DOCUMENTS_FILTER = "DF";
-  private static final String RETURN_DOCUMENTS_FILTER = "R";
-  private static final String RETURN_FILLED_DOCUMENTS_FILTER = "RF";
 
   private final MobilityRepository mobilityRepository;
   private final NominatedStudentRepository nominatedStudentRepository;
@@ -73,9 +71,9 @@ class MobilityServiceImpl implements MobilityService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MobilityDto> showAll(int userId, String userRole) {
+  public List<MobilityDto> showAll(int userId, Role userRole) {
     List<MobilityDto> mobilities;
-    if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+    if (userRole == Role.PROFESSOR) {
       // Lists all mobilities
       mobilities = mobilityRepository.findAll();
     } else {
@@ -87,9 +85,9 @@ class MobilityServiceImpl implements MobilityService {
 
   @Override
   @Transactional(readOnly = true)
-  public MobilityDto showOne(int id, String role, int user) {
+  public MobilityDto showOne(int id, Role role, int user) {
     Mobility mobility = getMobility(id);
-    if (role.equals(UserDto.ROLE_STUDENT) && user != mobility.getNominatedStudent().getId()) {
+    if (role == Role.STUDENT && user != mobility.getNominatedStudent().getId()) {
       throw new InsufficientPermissionException();
     }
     mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
@@ -244,14 +242,14 @@ class MobilityServiceImpl implements MobilityService {
       String cancellationReason,
       int denialReasonId,
       int userId,
-      String userRole) {
+      Role userRole) {
     Mobility mobility = getMobility(id);
     if (mobility.getVersion() != version) {
       throw new ConcurrentModificationException();
     }
     // The student does not own the mobility: checked first, so that the state and the reasons
     // of the mobility of another student are not disclosed
-    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobility.getNominatedStudent().getId()) {
+    if (userRole == Role.STUDENT && userId != mobility.getNominatedStudent().getId()) {
       throw new InsufficientPermissionException();
     }
     mobility.checkNotClosed();
@@ -261,7 +259,7 @@ class MobilityServiceImpl implements MobilityService {
     }
     // The mobility can be cancelled
     String stateBeforeCancellation = mobility.getState();
-    if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+    if (userRole == Role.PROFESSOR) {
       if (denialReasonId <= 0) {
         throw new BusinessException(ErrorCode.DENIAL_REASON_REQUIRED);
       }
@@ -284,8 +282,7 @@ class MobilityServiceImpl implements MobilityService {
 
   @Override
   @Transactional(readOnly = true)
-  public String exportDocuments(int mobilityId, String filter) {
-    filter = filter == null ? "" : filter;
+  public String exportDocuments(int mobilityId, @Nullable DocumentFilter filter) {
     Mobility mobility = getMobility(mobilityId);
     mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
     CsvStringBuilder csvStringBuilder = new CsvStringBuilder(';');
@@ -326,18 +323,11 @@ class MobilityServiceImpl implements MobilityService {
     return csvStringBuilder.close();
   }
 
-  /**
-   * Tells whether the export keeps a document: the documents of the category of the filter (D or
-   * R), only the filled-in ones for DF and RF, every document without a filter.
-   */
-  private static boolean isExported(DocumentDto document, String filter) {
-    return switch (filter) {
-      case DEPARTURE_DOCUMENTS_FILTER, RETURN_DOCUMENTS_FILTER ->
-          document.getCategory() == filter.charAt(0);
-      case DEPARTURE_FILLED_DOCUMENTS_FILTER, RETURN_FILLED_DOCUMENTS_FILTER ->
-          document.getCategory() == filter.charAt(0) && document.isFilledIn();
-      default -> true;
-    };
+  /** Tells whether the export keeps a document: every document without a filter. */
+  private static boolean isExported(DocumentDto document, @Nullable DocumentFilter filter) {
+    return filter == null
+        || (document.getCategory() == filter.category().code()
+            && (document.isFilledIn() || !filter.filledInOnly()));
   }
 
   /**

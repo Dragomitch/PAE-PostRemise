@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -61,5 +62,5 @@ public interface UserService {
    * @param role the role of the currently signed in user
    * @return the updated UserDto container.
    */
-  UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotBlank String role);
+  UserDto edit(@NotNull @Valid UserDto user, @Positive int userId, @NotNull Role role);
 }

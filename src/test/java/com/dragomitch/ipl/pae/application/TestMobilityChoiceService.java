@@ -24,6 +24,8 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
@@ -107,7 +109,7 @@ public class TestMobilityChoiceService {
 
   @Test
   public void testCheckDataIntregrityTC1() {
-    mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
   }
 
   @Test
@@ -116,7 +118,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.mobilityType:Pattern"),
         Violations.thrownBy(() -> {
           mobilityChoice.setMobilityType("4444");
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
@@ -126,7 +128,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.mobilityType:NotBlank"),
         Violations.thrownBy(() -> {
           mobilityChoice.setMobilityType(null);
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
@@ -136,7 +138,7 @@ public class TestMobilityChoiceService {
         ErrorCode.PROFESSOR_CANNOT_APPLY,
         Violations.errorCodeOf(() -> {
           mobilityChoice.setCountry(null);
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
@@ -146,7 +148,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.country.countryCode:NotBlank"),
         Violations.thrownBy(() -> {
           mobilityChoice.getCountry().setCountryCode(null);
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
@@ -156,7 +158,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.country.countryCode:Size"),
         Violations.thrownBy(() -> {
           mobilityChoice.getCountry().setCountryCode("555");
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
@@ -166,14 +168,14 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.country.countryCode:Size"),
         Violations.thrownBy(() -> {
           mobilityChoice.getCountry().setCountryCode("LOL");
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         }));
   }
 
   @Test
   public void testCheckDataIntregrityTC9() {
     mobilityChoice.getCountry().setCountryCode("IE");
-    mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
   }
 
   @Test
@@ -182,7 +184,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.programme:NotNull"),
         Violations.thrownBy(() -> {
           mobilityChoice.setProgramme(null);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
         }));
   }
 
@@ -192,7 +194,7 @@ public class TestMobilityChoiceService {
         ErrorCode.UNKNOWN_PROGRAMME,
         Violations.errorCodeOf(() -> {
           mobilityChoice.getProgramme().setId(2);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
         }));
   }
 
@@ -202,7 +204,7 @@ public class TestMobilityChoiceService {
         List.of("create.mobilityChoice.user:NotNull"),
         Violations.thrownBy(() -> {
           mobilityChoice.setUser(null);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
         }));
   }
 
@@ -212,7 +214,7 @@ public class TestMobilityChoiceService {
         ErrorCode.PROFESSOR_CANNOT_APPLY,
         Violations.errorCodeOf(() -> {
           mobilityChoice.getUser().setId(2);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
         }));
   }
 
@@ -222,7 +224,7 @@ public class TestMobilityChoiceService {
     assertEquals(
         ErrorCode.UNKNOWN_USER,
         Violations.errorCodeOf(
-            () -> mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR)));
+            () -> mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR)));
   }
 
   @Test
@@ -231,12 +233,12 @@ public class TestMobilityChoiceService {
     assertEquals(
         ErrorCode.UNKNOWN_COUNTRY,
         Violations.errorCodeOf(
-            () -> mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR)));
+            () -> mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR)));
   }
 
   @Test
   public void testCreateTC1() {
-    mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
   }
 
   @Test
@@ -244,7 +246,7 @@ public class TestMobilityChoiceService {
     assertEquals(
         List.of("create.mobilityChoice:NotNull"),
         Violations.thrownBy(() -> {
-          mobilityChoiceService.create(null, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(null, 1, Role.PROFESSOR);
         }));
   }
 
@@ -253,7 +255,7 @@ public class TestMobilityChoiceService {
     assertEquals(
         List.of("create.mobilityChoice:NotNull"),
         Violations.thrownBy(() -> {
-          mobilityChoiceService.create(null, 1, UserDto.ROLE_STUDENT);
+          mobilityChoiceService.create(null, 1, Role.STUDENT);
         }));
   }
 
@@ -263,7 +265,7 @@ public class TestMobilityChoiceService {
         InsufficientPermissionException.class,
         () -> {
           mobilityChoice.setUser(userStud);
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_STUDENT);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.STUDENT);
         });
   }
 
@@ -272,7 +274,7 @@ public class TestMobilityChoiceService {
     assertThrows(
         BusinessException.class,
         () -> {
-          mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 1, Role.PROFESSOR);
         });
   }
 
@@ -283,120 +285,108 @@ public class TestMobilityChoiceService {
         () -> {
           userProf.setId(5);
           mobilityChoice.setUser(userProf);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
         });
   }
 
   @Test
   public void testCreateTC7() {
     mobilityChoice.setUser(userProf);
-    mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
     assertEquals(userProf, mobilityChoice.getUser(), "The user is not the one expected");
   }
 
   @Test
   public void testCreateTC8() {
     mobilityChoice.setUser(userProf);
-    MobilityChoiceDto choice =
-        mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_PROFESSOR);
+    MobilityChoiceDto choice = mobilityChoiceService.create(mobilityChoice, 2, Role.PROFESSOR);
     assertEquals(choice, mobilityChoice, "The mobility choice is not the one expected");
   }
 
   @Test
   public void testShowAllTC1() {
     assertEquals(
-        List.of("showAll.filter:Pattern"),
+        List.of("showAll.filter:NotNull"),
         Violations.thrownBy(() -> {
-          mobilityChoiceService.showAll(2, UserDto.ROLE_PROFESSOR, "");
-        }));
-  }
-
-  @Test
-  public void testShowAllTC2() {
-    assertEquals(
-        List.of("showAll.filter:Pattern"),
-        Violations.thrownBy(() -> {
-          mobilityChoiceService.showAll(2, UserDto.ROLE_PROFESSOR, "LolAdibouLol");
+          mobilityChoiceService.showAll(2, Role.PROFESSOR, null);
         }));
   }
 
   @Test
   public void testShowAllTC3() {
-    List<MobilityChoiceDto> data = mobilityChoiceService.showAll(2, UserDto.ROLE_PROFESSOR, null);
+    List<MobilityChoiceDto> data =
+        mobilityChoiceService.showAll(2, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE);
     assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC4() {
     List<MobilityChoiceDto> data =
-        mobilityChoiceService.showAll(
-            2, UserDto.ROLE_PROFESSOR, MobilityChoiceRepository.FILTER_REJECTED_MOBILITIES_CHOICES);
+        mobilityChoiceService.showAll(2, Role.PROFESSOR, MobilityChoiceFilter.REJECTED);
     assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC5() {
     List<MobilityChoiceDto> data =
-        mobilityChoiceService.showAll(
-            2, UserDto.ROLE_PROFESSOR, MobilityChoiceRepository.FILTER_ALL_MOBILITIES_CHOICES);
+        mobilityChoiceService.showAll(2, Role.PROFESSOR, MobilityChoiceFilter.ALL);
     assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC6() {
     List<MobilityChoiceDto> data =
-        mobilityChoiceService.showAll(
-            2, UserDto.ROLE_PROFESSOR, MobilityChoiceRepository.FILTER_PASSED_MOBILITIES_CHOICES);
+        mobilityChoiceService.showAll(2, Role.PROFESSOR, MobilityChoiceFilter.PASSED);
     assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC7() {
     List<MobilityChoiceDto> data =
-        mobilityChoiceService.showAll(
-            1, UserDto.ROLE_PROFESSOR, MobilityChoiceRepository.FILTER_CANCELED_MOBILITIES_CHOICES);
+        mobilityChoiceService.showAll(1, Role.PROFESSOR, MobilityChoiceFilter.CANCELED);
     assertNotNull(data);
   }
 
   @Test
   public void testShowAllTC8() {
     List<MobilityChoiceDto> data =
-        mobilityChoiceService.showAll(
-            2, UserDto.ROLE_STUDENT, MobilityChoiceRepository.FILTER_CANCELED_MOBILITIES_CHOICES);
+        mobilityChoiceService.showAll(2, Role.STUDENT, MobilityChoiceFilter.CANCELED);
     assertNotNull(data);
   }
 
   @Test
   public void testCountAllTC1() {
-    int count = mobilityChoiceService.countAll(1, UserDto.ROLE_PROFESSOR, null);
-    assertEquals(mobilityChoiceService.showAll(1, UserDto.ROLE_PROFESSOR, null).size(), count);
+    int count = mobilityChoiceService.countAll(1, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE);
+    assertEquals(
+        mobilityChoiceService.showAll(1, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE).size(),
+        count);
   }
 
   @Test
   public void testCountAllTC2() {
-    assertEquals(1, mobilityChoiceService.countAll(1, UserDto.ROLE_PROFESSOR, null));
+    assertEquals(1, mobilityChoiceService.countAll(1, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE));
   }
 
   @Test
   public void testCountAllTC3() {
-    assertEquals(1, mobilityChoiceService.countAll(2, UserDto.ROLE_PROFESSOR, null));
+    assertEquals(1, mobilityChoiceService.countAll(2, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE));
   }
 
   @Test
   public void testCountAllTC4() {
-    assertEquals(0, mobilityChoiceService.countAll(2, UserDto.ROLE_STUDENT, null));
+    assertEquals(0, mobilityChoiceService.countAll(2, Role.STUDENT, MobilityChoiceFilter.ACTIVE));
   }
 
   @Test
   public void testCountAllTC5() {
-    assertEquals(1, mobilityChoiceService.countAll(1, UserDto.ROLE_STUDENT, null));
+    assertEquals(1, mobilityChoiceService.countAll(1, Role.STUDENT, MobilityChoiceFilter.ACTIVE));
   }
 
   @Test
   public void testCountAllTC6() {
     mobilityChoice.setUser(userStud);
-    mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_STUDENT);
-    assertEquals(2, mobilityChoiceService.countAll(2, UserDto.ROLE_STUDENT, null));
+    mobilityChoiceService.create(mobilityChoice, 2, Role.STUDENT);
+    assertEquals(2, mobilityChoiceService.countAll(2, Role.STUDENT, MobilityChoiceFilter.ACTIVE));
   }
 
   @Test
@@ -405,8 +395,8 @@ public class TestMobilityChoiceService {
         BusinessException.class,
         () -> {
           mobilityChoice.setUser(userStud);
-          mobilityChoiceService.create(mobilityChoice, 2, UserDto.ROLE_STUDENT);
-          mobilityChoiceService.countAll(6, UserDto.ROLE_STUDENT, null);
+          mobilityChoiceService.create(mobilityChoice, 2, Role.STUDENT);
+          mobilityChoiceService.countAll(6, Role.STUDENT, MobilityChoiceFilter.ACTIVE);
         });
   }
 
@@ -693,7 +683,7 @@ public class TestMobilityChoiceService {
         ConstraintViolationException.class,
         () -> {
           mobilityChoiceService.confirmWithNewPartner(
-              0, partner, userProf.getId(), userProf.getRole());
+              0, partner, userProf.getId(), Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -710,7 +700,10 @@ public class TestMobilityChoiceService {
         () -> {
           mobilityChoice.setDenialReason(denialReason);
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -721,7 +714,10 @@ public class TestMobilityChoiceService {
         () -> {
           mobilityChoice.setCancellationReason(CANCELLATION_REASON);
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -731,7 +727,10 @@ public class TestMobilityChoiceService {
         InsufficientPermissionException.class,
         () -> {
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userStud.getId(), userStud.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userStud.getId(),
+              Role.fromLabel(userStud.getRole()));
         });
   }
 
@@ -742,7 +741,10 @@ public class TestMobilityChoiceService {
         () -> {
           partner.setStatus(true); // official
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -755,7 +757,10 @@ public class TestMobilityChoiceService {
           MobilityDto mobility = mockDtoFactory.getMobility();
           mobilityRepository.create(mobility);
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -766,7 +771,10 @@ public class TestMobilityChoiceService {
         () -> {
           partner.setStatus(false);
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -781,7 +789,10 @@ public class TestMobilityChoiceService {
           programme.setId(3);
           mobilityChoice.setProgramme(programme);
           mobilityChoiceService.confirmWithNewPartner(
-              mobilityChoice.getId(), partner, userProf.getId(), userProf.getRole());
+              mobilityChoice.getId(),
+              partner,
+              userProf.getId(),
+              Role.fromLabel(userProf.getRole()));
         });
   }
 
@@ -797,7 +808,10 @@ public class TestMobilityChoiceService {
         List.of("create.partner.options:NotEmpty"),
         Violations.thrownBy(() ->
             mobilityChoiceService.confirmWithNewPartner(
-                mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole())),
+                mobilityChoice.getId(),
+                newPartner,
+                userProf.getId(),
+                Role.fromLabel(userProf.getRole()))),
         "The partner must be rejected because it has no option");
     assertNull(
         mobilityRepository.findById(mobilityChoice.getId()),
@@ -811,7 +825,7 @@ public class TestMobilityChoiceService {
     // in the country of the choice (IE)
     newPartner.getAddress().setCountry(mobilityChoice.getCountry());
     mobilityChoiceService.confirmWithNewPartner(
-        mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole());
+        mobilityChoice.getId(), newPartner, userProf.getId(), Role.fromLabel(userProf.getRole()));
     assertNotNull(
         mobilityRepository.findById(mobilityChoice.getId()),
         "The mobility choice must be confirmed");
@@ -828,7 +842,10 @@ public class TestMobilityChoiceService {
         ErrorCode.COUNTRY_CHANGE_NOT_ALLOWED,
         Violations.errorCodeOf(() ->
             mobilityChoiceService.confirmWithNewPartner(
-                mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole())));
+                mobilityChoice.getId(),
+                newPartner,
+                userProf.getId(),
+                Role.fromLabel(userProf.getRole()))));
     assertNull(
         mobilityRepository.findById(mobilityChoice.getId()),
         "The mobility choice must stay unconfirmed");
@@ -842,7 +859,7 @@ public class TestMobilityChoiceService {
     mobilityChoice.setCountry(null);
 
     mobilityChoiceService.confirmWithNewPartner(
-        mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole());
+        mobilityChoice.getId(), newPartner, userProf.getId(), Role.fromLabel(userProf.getRole()));
 
     assertEquals("GB", mobilityChoice.getCountry().getCountryCode());
     assertNotNull(mobilityRepository.findById(mobilityChoice.getId()));

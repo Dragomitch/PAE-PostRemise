@@ -16,6 +16,7 @@ import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
@@ -130,7 +131,8 @@ class NominatedStudentServiceImplTest {
       givenUser(4);
       givenCreationSucceeds();
 
-      NominatedStudentDto created = nominatedStudentService.create(request, requester, role);
+      NominatedStudentDto created =
+          nominatedStudentService.create(request, requester, Role.fromLabel(role));
 
       assertThat(created.getId()).isEqualTo(STUDENT_ID);
       // the student row starts at the version of the user row
@@ -152,7 +154,7 @@ class NominatedStudentServiceImplTest {
       givenCreationSucceeds();
 
       NominatedStudentDto created =
-          nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT);
+          nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(created.getCardHolder()).isEqualTo("Alice Martin");
     }
@@ -168,7 +170,7 @@ class NominatedStudentServiceImplTest {
       givenCreationSucceeds();
 
       NominatedStudentDto created =
-          nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT);
+          nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(created.getCardHolder())
           .hasSize(NominatedStudentDto.CARD_HOLDER_MAX_LENGTH)
@@ -178,7 +180,7 @@ class NominatedStudentServiceImplTest {
     @Test
     void aStudentCannotRecordThePersonalDataOfAnotherStudent() {
       assertThatBusinessException(
-              () -> nominatedStudentService.create(request(), STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.create(request(), STUDENT_ID + 1, Role.STUDENT))
           .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(
           countryRepository, userRepository, addressRepository, nominatedStudentRepository);
@@ -190,7 +192,7 @@ class NominatedStudentServiceImplTest {
       request.getNationality().setCountryCode("ZZ");
 
       assertThatBusinessException(
-              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
           .hasArguments("ZZ");
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
@@ -204,7 +206,7 @@ class NominatedStudentServiceImplTest {
           .thenReturn((CountryDto) entityFactory.build(CountryDto.class));
 
       assertThatBusinessException(
-              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
           .hasArguments("ZZ");
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
@@ -216,7 +218,7 @@ class NominatedStudentServiceImplTest {
       givenCountriesExist(request);
 
       assertThatBusinessException(
-              () -> nominatedStudentService.create(request, PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+              () -> nominatedStudentService.create(request, PROFESSOR_ID, Role.PROFESSOR))
           .hasErrorCode(ErrorCode.UNKNOWN_USER)
           .hasArguments(STUDENT_ID);
       verifyNoInteractions(addressRepository, nominatedStudentRepository);
@@ -230,7 +232,7 @@ class NominatedStudentServiceImplTest {
       when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
 
       assertThatBusinessException(
-              () -> nominatedStudentService.create(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.ALREADY_NOMINATED);
       verifyNoInteractions(addressRepository);
       verify(nominatedStudentRepository, never()).create(any());
@@ -249,7 +251,8 @@ class NominatedStudentServiceImplTest {
       address.setId(ADDRESS_ID);
       when(addressRepository.findById(ADDRESS_ID)).thenReturn(address);
 
-      NominatedStudentDto shown = nominatedStudentService.showOne(STUDENT_ID, requester, role);
+      NominatedStudentDto shown =
+          nominatedStudentService.showOne(STUDENT_ID, requester, Role.fromLabel(role));
 
       assertThat(shown).isSameAs(stored);
       assertThat(shown.getAddress()).isSameAs(address);
@@ -258,8 +261,8 @@ class NominatedStudentServiceImplTest {
 
     @Test
     void aStudentCannotReadThePersonalDataOfAnotherStudent() {
-      assertThatBusinessException(() ->
-              nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(
+              () -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID + 1, Role.STUDENT))
           .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(nominatedStudentRepository, addressRepository);
     }
@@ -267,7 +270,7 @@ class NominatedStudentServiceImplTest {
     @Test
     void unrecordedPersonalDataAreNotFound() {
       assertThatBusinessException(
-              () -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.showOne(STUDENT_ID, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verifyNoInteractions(addressRepository);
     }
@@ -302,14 +305,15 @@ class NominatedStudentServiceImplTest {
       updatedAddress.setVersion(9);
       when(addressService.edit(request.getAddress())).thenReturn(updatedAddress);
 
-      NominatedStudentDto edited = nominatedStudentService.edit(request, requester, role);
+      NominatedStudentDto edited =
+          nominatedStudentService.edit(request, requester, Role.fromLabel(role));
 
       // the client cannot move the student to another address row
       assertThat(edited.getAddress().getId()).isEqualTo(ADDRESS_ID);
       assertThat(edited.getAddress().getVersion()).isEqualTo(9);
       // the user row is edited at the version the client read (legacy shared version)
       assertThat(edited.getVersion()).isEqualTo(5);
-      verify(userService).edit(request, requester, role);
+      verify(userService).edit(request, requester, Role.fromLabel(role));
     }
 
     @Test
@@ -321,8 +325,7 @@ class NominatedStudentServiceImplTest {
       when(nominatedStudentRepository.update(request)).thenReturn(request);
       when(addressService.edit(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-      NominatedStudentDto edited =
-          nominatedStudentService.edit(request, STUDENT_ID, UserDto.ROLE_STUDENT);
+      NominatedStudentDto edited = nominatedStudentService.edit(request, STUDENT_ID, Role.STUDENT);
 
       assertThat(edited.getCardHolder()).isEqualTo("Alice Martin");
     }
@@ -330,7 +333,7 @@ class NominatedStudentServiceImplTest {
     @Test
     void aStudentCannotEditThePersonalDataOfAnotherStudent() {
       assertThatBusinessException(
-              () -> nominatedStudentService.edit(request(), STUDENT_ID + 1, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.edit(request(), STUDENT_ID + 1, Role.STUDENT))
           .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(
           countryRepository, nominatedStudentRepository, userService, addressService);
@@ -342,7 +345,7 @@ class NominatedStudentServiceImplTest {
       request.getNationality().setCountryCode("ZZ");
 
       assertThatBusinessException(
-              () -> nominatedStudentService.edit(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.edit(request, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.UNKNOWN_COUNTRY)
           .hasArguments("ZZ");
       verifyNoInteractions(nominatedStudentRepository, userService, addressService);
@@ -354,7 +357,7 @@ class NominatedStudentServiceImplTest {
       givenCountriesExist(request);
 
       assertThatBusinessException(
-              () -> nominatedStudentService.edit(request, STUDENT_ID, UserDto.ROLE_STUDENT))
+              () -> nominatedStudentService.edit(request, STUDENT_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(nominatedStudentRepository, never()).update(any());
       verifyNoInteractions(userService, addressService);

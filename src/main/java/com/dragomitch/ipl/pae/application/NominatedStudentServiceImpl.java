@@ -7,6 +7,7 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.AddressService;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
@@ -51,8 +52,8 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
 
   @Override
   public NominatedStudentDto create(
-      NominatedStudentDto nominatedStudent, int userId, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != nominatedStudent.getId()) {
+      NominatedStudentDto nominatedStudent, int userId, Role userRole) {
+    if (userRole == Role.STUDENT && userId != nominatedStudent.getId()) {
       throw new InsufficientPermissionException();
     }
     checkCountriesExist(nominatedStudent);
@@ -73,8 +74,8 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
 
   @Override
   @Transactional(readOnly = true)
-  public NominatedStudentDto showOne(int id, int userId, String role) {
-    if (!role.equals(UserDto.ROLE_PROFESSOR) && id != userId) {
+  public NominatedStudentDto showOne(int id, int userId, Role role) {
+    if (role != Role.PROFESSOR && id != userId) {
       throw new InsufficientPermissionException();
     }
     NominatedStudentDto nominatedStudent;
@@ -93,9 +94,8 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
   }
 
   @Override
-  public NominatedStudentDto edit(
-      NominatedStudentDto nominatedStudent, int userId, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != ((UserDto) nominatedStudent).getId()) {
+  public NominatedStudentDto edit(NominatedStudentDto nominatedStudent, int userId, Role userRole) {
+    if (userRole == Role.STUDENT && userId != ((UserDto) nominatedStudent).getId()) {
       throw new InsufficientPermissionException();
     }
     checkCountriesExist(nominatedStudent);

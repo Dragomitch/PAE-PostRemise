@@ -5,12 +5,13 @@ import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
@@ -22,6 +23,7 @@ import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.util.LinkedList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +64,8 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   @Override
-  public PartnerDto create(PartnerDto partner, String userRole) {
-    if ((userRole.equals(UserDto.ROLE_STUDENT)) && (partner.isOfficial() == true)) {
+  public PartnerDto create(PartnerDto partner, Role userRole) {
+    if ((userRole == Role.STUDENT) && (partner.isOfficial() == true)) {
       throw new InsufficientPermissionException();
     }
     partner.setAddress(addressRepository.create(partner.getAddress()));
@@ -93,10 +95,8 @@ class PartnerServiceImpl implements PartnerService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<PartnerDto> showAll(PartnerSearch search, String userRole, int userId) {
-    // the value of a filter is required by the constraints of PartnerSearch
-    String filterToUse =
-        search.filter() == null ? PartnerRepository.FILTER_ALL_PARTNERS : search.filter();
+  public List<PartnerDto> showAll(
+      PartnerFilter filter, @Nullable String value, Role userRole, int userId) {
     String option;
     UserDto user;
     if ((user = userRepository.findById(userId)) == null) {
@@ -104,12 +104,12 @@ class PartnerServiceImpl implements PartnerService {
     } else {
       option = user.getOption().getCode();
     }
-    return partnerRepository.findAll(filterToUse, search.value(), userRole, option);
+    return partnerRepository.findAll(filter, value, userRole, option);
   }
 
   @Override
-  public PartnerDto edit(int id, PartnerDto partner, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT)) {
+  public PartnerDto edit(int id, PartnerDto partner, Role userRole) {
+    if (userRole == Role.STUDENT) {
       throw new InsufficientPermissionException();
     }
     if (partnerRepository.findById(id) == null) {
@@ -151,13 +151,12 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   @Override
-  public void addOption(int id, PartnerOptionDto partnerOption, int userId, String userRole) {
+  public void addOption(int id, PartnerOptionDto partnerOption, int userId, Role userRole) {
     PartnerDto partner = partnerRepository.findById(id);
     if (partner == null) {
       throw new ResourceNotFoundException();
     }
-    if (!userRole.equals(UserDto.ROLE_PROFESSOR)
-        && (partner.isOfficial() || !usesPartner(userId, id))) {
+    if (userRole != Role.PROFESSOR && (partner.isOfficial() || !usesPartner(userId, id))) {
       throw new InsufficientPermissionException();
     }
     createOption(id, partnerOption);
@@ -200,7 +199,7 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   @Override
-  public PartnerDto restore(int id, String role) {
+  public PartnerDto restore(int id, Role role) {
     PartnerDto partner = null;
     if ((partner = partnerRepository.findById(id)) == null) {
       throw new ResourceNotFoundException();
@@ -208,7 +207,7 @@ class PartnerServiceImpl implements PartnerService {
     if (!partner.isArchived()) {
       throw new BusinessException(ErrorCode.PARTNER_NOT_ARCHIVED);
     }
-    if (role.equals(UserDto.ROLE_STUDENT) && !partner.isOfficial()) {
+    if (role == Role.STUDENT && !partner.isOfficial()) {
       throw new InsufficientPermissionException();
     }
     if (partnerOptionRepository.findAllOptionsByPartner(id).isEmpty()) {

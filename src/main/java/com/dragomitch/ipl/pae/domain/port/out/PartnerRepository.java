@@ -1,6 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import java.util.List;
 
 public interface PartnerRepository {
@@ -19,10 +21,6 @@ public interface PartnerRepository {
   String COLUMN_STATUS_OFFICIAL = "is_official";
   String COLUMN_ARCHIVE = "is_archived";
   String COLUMN_VERSION = "version";
-
-  String FILTER_ALL_PARTNERS = "all";
-  String FILTER_ARCHIVED_PARTNERS = "archived";
-  String FILTER_COUNTRY = "country";
 
   /**
    * Inserts a partner into the database. A partner without website ({@code null}) is stored with an
@@ -45,20 +43,16 @@ public interface PartnerRepository {
   /**
    * Queries the database for all partners matching a filter, each with all its options.
    *
-   * @param filter : the filter we want to apply: {@link #FILTER_ALL_PARTNERS}, {@link
-   *     #FILTER_COUNTRY} (country code {@code value}) or {@link #FILTER_ARCHIVED_PARTNERS}
+   * @param filter : the filter we want to apply: {@link PartnerFilter#ALL}, {@link
+   *     PartnerFilter#COUNTRY} (country code {@code value}) or {@link PartnerFilter#ARCHIVED}
    *     (archived partners whose full name contains {@code value}, case-insensitively).
    * @param value : the value of the filter.
    * @param userRole : the role of the user; students only get the official, non-archived partners
    *     offering their option (except with the archived filter).
    * @param option : the option of the user.
    * @return a List of all PartnerDto, ordered by id
-   * @throws org.springframework.dao.InvalidDataAccessApiUsageException wrapping an {@code
-   *     IllegalArgumentException} if the filter is unknown (Spring's exception translation of the
-   *     persistence adapter; the use cases only pass the filters allowed by their {@code @Pattern}
-   *     constraints)
    */
-  List<PartnerDto> findAll(String filter, String value, String userRole, String option);
+  List<PartnerDto> findAll(PartnerFilter filter, String value, Role userRole, String option);
 
   /**
    * Update a partner in the database.

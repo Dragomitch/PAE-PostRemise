@@ -19,6 +19,7 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -236,7 +237,7 @@ class UserControllerTest {
 
   @Test
   void editPassesTheBodyAndTheAuthenticatedUser() throws Exception {
-    when(userService.edit(any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT)))
+    when(userService.edit(any(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT)))
         .thenReturn(user(2, "stud"));
 
     mockMvc
@@ -253,7 +254,7 @@ class UserControllerTest {
         .andExpect(jsonPath("$.username").value("stud"));
 
     ArgumentCaptor<UserDto> captor = ArgumentCaptor.forClass(UserDto.class);
-    verify(userService).edit(captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+    verify(userService).edit(captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals(2, captor.getValue().getId());
   }
 }

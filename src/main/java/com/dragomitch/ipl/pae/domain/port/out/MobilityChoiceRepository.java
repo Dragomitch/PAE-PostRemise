@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import java.util.List;
 
 public interface MobilityChoiceRepository {
@@ -21,12 +22,6 @@ public interface MobilityChoiceRepository {
   int MAX_LENGTH_MOBILITY_TYPE = 3;
   int MAX_LENGTH_COUNTRY = 2;
   int MAX_LENGTH_STUDENT_CANCELLATION_REASON = 500;
-
-  String FILTER_ALL_MOBILITIES_CHOICES = "all";
-  String FILTER_ACTIVE_MOBILITIES_CHOICES = "active";
-  String FILTER_CANCELED_MOBILITIES_CHOICES = "canceled";
-  String FILTER_REJECTED_MOBILITIES_CHOICES = "rejected";
-  String FILTER_PASSED_MOBILITIES_CHOICES = "passed";
 
   /**
    * Inserts a Mobility choice in the Database.
@@ -69,23 +64,18 @@ public interface MobilityChoiceRepository {
   /**
    * Queries the database for all mobility choices.
    *
-   * @param filter the filter we want to apply to the query. The filter must be one of those:
-   *     passed, active, canceled, rejected, all. Combinations are NOT possible between the filters.
-   * @return all the mobility choices fitting the filter.
-   * @throws org.springframework.dao.InvalidDataAccessApiUsageException wrapping an {@code
-   *     IllegalArgumentException} if the filter is unknown (Spring's exception translation of the
-   *     persistence adapter; the use cases only pass the filters allowed by their {@code @Pattern}
-   *     constraints)
+   * @param filter the list to return (one filter, no combination)
+   * @return the mobility choices of the filter, ordered by id
    */
-  List<MobilityChoiceDto> findAll(String filter);
+  List<MobilityChoiceDto> findAll(MobilityChoiceFilter filter);
 
   /**
    * Update a mobilityChoice into the DB with the new fields of the MobilityChoice, with optimistic
    * locking; the DTO receives the new version.
    *
    * <p>An empty cancellation reason is stored as NULL on purpose: NULL means "not cancelled" for
-   * the filters ({@link #FILTER_CANCELED_MOBILITIES_CHOICES} is "reason IS NOT NULL"), so an empty
-   * text would turn the choice into a cancelled one without reason.
+   * the filters ({@link MobilityChoiceFilter#CANCELED} is "reason IS NOT NULL"), so an empty text
+   * would turn the choice into a cancelled one without reason.
    *
    * @param mobilityChoice the mobility choice we are updating.
    * @throws java.util.ConcurrentModificationException if no choice has that id and version

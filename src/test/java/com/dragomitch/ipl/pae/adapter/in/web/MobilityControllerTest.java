@@ -10,8 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -45,7 +46,7 @@ class MobilityControllerTest {
 
   @Test
   void showAllIsWrappedInDataWithTheDateFormatsTheUiParses() throws Exception {
-    when(mobilityService.showAll(TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT))
+    when(mobilityService.showAll(TestUsers.STUDENT_ID, Role.STUDENT))
         .thenReturn(List.of(mobility()));
 
     mockMvc
@@ -58,8 +59,7 @@ class MobilityControllerTest {
 
   @Test
   void showOnePassesTheRequesterRoleAndId() throws Exception {
-    when(mobilityService.showOne(4, UserDto.ROLE_STUDENT, TestUsers.STUDENT_ID))
-        .thenReturn(mobility());
+    when(mobilityService.showOne(4, Role.STUDENT, TestUsers.STUDENT_ID)).thenReturn(mobility());
 
     mockMvc
         .perform(get(ApiPaths.BASE + "/mobilities/4").with(TestUsers.student()))
@@ -132,7 +132,7 @@ class MobilityControllerTest {
 
   @Test
   void cancelPassesEveryParameterAndTheRequester() throws Exception {
-    when(mobilityService.cancel(4, 3, "Malade", -1, TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT))
+    when(mobilityService.cancel(4, 3, "Malade", -1, TestUsers.STUDENT_ID, Role.STUDENT))
         .thenReturn(mobility());
 
     mockMvc
@@ -148,7 +148,7 @@ class MobilityControllerTest {
 
   @Test
   void exportIsCsv() throws Exception {
-    when(mobilityService.exportDocuments(4, "D")).thenReturn("﻿Nom;Prénom;\n");
+    when(mobilityService.exportDocuments(4, DocumentFilter.D)).thenReturn("﻿Nom;Prénom;\n");
 
     mockMvc
         .perform(get(ApiPaths.BASE + "/mobilities/4/export?filter=D").with(TestUsers.professor()))

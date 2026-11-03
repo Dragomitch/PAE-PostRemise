@@ -10,6 +10,7 @@ import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
@@ -238,7 +239,7 @@ public class TestUserService {
         ConstraintViolationException.class,
         () -> {
           userService.signup(stud);
-          userService.edit(null, 1, UserDto.ROLE_STUDENT);
+          userService.edit(null, 1, Role.STUDENT);
         });
   }
 
@@ -248,7 +249,7 @@ public class TestUserService {
         ConstraintViolationException.class,
         () -> {
           userService.signup(stud);
-          userService.edit(stud, -1, UserDto.ROLE_STUDENT);
+          userService.edit(stud, -1, Role.STUDENT);
         });
   }
 
@@ -258,7 +259,7 @@ public class TestUserService {
         ConstraintViolationException.class,
         () -> {
           userService.signup(stud);
-          userService.edit(stud, -1, "");
+          userService.edit(stud, -1, null);
         });
   }
 
@@ -269,7 +270,7 @@ public class TestUserService {
         BusinessException.class,
         () -> {
           userService.signup(prof);
-          userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+          userService.edit(stud, 1, Role.PROFESSOR);
         });
   }
 
@@ -281,7 +282,7 @@ public class TestUserService {
           userService.signup(prof);
           prof.setUsername("chikiBriki");
           prof.setEmail("MamyFaitDesBlagues@joke.be");
-          userService.edit(stud, 1, UserDto.ROLE_PROFESSOR);
+          userService.edit(stud, 1, Role.PROFESSOR);
         });
   }
 }

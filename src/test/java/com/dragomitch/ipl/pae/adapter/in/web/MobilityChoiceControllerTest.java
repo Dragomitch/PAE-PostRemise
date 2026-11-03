@@ -17,9 +17,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -66,7 +67,7 @@ class MobilityChoiceControllerTest {
 
     ArgumentCaptor<MobilityChoiceDto> captor = ArgumentCaptor.forClass(MobilityChoiceDto.class);
     verify(mobilityChoiceService)
-        .create(captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+        .create(captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     MobilityChoiceDto choice = captor.getValue();
     assertEquals(1, choice.getPreferenceOrder());
     assertEquals(2, choice.getTerm());
@@ -80,7 +81,8 @@ class MobilityChoiceControllerTest {
   void showAllPassesTheFilterAndWrapsTheListInData() throws Exception {
     MobilityChoiceDto choice = (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
     choice.setId(4);
-    when(mobilityChoiceService.showAll(TestUsers.PROFESSOR_ID, UserDto.ROLE_PROFESSOR, "rejected"))
+    when(mobilityChoiceService.showAll(
+            TestUsers.PROFESSOR_ID, Role.PROFESSOR, MobilityChoiceFilter.REJECTED))
         .thenReturn(List.of(choice));
 
     mockMvc
@@ -93,7 +95,8 @@ class MobilityChoiceControllerTest {
 
   @Test
   void countAnswersACount() throws Exception {
-    when(mobilityChoiceService.countAll(TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT, null))
+    when(mobilityChoiceService.countAll(
+            TestUsers.STUDENT_ID, Role.STUDENT, MobilityChoiceFilter.ACTIVE))
         .thenReturn(3);
 
     mockMvc
@@ -173,8 +176,7 @@ class MobilityChoiceControllerTest {
 
     ArgumentCaptor<PartnerDto> captor = ArgumentCaptor.forClass(PartnerDto.class);
     verify(mobilityChoiceService)
-        .confirmWithNewPartner(
-            eq(5), captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+        .confirmWithNewPartner(eq(5), captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals("ACME", captor.getValue().getFullName());
     assertEquals("FR", captor.getValue().getAddress().getCountry().getCountryCode());
     assertEquals("IT", captor.getValue().getOptions().get(0).getDepartement());
@@ -182,7 +184,8 @@ class MobilityChoiceControllerTest {
 
   @Test
   void exportIsUtf8Csv() throws Exception {
-    when(mobilityChoiceService.exportAll(TestUsers.PROFESSOR_ID, UserDto.ROLE_PROFESSOR, null))
+    when(mobilityChoiceService.exportAll(
+            TestUsers.PROFESSOR_ID, Role.PROFESSOR, MobilityChoiceFilter.ACTIVE))
         .thenReturn("﻿N° ordre candidature;Nom;\n1;Dupré;\n");
 
     byte[] body =

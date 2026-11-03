@@ -8,7 +8,8 @@ import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -81,28 +82,28 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * {@inheritDoc}
    *
    * <p>Professors see every partner matching the filter. Students only see official, non-archived
-   * partners offering their option ({@code "all"} and {@code "country"} filters).
-   *
-   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants (a
-   *     programming error: the API rejects an unknown filter before, with a 400 {@code
-   *     VALIDATION_FAILED} problem)
+   * partners offering their option ({@link PartnerFilter#ALL} and {@link PartnerFilter#COUNTRY}).
    */
   @Override
-  public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
-    boolean student = UserDto.ROLE_STUDENT.equals(userRole);
+  public List<PartnerDto> findAll(
+      PartnerFilter filter, String value, Role userRole, String option) {
     List<String> conditions = new ArrayList<>();
     Map<String, Object> parameters = new LinkedHashMap<>();
-    if (FILTER_COUNTRY.equals(filter)) {
-      conditions.add("c.code = :country");
-      parameters.put("country", value);
-    } else if (FILTER_ARCHIVED_PARTNERS.equals(filter)) {
-      conditions.add("p.archived = TRUE");
-      conditions.add("LOWER(p.fullName) LIKE :name");
-      parameters.put("name", "%" + value.toLowerCase() + "%");
-    } else if (!FILTER_ALL_PARTNERS.equals(filter)) {
-      throw new IllegalArgumentException("Unknown partner filter: " + filter);
+    switch (filter) {
+      case COUNTRY -> {
+        conditions.add("c.code = :country");
+        parameters.put("country", value);
+      }
+      case ARCHIVED -> {
+        conditions.add("p.archived = TRUE");
+        conditions.add("LOWER(p.fullName) LIKE :name");
+        parameters.put("name", "%" + value.toLowerCase() + "%");
+      }
+      case ALL -> {
+        // no condition
+      }
     }
-    if (student && !FILTER_ARCHIVED_PARTNERS.equals(filter)) {
+    if (userRole == Role.STUDENT && filter != PartnerFilter.ARCHIVED) {
       conditions.add("p.archived = FALSE");
       conditions.add("p.official = TRUE");
       conditions.add(OFFERS_OPTION);

@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,16 +24,7 @@ public class InMemoryMobilityChoiceRepository
   }
 
   @Override
-  public List<MobilityChoiceDto> findAll(String filter) {
-    if (!List.of(
-            FILTER_ALL_MOBILITIES_CHOICES,
-            FILTER_ACTIVE_MOBILITIES_CHOICES,
-            FILTER_CANCELED_MOBILITIES_CHOICES,
-            FILTER_REJECTED_MOBILITIES_CHOICES,
-            FILTER_PASSED_MOBILITIES_CHOICES)
-        .contains(filter)) {
-      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
-    }
+  public List<MobilityChoiceDto> findAll(MobilityChoiceFilter filter) {
     return mobilityChoices;
   }
 

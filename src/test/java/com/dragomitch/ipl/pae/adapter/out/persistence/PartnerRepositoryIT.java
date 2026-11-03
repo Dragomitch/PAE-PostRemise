@@ -7,7 +7,8 @@ import static org.assertj.core.api.Assertions.tuple;
 import com.dragomitch.ipl.pae.domain.dto.AddressDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import java.util.ConcurrentModificationException;
@@ -17,7 +18,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Partners and their search filters (see db/fixtures/partners.sql for the data set).
@@ -219,9 +219,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void findAllForAProfessorReturnsEveryPartnerOnceWithAllItsOptions() {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_ALL_PARTNERS, null, UserDto.ROLE_PROFESSOR, "BIN"));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.PROFESSOR, "BIN"));
 
     // 3001 has two options but is listed once; 3005 has no option but is listed too
     assertThat(ids(partners)).containsExactly(3001, 3002, 3003, 3004, 3005);
@@ -234,9 +233,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void findAllForAStudentKeepsEveryOptionOfTheMatchingPartners() {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_ALL_PARTNERS, null, UserDto.ROLE_STUDENT, "BIN"));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.STUDENT, "BIN"));
 
     // filtered on BIN, but the BCH option of 3001 is still part of its option list
     assertThat(partners)
@@ -247,24 +245,13 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
                 .containsExactly("BCH", "BIN"));
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"whatever", ""})
-  void findAllRejectsAnUnknownFilter(String filter) {
-    runInTransaction(() ->
-        assertThatThrownBy(
-                () -> partnerRepository.findAll(filter, "x", UserDto.ROLE_PROFESSOR, "BIN"))
-            .isInstanceOf(InvalidDataAccessApiUsageException.class)
-            .hasCauseInstanceOf(IllegalArgumentException.class));
-  }
-
   @ParameterizedTest(name = "student of {0} sees {1}")
   @CsvSource({"BIN, 3001", "BCH, 3001;3004", "BDI, ''"})
   void findAllForAStudentReturnsOnlyOfficialNonArchivedPartnersOfTheirOption(
       String option, String expected) {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_ALL_PARTNERS, null, UserDto.ROLE_STUDENT, option));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.ALL, null, Role.STUDENT, option));
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
   }
@@ -274,9 +261,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   void findAllByCountryForAStudentAppliesTheStudentRestrictions(
       String country, String option, String expected) {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_COUNTRY, country, UserDto.ROLE_STUDENT, option));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.COUNTRY, country, Role.STUDENT, option));
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
   }
@@ -286,9 +272,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   void findAllByCountryForAProfessorReturnsEveryPartnerOfThatCountry(
       String country, String expected) {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_COUNTRY, country, UserDto.ROLE_PROFESSOR, "BIN"));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.COUNTRY, country, Role.PROFESSOR, "BIN"));
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
   }
@@ -297,9 +282,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @CsvSource({"paris, 3002", "PARIS, 3002", "chive, 3002", "'', 3002", "lyon, ''"})
   void findAllArchivedMatchesTheFullNameCaseInsensitively(String search, String expected) {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_ARCHIVED_PARTNERS, search, UserDto.ROLE_PROFESSOR, "BIN"));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.ARCHIVED, search, Role.PROFESSOR, "BIN"));
 
     assertThat(ids(partners)).containsExactlyInAnyOrderElementsOf(parseIds(expected));
     assertThat(partners).allMatch(PartnerDto::isArchived);
@@ -308,9 +292,8 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void aStudentSearchingTheArchivedPartnersIsNotRestrictedToTheirOption() {
     List<PartnerDto> partners =
-        inTransaction(() ->
-            partnerRepository.findAll(
-                PartnerRepository.FILTER_ARCHIVED_PARTNERS, "", UserDto.ROLE_STUDENT, "BCH"));
+        inTransaction(
+            () -> partnerRepository.findAll(PartnerFilter.ARCHIVED, "", Role.STUDENT, "BCH"));
 
     assertThat(ids(partners)).containsExactly(3002);
   }

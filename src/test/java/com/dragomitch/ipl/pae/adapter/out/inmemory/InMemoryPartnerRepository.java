@@ -1,7 +1,8 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +30,12 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
   }
 
   @Override
-  public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
+  public List<PartnerDto> findAll(
+      PartnerFilter filter, String value, Role userRole, String option) {
     List<PartnerDto> list = new ArrayList<PartnerDto>();
     boolean[] optOk = new boolean[1];
-    if (filter.equals("all")) {
-      if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+    if (filter == PartnerFilter.ALL) {
+      if (userRole == Role.PROFESSOR) {
         return partners;
       } else {
         for (PartnerDto partnerDto : partners) {
@@ -50,8 +52,8 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         }
         return list;
       }
-    } else if (filter.equals("country")) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
+    } else if (filter == PartnerFilter.COUNTRY) {
+      if (userRole == Role.STUDENT) {
         for (PartnerDto partnerDto : list) {
           partnerDto
               .getOptions()
@@ -75,8 +77,8 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         }
         return list;
       }
-    } else if (filter.equals("archived")) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
+    } else if (filter == PartnerFilter.ARCHIVED) {
+      if (userRole == Role.STUDENT) {
         for (PartnerDto partnerDto : partners) {
           partnerDto
               .getOptions()

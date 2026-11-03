@@ -9,6 +9,7 @@ import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
@@ -53,7 +54,7 @@ public class TestNominatedStudentService {
     assertThrows(
         ConstraintViolationException.class,
         () -> {
-          nominatedStudentService.create(null, 1, UserDto.ROLE_PROFESSOR);
+          nominatedStudentService.create(null, 1, Role.PROFESSOR);
         });
   }
 
@@ -66,7 +67,7 @@ public class TestNominatedStudentService {
             "create.nominatedStudent.iban:Iban"),
         Violations.thrownBy(() -> {
           nominatedStudentRepository.create(nominatedStud);
-          nominatedStudentService.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
+          nominatedStudentService.create(nominatedStud, 1, Role.PROFESSOR);
           assertEquals(1, nominatedStudentRepository.findAll().size());
         }));
   }
@@ -80,7 +81,7 @@ public class TestNominatedStudentService {
     NominatedStudentDto student = validStudent(user.getId());
 
     NominatedStudentDto created =
-        nominatedStudentService.create(student, user.getId(), UserDto.ROLE_STUDENT);
+        nominatedStudentService.create(student, user.getId(), Role.STUDENT);
 
     assertEquals(3, created.getVersion(), "the returned version is the stored one");
     assertEquals(3, nominatedStudentRepository.findById(user.getId()).getVersion());

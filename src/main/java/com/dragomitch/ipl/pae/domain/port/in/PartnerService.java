@@ -2,14 +2,15 @@ package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.groups.Default;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -23,7 +24,7 @@ public interface PartnerService {
    * @return the partnerDto that has just been created
    */
   @Validated({Default.class, OnCreate.class})
-  PartnerDto create(@NotNull @Valid PartnerDto partner, @NotBlank String userRole);
+  PartnerDto create(@NotNull @Valid PartnerDto partner, @NotNull Role userRole);
 
   /**
    * Find a partnerDto existing in the database.
@@ -34,16 +35,20 @@ public interface PartnerService {
   PartnerDto showOne(@Positive int id);
 
   /**
-   * Find all PartnerRepository.
+   * The partners visible to the user, filtered.
    *
-   * @param filter : the filter to apply
-   * @param value : the value of the filter
-   * @param userId : the id of the user who wants to edit a partner.
-   * @param userRole : the role of the user who wants to edit a partner.
-   * @return a list of all the partnerDto found in the database
+   * @param filter the filter to apply
+   * @param value the value of the filter: part of the name for {@link PartnerFilter#ARCHIVED}, a
+   *     country code for {@link PartnerFilter#COUNTRY}, ignored for {@link PartnerFilter#ALL}
+   * @param userRole the role of the requester
+   * @param userId the id of the requester
+   * @return the partners, ordered by id
    */
   List<PartnerDto> showAll(
-      @NotNull @Valid PartnerSearch search, @NotBlank String userRole, @Positive int userId);
+      @NotNull PartnerFilter filter,
+      @Nullable String value,
+      @NotNull Role userRole,
+      @Positive int userId);
 
   /**
    * Edit a partner.
@@ -53,9 +58,9 @@ public interface PartnerService {
    * @param userRole : the role of the user who wants to edit a partner.
    * @return the partnerDto that has just been edited.
    */
-  PartnerDto edit(@Positive int id, @NotNull @Valid PartnerDto partner, @NotBlank String userRole);
+  PartnerDto edit(@Positive int id, @NotNull @Valid PartnerDto partner, @NotNull Role userRole);
 
-  PartnerDto restore(@Positive int id, @NotBlank String role);
+  PartnerDto restore(@Positive int id, @NotNull Role role);
 
   /**
    * Adds an option to a partner. A professor may add an option to any partner. A student may only
@@ -76,7 +81,7 @@ public interface PartnerService {
       @Positive int id,
       @NotNull @Valid PartnerOptionDto partnerOption,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 
   /**
    * Find all options for a partner.

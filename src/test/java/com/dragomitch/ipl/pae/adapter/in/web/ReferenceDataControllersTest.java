@@ -18,8 +18,8 @@ import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
@@ -156,7 +156,7 @@ class ReferenceDataControllersTest {
   void paymentsAreWrappedInData() throws Exception {
     PaymentDto payment = (PaymentDto) entityFactory.build(PaymentDto.class);
     payment.setPaymentDate(LocalDateTime.of(2024, 5, 6, 7, 8, 9));
-    when(paymentService.showAll(UserDto.ROLE_PROFESSOR)).thenReturn(List.of(payment));
+    when(paymentService.showAll(Role.PROFESSOR)).thenReturn(List.of(payment));
 
     mockMvc
         .perform(get(ApiPaths.BASE + "/payments").with(TestUsers.professor()))

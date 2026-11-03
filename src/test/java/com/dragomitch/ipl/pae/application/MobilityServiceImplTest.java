@@ -17,8 +17,10 @@ import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
 import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
 import com.dragomitch.ipl.pae.domain.model.EntityFactories;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
@@ -173,7 +175,7 @@ class MobilityServiceImplTest {
       List<MobilityDto> all = List.of(storedMobility(MobilityDto.STATE_CREATED));
       when(mobilityRepository.findAll()).thenReturn(all);
 
-      assertThat(mobilityService.showAll(PROFESSOR_ID, UserDto.ROLE_PROFESSOR)).isSameAs(all);
+      assertThat(mobilityService.showAll(PROFESSOR_ID, Role.PROFESSOR)).isSameAs(all);
       verify(mobilityRepository, never()).findByUser(PROFESSOR_ID);
     }
 
@@ -182,7 +184,7 @@ class MobilityServiceImplTest {
       List<MobilityDto> own = List.of(storedMobility(MobilityDto.STATE_CREATED));
       when(mobilityRepository.findByUser(STUDENT_ID)).thenReturn(own);
 
-      assertThat(mobilityService.showAll(STUDENT_ID, UserDto.ROLE_STUDENT)).isSameAs(own);
+      assertThat(mobilityService.showAll(STUDENT_ID, Role.STUDENT)).isSameAs(own);
       verify(mobilityRepository, never()).findAll();
     }
   }
@@ -194,7 +196,7 @@ class MobilityServiceImplTest {
     void anUnknownMobilityIsNotFound() {
       assertThat(
               Violations.errorCodeOf(
-                  () -> mobilityService.showOne(MOBILITY_ID, UserDto.ROLE_PROFESSOR, PROFESSOR_ID)))
+                  () -> mobilityService.showOne(MOBILITY_ID, Role.PROFESSOR, PROFESSOR_ID)))
           .isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
     }
 
@@ -204,7 +206,7 @@ class MobilityServiceImplTest {
 
       assertThat(
               Violations.errorCodeOf(
-                  () -> mobilityService.showOne(MOBILITY_ID, UserDto.ROLE_STUDENT, STUDENT_ID + 1)))
+                  () -> mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID + 1)))
           .isEqualTo(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(
           mobilityDocumentRepository, partnerService, programmeService, userRepository);
@@ -232,7 +234,7 @@ class MobilityServiceImplTest {
       UserDto professor = (UserDto) entityFactory.build(UserDto.class);
       when(userRepository.findById(PROFESSOR_ID)).thenReturn(professor);
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, role, requester);
+      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.fromLabel(role), requester);
 
       assertThat(shown.getDocuments()).isEqualTo(documents);
       assertThat(shown.getNominatedStudent()).isSameAs(student);
@@ -248,7 +250,7 @@ class MobilityServiceImplTest {
       stored.setProfessorInCharge(null);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, UserDto.ROLE_STUDENT, STUDENT_ID);
+      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
 
       assertThat(shown.getProfessorInCharge()).isNull();
       verifyNoInteractions(userRepository);
@@ -260,7 +262,7 @@ class MobilityServiceImplTest {
       NominatedStudentDto summary = stored.getNominatedStudent();
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(List.of());
 
-      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, UserDto.ROLE_STUDENT, STUDENT_ID);
+      MobilityDto shown = mobilityService.showOne(MOBILITY_ID, Role.STUDENT, STUDENT_ID);
 
       assertThat(shown.getNominatedStudent()).isSameAs(summary);
       assertThat(shown.getNominatedStudent().getLastName()).isEqualTo("Martin");
@@ -705,8 +707,7 @@ class MobilityServiceImplTest {
       givenUpdateSucceeds();
 
       MobilityDto cancelled =
-          mobilityService.cancel(
-              MOBILITY_ID, VERSION, null, 4, PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(MOBILITY_ID, VERSION, null, 4, PROFESSOR_ID, Role.PROFESSOR);
 
       assertThat(cancelled.getState()).isEqualTo(MobilityDto.STATE_CANCELLED);
       assertThat(cancelled.getStateBeforeCancellation()).isEqualTo(state);
@@ -723,7 +724,7 @@ class MobilityServiceImplTest {
 
       MobilityDto cancelled =
           mobilityService.cancel(
-              MOBILITY_ID, VERSION, "Raisons médicales", 0, STUDENT_ID, UserDto.ROLE_STUDENT);
+              MOBILITY_ID, VERSION, "Raisons médicales", 0, STUDENT_ID, Role.STUDENT);
 
       assertThat(cancelled.getState()).isEqualTo(MobilityDto.STATE_CANCELLED);
       assertThat(cancelled.getStateBeforeCancellation()).isEqualTo(state);
@@ -745,7 +746,7 @@ class MobilityServiceImplTest {
                       "a free-text reason is not enough",
                       denialReasonId,
                       PROFESSOR_ID,
-                      UserDto.ROLE_PROFESSOR)))
+                      Role.PROFESSOR)))
           .isEqualTo(ErrorCode.DENIAL_REASON_REQUIRED);
       assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
       verify(mobilityRepository, never()).update(any());
@@ -756,8 +757,7 @@ class MobilityServiceImplTest {
       givenMobility(MobilityDto.STATE_CREATED);
 
       assertThatBusinessException(() ->
-              mobilityService.cancel(
-                  MOBILITY_ID, VERSION, null, 99, PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+              mobilityService.cancel(MOBILITY_ID, VERSION, null, 99, PROFESSOR_ID, Role.PROFESSOR))
           .hasErrorCode(ErrorCode.UNKNOWN_DENIAL_REASON)
           .hasArguments(99);
       verify(mobilityRepository, never()).update(any());
@@ -772,7 +772,7 @@ class MobilityServiceImplTest {
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
-                      MOBILITY_ID, VERSION, reason, 4, STUDENT_ID, UserDto.ROLE_STUDENT)))
+                      MOBILITY_ID, VERSION, reason, 4, STUDENT_ID, Role.STUDENT)))
           .isEqualTo(ErrorCode.CANCELLATION_REASON_REQUIRED);
       assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
       verify(mobilityRepository, never()).update(any());
@@ -785,7 +785,7 @@ class MobilityServiceImplTest {
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
-                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID + 1, UserDto.ROLE_STUDENT)))
+                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID + 1, Role.STUDENT)))
           .isEqualTo(ErrorCode.ACCESS_DENIED);
       assertThat(mobility.getState()).isEqualTo(MobilityDto.STATE_CREATED);
       verify(mobilityRepository, never()).update(any());
@@ -799,7 +799,7 @@ class MobilityServiceImplTest {
 
       MobilityDto unchanged =
           mobilityService.cancel(
-              MOBILITY_ID, VERSION, "second reason", 0, STUDENT_ID, UserDto.ROLE_STUDENT);
+              MOBILITY_ID, VERSION, "second reason", 0, STUDENT_ID, Role.STUDENT);
 
       assertThat(unchanged).isSameAs(mobility);
       assertThat(unchanged.getCancellationReason()).isEqualTo("first reason");
@@ -816,7 +816,7 @@ class MobilityServiceImplTest {
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
-                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID + 1, UserDto.ROLE_STUDENT)))
+                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID + 1, Role.STUDENT)))
           .isEqualTo(ErrorCode.ACCESS_DENIED);
       verify(mobilityRepository, never()).update(any());
     }
@@ -828,7 +828,8 @@ class MobilityServiceImplTest {
 
       assertThat(
               Violations.errorCodeOf(() ->
-                  mobilityService.cancel(MOBILITY_ID, VERSION, "reason", 4, STUDENT_ID, role)))
+                  mobilityService.cancel(
+                      MOBILITY_ID, VERSION, "reason", 4, STUDENT_ID, Role.fromLabel(role))))
           .isEqualTo(ErrorCode.MOBILITY_CLOSED);
       verify(mobilityRepository, never()).update(any());
     }
@@ -839,7 +840,7 @@ class MobilityServiceImplTest {
 
       assertThatThrownBy(() ->
               mobilityService.cancel(
-                  MOBILITY_ID, VERSION - 1, "reason", 0, STUDENT_ID, UserDto.ROLE_STUDENT))
+                  MOBILITY_ID, VERSION - 1, "reason", 0, STUDENT_ID, Role.STUDENT))
           .isInstanceOf(ConcurrentModificationException.class);
       verify(mobilityRepository, never()).update(any());
     }
@@ -849,7 +850,7 @@ class MobilityServiceImplTest {
       assertThat(
               Violations.errorCodeOf(() ->
                   mobilityService.cancel(
-                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID, UserDto.ROLE_STUDENT)))
+                      MOBILITY_ID, VERSION, "reason", 0, STUDENT_ID, Role.STUDENT)))
           .isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
     }
   }
@@ -901,7 +902,7 @@ class MobilityServiceImplTest {
           "RF | ;;;;;Rempli;;;;"
         })
     void theFilterKeepsTheDocumentsOfItsCategoryAndOptionallyOnlyTheFilledInOnes(
-        String filter, String documentColumns) {
+        DocumentFilter filter, String documentColumns) {
       givenMobility(MobilityDto.STATE_IN_PROGRESS);
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(erabelDocuments());
 

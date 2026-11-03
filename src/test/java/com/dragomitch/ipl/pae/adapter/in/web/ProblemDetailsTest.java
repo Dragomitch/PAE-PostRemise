@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -220,7 +219,7 @@ class ProblemDetailsTest {
     UserDto user = (UserDto) entityFactory.build(UserDto.class);
     ConstraintViolationException violation =
         new ConstraintViolationException(Violations.validator().validate(user));
-    when(userService.edit(any(), anyInt(), anyString())).thenThrow(violation);
+    when(userService.edit(any(), anyInt(), any())).thenThrow(violation);
 
     perform(
             put(USERS + "/edit")

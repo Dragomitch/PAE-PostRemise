@@ -2,10 +2,11 @@ package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
 import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -13,12 +14,6 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 public interface MobilityChoiceService {
-
-  /** Filters of the mobility choice lists: all, active (default), canceled, rejected, passed. */
-  String FILTER_REGEXP = "all|active|canceled|rejected|passed";
-
-  /** Message of an unknown filter. */
-  String FILTER_MESSAGE = "{pae.validation.MobilityChoiceService.filter.message}";
 
   /**
    * Creates a new MobilityChoice with the parameters received from the user.
@@ -31,7 +26,7 @@ public interface MobilityChoiceService {
   MobilityChoiceDto create(
       @NotNull @Valid MobilityChoiceDto mobilityChoice,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 
   /**
    * Returns a list with all the mobilityChoices stocked in DataBase.
@@ -42,9 +37,7 @@ public interface MobilityChoiceService {
    * @return A list with all the mobilityChoices in DataBase as mobilityChoicesDto's.
    */
   List<MobilityChoiceDto> showAll(
-      @Positive int userId,
-      @NotBlank String userRole,
-      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
+      @Positive int userId, @NotNull Role userRole, @NotNull MobilityChoiceFilter filter);
 
   /**
    * Counts the mobility choices {@link #showAll} would return.
@@ -54,10 +47,7 @@ public interface MobilityChoiceService {
    * @param filter a filter for the mobility choices to display
    * @return the number of mobility choices
    */
-  int countAll(
-      @Positive int userId,
-      @NotBlank String userRole,
-      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
+  int countAll(@Positive int userId, @NotNull Role userRole, @NotNull MobilityChoiceFilter filter);
 
   /**
    * Confirms the mobility choice which bears the given id.
@@ -79,7 +69,7 @@ public interface MobilityChoiceService {
       @Positive int mobilityChoiceId,
       @NotNull @Valid PartnerDto partner,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 
   /**
    * Cancels a MobilityChoice specified by mobilityChoiceId.
@@ -111,9 +101,7 @@ public interface MobilityChoiceService {
    * @return the string representing the CSV file.
    */
   String exportAll(
-      @Positive int userId,
-      @NotBlank String userRole,
-      @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE) String filter);
+      @Positive int userId, @NotNull Role userRole, @NotNull MobilityChoiceFilter filter);
 
   /**
    * Check if there is a mobilityChoice attached to a partner.

@@ -5,24 +5,17 @@ import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
 public interface MobilityService {
-
-  /**
-   * Filters of the document export: departure documents (D), filled-in departure documents (DF),
-   * return documents (R), filled-in return documents (RF); every document without a filter.
-   */
-  String DOCUMENT_FILTER_REGEXP = "D|DF|R|RF";
-
-  /** Message of an unknown document filter. */
-  String DOCUMENT_FILTER_MESSAGE = "{pae.validation.MobilityService.documentFilter.message}";
 
   /**
    * Return a list of all stored mobilities.
@@ -31,7 +24,7 @@ public interface MobilityService {
    * @param userRole the role of the requester
    * @return every mobility for a professor, the requester's own ones for a student
    */
-  List<MobilityDto> showAll(@Positive int userId, @NotBlank String userRole);
+  List<MobilityDto> showAll(@Positive int userId, @NotNull Role userRole);
 
   /**
    * Return the requested mobility.
@@ -44,7 +37,7 @@ public interface MobilityService {
    * @throws InsufficientPermissionException when the requester is not a professor and does not own
    *     the requested mobility
    */
-  MobilityDto showOne(@Positive int id, @NotBlank String role, @Positive int user);
+  MobilityDto showOne(@Positive int id, @NotNull Role role, @Positive int user);
 
   /**
    * Confirm the encoding in Pro Eco software.
@@ -105,16 +98,14 @@ public interface MobilityService {
       @Size(max = MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH) String cancellationReason,
       int denialReasonId,
       @Positive int userId,
-      @NotBlank String userRole);
+      @NotNull Role userRole);
 
   /**
    * Create a CSV file as a String with the specified type of documents, for the mobility specified.
    *
    * @param mobilityId the id of the mobility we want's to export the documents
-   * @param filter a filter for the documents to export
+   * @param filter the documents to export, every document if null
    * @return the string representing the CSV file.
    */
-  String exportDocuments(
-      @Positive int mobilityId,
-      @Pattern(regexp = DOCUMENT_FILTER_REGEXP, message = DOCUMENT_FILTER_MESSAGE) String filter);
+  String exportDocuments(@Positive int mobilityId, @Nullable DocumentFilter filter);
 }

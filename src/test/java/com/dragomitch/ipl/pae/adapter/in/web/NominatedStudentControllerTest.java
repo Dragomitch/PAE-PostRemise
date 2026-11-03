@@ -13,8 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import java.time.LocalDate;
 import java.util.List;
@@ -49,7 +49,7 @@ class NominatedStudentControllerTest {
 
   @Test
   void createReadsTheJsonBody() throws Exception {
-    when(nominatedStudentService.create(any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT)))
+    when(nominatedStudentService.create(any(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT)))
         .thenReturn(student());
 
     mockMvc
@@ -64,7 +64,7 @@ class NominatedStudentControllerTest {
 
     ArgumentCaptor<NominatedStudentDto> captor = ArgumentCaptor.forClass(NominatedStudentDto.class);
     verify(nominatedStudentService)
-        .create(captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+        .create(captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals(LocalDate.of(2000, 12, 31), captor.getValue().getBirthdate());
     assertEquals("BE", captor.getValue().getAddress().getCountry().getCountryCode());
     assertEquals("BE", captor.getValue().getNationality().getCountryCode());
@@ -72,7 +72,7 @@ class NominatedStudentControllerTest {
 
   @Test
   void showOneAndShowAll() throws Exception {
-    when(nominatedStudentService.showOne(2, TestUsers.STUDENT_ID, UserDto.ROLE_STUDENT))
+    when(nominatedStudentService.showOne(2, TestUsers.STUDENT_ID, Role.STUDENT))
         .thenReturn(student());
     when(nominatedStudentService.showAll()).thenReturn(List.of(student()));
 
@@ -89,8 +89,7 @@ class NominatedStudentControllerTest {
 
   @Test
   void editUpdatesTheStudentOfThePath() throws Exception {
-    when(nominatedStudentService.edit(
-            any(), eq(TestUsers.PROFESSOR_ID), eq(UserDto.ROLE_PROFESSOR)))
+    when(nominatedStudentService.edit(any(), eq(TestUsers.PROFESSOR_ID), eq(Role.PROFESSOR)))
         .thenReturn(student());
 
     mockMvc
@@ -104,7 +103,7 @@ class NominatedStudentControllerTest {
 
     ArgumentCaptor<NominatedStudentDto> captor = ArgumentCaptor.forClass(NominatedStudentDto.class);
     verify(nominatedStudentService)
-        .edit(captor.capture(), eq(TestUsers.PROFESSOR_ID), eq(UserDto.ROLE_PROFESSOR));
+        .edit(captor.capture(), eq(TestUsers.PROFESSOR_ID), eq(Role.PROFESSOR));
     assertEquals(5, captor.getValue().getId());
   }
 }
