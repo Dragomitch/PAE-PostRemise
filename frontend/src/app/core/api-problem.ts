@@ -1,7 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { MonoTypeOperatorFunction, TimeoutError, catchError, throwError } from 'rxjs';
 
-import { ProblemDetail, ProblemFieldError, isProblemDetail, isProblemFieldError } from './problem-detail';
+import {
+  ProblemDetail,
+  ProblemFieldError,
+  isProblemDetail,
+  isProblemFieldError,
+} from './problem-detail';
 
 /**
  * Machine codes produced by the frontend itself when the response is not a usable Problem
@@ -107,7 +112,10 @@ export function statusFallback(status: number): { code: string; message: string 
     };
   }
   if (status === 401) {
-    return { code: ClientProblemCode.UNAUTHENTICATED, message: knownCodeMessage('UNAUTHENTICATED')! };
+    return {
+      code: ClientProblemCode.UNAUTHENTICATED,
+      message: knownCodeMessage('UNAUTHENTICATED')!,
+    };
   }
   if (status === 403) {
     return { code: ClientProblemCode.ACCESS_DENIED, message: knownCodeMessage('ACCESS_DENIED')! };
@@ -188,7 +196,10 @@ function fromProblem(status: number, problem: ProblemDetail): ApiProblem {
   const code = displayable(problem.code) ?? fallback.code;
   const errors = (problem.errors ?? []).filter(isProblemFieldError);
   const detail =
-    displayable(problem.detail) ?? knownCodeMessage(code) ?? displayable(problem.title) ?? fallback.message;
+    displayable(problem.detail) ??
+    knownCodeMessage(code) ??
+    displayable(problem.title) ??
+    fallback.message;
   return new ApiProblem({
     status: effectiveStatus,
     code,
@@ -214,7 +225,9 @@ function fromFallback(status: number, fallback: { code: string; message: string 
 function isTimeout(error: unknown): boolean {
   return (
     error instanceof TimeoutError ||
-    (typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'TimeoutError')
+    (typeof error === 'object' &&
+      error !== null &&
+      (error as { name?: unknown }).name === 'TimeoutError')
   );
 }
 

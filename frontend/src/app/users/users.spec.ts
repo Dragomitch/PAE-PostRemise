@@ -1,7 +1,11 @@
 import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { User } from '../core/models';
@@ -9,9 +13,22 @@ import { SessionService } from '../core/session.service';
 import { Users, fullName } from './users';
 
 const PROBLEM_HEADERS = { 'Content-Type': 'application/problem+json' };
-const PROFESSOR: User = { id: 1, username: 'prof', firstName: 'Paula', lastName: 'Prof', role: 'Professor' };
+const PROFESSOR: User = {
+  id: 1,
+  username: 'prof',
+  firstName: 'Paula',
+  lastName: 'Prof',
+  role: 'Professor',
+};
 
-function user(id: number, username: string, firstName: string, lastName: string, role: string, registrationDate?: string): User {
+function user(
+  id: number,
+  username: string,
+  firstName: string,
+  lastName: string,
+  role: string,
+  registrationDate?: string,
+): User {
   return {
     id,
     username,
@@ -40,7 +57,12 @@ describe('Users', () => {
   function open(): TestRequest {
     TestBed.configureTestingModule({
       imports: [Users],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), { provide: LOCALE_ID, useValue: 'fr' }],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: LOCALE_ID, useValue: 'fr' },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
@@ -60,8 +82,10 @@ describe('Users', () => {
   afterEach(() => http.verify());
 
   const rows = () => Array.from(el.querySelectorAll<HTMLTableRowElement>('tbody tr'));
-  const row = (username: string) => el.querySelector<HTMLTableRowElement>(`tbody tr[data-username="${username}"]`)!;
-  const cells = (tr: HTMLTableRowElement) => Array.from(tr.querySelectorAll('th, td')).map((c) => c.textContent?.trim());
+  const row = (username: string) =>
+    el.querySelector<HTMLTableRowElement>(`tbody tr[data-username="${username}"]`)!;
+  const cells = (tr: HTMLTableRowElement) =>
+    Array.from(tr.querySelectorAll('th, td')).map((c) => c.textContent?.trim());
   const alert = () => el.querySelector('[role=alert]');
   const panel = () => el.querySelector('.promote-panel');
   const notice = () => el.querySelector('.notice')?.textContent?.trim();
@@ -80,7 +104,9 @@ describe('Users', () => {
     it('shows a loading state, then every user sorted by name', () => {
       const req = open();
       expect(el.querySelector('h1')?.textContent).toContain('Gestion des utilisateurs');
-      expect(el.querySelector('[role=status].state')?.textContent).toContain('Chargement des utilisateurs');
+      expect(el.querySelector('[role=status].state')?.textContent).toContain(
+        'Chargement des utilisateurs',
+      );
       req.flush({ data: ALL });
       fixture.detectChanges();
       expect(el.querySelector('.state')).toBeNull();
@@ -90,7 +116,9 @@ describe('Users', () => {
 
     it('has the columns of the legacy list and the registration date', () => {
       show();
-      expect(Array.from(el.querySelectorAll('thead th')).map((th) => th.textContent?.trim())).toEqual([
+      expect(
+        Array.from(el.querySelectorAll('thead th')).map((th) => th.textContent?.trim()),
+      ).toEqual([
         'Nom',
         "Nom d'utilisateur",
         'E-mail',
@@ -100,10 +128,28 @@ describe('Users', () => {
         'Action',
       ]);
       // dates in the UI language (French here)
-      expect(cells(row('alice'))).toEqual(['Alice Tester', 'alice', 'alice@example.test', 'BIN', 'Étudiant', '3 nov. 2026', 'Promouvoir']);
-      expect(cells(row('prof'))).toEqual(['Paula Prof', 'prof', 'prof@example.test', 'BIN', 'Professeur', '1 sept. 2026', '']);
+      expect(cells(row('alice'))).toEqual([
+        'Alice Tester',
+        'alice',
+        'alice@example.test',
+        'BIN',
+        'Étudiant',
+        '3 nov. 2026',
+        'Promouvoir',
+      ]);
+      expect(cells(row('prof'))).toEqual([
+        'Paula Prof',
+        'prof',
+        'prof@example.test',
+        'BIN',
+        'Professeur',
+        '1 sept. 2026',
+        '',
+      ]);
       expect(row('alice').querySelector('th')?.getAttribute('scope')).toBe('row');
-      expect(row('alice').querySelector('a')?.getAttribute('href')).toBe('mailto:alice@example.test');
+      expect(row('alice').querySelector('a')?.getAttribute('href')).toBe(
+        'mailto:alice@example.test',
+      );
       expect(row('alice').dataset['id']).toBe('2');
       // the date is the day the server wrote, whatever the browser's time zone
       expect(cells(row('bruno'))[5]).toBe('15 oct. 2026');
@@ -119,7 +165,11 @@ describe('Users', () => {
     });
 
     it('shows an account without name, e-mail, option nor registration date by its username', () => {
-      show([{ id: 9, username: 'zed', role: 'Student' }, { id: 8, username: 'adam', role: 'Student' }, ALICE]);
+      show([
+        { id: 9, username: 'zed', role: 'Student' },
+        { id: 8, username: 'adam', role: 'Student' },
+        ALICE,
+      ]);
       expect(rows().map((tr) => tr.dataset['username'])).toEqual(['adam', 'zed', 'alice']);
       expect(cells(row('zed'))).toEqual(['zed', 'zed', '', '', 'Étudiant', '', 'Promouvoir']);
       expect(row('zed').querySelector('a')).toBeNull();
@@ -148,7 +198,10 @@ describe('Users', () => {
     it('goes back to the sign-in page when the session expired', () => {
       const req = open();
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
-      req.flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      req.flush(
+        { code: 'UNAUTHENTICATED', status: 401 },
+        { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+      );
       fixture.detectChanges();
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
       expect(TestBed.inject(SessionService).user()).toBeNull();
@@ -163,7 +216,9 @@ describe('Users', () => {
       askPromotion('alice');
       await fixture.whenStable();
       expect(panel()?.querySelector('h2')?.textContent).toContain('Promouvoir un utilisateur');
-      expect(panel()?.textContent).toContain('Promouvoir Alice Tester (alice) au rôle de professeur ? Cette action est définitive.');
+      expect(panel()?.textContent).toContain(
+        'Promouvoir Alice Tester (alice) au rôle de professeur ? Cette action est définitive.',
+      );
       expect(document.activeElement).toBe(panel()!.querySelector('button.confirm'));
       http.expectNone('/api/1.0/users/2/promote');
     });
@@ -206,11 +261,17 @@ describe('Users', () => {
       askPromotion('bruno');
       confirm();
       http.expectOne('/api/1.0/users/3/promote').flush(
-        { code: 'RESOURCE_NOT_FOUND', status: 404, detail: 'La ressource demandée n’existe pas.' },
+        {
+          code: 'RESOURCE_NOT_FOUND',
+          status: 404,
+          detail: 'La ressource demandée n’existe pas.',
+        },
         { status: 404, statusText: 'Not Found', headers: PROBLEM_HEADERS },
       );
       fixture.detectChanges();
-      expect(panel()?.querySelector('[role=alert]')?.textContent).toContain('La ressource demandée n’existe pas.');
+      expect(panel()?.querySelector('[role=alert]')?.textContent).toContain(
+        'La ressource demandée n’existe pas.',
+      );
       expect(cells(row('bruno'))[4]).toBe('Étudiant');
       expect(notice()).toBe('');
 
@@ -219,10 +280,12 @@ describe('Users', () => {
       expect(panel()?.querySelector('[role=alert]')).toBeNull();
       expect(panel()?.textContent).toContain('(alice)');
       confirm();
-      http.expectOne('/api/1.0/users/2/promote').flush(
-        { code: 'ACCESS_DENIED', status: 403, detail: 'Accès refusé.' },
-        { status: 403, statusText: 'Forbidden', headers: PROBLEM_HEADERS },
-      );
+      http
+        .expectOne('/api/1.0/users/2/promote')
+        .flush(
+          { code: 'ACCESS_DENIED', status: 403, detail: 'Accès refusé.' },
+          { status: 403, statusText: 'Forbidden', headers: PROBLEM_HEADERS },
+        );
       fixture.detectChanges();
       expect(panel()?.querySelector('[role=alert]')?.textContent).toContain('Accès refusé.');
       panel()!.querySelector<HTMLButtonElement>('button.cancel')!.click();
@@ -244,7 +307,12 @@ describe('Users', () => {
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
       askPromotion('alice');
       confirm();
-      http.expectOne('/api/1.0/users/2/promote').flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      http
+        .expectOne('/api/1.0/users/2/promote')
+        .flush(
+          { code: 'UNAUTHENTICATED', status: 401 },
+          { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+        );
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
     });
   });
@@ -252,7 +320,9 @@ describe('Users', () => {
 
 describe('fullName', () => {
   it('writes "First Last", or the username of an account without name', () => {
-    expect(fullName({ username: 'alice', firstName: 'Alice', lastName: 'Tester' })).toBe('Alice Tester');
+    expect(fullName({ username: 'alice', firstName: 'Alice', lastName: 'Tester' })).toBe(
+      'Alice Tester',
+    );
     expect(fullName({ username: 'alice', lastName: 'Tester' })).toBe('Tester');
     expect(fullName({ username: 'alice' })).toBe('alice');
   });

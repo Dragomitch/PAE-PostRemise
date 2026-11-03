@@ -10,7 +10,10 @@ export type ChoiceState = 'rejected' | 'canceled' | 'confirmed' | 'pending';
 /** Maximum length of a cancellation reason (`MobilityChoiceDto.CANCELLATION_REASON_MAX_LENGTH`). */
 export const CANCELLATION_REASON_MAX_LENGTH = 500;
 
-export function choiceState(choice: MobilityChoice, mobilityIds: ReadonlySet<number> = new Set()): ChoiceState {
+export function choiceState(
+  choice: MobilityChoice,
+  mobilityIds: ReadonlySet<number> = new Set(),
+): ChoiceState {
   if (choice.denialReason) {
     return 'rejected';
   }

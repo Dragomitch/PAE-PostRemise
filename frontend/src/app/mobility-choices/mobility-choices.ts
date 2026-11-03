@@ -21,7 +21,13 @@ import { fieldMessage, unmatchedFieldErrors } from '../core/form-errors';
 import { DenialReason, MobilityChoice, MobilityChoiceFilter } from '../core/models';
 import { SessionService } from '../core/session.service';
 import { MobilityChoiceForm } from './mobility-choice-form';
-import { CANCELLATION_REASON_MAX_LENGTH, ChoiceState, choiceState, departureLabel, mobilityTypeLabel } from './mobility-choice-labels';
+import {
+  CANCELLATION_REASON_MAX_LENGTH,
+  ChoiceState,
+  choiceState,
+  departureLabel,
+  mobilityTypeLabel,
+} from './mobility-choice-labels';
 
 /** What the open panel above the table does with the chosen row. */
 type Panel = { action: 'cancel' | 'reject'; choice: MobilityChoice };
@@ -91,7 +97,9 @@ export class MobilityChoices {
   /** Failure of a confirmation (no panel to show it in). */
   protected readonly actionProblem = signal<ApiProblem | null>(null);
   protected readonly denialReasons = signal<DenialReason[] | null>(null);
-  protected readonly otherPanelErrors = computed(() => unmatchedFieldErrors(this.panelProblem(), ['reason']));
+  protected readonly otherPanelErrors = computed(() =>
+    unmatchedFieldErrors(this.panelProblem(), ['reason']),
+  );
 
   private readonly fb = inject(NonNullableFormBuilder);
   protected readonly cancelForm = this.fb.group({
@@ -138,7 +146,9 @@ export class MobilityChoices {
    */
   private fetch(): Observable<Loaded> {
     if (!this.isProfessor()) {
-      return this.api.mobilityChoices().pipe(map((choices) => ({ choices, count: null, mobilityIds: [] })));
+      return this.api
+        .mobilityChoices()
+        .pipe(map((choices) => ({ choices, count: null, mobilityIds: [] })));
     }
     const filter = this.filter();
     return forkJoin({
@@ -220,7 +230,9 @@ export class MobilityChoices {
 
   protected created(): void {
     this.creating.set(false);
-    this.notice.set($localize`:@@mobilityChoices.notice.created:La demande de mobilité a été enregistrée.`);
+    this.notice.set(
+      $localize`:@@mobilityChoices.notice.created:La demande de mobilité a été enregistrée.`,
+    );
     this.load();
   }
 
@@ -262,7 +274,8 @@ export class MobilityChoices {
 
   protected reasonError(): string | null {
     const action = this.panel()?.action;
-    const control = action === 'reject' ? this.rejectForm.controls.reason : this.cancelForm.controls.reason;
+    const control =
+      action === 'reject' ? this.rejectForm.controls.reason : this.cancelForm.controls.reason;
     if (control.hasError('maxlength')) {
       return $localize`:@@mobilityChoices.cancel.tooLong:La raison ne peut pas dépasser ${CANCELLATION_REASON_MAX_LENGTH}:MAX: caractères.`;
     }
@@ -310,7 +323,11 @@ export class MobilityChoices {
   }
 
   /** Sends an action; on success closes the panel, says so and loads the list again. */
-  private run(request: Observable<void>, notice: string, problem: { set(value: ApiProblem | null): void }): void {
+  private run(
+    request: Observable<void>,
+    notice: string,
+    problem: { set(value: ApiProblem | null): void },
+  ): void {
     this.busy.set(true);
     request
       .pipe(

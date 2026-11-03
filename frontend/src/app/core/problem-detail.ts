@@ -69,7 +69,9 @@ export function isProblemDetail(value: unknown): value is ProblemDetail {
     isOptionalString(value['detail']) &&
     isOptionalString(value['instance']) &&
     isOptionalString(value['code']) &&
-    (value['status'] === undefined || value['status'] === null || typeof value['status'] === 'number') &&
+    (value['status'] === undefined ||
+      value['status'] === null ||
+      typeof value['status'] === 'number') &&
     (value['errors'] === undefined || value['errors'] === null || Array.isArray(value['errors']));
   if (!typesOk) {
     return false;

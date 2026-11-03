@@ -23,23 +23,40 @@
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <div class="form-group">
       <label for="signin-username" i18n="@@signin.username.label">Nom d'utilisateur</label>
-      <input id="signin-username" type="text" class="form-control input" formControlName="username"
-             autocomplete="username" [attr.aria-invalid]="!!errorFor('username')"
-             [attr.aria-describedby]="errorFor('username') ? 'signin-username-error' : null">
+      <input
+        id="signin-username"
+        type="text"
+        class="form-control input"
+        formControlName="username"
+        autocomplete="username"
+        [attr.aria-invalid]="!!errorFor('username')"
+        [attr.aria-describedby]="errorFor('username') ? 'signin-username-error' : null"
+      />
       @if (errorFor('username'); as message) {
         <p class="field-error" id="signin-username-error">{{ message }}</p>
       }
     </div>
     <div class="form-group">
       <label for="signin-password" i18n="@@signin.password.label">Mot de passe</label>
-      <input id="signin-password" type="password" class="form-control input" formControlName="password"
-             autocomplete="current-password" [attr.aria-invalid]="!!errorFor('password')"
-             [attr.aria-describedby]="errorFor('password') ? 'signin-password-error' : null">
+      <input
+        id="signin-password"
+        type="password"
+        class="form-control input"
+        formControlName="password"
+        autocomplete="current-password"
+        [attr.aria-invalid]="!!errorFor('password')"
+        [attr.aria-describedby]="errorFor('password') ? 'signin-password-error' : null"
+      />
       @if (errorFor('password'); as message) {
         <p class="field-error" id="signin-password-error">{{ message }}</p>
       }
     </div>
-    <button type="submit" class="btn btn-default btn-lg" [disabled]="submitting()" [attr.aria-busy]="submitting()">
+    <button
+      type="submit"
+      class="btn btn-default btn-lg"
+      [disabled]="submitting()"
+      [attr.aria-busy]="submitting()"
+    >
       @if (submitting()) {
         <ng-container i18n="@@signin.submitting">Connexion en cours…</ng-container>
       } @else {

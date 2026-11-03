@@ -42,7 +42,10 @@ function sameText(a, b) {
 }
 
 function placeholders(text = '') {
-  return [...text.matchAll(/<x\s+id="([^"]+)"/g)].map((m) => m[1]).sort().join(',');
+  return [...text.matchAll(/<x\s+id="([^"]+)"/g)]
+    .map((m) => m[1])
+    .sort()
+    .join(',');
 }
 
 const problems = [];
@@ -81,7 +84,7 @@ try {
   const angular = JSON.parse(readFileSync(join(root, 'angular.json'), 'utf8'));
   for (const project of Object.values(angular.projects)) {
     for (const [locale, config] of Object.entries(project.i18n?.locales ?? {})) {
-      const files = [].concat(typeof config === 'string' ? config : config.translation ?? []);
+      const files = [].concat(typeof config === 'string' ? config : (config.translation ?? []));
       for (const file of files) {
         const translated = parseUnits(readFileSync(join(root, file), 'utf8'));
         for (const [id, unit] of fresh) {

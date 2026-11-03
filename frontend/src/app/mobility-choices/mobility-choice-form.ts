@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, LOCALE_ID, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  LOCALE_ID,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +16,14 @@ import { finalize, forkJoin } from 'rxjs';
 import { ApiService } from '../api.service';
 import { ApiProblem, ClientProblemCode, toApiProblem } from '../core/api-problem';
 import { fieldMessage, unmatchedFieldErrors } from '../core/form-errors';
-import { MobilityChoice, MobilityChoiceRequest, MobilityType, Partner, Programme, ProgrammeCountry } from '../core/models';
+import {
+  MobilityChoice,
+  MobilityChoiceRequest,
+  MobilityType,
+  Partner,
+  Programme,
+  ProgrammeCountry,
+} from '../core/models';
 import { SessionService } from '../core/session.service';
 import { departureLabel } from './mobility-choice-labels';
 
@@ -27,7 +43,12 @@ export function departures(fromYear: number, years = 3): Departure[] {
   const result: Departure[] = [];
   for (let academicYear = fromYear; academicYear < fromYear + years; academicYear++) {
     for (const term of [2, 1]) {
-      result.push({ value: `${term} ${academicYear}`, term, academicYear, label: departureLabel(term, academicYear) });
+      result.push({
+        value: `${term} ${academicYear}`,
+        term,
+        academicYear,
+        label: departureLabel(term, academicYear),
+      });
     }
   }
   return result;
@@ -64,7 +85,10 @@ export class MobilityChoiceForm {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly collator = new Intl.Collator(inject(LOCALE_ID), { sensitivity: 'base', numeric: true });
+  private readonly collator = new Intl.Collator(inject(LOCALE_ID), {
+    sensitivity: 'base',
+    numeric: true,
+  });
 
   /** Emitted with the new choice once the API stored it. */
   readonly created = output<MobilityChoice>();
@@ -93,8 +117,12 @@ export class MobilityChoiceForm {
     preferenceOrder: ['', Validators.required],
     departure: ['', Validators.required],
   });
-  private readonly programme = toSignal(this.form.controls.programme.valueChanges, { initialValue: '' });
-  private readonly country = toSignal(this.form.controls.country.valueChanges, { initialValue: '' });
+  private readonly programme = toSignal(this.form.controls.programme.valueChanges, {
+    initialValue: '',
+  });
+  private readonly country = toSignal(this.form.controls.country.valueChanges, {
+    initialValue: '',
+  });
 
   /** The countries of the chosen programme, by name. */
   protected readonly countries = computed(() => {
@@ -116,7 +144,9 @@ export class MobilityChoiceForm {
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly problem = signal<ApiProblem | null>(null);
-  protected readonly otherErrors = computed(() => unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS));
+  protected readonly otherErrors = computed(() =>
+    unmatchedFieldErrors(this.problem(), KNOWN_SERVER_FIELDS),
+  );
 
   constructor() {
     // a country or a partner that the new programme or country does not offer is dropped
@@ -132,7 +162,11 @@ export class MobilityChoiceForm {
   protected load(): void {
     this.loading.set(true);
     this.loadProblem.set(null);
-    forkJoin({ programmes: this.api.programmes(), countries: this.api.countries(), partners: this.api.partners() })
+    forkJoin({
+      programmes: this.api.programmes(),
+      countries: this.api.countries(),
+      partners: this.api.partners(),
+    })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
@@ -157,7 +191,12 @@ export class MobilityChoiceForm {
   }
 
   protected errorFor(field: Field): string | null {
-    return fieldMessage(this.problem(), SERVER_FIELDS[field], this.form.controls[field], this.submitted());
+    return fieldMessage(
+      this.problem(),
+      SERVER_FIELDS[field],
+      this.form.controls[field],
+      this.submitted(),
+    );
   }
 
   protected submit(): void {

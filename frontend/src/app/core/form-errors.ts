@@ -53,6 +53,11 @@ export function fieldMessage(
 }
 
 /** Server field errors that do not belong to any input of the form (shown in the alert). */
-export function unmatchedFieldErrors(problem: ApiProblem | null, knownFields: readonly string[]): string[] {
-  return (problem?.errors ?? []).filter((e) => !knownFields.includes(e.field)).map((e) => e.message);
+export function unmatchedFieldErrors(
+  problem: ApiProblem | null,
+  knownFields: readonly string[],
+): string[] {
+  return (problem?.errors ?? [])
+    .filter((e) => !knownFields.includes(e.field))
+    .map((e) => e.message);
 }

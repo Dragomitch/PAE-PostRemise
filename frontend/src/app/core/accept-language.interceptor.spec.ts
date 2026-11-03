@@ -31,33 +31,47 @@ describe('acceptLanguageInterceptor', () => {
     const { http, controller } = setup('en');
     http.post('/api/1.0/users', {}).subscribe();
     http.delete('api/1.0/session').subscribe();
-    expect(controller.expectOne('/api/1.0/users').request.headers.get('Accept-Language')).toBe('en');
-    expect(controller.expectOne('api/1.0/session').request.headers.get('Accept-Language')).toBe('en');
+    expect(controller.expectOne('/api/1.0/users').request.headers.get('Accept-Language')).toBe(
+      'en',
+    );
+    expect(controller.expectOne('api/1.0/session').request.headers.get('Accept-Language')).toBe(
+      'en',
+    );
   });
 
   it('reduces regional locales to a supported language', () => {
     const { http, controller } = setup('en-US');
     http.get('/api/1.0/session').subscribe();
-    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe('en');
+    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe(
+      'en',
+    );
   });
 
   it('falls back to French for unsupported locales', () => {
     const { http, controller } = setup('de-DE');
     http.get('/api/1.0/session').subscribe();
-    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe('fr');
+    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe(
+      'fr',
+    );
   });
 
   it('does not touch non-API or cross-origin requests', () => {
     const { http, controller } = setup('en');
     http.get('/assets/i18n.json').subscribe();
     http.get('https://example.org/api/1.0/x').subscribe();
-    expect(controller.expectOne('/assets/i18n.json').request.headers.has('Accept-Language')).toBeFalse();
-    expect(controller.expectOne('https://example.org/api/1.0/x').request.headers.has('Accept-Language')).toBeFalse();
+    expect(
+      controller.expectOne('/assets/i18n.json').request.headers.has('Accept-Language'),
+    ).toBeFalse();
+    expect(
+      controller.expectOne('https://example.org/api/1.0/x').request.headers.has('Accept-Language'),
+    ).toBeFalse();
   });
 
   it('keeps an explicit Accept-Language header', () => {
     const { http, controller } = setup('fr');
     http.get('/api/1.0/session', { headers: { 'Accept-Language': 'en' } }).subscribe();
-    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe('en');
+    expect(controller.expectOne('/api/1.0/session').request.headers.get('Accept-Language')).toBe(
+      'en',
+    );
   });
 });

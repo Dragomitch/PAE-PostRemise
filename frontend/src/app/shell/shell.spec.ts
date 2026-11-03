@@ -11,8 +11,20 @@ import { Shell } from './shell';
 @Component({ template: '<p id="page">page</p>' })
 class Page {}
 
-const PROFESSOR: User = { id: 1, username: 'prof', firstName: 'Paula', lastName: 'Prof', role: 'Professor' };
-const STUDENT: User = { id: 2, username: 'alice', firstName: 'Alice', lastName: 'Student', role: 'Student' };
+const PROFESSOR: User = {
+  id: 1,
+  username: 'prof',
+  firstName: 'Paula',
+  lastName: 'Prof',
+  role: 'Professor',
+};
+const STUDENT: User = {
+  id: 2,
+  username: 'alice',
+  firstName: 'Alice',
+  lastName: 'Student',
+  role: 'Student',
+};
 
 describe('Shell', () => {
   let fixture: ComponentFixture<Shell>;
@@ -37,7 +49,9 @@ describe('Shell', () => {
     });
     http = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-    TestBed.inject(SessionService).signIn({ username: user.username, password: 'secret' }).subscribe();
+    TestBed.inject(SessionService)
+      .signIn({ username: user.username, password: 'secret' })
+      .subscribe();
     http.expectOne('/api/1.0/session').flush(user);
     fixture = TestBed.createComponent(Shell);
     el = fixture.nativeElement as HTMLElement;
@@ -53,7 +67,9 @@ describe('Shell', () => {
   it('shows the application name, the navigation and the screen outlet', async () => {
     await setup(PROFESSOR);
     expect(el.querySelector('.brand-name')?.textContent).toBe('EMA');
-    expect(el.querySelector('.brand-tagline')?.textContent).toContain('Gestion des mobilités Erasmus');
+    expect(el.querySelector('.brand-tagline')?.textContent).toContain(
+      'Gestion des mobilités Erasmus',
+    );
     const nav = el.querySelector('nav')!;
     expect(nav.getAttribute('aria-label')).toBe('Navigation principale');
     const link = nav.querySelector('a')!;
@@ -83,7 +99,11 @@ describe('Shell', () => {
     expect(el.querySelectorAll('nav a')[1].textContent?.trim()).toBe('Mes demandes de mobilité');
   });
 
-  const navLinks = () => Array.from(el.querySelectorAll<HTMLAnchorElement>('nav a')).map((a) => [a.textContent?.trim(), a.getAttribute('href')]);
+  const navLinks = () =>
+    Array.from(el.querySelectorAll<HTMLAnchorElement>('nav a')).map((a) => [
+      a.textContent?.trim(),
+      a.getAttribute('href'),
+    ]);
 
   it('links the users screen for a professor only', async () => {
     await setup(PROFESSOR);

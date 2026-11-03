@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { NominatedStudent, ProgrammeCountry, User } from '../core/models';
@@ -69,7 +73,9 @@ describe('PersonalData', () => {
     });
     http = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-    TestBed.inject(SessionService).signIn({ username: user.username, password: 'secret' }).subscribe();
+    TestBed.inject(SessionService)
+      .signIn({ username: user.username, password: 'secret' })
+      .subscribe();
     http.expectOne('/api/1.0/session').flush(user);
     fixture = TestBed.createComponent(PersonalData);
     el = fixture.nativeElement as HTMLElement;
@@ -96,9 +102,11 @@ describe('PersonalData', () => {
 
   afterEach(() => http.verify());
 
-  const control = (id: string) => el.querySelector<HTMLInputElement | HTMLSelectElement>(`#personal-data-${id}`)!;
+  const control = (id: string) =>
+    el.querySelector<HTMLInputElement | HTMLSelectElement>(`#personal-data-${id}`)!;
   const value = (id: string) => control(id).value;
-  const options = (id: string) => Array.from((control(id) as HTMLSelectElement).options).map((o) => o.textContent?.trim());
+  const options = (id: string) =>
+    Array.from((control(id) as HTMLSelectElement).options).map((o) => o.textContent?.trim());
   const error = (id: string) => el.querySelector(`#personal-data-${id}-error`)?.textContent?.trim();
   const alert = () => el.querySelector('[role=alert]');
   const submitButton = () => el.querySelector<HTMLButtonElement>('button[type=submit]')!;
@@ -135,7 +143,9 @@ describe('PersonalData', () => {
     it('asks for the countries and for the record of the signed-in student before showing the form', () => {
       open();
       expect(el.querySelector('h1')?.textContent).toContain('Mes données personnelles');
-      expect(el.querySelector('[role=status]')?.textContent).toContain('Chargement de vos données personnelles');
+      expect(el.querySelector('[role=status]')?.textContent).toContain(
+        'Chargement de vos données personnelles',
+      );
       expect(el.querySelector('form')).toBeNull();
       load(RECORD);
       expect(el.querySelector('form')).not.toBeNull();
@@ -179,7 +189,9 @@ describe('PersonalData', () => {
       open();
       load(null);
       expect(alert()).toBeNull();
-      expect(el.querySelector('.intro')?.textContent).toContain('pas encore encodé vos données personnelles');
+      expect(el.querySelector('.intro')?.textContent).toContain(
+        'pas encore encodé vos données personnelles',
+      );
       expect(value('lastName')).toBe('Tester');
       expect(value('firstName')).toBe('Alice');
       expect(value('email')).toBe('alice@example.test');
@@ -201,7 +213,9 @@ describe('PersonalData', () => {
 
     it('shows a failure with a retry button', () => {
       open();
-      http.expectOne('/api/1.0/countries').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      http
+        .expectOne('/api/1.0/countries')
+        .flush(null, { status: 503, statusText: 'Service Unavailable' });
       // the first failure cancels the other request
       expect(recordRequest().cancelled).toBeTrue();
       fixture.detectChanges();
@@ -230,7 +244,10 @@ describe('PersonalData', () => {
     it('goes back to the sign-in page when the session expired', () => {
       open();
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
-      recordRequest().flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      recordRequest().flush(
+        { code: 'UNAUTHENTICATED', status: 401 },
+        { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+      );
       http.expectOne('/api/1.0/countries');
       fixture.detectChanges();
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
@@ -253,7 +270,10 @@ describe('PersonalData', () => {
         'Données bancaires',
         'Données académiques',
       ]);
-      const labels = Array.from(el.querySelectorAll('label')).map((l) => [l.getAttribute('for')?.replace('personal-data-', ''), l.textContent?.trim()]);
+      const labels = Array.from(el.querySelectorAll('label')).map((l) => [
+        l.getAttribute('for')?.replace('personal-data-', ''),
+        l.textContent?.trim(),
+      ]);
       expect(labels).toEqual([
         ['title', 'Titre'],
         ['lastName', 'Nom'],
@@ -278,7 +298,12 @@ describe('PersonalData', () => {
       expect(options('title')).toEqual(['Choisissez…', 'Madame', 'Monsieur', 'Mademoiselle']);
       expect(options('gender')).toEqual(['Choisissez…', 'Homme', 'Femme', 'Autre']);
       // the countries, by name
-      expect(options('nationality')).toEqual(['Choisissez un pays', 'Allemagne', 'Belgique', 'France']);
+      expect(options('nationality')).toEqual([
+        'Choisissez un pays',
+        'Allemagne',
+        'Belgique',
+        'France',
+      ]);
       expect(options('country')).toEqual(['Choisissez un pays', 'Allemagne', 'Belgique', 'France']);
       expect(control('region').getAttribute('placeholder')).toBe('Optionnel');
       expect(control('phoneNumber').getAttribute('placeholder')).toBe('0032486372854');
@@ -288,12 +313,18 @@ describe('PersonalData', () => {
     });
 
     it('explains that an empty card holder means the student', () => {
-      expect(control('cardHolder').getAttribute('aria-describedby')).toBe('personal-data-cardHolder-hint');
-      expect(el.querySelector('#personal-data-cardHolder-hint')?.textContent).toContain('Laissez vide si le compte est à votre nom.');
+      expect(control('cardHolder').getAttribute('aria-describedby')).toBe(
+        'personal-data-cardHolder-hint',
+      );
+      expect(el.querySelector('#personal-data-cardHolder-hint')?.textContent).toContain(
+        'Laissez vide si le compte est à votre nom.',
+      );
       set('cardHolder', 'x'.repeat(36));
       submit();
       expect(error('cardHolder')).toBe('Valeur invalide.');
-      expect(control('cardHolder').getAttribute('aria-describedby')).toBe('personal-data-cardHolder-error');
+      expect(control('cardHolder').getAttribute('aria-describedby')).toBe(
+        'personal-data-cardHolder-error',
+      );
       expect(el.querySelector('#personal-data-cardHolder-hint')).toBeNull();
     });
 
@@ -328,7 +359,20 @@ describe('PersonalData', () => {
 
     it('requires every field but the region and the card holder', () => {
       submit();
-      for (const id of ['title', 'gender', 'birthdate', 'street', 'number', 'city', 'postalCode', 'phoneNumber', 'iban', 'bankName', 'bic', 'nbrPassedYears']) {
+      for (const id of [
+        'title',
+        'gender',
+        'birthdate',
+        'street',
+        'number',
+        'city',
+        'postalCode',
+        'phoneNumber',
+        'iban',
+        'bankName',
+        'bic',
+        'nbrPassedYears',
+      ]) {
         expect(error(id)).withContext(id).toBe('Ce champ est obligatoire.');
       }
       expect(error('region')).toBeUndefined();
@@ -351,7 +395,14 @@ describe('PersonalData', () => {
         gender: 'F',
         birthdate: '2002-03-04',
         nationality: { countryCode: 'BE' },
-        address: { street: 'Rue Haute', number: '5A', region: '', city: 'Liège', postalCode: '4000', country: { countryCode: 'BE' } },
+        address: {
+          street: 'Rue Haute',
+          number: '5A',
+          region: '',
+          city: 'Liège',
+          postalCode: '4000',
+          country: { countryCode: 'BE' },
+        },
         phoneNumber: '0032486372854',
         email: 'alice@example.test',
         iban: 'BE68539007547034',
@@ -367,31 +418,47 @@ describe('PersonalData', () => {
       (fixture.componentInstance as unknown as { submit(): void }).submit();
       http.expectNone('/api/1.0/nominatedStudents');
 
-      const saved: NominatedStudent = { ...req.request.body, cardHolder: 'Alice Tester', version: 1 };
+      const saved: NominatedStudent = {
+        ...req.request.body,
+        cardHolder: 'Alice Tester',
+        version: 1,
+      };
       req.flush(saved);
       fixture.detectChanges();
-      expect(el.querySelector('[role=status]')?.textContent).toContain('Les modifications ont bien été enregistrées.');
+      expect(el.querySelector('[role=status]')?.textContent).toContain(
+        'Les modifications ont bien été enregistrées.',
+      );
       expect(el.querySelector('.intro')).toBeNull();
       expect(value('cardHolder')).toBe('Alice Tester');
       expect(submitButton().disabled).toBeFalse();
 
       set('phoneNumber', '+32470000009');
-      expect(el.querySelector('[role=status]')?.textContent).toContain('Les modifications ont bien été enregistrées.');
+      expect(el.querySelector('[role=status]')?.textContent).toContain(
+        'Les modifications ont bien été enregistrées.',
+      );
       submit();
       expect(el.querySelector('[role=status]')?.textContent?.trim()).toBe('');
       const update = http.expectOne('/api/1.0/nominatedStudents/2');
       expect(update.request.method).toBe('PUT');
-      expect(update.request.body).toEqual(jasmine.objectContaining({ phoneNumber: '+32470000009', version: 1, cardHolder: 'Alice Tester' }));
+      expect(update.request.body).toEqual(
+        jasmine.objectContaining({
+          phoneNumber: '+32470000009',
+          version: 1,
+          cardHolder: 'Alice Tester',
+        }),
+      );
       update.flush({ ...update.request.body, version: 2 });
     });
 
     it('shows the business refusals of the API in the alert', () => {
       fillNew();
       submit();
-      http.expectOne('/api/1.0/nominatedStudents').flush(
-        { code: 'UNKNOWN_COUNTRY', status: 422, detail: 'Pays inconnu : BE.' },
-        { status: 422, statusText: 'Unprocessable Entity', headers: PROBLEM_HEADERS },
-      );
+      http
+        .expectOne('/api/1.0/nominatedStudents')
+        .flush(
+          { code: 'UNKNOWN_COUNTRY', status: 422, detail: 'Pays inconnu : BE.' },
+          { status: 422, statusText: 'Unprocessable Entity', headers: PROBLEM_HEADERS },
+        );
       fixture.detectChanges();
       expect(alert()?.querySelector('p')?.textContent).toBe('Pays inconnu : BE.');
       expect(alert()?.querySelector('ul')).toBeNull();
@@ -421,7 +488,9 @@ describe('PersonalData', () => {
       });
       req.flush({ ...req.request.body, version: 4 });
       fixture.detectChanges();
-      expect(el.querySelector('.notice')?.textContent).toContain('Les modifications ont bien été enregistrées.');
+      expect(el.querySelector('.notice')?.textContent).toContain(
+        'Les modifications ont bien été enregistrées.',
+      );
       expect(value('phoneNumber')).toBe('+32470000002');
 
       // the next save carries the new version
@@ -442,9 +511,21 @@ describe('PersonalData', () => {
             { field: 'address.street', code: 'NotBlank', message: 'ne peut pas être vide' },
             { field: 'birthdate', code: 'Past', message: 'doit être une date passée' },
             { field: 'iban', code: 'Iban', message: 'doit être un IBAN valide' },
-            { field: 'nationality.countryCode', code: 'Size', message: 'doit contenir exactement 2 caractères' },
-            { field: 'address.country.countryCode', code: 'NotBlank', message: 'ne peut pas être vide' },
-            { field: 'phoneNumber', code: 'PhoneNumber', message: 'doit être un numéro de téléphone valide' },
+            {
+              field: 'nationality.countryCode',
+              code: 'Size',
+              message: 'doit contenir exactement 2 caractères',
+            },
+            {
+              field: 'address.country.countryCode',
+              code: 'NotBlank',
+              message: 'ne peut pas être vide',
+            },
+            {
+              field: 'phoneNumber',
+              code: 'PhoneNumber',
+              message: 'doit être un numéro de téléphone valide',
+            },
             { field: 'option.code', code: 'NotBlank', message: "L'option est obligatoire." },
           ],
         },
@@ -452,7 +533,9 @@ describe('PersonalData', () => {
       );
       fixture.detectChanges();
       expect(alert()?.textContent).toContain('Certaines informations sont invalides.');
-      expect(Array.from(el.querySelectorAll('[role=alert] li')).map((li) => li.textContent)).toEqual(["L'option est obligatoire."]);
+      expect(
+        Array.from(el.querySelectorAll('[role=alert] li')).map((li) => li.textContent),
+      ).toEqual(["L'option est obligatoire."]);
       expect(error('street')).toBe('ne peut pas être vide');
       expect(error('birthdate')).toBe('doit être une date passée');
       expect(error('iban')).toBe('doit être un IBAN valide');
@@ -469,7 +552,8 @@ describe('PersonalData', () => {
         {
           code: 'CONCURRENT_MODIFICATION',
           status: 409,
-          detail: 'Ces données ont été modifiées par quelqu’un d’autre entre-temps. Rechargez-les puis recommencez.',
+          detail:
+            'Ces données ont été modifiées par quelqu’un d’autre entre-temps. Rechargez-les puis recommencez.',
         },
         { status: 409, statusText: 'Conflict', headers: PROBLEM_HEADERS },
       );
@@ -494,7 +578,12 @@ describe('PersonalData', () => {
     it('goes back to the sign-in page when the session expired before the save', () => {
       const navigate = spyOn(router, 'navigate').and.resolveTo(true);
       submit();
-      http.expectOne('/api/1.0/nominatedStudents/2').flush({ code: 'UNAUTHENTICATED', status: 401 }, { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS });
+      http
+        .expectOne('/api/1.0/nominatedStudents/2')
+        .flush(
+          { code: 'UNAUTHENTICATED', status: 401 },
+          { status: 401, statusText: 'Unauthorized', headers: PROBLEM_HEADERS },
+        );
       fixture.detectChanges();
       expect(navigate).toHaveBeenCalledOnceWith(['/signin']);
       expect(alert()).toBeNull();

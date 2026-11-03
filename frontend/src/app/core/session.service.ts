@@ -43,7 +43,9 @@ export class SessionService {
    */
   signOut(): Observable<void> {
     return this.api.logout().pipe(
-      catchError((problem: ApiProblem) => (problem.status === 401 ? of(undefined) : throwError(() => problem))),
+      catchError((problem: ApiProblem) =>
+        problem.status === 401 ? of(undefined) : throwError(() => problem),
+      ),
       tap(() => this.current.set(null)),
       map(() => undefined),
     );

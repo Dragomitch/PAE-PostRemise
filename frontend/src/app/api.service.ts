@@ -89,7 +89,9 @@ export class ApiService {
    */
   mobilityChoices(filter?: MobilityChoiceFilter): Observable<MobilityChoice[]> {
     return this.http
-      .get<DataResponse<MobilityChoice>>(`${this.baseUrl}/mobilityChoices`, { params: filterParams(filter) })
+      .get<DataResponse<MobilityChoice>>(`${this.baseUrl}/mobilityChoices`, {
+        params: filterParams(filter),
+      })
       .pipe(
         map((response) => response.data),
         mapApiProblem(),
@@ -99,7 +101,9 @@ export class ApiService {
   /** Number of mobility choices `mobilityChoices(filter)` would return. */
   countMobilityChoices(filter?: MobilityChoiceFilter): Observable<number> {
     return this.http
-      .get<{ count: number }>(`${this.baseUrl}/mobilityChoices/count`, { params: filterParams(filter) })
+      .get<{ count: number }>(`${this.baseUrl}/mobilityChoices/count`, {
+        params: filterParams(filter),
+      })
       .pipe(
         map((response) => response.count),
         mapApiProblem(),
@@ -108,7 +112,9 @@ export class ApiService {
 
   /** Creates a mobility choice (note the singular path of the API) and returns it with its id. */
   createMobilityChoice(choice: MobilityChoiceRequest): Observable<MobilityChoice> {
-    return this.http.post<MobilityChoice>(`${this.baseUrl}/mobilityChoice`, choice).pipe(mapApiProblem());
+    return this.http
+      .post<MobilityChoice>(`${this.baseUrl}/mobilityChoice`, choice)
+      .pipe(mapApiProblem());
   }
 
   /** The student cancels one of their choices; the reason is a query parameter (500 characters at most). */
@@ -121,7 +127,9 @@ export class ApiService {
   /** A professor rejects a choice with one of the denial reasons, given by id. */
   rejectMobilityChoice(id: number, denialReasonId: number): Observable<void> {
     return this.http
-      .put<void>(`${this.baseUrl}/mobilityChoices/${id}/reject`, null, { params: { reason: denialReasonId } })
+      .put<void>(`${this.baseUrl}/mobilityChoices/${id}/reject`, null, {
+        params: { reason: denialReasonId },
+      })
       .pipe(mapApiProblem());
   }
 
@@ -138,7 +146,9 @@ export class ApiService {
 
   /** A professor confirms a choice that has a partner: it becomes a mobility. */
   confirmMobilityChoice(id: number): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/mobilityChoices/${id}/confirm`, null).pipe(mapApiProblem());
+    return this.http
+      .put<void>(`${this.baseUrl}/mobilityChoices/${id}/confirm`, null)
+      .pipe(mapApiProblem());
   }
 
   /**
@@ -146,12 +156,16 @@ export class ApiService {
    * their own). Fails with a `RESOURCE_NOT_FOUND` problem (404) until they were saved once.
    */
   nominatedStudent(id: number): Observable<NominatedStudent> {
-    return this.http.get<NominatedStudent>(`${this.baseUrl}/nominatedStudents/${id}`).pipe(mapApiProblem());
+    return this.http
+      .get<NominatedStudent>(`${this.baseUrl}/nominatedStudents/${id}`)
+      .pipe(mapApiProblem());
   }
 
   /** Saves the personal data of a student for the first time and returns them with their version. */
   createNominatedStudent(student: NominatedStudent): Observable<NominatedStudent> {
-    return this.http.post<NominatedStudent>(`${this.baseUrl}/nominatedStudents`, student).pipe(mapApiProblem());
+    return this.http
+      .post<NominatedStudent>(`${this.baseUrl}/nominatedStudents`, student)
+      .pipe(mapApiProblem());
   }
 
   /**

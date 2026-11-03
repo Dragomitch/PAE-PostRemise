@@ -1,13 +1,24 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
-import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { MOCK_PLATFORM_LOCATION_CONFIG } from '@angular/common/testing';
 
 import { ApiService, mobilityChoicesExportUrl } from './api.service';
 import { appConfig } from './app.config';
 import { ApiProblem } from './core/api-problem';
-import { MobilityChoice, MobilityChoiceRequest, NominatedStudent, Partner, SignUpRequest, User } from './core/models';
+import {
+  MobilityChoice,
+  MobilityChoiceRequest,
+  NominatedStudent,
+  Partner,
+  SignUpRequest,
+  User,
+} from './core/models';
 
 const USER: User = { id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'j@d.be' };
 
@@ -122,7 +133,9 @@ describe('ApiService', () => {
     it('fails with an ApiProblem when the partners cannot be listed', () => {
       let problem: unknown;
       service.partners().subscribe({ error: (e) => (problem = e) });
-      http.expectOne('/api/1.0/partners').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      http
+        .expectOne('/api/1.0/partners')
+        .flush(null, { status: 503, statusText: 'Service Unavailable' });
       expect(problem).toBeInstanceOf(ApiProblem);
       expect((problem as ApiProblem).code).toBe('SERVICE_UNAVAILABLE');
     });
@@ -193,11 +206,15 @@ describe('ApiService', () => {
 
       it('cancels a choice with the reason as a query parameter', () => {
         let done = false;
-        service.cancelMobilityChoice(7, "J'ai changé d'avis & de pays").subscribe({ complete: () => (done = true) });
+        service
+          .cancelMobilityChoice(7, "J'ai changé d'avis & de pays")
+          .subscribe({ complete: () => (done = true) });
         const req = http.expectOne((r) => r.url === '/api/1.0/mobilityChoices/7/cancel');
         expect(req.request.method).toBe('PUT');
         expect(req.request.params.get('reason')).toBe("J'ai changé d'avis & de pays");
-        expect(req.request.urlWithParams).toContain('reason=J\'ai%20chang%C3%A9%20d\'avis%20%26%20de%20pays');
+        expect(req.request.urlWithParams).toContain(
+          "reason=J'ai%20chang%C3%A9%20d'avis%20%26%20de%20pays",
+        );
         expect(req.request.body).toBeNull();
         req.flush(null);
         expect(done).toBeTrue();
@@ -224,7 +241,11 @@ describe('ApiService', () => {
         service.confirmMobilityChoice(7).subscribe({ error: (e) => (problem = e) });
         http.expectOne('/api/1.0/mobilityChoices/7/confirm').flush(
           { code: 'PARTNER_REQUIRED_TO_CONFIRM', status: 422, detail: 'Choose a partner first.' },
-          { status: 422, statusText: 'Unprocessable Entity', headers: { 'Content-Type': 'application/problem+json' } },
+          {
+            status: 422,
+            statusText: 'Unprocessable Entity',
+            headers: { 'Content-Type': 'application/problem+json' },
+          },
         );
         expect(problem).toBeInstanceOf(ApiProblem);
         expect((problem as ApiProblem).code).toBe('PARTNER_REQUIRED_TO_CONFIRM');
@@ -236,20 +257,31 @@ describe('ApiService', () => {
         service.mobilityIds().subscribe((i) => (ids = i));
         const req = http.expectOne('/api/1.0/mobilities');
         expect(req.request.method).toBe('GET');
-        req.flush({ data: [{ id: 7, state: 'Créée' }, { id: 9, state: 'Terminée' }] });
+        req.flush({
+          data: [
+            { id: 7, state: 'Créée' },
+            { id: 9, state: 'Terminée' },
+          ],
+        });
         expect(ids).toEqual([7, 9]);
       });
 
       it('builds the URL of the CSV export of a filter', () => {
-        expect(mobilityChoicesExportUrl('active')).toBe('/api/1.0/mobilityChoices/export?filter=active');
-        expect(mobilityChoicesExportUrl('passed')).toBe('/api/1.0/mobilityChoices/export?filter=passed');
+        expect(mobilityChoicesExportUrl('active')).toBe(
+          '/api/1.0/mobilityChoices/export?filter=active',
+        );
+        expect(mobilityChoicesExportUrl('passed')).toBe(
+          '/api/1.0/mobilityChoices/export?filter=passed',
+        );
       });
     });
 
     describe('reference data (plain arrays)', () => {
       it('lists the programmes', () => {
         let names: string[] | undefined;
-        service.programmes().subscribe((p) => (names = p.map((programme) => programme.programmeName)));
+        service
+          .programmes()
+          .subscribe((p) => (names = p.map((programme) => programme.programmeName)));
         const req = http.expectOne('/api/1.0/programmes');
         expect(req.request.method).toBe('GET');
         req.flush([
@@ -284,13 +316,19 @@ describe('ApiService', () => {
         service.denialReasons().subscribe({ error: (e) => problems.push(e) });
         service.mobilityChoices().subscribe({ error: (e) => problems.push(e) });
         service.countMobilityChoices().subscribe({ error: (e) => problems.push(e) });
-        service.createMobilityChoice({} as MobilityChoiceRequest).subscribe({ error: (e) => problems.push(e) });
+        service
+          .createMobilityChoice({} as MobilityChoiceRequest)
+          .subscribe({ error: (e) => problems.push(e) });
         service.cancelMobilityChoice(1, 'x').subscribe({ error: (e) => problems.push(e) });
         service.rejectMobilityChoice(1, 1).subscribe({ error: (e) => problems.push(e) });
         service.mobilityIds().subscribe({ error: (e) => problems.push(e) });
-        http.match(() => true).forEach((req) => req.flush(null, { status: 500, statusText: 'Server Error' }));
+        http
+          .match(() => true)
+          .forEach((req) => req.flush(null, { status: 500, statusText: 'Server Error' }));
         expect(problems.length).toBe(9);
-        expect(problems.every((p) => p instanceof ApiProblem && p.code === 'SERVER_ERROR')).toBeTrue();
+        expect(
+          problems.every((p) => p instanceof ApiProblem && p.code === 'SERVER_ERROR'),
+        ).toBeTrue();
       });
     });
 
@@ -305,7 +343,14 @@ describe('ApiService', () => {
         title: 'Ms',
         birthdate: '2001-04-12',
         nationality: { countryCode: 'BE' },
-        address: { street: 'Rue de la Loi', number: '16', city: 'Bruxelles', postalCode: '1000', region: '', country: { countryCode: 'BE' } },
+        address: {
+          street: 'Rue de la Loi',
+          number: '16',
+          city: 'Bruxelles',
+          postalCode: '1000',
+          region: '',
+          country: { countryCode: 'BE' },
+        },
         phoneNumber: '+32470000001',
         gender: 'F',
         nbrPassedYears: 1,
@@ -329,8 +374,16 @@ describe('ApiService', () => {
         let problem: ApiProblem | undefined;
         service.nominatedStudent(2).subscribe({ error: (e: ApiProblem) => (problem = e) });
         http.expectOne('/api/1.0/nominatedStudents/2').flush(
-          { code: 'RESOURCE_NOT_FOUND', status: 404, detail: 'La ressource demandée n’existe pas.' },
-          { status: 404, statusText: 'Not Found', headers: { 'Content-Type': 'application/problem+json' } },
+          {
+            code: 'RESOURCE_NOT_FOUND',
+            status: 404,
+            detail: 'La ressource demandée n’existe pas.',
+          },
+          {
+            status: 404,
+            statusText: 'Not Found',
+            headers: { 'Content-Type': 'application/problem+json' },
+          },
         );
         expect(problem?.status).toBe(404);
         expect(problem?.code).toBe('RESOURCE_NOT_FOUND');
@@ -386,12 +439,14 @@ describe('ApiService', () => {
     it('fails with an ApiProblem, never a raw HttpErrorResponse', () => {
       let problem: unknown;
       service.currentUser().subscribe({ error: (e) => (problem = e) });
-      http
-        .expectOne('/api/1.0/session')
-        .flush(
-          { code: 'UNAUTHENTICATED', status: 401, detail: 'Please sign in.' },
-          { status: 401, statusText: 'Unauthorized', headers: { 'Content-Type': 'application/problem+json' } },
-        );
+      http.expectOne('/api/1.0/session').flush(
+        { code: 'UNAUTHENTICATED', status: 401, detail: 'Please sign in.' },
+        {
+          status: 401,
+          statusText: 'Unauthorized',
+          headers: { 'Content-Type': 'application/problem+json' },
+        },
+      );
       expect(problem).toBeInstanceOf(ApiProblem);
       expect((problem as ApiProblem).code).toBe('UNAUTHENTICATED');
       expect((problem as ApiProblem).detail).toBe('Please sign in.');
