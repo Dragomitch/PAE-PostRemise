@@ -15,14 +15,14 @@ Proposals for the next steps. Status legend: ✅ done in the current PR batch ·
 | C3 | Enable **"Automatically delete head branches"** + prefer merge queue | Stacked PRs then retarget to `master` automatically (the #81–#84 incident) | 💡 settings |
 | C4 | Dependabot for `maven`, `npm` (frontend) and `github-actions`, grouped weekly (minor/patch grouped, majors separate) | 46 npm vulnerabilities were found; today's bumps arrive one by one and conflict | ✅ #109 (`.github/dependabot.yml`); the first batches landed in #114, #111 and the grouped npm PR |
 | C5 | CodeQL (Java + TypeScript) and `dependency-review-action` on PRs | Catch vulnerable dependencies/injection before merge | ✅ #143 PR (`codeql.yml`, `dependency-review.yml`) |
-| C6 | Pin third-party actions to commit SHAs (Dependabot keeps them fresh) | Supply-chain hardening | 💡 |
+| C6 | Pin third-party actions to commit SHAs (Dependabot keeps them fresh) | Supply-chain hardening | ✅ #156 (all `uses:` are `owner/repo@<sha> # vX.Y.Z`) |
 | C7 | Coverage ratchet: JaCoCo `check` + Karma thresholds fail the build; PR comment shows the delta | Coverage can only go up | ✅ #89 (JaCoCo), #88 (Karma), raised in #92 |
 | C8 | Separate unit (Surefire) and integration (Failsafe, embedded PostgreSQL) suites, both reported | Fast feedback + real SQL checked | ✅ #89 |
 | C9 | Playwright end-to-end smoke job (jar + PostgreSQL service container + legacy UI and Angular) on PRs touching `src/main/webapp`, `frontend` or controllers | The UI regressions (#20/#22) were only caught manually | ✅ job `e2e` (*End-to-end (API and Playwright on PostgreSQL)*), scripts in `e2e/`; runs on every PR so that `CI passed` can require it |
 | C10 | Release workflow on tags: build once, push versioned images to GHCR (`backend`, `frontend`), SBOM + provenance (`docker/build-push-action` attestations), GitHub Release with changelog | Reproducible deployable artifacts | 💡 |
 | C11 | Deploy workflow with GitHub Environments (`staging` auto on `master`, `production` with manual approval), secrets (`JWT_SECRET`, DB) per environment | No secrets in the repo, audited promotions | 💡 |
 | C12 | Database migrations with Flyway (baseline = current `init.sql`), run by the app at start-up and checked in CI | Schema changes become reviewable and repeatable | 💡 |
-| C13 | Conventional Commits check (PR title) + Release Please / semantic-release for versions and changelog | The repo already uses `type: subject`; automate versioning | 💡 |
+| C13 | Conventional Commits check (PR title) + Release Please / semantic-release for versions and changelog | The repo already uses `type: subject`; automate versioning | ✅ #156 for the PR title check (job `pr-title`, required by `CI passed`); 💡 Release Please / semantic-release |
 | C14 | Pre-commit hooks / formatting in CI: Spotless (google-java-format, as backend/AGENTS.md asks) + Prettier/ESLint for Angular | Style debates out of reviews | 💡 |
 | C15 | `CODEOWNERS` + PR template (summary, test plan, screenshots for UI) | Consistent reviews | ✅ #137 PR |
 | C16 | Nightly workflow: full suite against the latest Spring Boot patch + `npm audit`/OWASP dependency-check, opening an issue on failure | Early warning, without slowing PRs | 💡 |
