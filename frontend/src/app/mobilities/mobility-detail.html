@@ -39,8 +39,8 @@
 
     @if (pending(); as action) {
       <div class="panel action-panel" role="group" aria-labelledby="mobility-panel-title">
-        <h2 id="mobility-panel-title">{{ panelTitle() }}</h2>
-        <p class="question">{{ panelQuestion() }}</p>
+        <h2 id="mobility-panel-title">{{ title(action, m) }}</h2>
+        <p class="question">{{ question(action, m) }}</p>
 
         @if (actionProblem(); as p) {
           <div class="notification notification-danger" role="alert">
@@ -187,8 +187,8 @@
 
       @for (
         group of [
-          { category: 'D', documents: departureDocuments() },
-          { category: 'R', documents: returnDocuments() },
+          { category: 'D', documents: documents(m, 'D') },
+          { category: 'R', documents: documents(m, 'R') },
         ];
         track group.category
       ) {
@@ -236,7 +236,7 @@
                   <span class="document-name">{{ d.name }}</span>
                   @if (d.filledIn) {
                     <span class="status done" i18n="@@mobility.document.filled">Complété</span>
-                  } @else if (canConfirm()) {
+                  } @else if (canConfirm(m)) {
                     <button
                       type="button"
                       class="button small confirm-document"
@@ -277,7 +277,7 @@
               <span>ProEco</span>
               @if (m.encodedInProEco) {
                 <span class="status done" i18n="@@mobility.encoding.done">Encodé</span>
-              } @else if (canConfirm()) {
+              } @else if (canConfirm(m)) {
                 <button
                   type="button"
                   class="button small confirm-pro-eco"
@@ -295,7 +295,7 @@
               <span>{{ secondSoftware(m) }}</span>
               @if (m.encodedInSecondSoftware) {
                 <span class="status done" i18n="@@mobility.encoding.done">Encodé</span>
-              } @else if (canConfirm()) {
+              } @else if (canConfirm(m)) {
                 <button
                   type="button"
                   class="button small confirm-second-software"
@@ -315,7 +315,7 @@
 
       <section class="section payments" aria-labelledby="mobility-payments-title">
         <h2 id="mobility-payments-title" i18n="@@mobility.payments.title">Paiements</h2>
-        @if (!bankDetailsComplete()) {
+        @if (!bankDetailsComplete(m)) {
           <p
             class="notification notification-info bank-details"
             i18n="@@mobility.payments.bankDetails"
@@ -347,8 +347,8 @@
                     formatDay(date) // i18n(ph="DATE")
                   }}</time></ng-container
                 >
-              } @else if (duePayment() === payment.which) {
-                @if (canPay()) {
+              } @else if (duePayment(m) === payment.which) {
+                @if (canPay(m)) {
                   <button
                     type="button"
                     class="button primary confirm-payment"
@@ -376,10 +376,10 @@
         </dl>
       </section>
 
-      @if (cancelled() || canCancel()) {
+      @if (cancelled(m) || canCancel(m)) {
         <section class="section cancellation" aria-labelledby="mobility-cancellation-title">
           <h2 id="mobility-cancellation-title" i18n="@@mobility.cancellation.title">Annulation</h2>
-          @if (cancelled()) {
+          @if (cancelled(m)) {
             <dl>
               <dt i18n="@@mobility.cancellation.reason">Raison de l'annulation</dt>
               <dd class="cancellation-reason">{{ cancellationReason(m) }}</dd>

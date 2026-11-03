@@ -117,46 +117,6 @@ export class MobilityDetail implements OnInit {
   protected readonly stateLabel = mobilityStateLabel;
   protected readonly stateClass = mobilityStateClass;
 
-  protected readonly departureDocuments = computed(() => this.documents('D'));
-  protected readonly returnDocuments = computed(() => this.documents('R'));
-  protected readonly cancelled = computed(
-    () => this.mobility()?.state === MOBILITY_STATES.cancelled,
-  );
-  /** Documents and encodings can be confirmed by a professor until the mobility is cancelled. */
-  protected readonly canConfirm = computed(() => this.isProfessor() && !this.cancelled());
-  protected readonly canCancel = computed(() => {
-    const state = this.mobility()?.state;
-    return (
-      this.isProfessor() && state !== MOBILITY_STATES.closed && state !== MOBILITY_STATES.cancelled
-    );
-  });
-  /** The payments need the student's IBAN and BIC, as the legacy detail checked. */
-  protected readonly bankDetailsComplete = computed(() => {
-    const student = this.mobility()?.nominatedStudent;
-    return !!student?.iban && !!student?.bic;
-  });
-  protected readonly duePayment = computed<DuePayment>(() => {
-    const m = this.mobility();
-    if (!m?.firstPaymentRequestDate) {
-      return m?.state === MOBILITY_STATES.toBePaid ? 'first' : null;
-    }
-    return !m.secondPaymentRequestDate && m.state === MOBILITY_STATES.balanceToBePaid
-      ? 'second'
-      : null;
-  });
-  protected readonly canPay = computed(
-    () => this.isProfessor() && this.bankDetailsComplete() && this.duePayment() !== null,
-  );
-  protected readonly panelTitle = computed(() => {
-    const action = this.pending();
-    return action ? this.title(action) : '';
-  });
-  protected readonly panelQuestion = computed(() => {
-    const action = this.pending();
-    const m = this.mobility();
-    return action && m ? this.question(action, m) : '';
-  });
-
   ngOnInit(): void {
     this.load();
   }
@@ -181,8 +141,45 @@ export class MobilityDetail implements OnInit {
       });
   }
 
-  private documents(category: 'D' | 'R'): MobilityDocument[] {
-    return (this.mobility()?.documents ?? []).filter((d) => d.category === category);
+  protected documents(mobility: Mobility, category: 'D' | 'R'): MobilityDocument[] {
+    return (mobility.documents ?? []).filter((d) => d.category === category);
+  }
+
+  protected cancelled(mobility: Mobility): boolean {
+    return mobility.state === MOBILITY_STATES.cancelled;
+  }
+
+  /** Documents and encodings can be confirmed by a professor until the mobility is cancelled. */
+  protected canConfirm(mobility: Mobility): boolean {
+    return this.isProfessor() && !this.cancelled(mobility);
+  }
+
+  /** A professor may cancel a mobility that is neither completed nor already cancelled. */
+  protected canCancel(mobility: Mobility): boolean {
+    return (
+      this.isProfessor() && mobility.state !== MOBILITY_STATES.closed && !this.cancelled(mobility)
+    );
+  }
+
+  /** The payments need the student's IBAN and BIC, as the legacy detail checked. */
+  protected bankDetailsComplete(mobility: Mobility): boolean {
+    return !!mobility.nominatedStudent.iban && !!mobility.nominatedStudent.bic;
+  }
+
+  /** The payment the state expects next: the first one in "A payer", the second in "Solde à payer". */
+  protected duePayment(mobility: Mobility): DuePayment {
+    if (!mobility.firstPaymentRequestDate) {
+      return mobility.state === MOBILITY_STATES.toBePaid ? 'first' : null;
+    }
+    return !mobility.secondPaymentRequestDate && mobility.state === MOBILITY_STATES.balanceToBePaid
+      ? 'second'
+      : null;
+  }
+
+  protected canPay(mobility: Mobility): boolean {
+    return (
+      this.isProfessor() && this.bankDetailsComplete(mobility) && this.duePayment(mobility) !== null
+    );
   }
 
   /** Shows the problem, or goes back to the sign-in page when the session expired. */
@@ -319,7 +316,7 @@ export class MobilityDetail implements OnInit {
     }
   }
 
-  private title(action: MobilityAction): string {
+  protected title(action: MobilityAction, mobility: Mobility): string {
     switch (action.kind) {
       case 'proEco':
       case 'secondSoftware':
@@ -327,7 +324,7 @@ export class MobilityDetail implements OnInit {
       case 'document':
         return $localize`:@@mobility.panel.document.title:Confirmer un document`;
       case 'payment':
-        return this.duePayment() === 'second'
+        return this.duePayment(mobility) === 'second'
           ? $localize`:@@mobility.panel.payment.second.title:Confirmer le deuxième paiement`
           : $localize`:@@mobility.panel.payment.first.title:Confirmer le premier paiement`;
       case 'cancel':
@@ -335,7 +332,7 @@ export class MobilityDetail implements OnInit {
     }
   }
 
-  private question(action: MobilityAction, mobility: Mobility): string {
+  protected question(action: MobilityAction, mobility: Mobility): string {
     const student = studentName(mobility);
     switch (action.kind) {
       case 'proEco':
@@ -345,7 +342,7 @@ export class MobilityDetail implements OnInit {
       case 'document':
         return $localize`:@@mobility.panel.document.question:Le document « ${action.document.name}:DOCUMENT: » de ${student}:STUDENT: est-il complété ? Cette action est définitive.`;
       case 'payment':
-        return this.duePayment() === 'second'
+        return this.duePayment(mobility) === 'second'
           ? $localize`:@@mobility.panel.payment.second.question:Confirmer le paiement à l'arrivée de ${student}:STUDENT: ? Cette action est définitive.`
           : $localize`:@@mobility.panel.payment.first.question:Confirmer le paiement au départ de ${student}:STUDENT: ? Cette action est définitive.`;
       case 'cancel':

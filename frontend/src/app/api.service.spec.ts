@@ -8,10 +8,11 @@ import {
 } from '@angular/common/http/testing';
 import { MOCK_PLATFORM_LOCATION_CONFIG } from '@angular/common/testing';
 
-import { ApiService, mobilityChoicesExportUrl } from './api.service';
+import { ApiService, mobilityChoicesExportUrl, mobilityExportUrl } from './api.service';
 import { appConfig } from './app.config';
 import { ApiProblem } from './core/api-problem';
 import {
+  Mobility,
   MobilityChoice,
   MobilityChoiceRequest,
   NominatedStudent,
@@ -426,6 +427,91 @@ describe('ApiService', () => {
         expect(req.request.body).toBeNull();
         req.flush(null);
         expect(done).toBeTrue();
+      });
+    });
+
+    describe('mobilities', () => {
+      const MOBILITY = { id: 4, version: 7, state: 'A payer' } as Mobility;
+
+      it('lists the mobilities from GET /mobilities, unwrapping the data member', () => {
+        let mobilities: Mobility[] | undefined;
+        service.mobilities().subscribe((m) => (mobilities = m));
+        const req = http.expectOne('/api/1.0/mobilities');
+        expect(req.request.method).toBe('GET');
+        req.flush({ data: [MOBILITY] });
+        expect(mobilities).toEqual([MOBILITY]);
+      });
+
+      it('reads one mobility from GET /mobilities/{id}', () => {
+        let mobility: Mobility | undefined;
+        service.mobility(4).subscribe((m) => (mobility = m));
+        const req = http.expectOne('/api/1.0/mobilities/4');
+        expect(req.request.method).toBe('GET');
+        req.flush(MOBILITY);
+        expect(mobility).toEqual(MOBILITY);
+      });
+
+      const changes: [
+        string,
+        (api: ApiService) => ReturnType<ApiService['cancelMobility']>,
+        string,
+      ][] = [
+        [
+          'confirms the ProEco encoding',
+          (api) => api.confirmProEcoEncoding(4, 7),
+          '/api/1.0/mobilities/4/confirmProEcoEncoding?version=7',
+        ],
+        [
+          'confirms the encoding in the second software',
+          (api) => api.confirmSecondSoftwareEncoding(4, 7),
+          '/api/1.0/mobilities/4/confirmSecondSoftwareEncoding?version=7',
+        ],
+        [
+          'confirms a document',
+          (api) => api.confirmMobilityDocument(4, 12, 7),
+          '/api/1.0/mobilities/4/confirmDocument?document=12&version=7',
+        ],
+        [
+          'confirms the next payment',
+          (api) => api.confirmMobilityPayment(4, 7),
+          '/api/1.0/mobilities/4/confirmPayment?version=7',
+        ],
+        [
+          'cancels with a denial reason',
+          (api) => api.cancelMobility(4, 7, 2),
+          '/api/1.0/mobilities/4/cancel?version=7&denialReason=2',
+        ],
+      ];
+      for (const [name, call, url] of changes) {
+        it(`${name} with PUT, no body and the version as a query parameter`, () => {
+          let done = false;
+          call(service).subscribe(() => (done = true));
+          const req = http.expectOne((r) => r.urlWithParams === url);
+          expect(req.request.method).toBe('PUT');
+          expect(req.request.body).toBeNull();
+          req.flush(MOBILITY);
+          expect(done).toBeTrue();
+        });
+      }
+
+      it('fails a stale version with the 409 ApiProblem', () => {
+        let problem: ApiProblem | undefined;
+        service.confirmMobilityPayment(4, 1).subscribe({ error: (e: ApiProblem) => (problem = e) });
+        http.expectOne('/api/1.0/mobilities/4/confirmPayment?version=1').flush(
+          { code: 'CONCURRENT_MODIFICATION', status: 409, detail: 'Modified meanwhile.' },
+          {
+            status: 409,
+            statusText: 'Conflict',
+            headers: { 'Content-Type': 'application/problem+json' },
+          },
+        );
+        expect(problem).toBeInstanceOf(ApiProblem);
+        expect(problem?.status).toBe(409);
+      });
+
+      it('builds the URL of the CSV export of the documents, with or without a filter', () => {
+        expect(mobilityExportUrl(4)).toBe('/api/1.0/mobilities/4/export');
+        expect(mobilityExportUrl(4, 'DF')).toBe('/api/1.0/mobilities/4/export?filter=DF');
       });
     });
 
