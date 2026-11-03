@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.application;
 import static com.dragomitch.ipl.pae.domain.exceptions.BusinessExceptionAssert.assertThatBusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,8 +24,9 @@ import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +45,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
+
+  /** The instant the use case reads from its clock: the dates it sets are asserted exactly. */
+  private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 15, 10, 15, 30);
+  private static final Clock CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
   private static final int USER_ID = 42;
   private static final int PROFESSOR_ID = 2;
@@ -65,7 +69,8 @@ class UserServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    userService = new UserServiceImpl(userRepository, optionRepository, nominatedStudentRepository, passwordEncoder);
+    userService = new UserServiceImpl(userRepository, optionRepository, nominatedStudentRepository, passwordEncoder,
+        CLOCK);
   }
 
   private UserDto user(int id, String role) {
@@ -102,8 +107,7 @@ class UserServiceImplTest {
       assertThat(created.getRole())
           .isEqualTo(noUserYet ? UserDto.ROLE_PROFESSOR : UserDto.ROLE_STUDENT);
       assertThat(created.getPassword()).isEqualTo("$2a$hash");
-      assertThat(created.getRegistrationDate())
-          .isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.MINUTES));
+      assertThat(created.getRegistrationDate()).isEqualTo(NOW);
     }
 
     @Test

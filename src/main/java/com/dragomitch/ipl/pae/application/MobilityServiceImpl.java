@@ -22,6 +22,7 @@ import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
 import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -50,10 +51,12 @@ class MobilityServiceImpl implements MobilityService {
   private final PartnerService partnerService;
   private final ProgrammeService programmeService;
   private final UserRepository userRepository;
+  private final Clock clock;
 
   MobilityServiceImpl(MobilityRepository mobilityRepository, NominatedStudentRepository nominatedStudentRepository,
       DenialReasonRepository denialReasonRepository, MobilityDocumentRepository mobilityDocumentRepository,
-      PartnerService partnerService, ProgrammeService programmeService, UserRepository userRepository) {
+      PartnerService partnerService, ProgrammeService programmeService, UserRepository userRepository,
+      Clock clock) {
     this.mobilityRepository = mobilityRepository;
     this.nominatedStudentRepository = nominatedStudentRepository;
     this.denialReasonRepository = denialReasonRepository;
@@ -61,6 +64,7 @@ class MobilityServiceImpl implements MobilityService {
     this.partnerService = partnerService;
     this.programmeService = programmeService;
     this.userRepository = userRepository;
+    this.clock = clock;
   }
 
   @Override
@@ -171,12 +175,12 @@ class MobilityServiceImpl implements MobilityService {
     }
     nominatedStudent.checkBankDetails();
     if (firstPayment) {
-      mobility.setFirstPaymentRequestDate(LocalDateTime.now());
+      mobility.setFirstPaymentRequestDate(LocalDateTime.now(clock));
       mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
       mobility.setState(mobility.allReturnDocumentsFilledIn()
           ? Mobility.STATE_BALANCE_TO_BE_PAID : Mobility.STATE_IN_PROGRESS);
     } else {
-      mobility.setSecondPaymentRequestDate(LocalDateTime.now());
+      mobility.setSecondPaymentRequestDate(LocalDateTime.now(clock));
       mobility.setState(Mobility.STATE_CLOSED);
     }
     mobilityRepository.update(mobility);

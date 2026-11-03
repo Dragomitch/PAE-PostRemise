@@ -12,6 +12,7 @@ import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,19 +32,21 @@ class UserServiceImpl implements UserService {
   private final OptionRepository optionRepository;
   private final NominatedStudentRepository nominatedStudentRepository;
   private final PasswordEncoder passwordEncoder;
+  private final Clock clock;
 
   UserServiceImpl(UserRepository userRepository, OptionRepository optionRepository, NominatedStudentRepository nominatedStudentRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder, Clock clock) {
     this.userRepository = userRepository;
     this.optionRepository = optionRepository;
     this.nominatedStudentRepository = nominatedStudentRepository;
     this.passwordEncoder = passwordEncoder;
+    this.clock = clock;
   }
 
   @Override
   public UserDto signup(UserDto user) {
     checkBusinessRules(user);
-    user.setRegistrationDate(LocalDateTime.now());
+    user.setRegistrationDate(LocalDateTime.now(clock));
     // encrypt password
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     // first user is automatically considered a professor

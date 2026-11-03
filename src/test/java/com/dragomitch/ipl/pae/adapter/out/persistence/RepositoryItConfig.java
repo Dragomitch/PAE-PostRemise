@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -59,6 +60,15 @@ public class RepositoryItConfig {
 
   /** Schema + reference data of the application (options, programmes, countries, documents). */
   static final Path INIT_SQL = Path.of("SQLRessources", "init.sql");
+
+  /**
+   * The system clock, as in the application ({@code ClockConfig}): the adapters take the current
+   * year from it, and the ITs express their fixtures relative to the system's current year.
+   */
+  @Bean
+  Clock clock() {
+    return Clock.systemDefaultZone();
+  }
 
   @Bean(destroyMethod = "close")
   EmbeddedPostgres embeddedPostgres() throws IOException {
