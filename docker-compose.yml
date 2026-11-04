@@ -32,6 +32,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-yoursecurepassword}
       # Set it (32+ bytes) to keep sessions valid across restarts
       - JWT_SECRET=${JWT_SECRET:-}
+      # One JSON object per log line (Elastic Common Schema, with trace.id and span.id), for a log
+      # collector or `docker compose logs backend | jq`; set it empty for the plain pattern
+      - LOGGING_STRUCTURED_FORMAT=${LOGGING_STRUCTURED_FORMAT:-ecs}
     ports:
       - "8080:8080"
     depends_on:

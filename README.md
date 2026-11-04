@@ -231,8 +231,31 @@ The backend reads the following environment variables:
 | `APP_SESSION_VALIDITY` | Lifetime of a session (JWT `exp` and cookie `Max-Age`), e.g. `12h`, `30m` | `12h` |
 | `APP_SESSION_COOKIE_SECURE` | Adds `Secure` to the `session` and `XSRF-TOKEN` cookies (set it behind HTTPS) | `false` |
 | `APP_CORS_ALLOWED_ORIGINS` | Origins allowed to call the API with credentials (comma-separated) | `http://localhost:4200` |
+| `LOGGING_STRUCTURED_FORMAT` | Console log format: empty for the plain pattern, `ecs`, `logstash` or `gelf` for one JSON object per line | _(empty)_ (`ecs` in Compose) |
 
 They are resolved in `src/main/resources/application.properties` into the typed properties described in [`backend/AGENTS.md`](backend/AGENTS.md#environment-variables). `JWT_SECRET` is required (also with `docker compose up`, which passes it through): keep the same value across restarts, otherwise every restart logs everyone out.
+
+### Logs and trace ids
+Every request gets a trace id (Micrometer Tracing on the OpenTelemetry bridge, nothing exported; a W3C `traceparent` header sent by the caller is continued). The response carries it in the `X-Trace-Id` header, and every log line of the request carries it too: `[<traceId>-<spanId>]` after the thread name in the plain pattern, `trace.id` and `span.id` in JSON. A 5xx problem also has an `errorId`; the error line holds both, so a user who reports either one leads to the stack trace:
+
+```text
+ERROR ... [4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7] c.d.i.p.a.in.web.ApiExceptionHandler : Error 9b3dcbbb-... (trace 4bf92f3577b34da6a3ce929d0e0e4736) on /api/1.0/options: 500
+```
+
+A 4xx is logged at INFO with its trace id (`Handling NoResourceFoundException (trace ...) on ...: 404`). Successful requests are logged at DEBUG only (`GET /api/1.0/options 200 in 4 ms`): set `LOGGING_LEVEL_COM_DRAGOMITCH_IPL_PAE_ADAPTER_IN_WEB_LOGGING=DEBUG` to see them.
+
+The tests and `mvn spring-boot:run` print the plain pattern. Compose sets `LOGGING_STRUCTURED_FORMAT=ecs`, so `docker compose logs` prints one JSON object per line (Elastic Common Schema), which `jq` reads:
+
+```bash
+# every line, readable
+docker compose logs --no-log-prefix backend | jq .
+# the warnings and errors
+docker compose logs --no-log-prefix backend | jq -c 'select(.log.level == "WARN" or .log.level == "ERROR")'
+# the lines of one request, from the X-Trace-Id a user quoted
+docker compose logs --no-log-prefix backend | jq -c 'select(."trace.id" == "4bf92f3577b34da6a3ce929d0e0e4736")'
+```
+
+`--no-log-prefix` drops the `backend-1  | ` prefix that Compose adds, which `jq` cannot parse. The trace and span ids are top-level members named `trace.id` and `span.id` (with a dot in the name, hence `."trace.id"`), the level and the logger are nested (`.log.level`, `.log.logger`). Start the backend with `LOGGING_STRUCTURED_FORMAT=` (empty) to get the plain pattern in Compose.
 
 ## Releases
 
