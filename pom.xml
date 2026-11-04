@@ -106,6 +106,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- Request correlation (roadmap S18): Micrometer Tracing on the OpenTelemetry bridge gives
+             every request a W3C trace context (an incoming traceparent is honoured), and Spring Boot
+             puts its traceId and spanId in each log line. Spring Boot 4 auto-configures tracing from
+             its own module, the bridge is the tracer; no exporter is on the classpath, nothing leaves
+             the process (see management.tracing.* in application.properties). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-micrometer-tracing-opentelemetry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
         <!-- Persistence: Spring Data JPA (Hibernate) behind the outbound ports (adapter.out.persistence) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
