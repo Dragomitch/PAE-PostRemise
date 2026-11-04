@@ -146,7 +146,7 @@ Persistence rules:
 
 - The schema is the Flyway migrations of `src/main/resources/db/migration` (see *Schema changes* below): never generated (`ddl-auto=none`), validated by the ITs (`hbm2ddl.auto=validate`). Change it only when justified and agreed (issue #102, Q4).
 - Associations are `LAZY`; a read fetches what its DTOs carry in **one** statement (`@EntityGraph` or `JOIN FETCH`). `QueryCountIT` fails on an N+1; add every new port read to it. `open-in-view` is off.
-- Reference data (options, programmes, countries, documents) is `@Immutable`.
+- Reference data (options, programmes, countries, documents) is `@Immutable`, and cached (see *Reference data cache* under *Performance Optimization*).
 - An update loads the entity, compares the versions, copies the fields and flushes with `Versions.flushIncrementingVersion`; creates with an assigned key flush at once.
 
 #### Schema changes
@@ -249,6 +249,25 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 - Cache heavy computations when possible
 - Use connection pooling
 
+#### Reference data cache
+
+The reference data is read on almost every page, so its use cases are cached in memory (Spring's cache abstraction, Caffeine, `config/CacheConfig`). One cache per type, named in `application/ReferenceDataCaches`, keyed by the method arguments:
+
+| Cache | Use cases (`@Cacheable`) | Emptied by |
+| --- | --- | --- |
+| `countries` | `CountryService.showAll`, `showOne(code)` | restart, actuator |
+| `options` | `OptionService.showAll` (not `findAllPartnersByOption`: partners change) | restart, actuator |
+| `programmes` | `ProgrammeService.showAll`, `showOne(id)` | restart, actuator |
+| `documents` | `ProgrammeDocuments.findAllByProgramme(id)`, the documents a confirmed mobility gets | restart, actuator |
+| `denialReasons` | `DenialReasonService.showAll` | `create` and `edit` (`@CacheEvict(allEntries = true)`), restart, actuator |
+
+- The annotations stay in `application` (the domain and the ports are framework-free, `ArchitectureTest`). A use case calling a cached method of its own class bypasses the proxy: put the cached read in another bean, as `ProgrammeDocuments` does for `MobilityChoiceServiceImpl`.
+- The cached results are shared by every caller: the lists are unmodifiable (`List.copyOf`) and the domain objects in them must never be modified; copy one before changing it.
+- The caching advice runs outside the transaction (`@EnableCaching(order = LOWEST_PRECEDENCE - 1)`): a hit opens no transaction and runs no SQL, and an eviction happens after the commit of the change.
+- `spring.cache.caffeine.spec` (`maximumSize=500,expireAfterWrite=6h,recordStats`) bounds every cache and expires its entries after six hours, so that a change made outside the application (a migration, a manual SQL fix) shows within the day; `recordStats` feeds the hit and miss counts of Micrometer's cache meters.
+- To empty a cache at once: restart the backend, or `DELETE /actuator/caches/<name>` (`DELETE /actuator/caches` for all) signed in as a professor; `GET /actuator/caches` lists them. Data that a use case changes at run time must evict its cache in that use case, like the denial reasons.
+- The unit tests on `UnitTestConfig` run without the cache (it does not import `CacheConfig`, so `@Cacheable` is inert and the in-memory repositories reset as before); `ReferenceDataCacheTest` (mocked repositories) and `ReferenceDataCacheIT` (embedded PostgreSQL, zero statements on the second read) test it.
+
 ## Security Considerations
 
 ### Data Security
@@ -269,7 +288,7 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 ### Application Monitoring
 
-- Spring Boot Actuator exposes `health` and `info` over HTTP, nothing else (`management.endpoints.web.exposure.include`). `GET /actuator/health` (and `/actuator/health/liveness`, `/readiness`) is public and shows the status only, no component or detail: `200` with `"status":"UP"`, or `503` with `"status":"DOWN"` when the database is unreachable (the database indicator counts). Everything else under `/actuator` requires a session (`SecurityConfig`). The `backend` service of `docker-compose.yml` uses it as its `healthcheck`, and `frontend` waits for it to be healthy.
+- Spring Boot Actuator exposes `health`, `info` and `caches` over HTTP, nothing else (`management.endpoints.web.exposure.include`). `GET /actuator/health` (and `/actuator/health/liveness`, `/readiness`) is public and shows the status only, no component or detail: `200` with `"status":"UP"`, or `503` with `"status":"DOWN"` when the database is unreachable (the database indicator counts). `/actuator/caches` (the reference data cache) requires a professor, everything else under `/actuator` a session (`SecurityConfig`). The `backend` service of `docker-compose.yml` uses it as its `healthcheck`, and `frontend` waits for it to be healthy.
 - The application stops gracefully (`server.shutdown=graceful`, 20 seconds for the requests in flight, `stop_grace_period: 30s` in Compose) and serves requests on virtual threads (`spring.threads.virtual.enabled=true`).
 - Track errors via logs
 - Optionally integrate with Prometheus/Grafana

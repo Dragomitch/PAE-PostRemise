@@ -94,7 +94,7 @@ class MobilityChoiceServiceImplTest {
             mobilityChoiceRepository,
             mobilityRepository,
             denialReasonRepository,
-            documentRepository,
+            new ProgrammeDocuments(documentRepository),
             mobilityDocumentRepository,
             countryRepository,
             programmeRepository,

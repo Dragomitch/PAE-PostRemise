@@ -14,6 +14,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -229,6 +231,60 @@ class ApplicationTests {
             "/actuator/loggers")) {
       assertEquals(HttpStatus.NOT_FOUND, getWithSessionCookie(path, session).getStatus(), path);
     }
+  }
+
+  @Test
+  void theCachesOfTheReferenceDataAreShownToAProfessorOnly() {
+    EntityExchangeResult<String> anonymous = get("/actuator/caches");
+    assertEquals(HttpStatus.UNAUTHORIZED, anonymous.getStatus());
+    assertTrue(
+        anonymous.getResponseBody().contains("\"code\":\"UNAUTHENTICATED\""),
+        anonymous.getResponseBody());
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        getWithSessionCookie("/actuator/caches", token(2, Role.STUDENT)).getStatus());
+
+    EntityExchangeResult<JsonNode> response =
+        rest.get()
+            .uri("/actuator/caches")
+            .header(
+                HttpHeaders.COOKIE,
+                SessionCookieService.COOKIE_NAME + "=" + token(1, Role.PROFESSOR))
+            .exchange()
+            .returnResult(JsonNode.class);
+    assertEquals(HttpStatus.OK, response.getStatus());
+    JsonNode caches = response.getResponseBody().path("cacheManagers").path("cacheManager");
+    List<String> names = new ArrayList<>(caches.path("caches").propertyNames());
+    Collections.sort(names);
+    assertEquals(
+        List.of("countries", "denialReasons", "documents", "options", "programmes"),
+        names,
+        response.getResponseBody().toString());
+    // the native cache behind Spring's CaffeineCache
+    String target = caches.path("caches").path("countries").path("target").asString();
+    assertTrue(target.startsWith("com.github.benmanes.caffeine.cache."), target);
+  }
+
+  @Test
+  void aProfessorEmptiesACacheOfTheReferenceData() {
+    // a Bearer header instead of the cookie: no CSRF token needed for the DELETE
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        deleteWithBearer("/actuator/caches/countries", token(2, Role.STUDENT)).getStatus());
+    assertEquals(
+        HttpStatus.NO_CONTENT,
+        deleteWithBearer("/actuator/caches/countries", token(1, Role.PROFESSOR)).getStatus());
+    assertEquals(
+        HttpStatus.NO_CONTENT,
+        deleteWithBearer("/actuator/caches", token(1, Role.PROFESSOR)).getStatus());
+  }
+
+  private EntityExchangeResult<String> deleteWithBearer(String path, String token) {
+    return rest.delete()
+        .uri(path)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        .exchange()
+        .returnResult(String.class);
   }
 
   @Test

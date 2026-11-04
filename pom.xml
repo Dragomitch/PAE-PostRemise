@@ -122,6 +122,16 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
+        <!-- Cache of the reference data (config/CacheConfig): Spring's cache abstraction with
+             Caffeine as the in-process provider. Versions managed by Spring Boot. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
         <!-- Bean Validation (Hibernate Validator): request bodies, parameters and use-case methods -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
