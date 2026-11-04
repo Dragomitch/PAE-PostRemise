@@ -19,6 +19,8 @@ services:
       retries: 10
 
   backend:
+    # Published image of a release (see "Releases" in the README), instead of building from source:
+    # image: ghcr.io/dragomitch/pae-postremise-backend:<tag>
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -50,6 +52,7 @@ services:
       start_period: 40s
 
   frontend:
+    # image: ghcr.io/dragomitch/pae-postremise-frontend:<tag>
     build: ./frontend
     ports:
       - "4200:80"
