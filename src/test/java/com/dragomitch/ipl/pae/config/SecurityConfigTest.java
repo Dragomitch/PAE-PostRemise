@@ -3,6 +3,7 @@ package com.dragomitch.ipl.pae.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.dragomitch.ipl.pae.adapter.in.web.security.JwtProperties;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import javax.crypto.SecretKey;
@@ -22,17 +23,16 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 class SecurityConfigTest {
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef"; // 32 bytes
+  private static final String OTHER_SECRET = "fedcba9876543210fedcba9876543210";
 
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {"   ", "\t\n"})
-  void withoutASecretARandom256BitKeyIsGenerated(String secret) {
-    SecretKey first = SecurityConfig.buildKey(secret);
-    SecretKey second = SecurityConfig.buildKey(secret);
-
-    assertThat(first.getAlgorithm()).isEqualTo("HmacSHA256");
-    assertThat(first.getEncoded()).hasSize(32);
-    assertThat(first.getEncoded()).isNotEqualTo(second.getEncoded());
+  void withoutASecretNoKeyIsGenerated(String secret) {
+    // no random fallback any more: JwtProperties refuses a blank secret before this point
+    assertThatThrownBy(() -> SecurityConfig.buildKey(secret))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("JWT_SECRET");
   }
 
   @ParameterizedTest
@@ -75,30 +75,39 @@ class SecurityConfigTest {
 
   @Test
   void tokensSignedWithTheConfiguredSecretAreDecodedWithIt() {
-    SecurityConfig config = new SecurityConfig(SECRET);
+    SecurityConfig config = new SecurityConfig(new JwtProperties(SECRET));
 
     Jwt token = sign(config, "42");
 
     assertThat(config.jwtDecoder().decode(token.getTokenValue()).getSubject()).isEqualTo("42");
     // same secret after a restart: still valid
-    assertThat(new SecurityConfig(SECRET).jwtDecoder().decode(token.getTokenValue()).getSubject())
+    assertThat(
+            new SecurityConfig(new JwtProperties(SECRET))
+                .jwtDecoder()
+                .decode(token.getTokenValue())
+                .getSubject())
         .isEqualTo("42");
   }
 
   @Test
   void tokensSignedWithAnotherKeyAreRejected() {
-    Jwt token = sign(new SecurityConfig(SECRET), "42");
+    Jwt token = sign(new SecurityConfig(new JwtProperties(SECRET)), "42");
 
-    assertThatThrownBy(() -> new SecurityConfig("").jwtDecoder().decode(token.getTokenValue()))
+    assertThatThrownBy(() ->
+            new SecurityConfig(new JwtProperties(OTHER_SECRET))
+                .jwtDecoder()
+                .decode(token.getTokenValue()))
         .isInstanceOf(BadJwtException.class);
     assertThatThrownBy(() ->
-            new SecurityConfig(SECRET.toUpperCase()).jwtDecoder().decode(token.getTokenValue()))
+            new SecurityConfig(new JwtProperties(SECRET.toUpperCase()))
+                .jwtDecoder()
+                .decode(token.getTokenValue()))
         .isInstanceOf(BadJwtException.class);
   }
 
   @Test
   void sessionTokensMustCarryASubjectARoleAndAnExpiry() {
-    SecurityConfig config = new SecurityConfig(SECRET);
+    SecurityConfig config = new SecurityConfig(new JwtProperties(SECRET));
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
     Instant now = Instant.now();
 
@@ -148,7 +157,7 @@ class SecurityConfigTest {
 
   @Test
   void passwordsAreHashedWithBcrypt() {
-    PasswordEncoder encoder = new SecurityConfig(SECRET).passwordEncoder();
+    PasswordEncoder encoder = new SecurityConfig(new JwtProperties(SECRET)).passwordEncoder();
 
     String hash = encoder.encode("secret");
 

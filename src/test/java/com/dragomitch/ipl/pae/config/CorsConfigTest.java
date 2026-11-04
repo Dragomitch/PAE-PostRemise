@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.dragomitch.ipl.pae.adapter.in.web.security.CorsProperties;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class CorsConfigTest {
 
   @Test
   void defaultPolicyAllowsTheAngularDevServerWithCredentials() {
-    CorsConfiguration config = configFor(CorsConfig.DEFAULT_ALLOWED_ORIGINS, "/api/1.0/users");
+    CorsConfiguration config = configFor(CorsProperties.DEFAULT_ALLOWED_ORIGINS, "/api/1.0/users");
 
     assertEquals(List.of(DEV_ORIGIN), config.getAllowedOrigins());
     assertEquals(CorsConfig.ALLOWED_METHODS, config.getAllowedMethods());
@@ -49,12 +50,15 @@ class CorsConfigTest {
 
   @Test
   void wildcardOriginIsRejectedBecauseCredentialsAreAllowed() {
-    assertThrows(IllegalArgumentException.class, () -> corsConfig.corsConfigurationSource("*"));
+    assertThrows(
+        IllegalArgumentException.class, () -> corsConfig.corsConfigurationSource(properties("*")));
   }
 
   @Test
   void emptyOriginListIsRejected() {
-    assertThrows(IllegalArgumentException.class, () -> corsConfig.corsConfigurationSource(" , "));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> corsConfig.corsConfigurationSource(properties(" , ")));
   }
 
   @Test
@@ -63,7 +67,7 @@ class CorsConfigTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter(CorsConfig.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
+    filter(CorsProperties.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
 
     assertEquals(200, response.getStatus());
     assertNull(chain.getRequest(), "a preflight must not reach security or the API");
@@ -84,7 +88,7 @@ class CorsConfigTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter(CorsConfig.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
+    filter(CorsProperties.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
 
     assertEquals(403, response.getStatus());
     assertNull(chain.getRequest());
@@ -98,7 +102,7 @@ class CorsConfigTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter(CorsConfig.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
+    filter(CorsProperties.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
 
     assertSame(request, chain.getRequest());
     assertEquals(DEV_ORIGIN, response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
@@ -113,7 +117,7 @@ class CorsConfigTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter(CorsConfig.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
+    filter(CorsProperties.DEFAULT_ALLOWED_ORIGINS).doFilter(request, response, chain);
 
     assertSame(request, chain.getRequest());
     assertNull(response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
@@ -122,14 +126,19 @@ class CorsConfigTest {
   @Test
   void filterIsRegisteredForEveryPathBeforeSpringSecurity() {
     FilterRegistrationBean<CorsFilter> registration =
-        corsConfig.corsFilterRegistration(corsConfig.corsConfigurationSource(DEV_ORIGIN));
+        corsConfig.corsFilterRegistration(
+            corsConfig.corsConfigurationSource(properties(DEV_ORIGIN)));
 
     assertEquals(Ordered.HIGHEST_PRECEDENCE, registration.getOrder());
     assertEquals(Set.of("/*"), registration.getUrlPatterns());
   }
 
+  private static CorsProperties properties(String commaSeparatedOrigins) {
+    return new CorsProperties(List.of(commaSeparatedOrigins.split(",", -1)));
+  }
+
   private CorsConfiguration configFor(String allowedOrigins, String path) {
-    CorsConfigurationSource source = corsConfig.corsConfigurationSource(allowedOrigins);
+    CorsConfigurationSource source = corsConfig.corsConfigurationSource(properties(allowedOrigins));
     CorsConfiguration config = source.getCorsConfiguration(new MockHttpServletRequest("GET", path));
     assertNotNull(config);
     return config;
@@ -137,7 +146,7 @@ class CorsConfigTest {
 
   private CorsFilter filter(String allowedOrigins) {
     return corsConfig
-        .corsFilterRegistration(corsConfig.corsConfigurationSource(allowedOrigins))
+        .corsFilterRegistration(corsConfig.corsConfigurationSource(properties(allowedOrigins)))
         .getFilter();
   }
 

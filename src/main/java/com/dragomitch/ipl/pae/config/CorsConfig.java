@@ -1,8 +1,8 @@
 package com.dragomitch.ipl.pae.config;
 
-import java.util.Arrays;
+import com.dragomitch.ipl.pae.adapter.in.web.security.CorsProperties;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,16 +24,15 @@ import org.springframework.web.filter.CorsFilter;
  * applies the same policy. Every request header is allowed, {@code X-XSRF-TOKEN} (CSRF token of the
  * web UIs) included.
  *
- * <p>Allowed origins come from the {@code app.cors.allowed-origins} property (comma-separated),
- * which can be overridden with the {@code APP_CORS_ALLOWED_ORIGINS} environment variable or a
- * {@code --app.cors.allowed-origins=...} argument. The session is carried by a cookie, so
- * credentials are allowed and origins must be listed explicitly ({@code *} is rejected).
+ * <p>Allowed origins come from {@link CorsProperties} ({@code app.cors.allowed-origins}, a
+ * comma-separated list), which can be overridden with the {@code APP_CORS_ALLOWED_ORIGINS}
+ * environment variable or a {@code --app.cors.allowed-origins=...} argument. The session is carried
+ * by a cookie, so credentials are allowed and origins must be listed explicitly ({@code *} is
+ * rejected).
  */
 @Configuration
+@EnableConfigurationProperties(CorsProperties.class)
 public class CorsConfig {
-
-  /** Default value of {@code app.cors.allowed-origins}: the Angular dev server. */
-  public static final String DEFAULT_ALLOWED_ORIGINS = "http://localhost:4200";
 
   static final List<String> ALLOWED_METHODS =
       List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
@@ -43,15 +42,14 @@ public class CorsConfig {
   /**
    * Builds the CORS policy applied to every path.
    *
-   * @param allowedOrigins comma-separated list of origins allowed to call the API
+   * @param properties the {@code app.cors} settings: the origins allowed to call the API
    * @return the CORS configuration source
    * @throws IllegalArgumentException if no origin is configured or if {@code *} is used
    */
   @Bean
-  public CorsConfigurationSource corsConfigurationSource(
-      @Value("${app.cors.allowed-origins:" + DEFAULT_ALLOWED_ORIGINS + "}") String allowedOrigins) {
+  public CorsConfigurationSource corsConfigurationSource(CorsProperties properties) {
     List<String> origins =
-        Arrays.stream(allowedOrigins.split(","))
+        properties.allowedOrigins().stream()
             .map(String::trim)
             .filter(StringUtils::hasText)
             .toList();

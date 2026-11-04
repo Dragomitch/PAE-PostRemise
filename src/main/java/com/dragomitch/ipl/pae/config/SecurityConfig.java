@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.adapter.in.web.ApiPaths;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CsrfCookieFilter;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.ExceptionResolverSecurityHandler;
+import com.dragomitch.ipl.pae.adapter.in.web.security.JwtProperties;
 import com.dragomitch.ipl.pae.adapter.in.web.security.RoleClaimAuthoritiesConverter;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieBearerTokenResolver;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionProperties;
@@ -11,15 +12,11 @@ import com.dragomitch.ipl.pae.adapter.in.web.security.SpaCsrfTokenRequestHandler
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import jakarta.servlet.DispatcherType;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Objects;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -90,10 +87,8 @@ import org.springframework.web.servlet.LocaleResolver;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties(SessionProperties.class)
+@EnableConfigurationProperties({SessionProperties.class, JwtProperties.class})
 public class SecurityConfig {
-
-  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
   /** Base path of the Actuator endpoints ({@code management.endpoints.web.base-path}). */
   private static final String ACTUATOR_BASE = "/actuator";
@@ -112,24 +107,23 @@ public class SecurityConfig {
 
   private final SecretKey jwtKey;
 
-  public SecurityConfig(@Value("${app.jwt.secret:}") String jwtSecret) {
-    this.jwtKey = buildKey(jwtSecret);
+  public SecurityConfig(JwtProperties jwt) {
+    this.jwtKey = buildKey(jwt.secret());
   }
 
+  /**
+   * Builds the HS256 key. {@link JwtProperties} has already refused a blank or short secret at
+   * binding time; the checks stay as a safety net for the key itself (the length is counted in
+   * UTF-8 bytes, which is what HS256 needs).
+   */
   static SecretKey buildKey(String secret) {
-    byte[] bytes;
     if (secret == null || secret.isBlank()) {
-      logger.warn(
-          "app.jwt.secret (JWT_SECRET) is not set: using a random key, "
-              + "sessions will not survive a restart. Set JWT_SECRET outside local development.");
-      bytes = new byte[MIN_SECRET_BYTES];
-      new SecureRandom().nextBytes(bytes);
-    } else {
-      bytes = secret.getBytes(StandardCharsets.UTF_8);
-      if (bytes.length < MIN_SECRET_BYTES) {
-        throw new IllegalStateException(
-            "app.jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes long for HS256");
-      }
+      throw new IllegalStateException("app.jwt.secret must be set (JWT_SECRET)");
+    }
+    byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+    if (bytes.length < MIN_SECRET_BYTES) {
+      throw new IllegalStateException(
+          "app.jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes long for HS256");
     }
     return new SecretKeySpec(bytes, HMAC_ALGORITHM);
   }
