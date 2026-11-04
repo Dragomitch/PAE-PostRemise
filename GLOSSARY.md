@@ -33,10 +33,10 @@ The UI and the stored values are in French. The code is in English.
 |------|---------|-------------|
 | **Domain** | The business objects and rules, independent of any framework: plain classes and enums, depending on the JDK only (`ArchitectureTest`). | `domain.model` |
 | **Driving (primary) port** | A use case the outside world calls. | `domain.port.in.XxxService` |
-| **Driven (secondary) port** | What the domain needs from the outside, such as storing and finding its objects. | `domain.port.out.XxxRepository` (a single result is an `Optional`) |
+| **Driven (secondary) port** | What the domain needs from the outside, such as storing and finding its objects. | `domain.port.out.XxxRepository` (a single result is an `Optional`), `domain.port.out.PasswordHasher` |
 | **Application service** | The implementation of a driving port: orchestrates the domain and the driven ports in one transaction. | `application.XxxServiceImpl` (`@Service`, `@Transactional`) |
 | **Driving adapter** | Calls a driving port from a technology: the REST controllers. | `adapter.in.web` |
-| **Driven adapter** | Implements a driven port with a technology: the JPA persistence adapters. | `adapter.out.persistence.JpaXxxRepositoryAdapter` |
+| **Driven adapter** | Implements a driven port with a technology: the JPA persistence adapters, the BCrypt password hasher. | `adapter.out.persistence.JpaXxxRepositoryAdapter`, `adapter.out.security.BCryptPasswordHasher` |
 | **JPA entity** | The persistence representation of a table, private to the persistence adapter. | `adapter.out.persistence.entity.XxxEntity` |
 | **Spring Data repository** | The Spring Data interface a driven adapter uses for its queries. | `adapter.out.persistence.repository.XxxJpaRepository` |
 | **Web DTO** | The JSON of the API: a record with the Bean Validation constraints, the Jackson and the OpenAPI annotations. The use cases never see it. | `adapter.in.web.dto.XxxDto` |
