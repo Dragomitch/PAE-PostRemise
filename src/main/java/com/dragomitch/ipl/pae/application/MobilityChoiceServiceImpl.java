@@ -20,7 +20,6 @@ import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
-import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
@@ -40,7 +39,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   private final MobilityChoiceRepository mobilityChoiceRepository;
   private final MobilityRepository mobilityRepository;
   private final DenialReasonRepository denialReasonRepository;
-  private final DocumentRepository documentRepository;
+  private final ProgrammeDocuments programmeDocuments;
   private final MobilityDocumentRepository mobilityDocumentRepository;
   private final CountryRepository countryRepository;
   private final ProgrammeRepository programmeRepository;
@@ -52,7 +51,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
       MobilityChoiceRepository mobilityChoiceRepository,
       MobilityRepository mobilityRepository,
       DenialReasonRepository denialReasonRepository,
-      DocumentRepository documentRepository,
+      ProgrammeDocuments programmeDocuments,
       MobilityDocumentRepository mobilityDocumentRepository,
       CountryRepository countryRepository,
       ProgrammeRepository programmeRepository,
@@ -62,7 +61,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
     this.mobilityChoiceRepository = mobilityChoiceRepository;
     this.mobilityRepository = mobilityRepository;
     this.denialReasonRepository = denialReasonRepository;
-    this.documentRepository = documentRepository;
+    this.programmeDocuments = programmeDocuments;
     this.mobilityDocumentRepository = mobilityDocumentRepository;
     this.countryRepository = countryRepository;
     this.programmeRepository = programmeRepository;
@@ -338,7 +337,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
    */
   private void createMobility(Mobility mobility, MobilityChoice mobilityChoice) {
     List<Document> documents =
-        documentRepository.findAllByProgramme(mobilityChoice.getProgramme().getId());
+        programmeDocuments.findAllByProgramme(mobilityChoice.getProgramme().getId());
     boolean departureDocuments =
         documents.stream()
             .anyMatch(document -> document.getCategory() == DocumentCategory.DEPARTURE);

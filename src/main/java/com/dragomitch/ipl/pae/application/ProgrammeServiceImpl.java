@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ class ProgrammeServiceImpl implements ProgrammeService {
   }
 
   @Override
+  @Cacheable(ReferenceDataCaches.PROGRAMMES)
   public Programme showOne(int id) {
     Programme programme =
         programmeRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
@@ -26,7 +28,8 @@ class ProgrammeServiceImpl implements ProgrammeService {
   }
 
   @Override
+  @Cacheable(ReferenceDataCaches.PROGRAMMES)
   public List<Programme> showAll() {
-    return programmeRepository.findAll();
+    return List.copyOf(programmeRepository.findAll());
   }
 }

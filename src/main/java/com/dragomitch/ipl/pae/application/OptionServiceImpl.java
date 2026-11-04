@@ -7,6 +7,7 @@ import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +25,9 @@ class OptionServiceImpl implements OptionService {
   }
 
   @Override
+  @Cacheable(ReferenceDataCaches.OPTIONS)
   public List<Option> showAll() {
-    return optionRepository.findAll();
+    return List.copyOf(optionRepository.findAll());
   }
 
   @Override
