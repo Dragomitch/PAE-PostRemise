@@ -120,10 +120,18 @@ def main():
     prof.call("GET", "/options/BIN")
 
     # --- denial reasons ------------------------------------------------------------------------
+    # the list is cached by the backend: read it first, so that the checks below prove that the
+    # create and the update empty the cache
+    prof.call("GET", "/denialReasons", label="denial reasons, cached")
     dr = prof.call("POST", "/denialReasons", {"reason": "Dossier incomplet"}, expect=(200, 201))
     drs = prof.call("GET", "/denialReasons")
+    check(any(r.get("reason") == "Dossier incomplet" for r in rows(drs)),
+          "the created denial reason is in the next list (cache emptied)")
     drid = rows(drs)[0]["id"] if isinstance(drs, dict) else drs[0]["id"]
     prof.call("PUT", f"/denialReasons/{drid}", {"id": drid, "reason": "Dossier incomplet (bis)"})
+    check(any(r.get("id") == drid and r.get("reason") == "Dossier incomplet (bis)"
+              for r in rows(prof.call("GET", "/denialReasons"))),
+          "the edited denial reason is in the next list (cache emptied)")
 
     # --- partners ------------------------------------------------------------------------------
     def partner(name, country="FR", official=True):

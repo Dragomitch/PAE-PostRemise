@@ -71,9 +71,11 @@ import org.springframework.web.servlet.LocaleResolver;
  *       {@code @PreAuthorize} ({@code ROLE_PROFESSOR} / {@code ROLE_STUDENT} from the {@code role}
  *       claim). The static web UI, its client-side routes and the error page are public. So is
  *       {@code GET /actuator/health} (and its sub-paths), which the Docker health check calls
- *       without a session; any other {@code /actuator/**} path requires an authenticated user. The
- *       OpenAPI document ({@code GET /v3/api-docs}) and the Swagger UI ({@code /swagger-ui.html})
- *       are public as well: they describe the API and hold no data ({@link OpenApiConfig}).
+ *       without a session; {@code /actuator/caches} (the {@linkplain CacheConfig cache} of the
+ *       reference data, listed by a GET, emptied by a DELETE) requires a professor, and any other
+ *       {@code /actuator/**} path an authenticated user. The OpenAPI document ({@code GET
+ *       /v3/api-docs}) and the Swagger UI ({@code /swagger-ui.html}) are public as well: they
+ *       describe the API and hold no data ({@link OpenApiConfig}).
  *   <li><b>CSRF</b>: the double-submit cookie pattern for single-page applications: the {@code
  *       XSRF-TOKEN} cookie (readable by JavaScript) is issued on every response and must be sent
  *       back in the {@code X-XSRF-TOKEN} header of every state-changing request, sign-in included.
@@ -92,6 +94,11 @@ public class SecurityConfig {
 
   /** Base path of the Actuator endpoints ({@code management.endpoints.web.base-path}). */
   private static final String ACTUATOR_BASE = "/actuator";
+
+  /**
+   * The role of the professors ({@code ROLE_PROFESSOR}, see {@code RoleClaimAuthoritiesConverter}).
+   */
+  private static final String PROFESSOR_ROLE = "PROFESSOR";
 
   /** The OpenAPI document ({@code springdoc.api-docs.path}) and its variants (YAML, groups). */
   static final String OPENAPI_DOCUMENT = "/v3/api-docs";
@@ -204,12 +211,14 @@ public class SecurityConfig {
                 .requestMatchers(ApiPaths.BASE + "/**")
                 .authenticated()
                 // the health status (database included) is public: the container health check has
-                // no
-                // session. The other exposed endpoint (info) and anything else under /actuator need
-                // one.
+                // no session. The caches of the reference data (CacheConfig), which a DELETE
+                // empties, are for professors; the other exposed endpoint (info) and anything else
+                // under /actuator need a session.
                 .requestMatchers(
                     HttpMethod.GET, ACTUATOR_BASE + "/health", ACTUATOR_BASE + "/health/**")
                 .permitAll()
+                .requestMatchers(ACTUATOR_BASE + "/caches", ACTUATOR_BASE + "/caches/**")
+                .hasRole(PROFESSOR_ROLE)
                 .requestMatchers(ACTUATOR_BASE + "/**")
                 .authenticated()
                 // the OpenAPI document and the Swagger UI (OpenApiConfig) describe the API, no data

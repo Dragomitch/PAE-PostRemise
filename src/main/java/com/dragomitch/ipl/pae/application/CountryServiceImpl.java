@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +20,13 @@ class CountryServiceImpl implements CountryService {
   }
 
   @Override
+  @Cacheable(ReferenceDataCaches.COUNTRIES)
   public List<Country> showAll() {
-    return countryRepository.findAll();
+    return List.copyOf(countryRepository.findAll());
   }
 
   @Override
+  @Cacheable(ReferenceDataCaches.COUNTRIES)
   public Country showOne(String countryCode) {
     Country country =
         countryRepository.findById(countryCode).orElseThrow(ResourceNotFoundException::new);
