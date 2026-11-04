@@ -131,6 +131,7 @@ class ReferenceDataCacheTest {
       assertThat(policy.eviction().orElseThrow().getMaximum()).isEqualTo(500);
       assertThat(policy.expireAfterWrite().orElseThrow().getExpiresAfter())
           .isEqualTo(Duration.ofHours(6));
+      assertThat(policy.isRecordingStats()).as("hits and misses for the cache meters").isTrue();
     });
   }
 
