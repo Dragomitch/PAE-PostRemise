@@ -313,10 +313,6 @@
             "minimum": 1,
             "type": "integer"
           },
-          "proEcoEncoding": {
-            "type": "boolean",
-            "writeOnly": true
-          },
           "professorInCharge": {
             "$ref": "#/components/schemas/UserDto"
           },
@@ -326,10 +322,6 @@
           "secondPaymentRequestDate": {
             "format": "date-time",
             "type": "string"
-          },
-          "secondSoftwareEncoding": {
-            "type": "boolean",
-            "writeOnly": true
           },
           "state": {
             "description": "Créée, En préparation (a document is filled in), A payer (every departure document is filled in), En cours (first payment), Solde à payer (every document is filled in), Terminée (second payment) or Annulée.",
@@ -498,10 +490,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "version": {
-            "format": "int32",
-            "type": "integer"
           }
         },
         "type": "object"
@@ -570,10 +558,6 @@
           "programme": {
             "$ref": "#/components/schemas/ProgrammeDto"
           },
-          "status": {
-            "type": "boolean",
-            "writeOnly": true
-          },
           "version": {
             "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
             "format": "int32",
@@ -608,10 +592,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "version": {
-            "format": "int32",
-            "type": "integer"
           }
         },
         "required": [
@@ -656,10 +636,6 @@
           },
           "user": {
             "$ref": "#/components/schemas/UserDto"
-          },
-          "version": {
-            "format": "int32",
-            "type": "integer"
           }
         },
         "type": "object"
@@ -795,11 +771,6 @@
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
-          },
-          "version": {
-            "description": "Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.",
-            "format": "int32",
-            "type": "integer"
           }
         },
         "required": [
