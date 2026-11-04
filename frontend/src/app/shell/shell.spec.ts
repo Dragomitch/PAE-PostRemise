@@ -42,6 +42,7 @@ describe('Shell', () => {
           { path: 'mobility-choices', component: Page },
           { path: 'personal-data', component: Page },
           { path: 'users', component: Page },
+          { path: 'denial-reasons', component: Page },
           { path: 'mobilities', component: Page },
           { path: 'mobilities/:id', component: Page },
         ]),
@@ -107,17 +108,22 @@ describe('Shell', () => {
       a.getAttribute('href'),
     ]);
 
-  it('links the users screen for a professor only', async () => {
+  it('links the users and the denial reasons screens for a professor only', async () => {
     await setup(PROFESSOR);
     expect(navLinks()).toEqual([
       ['Partenaires', '/partners'],
       ['Demandes de mobilité', '/mobility-choices'],
       ['Mobilités', '/mobilities'],
       ['Utilisateurs', '/users'],
+      ['Raisons de refus', '/denial-reasons'],
     ]);
     await router.navigateByUrl('/users');
     fixture.detectChanges();
     expect(el.querySelectorAll('nav a')[3].getAttribute('aria-current')).toBe('page');
+    await router.navigateByUrl('/denial-reasons');
+    fixture.detectChanges();
+    expect(el.querySelectorAll('nav a')[3].getAttribute('aria-current')).toBeNull();
+    expect(el.querySelectorAll('nav a')[4].getAttribute('aria-current')).toBe('page');
   });
 
   it("links the student's personal data for a student only", async () => {

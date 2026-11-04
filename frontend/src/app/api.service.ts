@@ -23,10 +23,12 @@ import {
   getProgrammesRequest,
   getSessionRequest,
   getUsersRequest,
+  postDenialReasonsRequest,
   postMobilityChoiceRequest,
   postNominatedStudentsRequest,
   postSessionRequest,
   postUsersRequest,
+  putDenialReasonsByIdRequest,
   putMobilitiesByIdCancelRequest,
   putMobilitiesByIdConfirmDocumentRequest,
   putMobilitiesByIdConfirmPaymentRequest,
@@ -159,6 +161,29 @@ export class ApiService {
     return this.send(
       getDenialReasonsRequest({ client: this.client }),
       (body) => body as DenialReason[],
+    );
+  }
+
+  /** A professor creates a denial reason (300 characters at most); the answer carries its id. */
+  createDenialReason(reason: string): Observable<DenialReason> {
+    return this.send(
+      postDenialReasonsRequest({ client: this.client, body: { reason } }),
+      (body) => body as DenialReason,
+    );
+  }
+
+  /**
+   * A professor changes the text of the denial reason `denialReason.id`, sending the version last
+   * read: a reason that no longer exists fails with a 409 `CONCURRENT_MODIFICATION` problem.
+   */
+  updateDenialReason(denialReason: DenialReason): Observable<DenialReason> {
+    return this.send(
+      putDenialReasonsByIdRequest({
+        client: this.client,
+        path: { id: denialReason.id },
+        body: denialReason,
+      }),
+      (body) => body as DenialReason,
     );
   }
 

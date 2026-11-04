@@ -301,7 +301,7 @@ describe('ApiService', () => {
       });
 
       it('lists the denial reasons', () => {
-        const reasons = [{ id: 1, reason: 'Dossier incomplet' }];
+        const reasons = [{ id: 1, reason: 'Dossier incomplet', version: 0 }];
         let got: unknown;
         service.denialReasons().subscribe((r) => (got = r));
         const req = http.expectOne('/api/1.0/denialReasons');

@@ -646,8 +646,8 @@ describe('MobilityChoices', () => {
       const panel = () => el.querySelector<HTMLElement>('.action-panel');
       const reason = () => el.querySelector<HTMLSelectElement>('#mobility-choices-reject-reason')!;
       const reasons = [
-        { id: 1, reason: "L'étudiant part en mobilité pour ce semestre." },
-        { id: 4, reason: 'Dossier incomplet' },
+        { id: 1, reason: "L'étudiant part en mobilité pour ce semestre.", version: 0 },
+        { id: 4, reason: 'Dossier incomplet', version: 0 },
       ];
       function choose(value: string): void {
         reason().value = value;

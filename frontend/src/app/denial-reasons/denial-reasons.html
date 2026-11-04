@@ -1,0 +1,165 @@
+<section aria-labelledby="denial-reasons-title">
+  <h1 id="denial-reasons-title" i18n="@@denialReasons.title">Raisons de refus</h1>
+  <p class="intro" i18n="@@denialReasons.intro">
+    Les raisons proposées pour refuser une demande de mobilité ou annuler une mobilité.
+  </p>
+
+  <div class="notice" role="status">
+    @if (notice(); as message) {
+      <p class="notification notification-success">{{ message }}</p>
+    }
+  </div>
+
+  @if (creating()) {
+    <div class="panel creation-panel" role="group" aria-labelledby="denial-reasons-create-title">
+      <h2 id="denial-reasons-create-title" i18n="@@denialReasons.create.title">
+        Créer une raison de refus
+      </h2>
+      <app-denial-reason-form
+        idPrefix="denial-reasons-create"
+        (created)="created($event)"
+        (closed)="closeCreation()"
+      />
+    </div>
+  } @else {
+    <div class="toolbar">
+      <button
+        #newButton
+        type="button"
+        class="button primary new-reason"
+        (click)="openCreation()"
+        i18n="@@denialReasons.new"
+      >
+        Nouvelle raison
+      </button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="state" role="status" i18n="@@denialReasons.loading">
+      Chargement des raisons de refus…
+    </p>
+  } @else if (problem(); as p) {
+    <div class="notification notification-danger" role="alert">
+      <p>{{ p.detail }}</p>
+      <button type="button" class="retry" (click)="load()" i18n="@@denialReasons.retry">
+        Réessayer
+      </button>
+    </div>
+  } @else if (reasons().length) {
+    <p class="count" i18n="@@denialReasons.count">
+      Nombre de raisons :
+      {{
+        reasons().length // i18n(ph="COUNT")
+      }}
+    </p>
+    <div class="table-wrapper">
+      <table aria-labelledby="denial-reasons-title">
+        <thead>
+          <tr>
+            <th scope="col" i18n="@@denialReasons.column.reason">Raison</th>
+            <th scope="col" i18n="@@denialReasons.column.action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of reasons(); track r.id) {
+            <tr [attr.data-id]="r.id">
+              @if (editing()?.id === r.id) {
+                <td colspan="2" class="edition">
+                  @if (editProblem(); as p) {
+                    <div class="notification notification-danger" role="alert">
+                      <p>{{ p.detail }}</p>
+                      @if (otherEditErrors().length) {
+                        <ul>
+                          @for (message of otherEditErrors(); track $index) {
+                            <li>{{ message }}</li>
+                          }
+                        </ul>
+                      }
+                      @if (conflict()) {
+                        <button
+                          type="button"
+                          class="retry reload"
+                          (click)="load()"
+                          i18n="@@denialReasons.reload"
+                        >
+                          Recharger les raisons
+                        </button>
+                      }
+                    </div>
+                  }
+                  <form
+                    [formGroup]="editForm"
+                    (ngSubmit)="save()"
+                    novalidate
+                    aria-labelledby="denial-reasons-edit-label"
+                  >
+                    <div class="form-group">
+                      <label
+                        id="denial-reasons-edit-label"
+                        for="denial-reasons-edit-reason"
+                        i18n="@@denialReasons.edit.label"
+                        >Texte de la raison</label
+                      >
+                      <input
+                        #editField
+                        id="denial-reasons-edit-reason"
+                        type="text"
+                        class="input"
+                        formControlName="reason"
+                        [attr.maxlength]="maxLength"
+                        [attr.aria-invalid]="!!editError()"
+                        [attr.aria-describedby]="
+                          editError() ? 'denial-reasons-edit-reason-error' : null
+                        "
+                      />
+                      @if (editError(); as message) {
+                        <p class="field-error" id="denial-reasons-edit-reason-error">
+                          {{ message }}
+                        </p>
+                      }
+                    </div>
+                    <div class="actions">
+                      <button
+                        type="submit"
+                        class="button primary save"
+                        [disabled]="saving()"
+                        [attr.aria-busy]="saving()"
+                        i18n="@@denialReasons.edit.save"
+                      >
+                        Enregistrer
+                      </button>
+                      <button
+                        type="button"
+                        class="button cancel-edit"
+                        (click)="cancelEdit()"
+                        i18n="@@denialReasons.edit.cancel"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </form>
+                </td>
+              } @else {
+                <td class="reason">{{ r.reason }}</td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    class="button edit"
+                    [disabled]="saving()"
+                    (click)="edit(r)"
+                    i18n="@@denialReasons.action.edit"
+                  >
+                    Modifier
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="state" i18n="@@denialReasons.empty">Aucune raison de refus.</p>
+  }
+</section>

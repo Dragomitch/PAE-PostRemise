@@ -17,8 +17,8 @@ const PROFESSOR: User = { id: 1, username: 'prof', firstName: 'Paula', role: 'Pr
 const STUDENT: User = { id: 2, username: 'alice', firstName: 'Alice', role: 'Student' };
 const URL = '/api/1.0/mobilities/1';
 const REASONS = [
-  { id: 1, reason: 'Dossier incomplet' },
-  { id: 2, reason: 'Désistement' },
+  { id: 1, reason: 'Dossier incomplet', version: 0 },
+  { id: 2, reason: 'Désistement', version: 0 },
 ];
 
 function doc(id: number, category: 'D' | 'R', filledIn: boolean): MobilityDocument {

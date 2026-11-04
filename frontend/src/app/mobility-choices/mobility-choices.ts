@@ -20,6 +20,7 @@ import { ApiProblem, ClientProblemCode, toApiProblem } from '../core/api-problem
 import { fieldMessage, unmatchedFieldErrors } from '../core/form-errors';
 import { DenialReason, MobilityChoice, MobilityChoiceFilter } from '../core/models';
 import { SessionService } from '../core/session.service';
+import { DenialReasonForm } from '../denial-reasons/denial-reason-form';
 import { MobilityChoiceForm } from './mobility-choice-form';
 import {
   CANCELLATION_REASON_MAX_LENGTH,
@@ -52,13 +53,14 @@ const FILTERS_WITH_MOBILITIES: readonly MobilityChoiceFilter[] = ['all', 'passed
  * - a student sees their own choices (`GET /api/1.0/mobilityChoices`, the API ignores the filter),
  *   can create one (`MobilityChoiceForm`) and cancel a pending one with a reason;
  * - a professor sees every choice matching the filter, with the count of the API, the CSV export,
- *   and confirms or rejects (with a denial reason) a pending choice.
+ *   and confirms or rejects (with a denial reason) a pending choice; the reject panel can create a
+ *   new denial reason on the spot (`DenialReasonForm`), as the legacy dialog did.
  * After every action the list is loaded again, since confirming a choice also rejects the other
  * pending choices of the student for the same term.
  */
 @Component({
   selector: 'app-mobility-choices',
-  imports: [ReactiveFormsModule, MobilityChoiceForm],
+  imports: [ReactiveFormsModule, MobilityChoiceForm, DenialReasonForm],
   templateUrl: './mobility-choices.html',
   styleUrl: './mobility-choices.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,6 +102,8 @@ export class MobilityChoices {
   /** Failure of a confirmation (no panel to show it in). */
   protected readonly actionProblem = signal<ApiProblem | null>(null);
   protected readonly denialReasons = signal<DenialReason[] | null>(null);
+  /** The reject panel shows the creation form of a denial reason instead of the list. */
+  protected readonly creatingReason = signal(false);
   protected readonly otherPanelErrors = computed(() =>
     unmatchedFieldErrors(this.panelProblem(), ['reason']),
   );
@@ -260,8 +264,28 @@ export class MobilityChoices {
     }
   }
 
+  /** Replaces the reject form with the creation form of a denial reason. */
+  protected openReasonCreation(): void {
+    this.panelProblem.set(null);
+    this.creatingReason.set(true);
+  }
+
+  /** Back to the reject form, the focus on the list of reasons. */
+  protected closeReasonCreation(): void {
+    this.creatingReason.set(false);
+    afterNextRender(() => this.panelField()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  /** The new reason joins the list (loaded: the link only shows then) and is selected. */
+  protected reasonCreated(reason: DenialReason): void {
+    this.denialReasons.set([...(this.denialReasons() as DenialReason[]), reason]);
+    this.rejectForm.controls.reason.setValue(String(reason.id));
+    this.closeReasonCreation();
+  }
+
   private openPanel(panel: Panel): void {
     this.creating.set(false);
+    this.creatingReason.set(false);
     this.notice.set(null);
     this.actionProblem.set(null);
     this.panelProblem.set(null);

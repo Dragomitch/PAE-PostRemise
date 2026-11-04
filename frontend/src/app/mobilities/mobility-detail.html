@@ -60,76 +60,96 @@
           </div>
         }
 
-        <form
-          [formGroup]="form"
-          (ngSubmit)="confirm()"
-          novalidate
-          aria-labelledby="mobility-panel-title"
-        >
-          @if (action.kind === 'cancel') {
-            <div class="form-group">
-              <label for="mobility-cancel-reason" i18n="@@mobility.cancel.reason.label"
-                >Raison de l'annulation</label
-              >
-              <select
-                #panelField
-                id="mobility-cancel-reason"
-                class="input"
-                formControlName="reason"
-                [attr.aria-invalid]="!!reasonError()"
-                [attr.aria-describedby]="reasonError() ? 'mobility-cancel-reason-error' : null"
-              >
-                @if (denialReasons(); as reasons) {
-                  <option value="" disabled i18n="@@mobility.cancel.reason.placeholder">
-                    Choisissez une raison
-                  </option>
-                  @for (r of reasons; track r.id) {
-                    <option [value]="r.id">{{ r.reason }}</option>
-                  }
-                } @else {
-                  <option value="" disabled i18n="@@mobility.cancel.reason.loading">
-                    Chargement des raisons…
-                  </option>
-                }
-              </select>
-              @if (reasonError(); as message) {
-                <p class="field-error" id="mobility-cancel-reason-error">{{ message }}</p>
-              }
-            </div>
-          }
-          <div class="actions">
+        @if (creatingReason()) {
+          <app-denial-reason-form
+            idPrefix="mobility-new-reason"
+            closeLabel="Choisir parmi les raisons existantes"
+            i18n-closeLabel="@@denialReasonForm.backToList"
+            (created)="reasonCreated($event)"
+            (closed)="closeReasonCreation()"
+          />
+        } @else {
+          <form
+            [formGroup]="form"
+            (ngSubmit)="confirm()"
+            novalidate
+            aria-labelledby="mobility-panel-title"
+          >
             @if (action.kind === 'cancel') {
-              <button
-                type="submit"
-                class="button danger confirm"
-                [disabled]="busy()"
-                [attr.aria-busy]="busy()"
-                i18n="@@mobility.cancel.submit"
-              >
-                Annuler la mobilité
-              </button>
-            } @else {
-              <button
-                #panelField
-                type="submit"
-                class="button primary confirm"
-                [disabled]="busy()"
-                [attr.aria-busy]="busy()"
-                i18n="@@mobility.panel.confirm"
-              >
-                Confirmer
-              </button>
+              <div class="form-group">
+                <label for="mobility-cancel-reason" i18n="@@mobility.cancel.reason.label"
+                  >Raison de l'annulation</label
+                >
+                <select
+                  #panelField
+                  id="mobility-cancel-reason"
+                  class="input"
+                  formControlName="reason"
+                  [attr.aria-invalid]="!!reasonError()"
+                  [attr.aria-describedby]="reasonError() ? 'mobility-cancel-reason-error' : null"
+                >
+                  @if (denialReasons(); as reasons) {
+                    <option value="" disabled i18n="@@mobility.cancel.reason.placeholder">
+                      Choisissez une raison
+                    </option>
+                    @for (r of reasons; track r.id) {
+                      <option [value]="r.id">{{ r.reason }}</option>
+                    }
+                  } @else {
+                    <option value="" disabled i18n="@@mobility.cancel.reason.loading">
+                      Chargement des raisons…
+                    </option>
+                  }
+                </select>
+                @if (reasonError(); as message) {
+                  <p class="field-error" id="mobility-cancel-reason-error">{{ message }}</p>
+                }
+                @if (denialReasons()) {
+                  <button
+                    type="button"
+                    class="link-button new-reason"
+                    (click)="openReasonCreation()"
+                    i18n="@@mobility.cancel.newReason"
+                  >
+                    Nouvelle raison
+                  </button>
+                }
+              </div>
             }
-            <button
-              type="button"
-              class="button close"
-              (click)="closePanel()"
-              i18n="@@mobility.panel.close"
-            >
-              Fermer
-            </button>
-          </div>
-        </form>
+            <div class="actions">
+              @if (action.kind === 'cancel') {
+                <button
+                  type="submit"
+                  class="button danger confirm"
+                  [disabled]="busy()"
+                  [attr.aria-busy]="busy()"
+                  i18n="@@mobility.cancel.submit"
+                >
+                  Annuler la mobilité
+                </button>
+              } @else {
+                <button
+                  #panelField
+                  type="submit"
+                  class="button primary confirm"
+                  [disabled]="busy()"
+                  [attr.aria-busy]="busy()"
+                  i18n="@@mobility.panel.confirm"
+                >
+                  Confirmer
+                </button>
+              }
+              <button
+                type="button"
+                class="button close"
+                (click)="closePanel()"
+                i18n="@@mobility.panel.close"
+              >
+                Fermer
+              </button>
+            </div>
+          </form>
+        }
       </div>
     }
 

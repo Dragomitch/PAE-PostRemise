@@ -1,0 +1,141 @@
+:host {
+  display: block;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.6rem;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+}
+
+.intro {
+  margin: 0 0 1rem;
+  color: #4a5568;
+}
+
+.notice:empty {
+  display: none;
+}
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #dde2ea;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  max-width: 36rem;
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #8a94a3;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #8a94a3;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f2933;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button.primary {
+  border-color: #1f3a5f;
+  background: #1f3a5f;
+  color: #fff;
+}
+
+.button:hover,
+.button:focus-visible {
+  text-decoration: underline;
+}
+
+.count {
+  margin: 0 0 0.5rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.state {
+  padding: 1.5rem 0;
+  color: #4a5568;
+}
+
+.retry {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #8a1c14;
+  border-radius: 4px;
+  background: #fff;
+  color: #8a1c14;
+  font: inherit;
+  cursor: pointer;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #dde2ea;
+  text-align: left;
+  vertical-align: middle;
+}
+
+thead th {
+  background: #f2f5f9;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+.reason {
+  overflow-wrap: anywhere;
+}
+
+.edition {
+  background: #f8fafc;
+}
+
+.row-actions {
+  width: 1%;
+  white-space: nowrap;
+}
