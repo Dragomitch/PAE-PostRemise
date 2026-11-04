@@ -227,12 +227,12 @@ The backend reads the following environment variables:
 | `DB_NAME` | Database name | `testdb` |
 | `DB_USERNAME` | Database user | _(empty)_ |
 | `DB_PASSWORD` | Database password | _(empty)_ |
-| `JWT_SECRET` | Secret signing the session cookie, 32+ bytes | random per start (dev only) |
+| `JWT_SECRET` | Secret signing the session cookie, at least 32 characters (`openssl rand -hex 32`) | none: required, the backend refuses to start without it |
 | `APP_SESSION_VALIDITY` | Lifetime of a session (JWT `exp` and cookie `Max-Age`), e.g. `12h`, `30m` | `12h` |
 | `APP_SESSION_COOKIE_SECURE` | Adds `Secure` to the `session` and `XSRF-TOKEN` cookies (set it behind HTTPS) | `false` |
 | `APP_CORS_ALLOWED_ORIGINS` | Origins allowed to call the API with credentials (comma-separated) | `http://localhost:4200` |
 
-They are resolved in `src/main/resources/application.properties`. Always set `JWT_SECRET` outside local development, otherwise every restart logs everyone out.
+They are resolved in `src/main/resources/application.properties` into the typed properties described in [`backend/AGENTS.md`](backend/AGENTS.md#environment-variables). `JWT_SECRET` is required (also with `docker compose up`, which passes it through): keep the same value across restarts, otherwise every restart logs everyone out.
 
 ## Continuous integration
 `.github/workflows/ci.yml` runs on every pull request and on `master`:
