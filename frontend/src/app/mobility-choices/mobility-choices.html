@@ -128,6 +128,14 @@
             </button>
           </div>
         </form>
+      } @else if (creatingReason()) {
+        <app-denial-reason-form
+          idPrefix="mobility-choices-new-reason"
+          closeLabel="Choisir parmi les raisons existantes"
+          i18n-closeLabel="@@denialReasonForm.backToList"
+          (created)="reasonCreated($event)"
+          (closed)="closeReasonCreation()"
+        />
       } @else {
         <form
           [formGroup]="rejectForm"
@@ -162,6 +170,16 @@
             </select>
             @if (reasonError(); as message) {
               <p class="field-error" id="mobility-choices-reason-error">{{ message }}</p>
+            }
+            @if (denialReasons()) {
+              <button
+                type="button"
+                class="link-button new-reason"
+                (click)="openReasonCreation()"
+                i18n="@@mobilityChoices.reject.newReason"
+              >
+                Nouvelle raison
+              </button>
             }
           </div>
           <div class="actions">

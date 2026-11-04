@@ -5,6 +5,7 @@ import { routes } from './app.routes';
 import { Mobilities } from './mobilities/mobilities';
 import { MobilityDetail } from './mobilities/mobility-detail';
 import { authGuard } from './core/auth.guard';
+import { DenialReasons } from './denial-reasons/denial-reasons';
 import { Partners } from './partners/partners';
 import { PersonalData } from './personal-data/personal-data';
 import { Shell } from './shell/shell';
@@ -66,6 +67,13 @@ describe('routes', () => {
     expect(users.component).toBe(Users);
     expect(users.title).toBe('Utilisateurs - EMA');
     expect(users.canActivate?.length).toBe(1);
+  });
+
+  it('limit the denial reasons to the professors', () => {
+    const denialReasons = shell.children!.find((r) => r.path === 'denial-reasons')!;
+    expect(denialReasons.component).toBe(DenialReasons);
+    expect(denialReasons.title).toBe('Raisons de refus - EMA');
+    expect(denialReasons.canActivate?.length).toBe(1);
   });
 
   it('open the mobilities and their detail to both roles', () => {

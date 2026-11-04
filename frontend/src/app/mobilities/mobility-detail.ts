@@ -29,6 +29,7 @@ import {
   MobilityDocumentFilter,
 } from '../core/models';
 import { SessionService } from '../core/session.service';
+import { DenialReasonForm } from '../denial-reasons/denial-reason-form';
 import { departureLabel, mobilityTypeLabel } from '../mobility-choices/mobility-choice-labels';
 import {
   destination,
@@ -58,14 +59,14 @@ const REASON_FIELDS = ['denialReason'];
  *
  * A professor confirms the encodings, the documents and the payments (the first one in "A payer",
  * the second in "Solde à payer", as the legacy detail offered them) and cancels the mobility with a
- * denial reason; every change goes through a confirmation panel, sends the version last read and
+ * denial reason (a new one can be created in the panel, `DenialReasonForm`); every change goes through a confirmation panel, sends the version last read and
  * reads the mobility again. A stale version is refused (409) and the panel offers to reload it. The
  * CSV exports of the documents are links the browser opens itself. A student sees the same detail
  * without any button, the encodings and the exports left out.
  */
 @Component({
   selector: 'app-mobility-detail',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, DenialReasonForm],
   templateUrl: './mobility-detail.html',
   styleUrl: './mobility-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,6 +101,8 @@ export class MobilityDetail implements OnInit {
   protected readonly notice = signal<string | null>(null);
 
   protected readonly denialReasons = signal<DenialReason[] | null>(null);
+  /** The cancel panel shows the creation form of a denial reason instead of its form. */
+  protected readonly creatingReason = signal(false);
   protected readonly reason = new FormControl('', {
     nonNullable: true,
     validators: Validators.required,
@@ -244,6 +247,7 @@ export class MobilityDetail implements OnInit {
     this.notice.set(null);
     this.actionProblem.set(null);
     this.submitted.set(false);
+    this.creatingReason.set(false);
     this.pending.set(action);
     if (action.kind === 'cancel') {
       this.reason.reset('');
@@ -255,6 +259,25 @@ export class MobilityDetail implements OnInit {
   protected closePanel(): void {
     this.pending.set(null);
     this.actionProblem.set(null);
+  }
+
+  /** Replaces the cancel form with the creation form of a denial reason. */
+  protected openReasonCreation(): void {
+    this.actionProblem.set(null);
+    this.creatingReason.set(true);
+  }
+
+  /** Back to the cancel form, the focus on the list of reasons. */
+  protected closeReasonCreation(): void {
+    this.creatingReason.set(false);
+    afterNextRender(() => this.panelField()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  /** The new reason joins the list (loaded: the link only shows then) and is selected. */
+  protected reasonCreated(reason: DenialReason): void {
+    this.denialReasons.set([...(this.denialReasons() as DenialReason[]), reason]);
+    this.reason.setValue(String(reason.id));
+    this.closeReasonCreation();
   }
 
   private loadDenialReasons(): void {
