@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.logging.TraceIdResponseFilter;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,7 +65,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  *   <li>{@code errors} lists the broken constraints of a {@code VALIDATION_FAILED} problem: {@code
  *       [{"field": "email", "code": "Email", "message": "..."}]};
  *   <li>5xx problems never describe the failure: they carry an {@code errorId} also written in the
- *       error log with the stack trace.
+ *       error log with the stack trace and the trace id of the request (the {@code X-Trace-Id}
+ *       response header of {@link TraceIdResponseFilter}); a 4xx is logged at INFO with its trace
+ *       id.
  * </ul>
  *
  * <p>The 401 and 403 raised by the Spring Security filters are handed to this class by {@code
@@ -299,14 +302,22 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return ErrorCode.forStatus(status.value());
   }
 
+  /**
+   * Logs the error with the trace id of the request ({@code X-Trace-Id} response header), so that
+   * the {@code errorId} or the trace id a user quotes leads to this line and to the other lines of
+   * the request (which carry the trace id through the log correlation).
+   */
   private static void logHandled(
       Exception ex, HttpStatusCode status, WebRequest request, @Nullable String errorId) {
+    String traceId = traceId(request);
     if (errorId != null) {
-      log.error("Error {} on {}: {}", errorId, path(request), status.value(), ex);
+      log.error(
+          "Error {} (trace {}) on {}: {}", errorId, traceId, path(request), status.value(), ex);
     } else if (log.isInfoEnabled()) {
       log.info(
-          "Handling {} on {}: {}{}",
+          "Handling {} (trace {}) on {}: {}{}",
           ex.getClass().getSimpleName(),
+          traceId,
           path(request),
           status.value(),
           ex.getMessage() == null ? "" : " - " + ex.getMessage());
@@ -315,12 +326,22 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
   @Nullable
   private static String path(WebRequest request) {
-    if (request instanceof NativeWebRequest nativeRequest) {
-      HttpServletRequest servletRequest = nativeRequest.getNativeRequest(HttpServletRequest.class);
-      if (servletRequest != null) {
-        return servletRequest.getRequestURI();
-      }
-    }
-    return null;
+    HttpServletRequest servletRequest = servletRequest(request);
+    return servletRequest == null ? null : servletRequest.getRequestURI();
+  }
+
+  /** The trace id {@link TraceIdResponseFilter} answered, {@code "-"} without one. */
+  private static String traceId(WebRequest request) {
+    HttpServletRequest servletRequest = servletRequest(request);
+    String traceId =
+        servletRequest == null ? null : TraceIdResponseFilter.traceIdOf(servletRequest);
+    return traceId == null ? "-" : traceId;
+  }
+
+  @Nullable
+  private static HttpServletRequest servletRequest(WebRequest request) {
+    return request instanceof NativeWebRequest nativeRequest
+        ? nativeRequest.getNativeRequest(HttpServletRequest.class)
+        : null;
   }
 }
