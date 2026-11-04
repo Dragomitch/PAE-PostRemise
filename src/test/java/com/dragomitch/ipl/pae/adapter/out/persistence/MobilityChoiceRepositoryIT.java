@@ -98,7 +98,8 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryFieldAndJoinsUserOptionProgrammeCountryAndPartner() {
-    MobilityChoice choice = inTransaction(() -> mobilityChoiceRepository.findById(5001));
+    MobilityChoice choice =
+        inTransaction(() -> mobilityChoiceRepository.findById(5001).orElse(null));
 
     assertThat(choice.getId()).isEqualTo(5001);
     assertThat(choice.getUser().getId()).isEqualTo(1001);
@@ -126,14 +127,14 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void findByIdMapsAbsentPartnerAndCountryAndJoinsTheDenialReason() {
     runInTransaction(() -> {
-      assertThat(mobilityChoiceRepository.findById(5002).getPartner()).isNull();
+      assertThat(mobilityChoiceRepository.findById(5002).orElseThrow().getPartner()).isNull();
 
-      MobilityChoice canceled = mobilityChoiceRepository.findById(5003);
+      MobilityChoice canceled = mobilityChoiceRepository.findById(5003).orElse(null);
       assertThat(canceled.getCountry()).as("no country").isNull();
       assertThat(canceled.getCancellationReason()).isEqualTo("Changed my mind");
       assertThat(canceled.getVersion()).isEqualTo(2);
 
-      MobilityChoice rejected = mobilityChoiceRepository.findById(5004);
+      MobilityChoice rejected = mobilityChoiceRepository.findById(5004).orElse(null);
       assertThat(rejected.getDenialReason().getId()).isEqualTo(4001);
       assertThat(rejected.getDenialReason().getReason()).isEqualTo("Dossier incomplet");
       assertThat(rejected.getCountry().getName()).isEqualTo("Canada");
@@ -143,14 +144,14 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdStillFindsAChoiceThatBecameAMobility() {
-    assertThat(inTransaction(() -> mobilityChoiceRepository.findById(5006)).getId())
+    assertThat(inTransaction(() -> mobilityChoiceRepository.findById(5006).orElse(null)).getId())
         .isEqualTo(5006);
   }
 
   @ParameterizedTest
   @ValueSource(ints = {0, -1, 5000, 99999})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> mobilityChoiceRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> mobilityChoiceRepository.findById(id))).isEmpty();
   }
 
   @ParameterizedTest(name = "filter \"{0}\" -> {1}")
@@ -315,7 +316,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesEveryUpdatableColumnAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      MobilityChoice choice = mobilityChoiceRepository.findById(5001);
+      MobilityChoice choice = mobilityChoiceRepository.findById(5001).orElse(null);
       choice.setPreferenceOrder(9);
       choice.setMobilityType(MobilityType.SMP);
       choice.setAcademicYear(2031);
@@ -353,7 +354,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   void updateStoresAnEmptyOrNullCancellationReasonAsNullAndClearsDenialAndPartner(
       String cancellation) {
     runInTransaction(() -> {
-      MobilityChoice choice = mobilityChoiceRepository.findById(5003);
+      MobilityChoice choice = mobilityChoiceRepository.findById(5003).orElse(null);
       choice.setCancellationReason(cancellation);
       choice.setCountry(country("FR"));
 
@@ -371,7 +372,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateOfAChoiceWithoutCountryKeepsTheCountryNull() {
     runInTransaction(() -> {
-      MobilityChoice canceled = mobilityChoiceRepository.findById(5003);
+      MobilityChoice canceled = mobilityChoiceRepository.findById(5003).orElse(null);
       canceled.setTerm(2);
 
       mobilityChoiceRepository.update(canceled);
@@ -385,11 +386,11 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateSetsTheNewVersionInTheDtoSoThatItCanBeUpdatedAgain() {
     runInTransaction(() -> {
-      MobilityChoice choice = mobilityChoiceRepository.findById(5001);
+      MobilityChoice choice = mobilityChoiceRepository.findById(5001).orElse(null);
       mobilityChoiceRepository.update(choice);
 
       assertThat(choice.getVersion()).isEqualTo(2);
-      assertThat(mobilityChoiceRepository.findById(5001).getVersion()).isEqualTo(2);
+      assertThat(mobilityChoiceRepository.findById(5001).orElseThrow().getVersion()).isEqualTo(2);
 
       choice.setTerm(2);
       mobilityChoiceRepository.update(choice);
@@ -404,7 +405,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      MobilityChoice stale = mobilityChoiceRepository.findById(5004);
+      MobilityChoice stale = mobilityChoiceRepository.findById(5004).orElse(null);
       stale.setVersion(2);
       stale.setTerm(2);
 
@@ -419,7 +420,7 @@ class MobilityChoiceRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateOfAnUnknownChoiceFails() {
     runInTransaction(() -> {
-      MobilityChoice ghost = mobilityChoiceRepository.findById(5001);
+      MobilityChoice ghost = mobilityChoiceRepository.findById(5001).orElse(null);
       ghost.setId(424242);
       assertThatThrownBy(() -> mobilityChoiceRepository.update(ghost))
           .isInstanceOf(ConcurrentModificationException.class);

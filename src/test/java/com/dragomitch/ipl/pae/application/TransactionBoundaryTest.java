@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,7 +94,7 @@ class TransactionBoundaryTest {
 
   @Test
   void aSuccessfulUseCaseCommitsItsTransactionAndReleasesTheConnection() throws SQLException {
-    when(userRepository.findById(5)).thenReturn(student);
+    when(userRepository.findById(5)).thenReturn(Optional.of(student));
 
     userService.promoteToProfessor(5);
 
@@ -108,7 +109,7 @@ class TransactionBoundaryTest {
 
   @Test
   void aUseCaseThatThrowsRollsBack() throws SQLException {
-    when(userRepository.findById(5)).thenReturn(null);
+    when(userRepository.findById(5)).thenReturn(Optional.empty());
 
     assertThrows(ResourceNotFoundException.class, () -> userService.promoteToProfessor(5));
 
@@ -120,7 +121,7 @@ class TransactionBoundaryTest {
   @Test
   void aStaleVersionReachesTheCallerAndRollsBack() throws SQLException {
     // the JDBC DAO updates "WHERE user_id = ? AND version = ?" and throws when no row matched
-    when(userRepository.findById(5)).thenReturn(student);
+    when(userRepository.findById(5)).thenReturn(Optional.of(student));
     doThrow(new ConcurrentModificationException()).when(userRepository).promoteToProfessor(5, 3);
 
     assertThrows(ConcurrentModificationException.class, () -> userService.promoteToProfessor(5));

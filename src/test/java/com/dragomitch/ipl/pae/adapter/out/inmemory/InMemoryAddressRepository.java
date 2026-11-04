@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.domain.model.Address;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryAddressRepository implements AddressRepository, ResettableRepository {
 
@@ -21,16 +22,16 @@ public class InMemoryAddressRepository implements AddressRepository, ResettableR
   }
 
   @Override
-  public Address findById(int id) {
+  public Optional<Address> findById(int id) {
     if (id > 0 && id <= addresses.size()) {
-      return addresses.get(id - 1);
+      return Optional.ofNullable(addresses.get(id - 1));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
   public Address update(Address address) {
-    address.setVersion((findById(address.getId()).getVersion()) + 1);
+    address.setVersion(findById(address.getId()).orElseThrow().getVersion() + 1);
     addresses.set(address.getId() - 1, address);
     return address;
   }

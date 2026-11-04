@@ -37,6 +37,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -110,7 +111,7 @@ class MobilityChoiceServiceImplTest {
   private User givenUser(int id, Role role) {
     User user = dtos.getUser(role);
     user.setId(id);
-    when(userRepository.findById(id)).thenReturn(user);
+    when(userRepository.findById(id)).thenReturn(Optional.of(user));
     return user;
   }
 
@@ -137,7 +138,7 @@ class MobilityChoiceServiceImplTest {
 
   private MobilityChoice givenChoice(int id, int academicYear, int term) {
     MobilityChoice choice = storedChoice(id, academicYear, term);
-    when(mobilityChoiceRepository.findById(id)).thenReturn(choice);
+    when(mobilityChoiceRepository.findById(id)).thenReturn(Optional.of(choice));
     return choice;
   }
 
@@ -151,7 +152,7 @@ class MobilityChoiceServiceImplTest {
   private DenialReason givenDenialReason(int id) {
     DenialReason denialReason = storedDenialReason(id);
     denialReason.setReason("Places épuisées");
-    when(denialReasonRepository.findById(id)).thenReturn(denialReason);
+    when(denialReasonRepository.findById(id)).thenReturn(Optional.of(denialReason));
     return denialReason;
   }
 
@@ -181,8 +182,8 @@ class MobilityChoiceServiceImplTest {
     }
 
     private void givenReferencesExist(MobilityChoice request) {
-      when(countryRepository.findById("IE")).thenReturn(request.getCountry());
-      when(programmeRepository.findById(1)).thenReturn(request.getProgramme());
+      when(countryRepository.findById("IE")).thenReturn(Optional.of(request.getCountry()));
+      when(programmeRepository.findById(1)).thenReturn(Optional.of(request.getProgramme()));
     }
 
     @Test
@@ -201,7 +202,7 @@ class MobilityChoiceServiceImplTest {
     void aProfessorEncodesTheChoiceOfAStudentWithoutCountry() {
       MobilityChoice request = request();
       request.setCountry(null);
-      when(programmeRepository.findById(1)).thenReturn(request.getProgramme());
+      when(programmeRepository.findById(1)).thenReturn(Optional.of(request.getProgramme()));
       givenUser(STUDENT_ID, Role.STUDENT);
       when(mobilityChoiceRepository.create(request)).thenReturn(request);
 
@@ -248,7 +249,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void theProgrammeMustExist() {
       MobilityChoice request = request();
-      when(countryRepository.findById("IE")).thenReturn(request.getCountry());
+      when(countryRepository.findById("IE")).thenReturn(Optional.of(request.getCountry()));
 
       assertThatBusinessException(
               () -> mobilityChoiceService.create(request, STUDENT_ID, Role.STUDENT))
@@ -359,7 +360,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aConfirmedChoiceIsCancelledAsAMobility() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(Optional.of(new Mobility()));
 
       assertThatBusinessException(
               () -> mobilityChoiceService.cancel(CHOICE_ID, STUDENT_ID, "reason"))
@@ -412,7 +413,9 @@ class MobilityChoiceServiceImplTest {
       MobilityChoice choice = givenChoice(CHOICE_ID, 2016, 1);
       DenialReason firstReason = storedDenialReason(3);
       choice.setDenialReason(firstReason);
-      lenient().when(denialReasonRepository.findById(4)).thenReturn(storedDenialReason(4));
+      lenient()
+          .when(denialReasonRepository.findById(4))
+          .thenReturn(Optional.of(storedDenialReason(4)));
 
       assertThatBusinessException(() -> mobilityChoiceService.reject(CHOICE_ID, 4))
           .hasErrorCode(ErrorCode.MOBILITY_CHOICE_CLOSED);
@@ -434,7 +437,7 @@ class MobilityChoiceServiceImplTest {
     void aConfirmedChoiceCannotBeRejected() {
       givenChoice(CHOICE_ID, 2016, 1);
       givenDenialReason(4);
-      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(Optional.of(new Mobility()));
 
       assertThatBusinessException(() -> mobilityChoiceService.reject(CHOICE_ID, 4))
           .hasErrorCode(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
@@ -511,14 +514,16 @@ class MobilityChoiceServiceImplTest {
       givenProgrammeDocuments(1);
       MobilityChoice cancelled = storedChoice(OTHER_CHOICE_ID, 2016, 1);
       close(cancelled, Closed.CANCELLED);
-      lenient().when(mobilityChoiceRepository.findById(OTHER_CHOICE_ID)).thenReturn(cancelled);
+      lenient()
+          .when(mobilityChoiceRepository.findById(OTHER_CHOICE_ID))
+          .thenReturn(Optional.of(cancelled));
       MobilityChoice rejected = storedChoice(13, 2016, 1);
       DenialReason firstReason = storedDenialReason(3);
       rejected.setDenialReason(firstReason);
-      lenient().when(mobilityChoiceRepository.findById(13)).thenReturn(rejected);
+      lenient().when(mobilityChoiceRepository.findById(13)).thenReturn(Optional.of(rejected));
       lenient()
           .when(denialReasonRepository.findById(AUTOMATIC_DENIAL_REASON))
-          .thenReturn(storedDenialReason(AUTOMATIC_DENIAL_REASON));
+          .thenReturn(Optional.of(storedDenialReason(AUTOMATIC_DENIAL_REASON)));
       when(mobilityChoiceRepository.findByUser(STUDENT_ID))
           .thenReturn(List.of(choice, cancelled, rejected));
 
@@ -552,7 +557,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aChoiceIsConfirmedOnlyOnce() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(Optional.of(new Mobility()));
 
       assertThatBusinessException(() -> mobilityChoiceService.confirm(CHOICE_ID, PROFESSOR_ID))
           .hasErrorCode(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
@@ -733,7 +738,7 @@ class MobilityChoiceServiceImplTest {
     @Test
     void aChoiceIsConfirmedOnlyOnce() {
       givenChoice(CHOICE_ID, 2016, 1);
-      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(new Mobility());
+      when(mobilityRepository.findById(CHOICE_ID)).thenReturn(Optional.of(new Mobility()));
 
       assertThatBusinessException(() ->
               mobilityChoiceService.confirmWithNewPartner(

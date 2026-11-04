@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -30,8 +31,8 @@ class JpaDenialReasonRepositoryAdapter implements DenialReasonRepository {
   }
 
   @Override
-  public DenialReason findById(int id) {
-    return reasons.findById(id).map(mapper::denialReason).orElse(null);
+  public Optional<DenialReason> findById(int id) {
+    return reasons.findById(id).map(mapper::denialReason);
   }
 
   @Override

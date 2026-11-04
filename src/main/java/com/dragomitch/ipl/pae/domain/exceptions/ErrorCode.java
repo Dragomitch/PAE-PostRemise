@@ -2,7 +2,6 @@ package com.dragomitch.ipl.pae.domain.exceptions;
 
 import java.net.URI;
 import java.util.Locale;
-import org.springframework.http.HttpStatus;
 
 /**
  * Catalogue of the errors of the API. Every error response is an RFC 9457 problem ({@code
@@ -40,109 +39,109 @@ public enum ErrorCode {
 
   // ----- generic errors -----
   /** Unexpected server-side failure (formerly 100). The problem carries an {@code errorId}. */
-  INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
+  INTERNAL_ERROR(500),
   /** A dependency of the request timed out or is unavailable. */
-  SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE),
+  SERVICE_UNAVAILABLE(503),
   /** Missing, invalid or expired session (formerly 101). */
-  UNAUTHENTICATED(HttpStatus.UNAUTHORIZED),
+  UNAUTHENTICATED(401),
   /** Sign-in with an unknown username or a wrong password (formerly 101 as well). */
-  INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED),
+  INVALID_CREDENTIALS(401),
   /** Authenticated but not allowed, or CSRF token missing or invalid (formerly 103). */
-  ACCESS_DENIED(HttpStatus.FORBIDDEN),
+  ACCESS_DENIED(403),
   /** The resource of the URL does not exist, or the URL matches no endpoint (formerly 104). */
-  RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
+  RESOURCE_NOT_FOUND(404),
   /** One or more validation constraints failed, listed in {@code errors} (formerly 110, 130). */
-  VALIDATION_FAILED(HttpStatus.BAD_REQUEST),
+  VALIDATION_FAILED(400),
   /** Unreadable body (malformed JSON), missing or wrongly typed parameter. */
-  MALFORMED_REQUEST(HttpStatus.BAD_REQUEST),
+  MALFORMED_REQUEST(400),
   /** HTTP method not supported by the endpoint. */
-  METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED),
+  METHOD_NOT_ALLOWED(405),
   /** None of the media types of the {@code Accept} header can be produced. */
-  NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE),
+  NOT_ACCEPTABLE(406),
   /** The {@code Content-Type} of the body is not supported. */
-  UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+  UNSUPPORTED_MEDIA_TYPE(415),
   /** The request body is too large. */
-  PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE),
+  PAYLOAD_TOO_LARGE(413),
   /** The entity was modified by someone else since it was read (formerly 120, then 400). */
-  CONCURRENT_MODIFICATION(HttpStatus.CONFLICT),
+  CONCURRENT_MODIFICATION(409),
   /** The database refused the change (integrity constraint). */
-  DATA_CONFLICT(HttpStatus.CONFLICT),
+  DATA_CONFLICT(409),
 
   // ----- users -----
   /** Username already used by another account (formerly 204). */
-  USERNAME_TAKEN(HttpStatus.CONFLICT),
+  USERNAME_TAKEN(409),
   /** Email address already used by another account (formerly 207). */
-  EMAIL_TAKEN(HttpStatus.CONFLICT),
+  EMAIL_TAKEN(409),
   /** The option of the user or of the partner does not exist (formerly 210). */
-  UNKNOWN_OPTION(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_OPTION(422),
   /** The user referenced by the request does not exist (formerly 200). */
-  UNKNOWN_USER(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_USER(422),
 
   // ----- mobility choices -----
   /** The mobility choice already became a mobility (formerly 301 and 321). */
-  MOBILITY_CHOICE_ALREADY_CONFIRMED(HttpStatus.CONFLICT),
+  MOBILITY_CHOICE_ALREADY_CONFIRMED(409),
   /** The mobility choice was already cancelled or rejected (formerly 317). */
-  MOBILITY_CHOICE_CLOSED(HttpStatus.CONFLICT),
+  MOBILITY_CHOICE_CLOSED(409),
   /** A mobility choice cannot be confirmed before a partner is chosen (formerly 324). */
-  PARTNER_REQUIRED_TO_CONFIRM(HttpStatus.CONFLICT),
+  PARTNER_REQUIRED_TO_CONFIRM(409),
   /** A professor cannot apply for a mobility himself (formerly 322). */
-  PROFESSOR_CANNOT_APPLY(HttpStatus.UNPROCESSABLE_CONTENT),
+  PROFESSOR_CANNOT_APPLY(422),
   /** The partner is not in the country of the mobility choice (formerly 320). */
-  COUNTRY_CHANGE_NOT_ALLOWED(HttpStatus.UNPROCESSABLE_CONTENT),
+  COUNTRY_CHANGE_NOT_ALLOWED(422),
   /** The country referenced by the request does not exist (formerly 900). */
-  UNKNOWN_COUNTRY(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_COUNTRY(422),
   /** The programme referenced by the request does not exist (formerly 1000). */
-  UNKNOWN_PROGRAMME(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_PROGRAMME(422),
   /** The denial reason referenced by the request does not exist (formerly 134 and 400). */
-  UNKNOWN_DENIAL_REASON(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_DENIAL_REASON(422),
 
   // ----- mobilities -----
   /** The mobility was cancelled (formerly 501). */
-  MOBILITY_CANCELLED(HttpStatus.CONFLICT),
+  MOBILITY_CANCELLED(409),
   /** The mobility is closed (formerly 502). */
-  MOBILITY_CLOSED(HttpStatus.CONFLICT),
+  MOBILITY_CLOSED(409),
   /** Some departure documents are not filled in (formerly 503). */
-  DEPARTURE_DOCUMENTS_INCOMPLETE(HttpStatus.CONFLICT),
+  DEPARTURE_DOCUMENTS_INCOMPLETE(409),
   /** Some return documents are not filled in (formerly 504). */
-  RETURN_DOCUMENTS_INCOMPLETE(HttpStatus.CONFLICT),
+  RETURN_DOCUMENTS_INCOMPLETE(409),
   /** Some documents are not filled in (formerly 507). */
-  DOCUMENTS_INCOMPLETE(HttpStatus.CONFLICT),
+  DOCUMENTS_INCOMPLETE(409),
   /** The document is not one of the documents of the mobility (formerly 505). */
-  UNKNOWN_DOCUMENT(HttpStatus.UNPROCESSABLE_CONTENT),
+  UNKNOWN_DOCUMENT(422),
   /** The bank details of the nominated student are missing (formerly 506). */
-  INCOMPLETE_BANK_DETAILS(HttpStatus.CONFLICT),
+  INCOMPLETE_BANK_DETAILS(409),
   /** No payment can be requested in the current state of the mobility (formerly 110). */
-  PAYMENT_NOT_EXPECTED(HttpStatus.CONFLICT),
+  PAYMENT_NOT_EXPECTED(409),
   /** A professor must give a denial reason to cancel a mobility (formerly 130). */
-  DENIAL_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT),
+  DENIAL_REASON_REQUIRED(422),
   /** A student must explain why he cancels a mobility (formerly 130). */
-  CANCELLATION_REASON_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT),
+  CANCELLATION_REASON_REQUIRED(422),
 
   // ----- nominated students -----
   /** The personal data of the student were already recorded (formerly 618). */
-  ALREADY_NOMINATED(HttpStatus.CONFLICT),
+  ALREADY_NOMINATED(409),
 
   // ----- partners -----
   /** A partner with mobility choices cannot be archived (formerly 710). */
-  PARTNER_HAS_MOBILITY_CHOICES(HttpStatus.CONFLICT),
+  PARTNER_HAS_MOBILITY_CHOICES(409),
   /** Only an archived partner can be restored (formerly 711). */
-  PARTNER_NOT_ARCHIVED(HttpStatus.CONFLICT),
+  PARTNER_NOT_ARCHIVED(409),
   /** A partner must always offer at least one option (formerly 712). */
-  PARTNER_OPTION_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT);
+  PARTNER_OPTION_REQUIRED(422);
 
   /** Prefix of the problem {@code type} URIs. */
   public static final String TYPE_PREFIX = "urn:pae:problem:";
 
   private static final String MESSAGE_PREFIX = "problem.";
 
-  private final HttpStatus status;
+  private final int status;
 
-  ErrorCode(HttpStatus status) {
+  ErrorCode(int status) {
     this.status = status;
   }
 
-  /** The HTTP status of the responses carrying this error. */
-  public HttpStatus status() {
+  /** The HTTP status code of the responses carrying this error, e.g. {@code 409}. */
+  public int status() {
     return status;
   }
 

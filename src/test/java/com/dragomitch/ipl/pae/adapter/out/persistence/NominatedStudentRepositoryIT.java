@@ -55,7 +55,8 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsTheUserAndTheStudentColumns() {
-    NominatedStudent alice = inTransaction(() -> nominatedStudentRepository.findById(1001));
+    NominatedStudent alice =
+        inTransaction(() -> nominatedStudentRepository.findById(1001).orElse(null));
 
     // user part
     assertThat(alice.getId()).isEqualTo(1001);
@@ -87,7 +88,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {1002, 1003, 0, 99999})
   void findByIdReturnsNullForAUserWhoIsNotNominated(int id) {
-    assertThat(inTransaction(() -> nominatedStudentRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> nominatedStudentRepository.findById(id))).isEmpty();
   }
 
   @Test
@@ -128,7 +129,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("bank_name", "BNP Paribas Fortis")
           .containsEntry("bic", "GEBABEBB")
           .containsEntry("version", 1);
-      NominatedStudent found = nominatedStudentRepository.findById(1003);
+      NominatedStudent found = nominatedStudentRepository.findById(1003).orElse(null);
       assertThat(found.getFirstName()).isEqualTo("Chloé");
       assertThat(found.getNationality().getName()).isEqualTo("Canada");
     });
@@ -148,7 +149,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
       assertThat(queryForRow(STUDENT_BY_ID, 1002))
           .containsEntry("version", 3)
           .containsEntry("card_holder", "Bob Dupont");
-      assertThat(nominatedStudentRepository.findById(1002).getVersion()).isEqualTo(3);
+      assertThat(nominatedStudentRepository.findById(1002).orElseThrow().getVersion()).isEqualTo(3);
     });
   }
 
@@ -169,7 +170,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesTheStudentColumnsButNotTheAddressAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      NominatedStudent david = nominatedStudentRepository.findById(1004);
+      NominatedStudent david = nominatedStudentRepository.findById(1004).orElse(null);
       david.setTitle("M");
       david.setBirthdate(LocalDate.of(2000, 1, 1));
       david.getNationality().setCountryCode("DE");
@@ -208,7 +209,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
           "UPDATE student_exchange_tools.nominated_students SET version = NULL "
               + "WHERE user_id = 1004");
 
-      NominatedStudent david = nominatedStudentRepository.findById(1004);
+      NominatedStudent david = nominatedStudentRepository.findById(1004).orElse(null);
       assertThat(david.getVersion()).isZero();
       david.setPhoneNumber("+32 2 000 00 00");
       assertThatThrownBy(() -> nominatedStudentRepository.update(david))
@@ -220,7 +221,7 @@ class NominatedStudentRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      NominatedStudent stale = nominatedStudentRepository.findById(1004);
+      NominatedStudent stale = nominatedStudentRepository.findById(1004).orElse(null);
       stale.setVersion(1);
       stale.setBankName("Other");
 

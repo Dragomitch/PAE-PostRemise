@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The personal data of the students nominated for a mobility. */
@@ -48,8 +49,8 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
   }
 
   @Override
-  public NominatedStudent findById(int id) {
-    return students.findWithUserById(id).map(this::student).orElse(null);
+  public Optional<NominatedStudent> findById(int id) {
+    return students.findWithUserById(id).map(this::student);
   }
 
   @Override

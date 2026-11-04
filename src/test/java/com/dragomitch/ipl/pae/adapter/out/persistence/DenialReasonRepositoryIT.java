@@ -41,7 +41,7 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsIdAndReason() {
-    DenialReason reason = inTransaction(() -> denialReasonRepository.findById(1));
+    DenialReason reason = inTransaction(() -> denialReasonRepository.findById(1).orElse(null));
 
     assertThat(reason.getId()).isEqualTo(1);
     assertThat(reason.getReason()).isEqualTo(INITIAL_REASON);
@@ -50,7 +50,7 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {0, 2, -1})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> denialReasonRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> denialReasonRepository.findById(id))).isEmpty();
   }
 
   @Test
@@ -59,7 +59,7 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
       DenialReason created = denialReasonRepository.create(reason("Places insuffisantes"));
 
       assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
-      assertThat(denialReasonRepository.findById(created.getId()).getReason())
+      assertThat(denialReasonRepository.findById(created.getId()).orElseThrow().getReason())
           .isEqualTo("Places insuffisantes");
       assertThat(denialReasonRepository.findAll())
           .extracting(DenialReason::getId)
@@ -77,11 +77,12 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateReplacesTheReasonText() {
     runInTransaction(() -> {
-      DenialReason reason = denialReasonRepository.findById(1);
+      DenialReason reason = denialReasonRepository.findById(1).orElse(null);
       reason.setReason("Nouveau motif");
 
       assertThat(denialReasonRepository.update(reason)).isSameAs(reason);
-      assertThat(denialReasonRepository.findById(1).getReason()).isEqualTo("Nouveau motif");
+      assertThat(denialReasonRepository.findById(1).orElseThrow().getReason())
+          .isEqualTo("Nouveau motif");
     });
   }
 

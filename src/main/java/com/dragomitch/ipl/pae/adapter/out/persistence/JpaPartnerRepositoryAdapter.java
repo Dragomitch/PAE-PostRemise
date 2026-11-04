@@ -20,6 +20,7 @@ import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The partners hosting the mobilities, with the options they welcome. */
@@ -69,13 +70,13 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
   }
 
   @Override
-  public Partner findById(int id) {
+  public Optional<Partner> findById(int id) {
     List<PartnerEntity> found =
         entityManager
             .createQuery(SELECT + " WHERE p.id = :id", PartnerEntity.class)
             .setParameter("id", id)
             .getResultList();
-    return found.isEmpty() ? null : partner(found.get(0));
+    return found.stream().findFirst().map(this::partner);
   }
 
   /**
@@ -178,9 +179,9 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
     partner.setArchived(entity.isArchived());
     partner.setVersion(entity.getVersion());
     ProgrammeEntity programme = entity.getAddress().getCountry().getProgramme();
-    Programme programmeDto = mapper.programmeReference(programme.getId());
-    programmeDto.setProgrammeName(programme.getName());
-    partner.setProgramme(programmeDto);
+    Programme partnerProgramme = mapper.programmeReference(programme.getId());
+    partnerProgramme.setProgrammeName(programme.getName());
+    partner.setProgramme(partnerProgramme);
     partner.setOptions(
         new ArrayList<>(
             entity.getOptions().stream()

@@ -81,12 +81,9 @@ class PartnerServiceImpl implements PartnerService {
   @Override
   @Transactional(readOnly = true)
   public Partner showOne(int id) {
-    Partner partner = partnerRepository.findById(id);
-    if (partner == null) {
-      throw new ResourceNotFoundException();
-    }
-    partner.setAddress(addressRepository.findById(partner.getAddress().getId()));
-    partner.setProgramme(programmeRepository.findById(partner.getProgramme().getId()));
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    partner.setAddress(addressRepository.findById(partner.getAddress().getId()).orElse(null));
+    partner.setProgramme(programmeRepository.findById(partner.getProgramme().getId()).orElse(null));
     partner.setOptions(partnerOptionRepository.findAllOptionsByPartner(id));
     List<MobilityChoice> mobilityChoices = mobilityChoiceRepository.findByActivePartner(id);
     partner.setArchivable(mobilityChoices.isEmpty());
@@ -97,14 +94,8 @@ class PartnerServiceImpl implements PartnerService {
   @Transactional(readOnly = true)
   public List<Partner> showAll(
       PartnerFilter filter, @Nullable String value, Role userRole, int userId) {
-    String option;
-    User user;
-    if ((user = userRepository.findById(userId)) == null) {
-      throw new ResourceNotFoundException();
-    } else {
-      option = user.getOption().getCode();
-    }
-    return partnerRepository.findAll(filter, value, userRole, option);
+    User user = userRepository.findById(userId).orElseThrow(ResourceNotFoundException::new);
+    return partnerRepository.findAll(filter, value, userRole, user.getOption().getCode());
   }
 
   @Override
@@ -112,7 +103,7 @@ class PartnerServiceImpl implements PartnerService {
     if (userRole == Role.STUDENT) {
       throw new InsufficientPermissionException();
     }
-    if (partnerRepository.findById(id) == null) {
+    if (partnerRepository.findById(id).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     partner.setId(id);
@@ -121,7 +112,7 @@ class PartnerServiceImpl implements PartnerService {
         throw new BusinessException(ErrorCode.PARTNER_HAS_MOBILITY_CHOICES);
       }
     }
-    Partner partnerDb = partnerRepository.findById(partner.getId());
+    Partner partnerDb = partnerRepository.findById(partner.getId()).orElseThrow();
     List<PartnerOption> optionsDb =
         partnerOptionRepository.findAllOptionsByPartner(partnerDb.getId());
     List<PartnerOption> optionsToAdd = new LinkedList<PartnerOption>();
@@ -152,10 +143,7 @@ class PartnerServiceImpl implements PartnerService {
 
   @Override
   public void addOption(int id, PartnerOption partnerOption, int userId, Role userRole) {
-    Partner partner = partnerRepository.findById(id);
-    if (partner == null) {
-      throw new ResourceNotFoundException();
-    }
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (userRole != Role.PROFESSOR && (partner.isOfficial() || !usesPartner(userId, id))) {
       throw new InsufficientPermissionException();
     }
@@ -164,7 +152,7 @@ class PartnerServiceImpl implements PartnerService {
 
   /** Stores an option of a partner, after checking that the option exists. */
   private void createOption(int partnerId, PartnerOption partnerOption) {
-    if (optionRepository.findByCode(partnerOption.getCode()) == null) {
+    if (optionRepository.findByCode(partnerOption.getCode()).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_OPTION, partnerOption.getCode());
     }
     partnerOptionRepository.create(partnerOption, partnerId);
@@ -192,7 +180,7 @@ class PartnerServiceImpl implements PartnerService {
   @Override
   @Transactional(readOnly = true)
   public List<PartnerOption> findAllPartnerOption(int partnerId) {
-    if (partnerRepository.findById(partnerId) == null) {
+    if (partnerRepository.findById(partnerId).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     return partnerOptionRepository.findAllOptionsByPartner(partnerId);
@@ -200,10 +188,7 @@ class PartnerServiceImpl implements PartnerService {
 
   @Override
   public Partner restore(int id, Role role) {
-    Partner partner = null;
-    if ((partner = partnerRepository.findById(id)) == null) {
-      throw new ResourceNotFoundException();
-    }
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (!partner.isArchived()) {
       throw new BusinessException(ErrorCode.PARTNER_NOT_ARCHIVED);
     }

@@ -36,7 +36,8 @@ public class InMemoryMobilityDocumentRepository
       if (mobilityDocument.getMobilityId() == mobilityId) {
         docs.add(
             ((InMemoryDocumentRepository) documentRepository)
-                .findById(mobilityDocument.getDocumentId()));
+                .findById(mobilityDocument.getDocumentId())
+                .orElseThrow());
       }
     }
     return docs;

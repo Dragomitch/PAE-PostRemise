@@ -4,7 +4,6 @@ import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
@@ -14,6 +13,7 @@ import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,10 +69,7 @@ class UserServiceImpl implements UserService {
 
   @Override
   public void promoteToProfessor(int id) {
-    User user;
-    if ((user = userRepository.findById(id)) == null) {
-      throw new ResourceNotFoundException();
-    }
+    User user = userRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (user.getRole() == Role.STUDENT) {
       // the id is what the route gives: promote by id, with the version just read. Only the role
       // and the version are written; a stale version throws a ConcurrentModificationException
@@ -84,10 +81,7 @@ class UserServiceImpl implements UserService {
 
   @Override
   public User promoteToProfessorByUsername(String username) {
-    User user = userRepository.findBy(UserRepository.COLUMN_USERNAME, username);
-    if (user == null) {
-      throw new ResourceNotFoundException();
-    }
+    User user = userRepository.findByUsername(username).orElseThrow(ResourceNotFoundException::new);
     if (user.getRole() == Role.STUDENT) {
       user.setVersion(userRepository.promoteToProfessor(username, user.getVersion()));
       user.setRole(Role.PROFESSOR);
@@ -101,18 +95,16 @@ class UserServiceImpl implements UserService {
       throw new InsufficientPermissionException();
     }
     checkBusinessRules(user);
-    User existingUser = userRepository.findById(user.getId());
-    if (existingUser == null) {
-      throw new ResourceNotFoundException();
-    }
+    User existingUser =
+        userRepository.findById(user.getId()).orElseThrow(ResourceNotFoundException::new);
     user.setPassword(existingUser.getPassword());
     user.setRegistrationDate(existingUser.getRegistrationDate());
     user.setRole(existingUser.getRole());
     userRepository.update(user);
-    NominatedStudent nominatedStudent = nominatedStudentRepository.findById(user.getId());
-    if (nominatedStudent != null && nominatedStudent.getVersion() != user.getVersion()) {
-      nominatedStudentRepository.update(nominatedStudent);
-    }
+    nominatedStudentRepository
+        .findById(user.getId())
+        .filter(student -> student.getVersion() != user.getVersion())
+        .ifPresent(nominatedStudentRepository::update);
     return user;
   }
 
@@ -121,16 +113,18 @@ class UserServiceImpl implements UserService {
    * another account, the option exists.
    */
   private void checkBusinessRules(User user) {
-    User existingUser = userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername());
-    if (existingUser != null && existingUser.getId() != user.getId()) {
+    if (isAnotherUser(userRepository.findByUsername(user.getUsername()), user)) {
       throw new BusinessException(ErrorCode.USERNAME_TAKEN, user.getUsername());
     }
-    existingUser = userRepository.findBy(UserRepository.COLUMN_EMAIL, user.getEmail());
-    if (existingUser != null && existingUser.getId() != user.getId()) {
+    if (isAnotherUser(userRepository.findByEmail(user.getEmail()), user)) {
       throw new BusinessException(ErrorCode.EMAIL_TAKEN, user.getEmail());
     }
-    if (optionRepository.findByCode(user.getOption().getCode()) == null) {
+    if (optionRepository.findByCode(user.getOption().getCode()).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_OPTION, user.getOption().getCode());
     }
+  }
+
+  private static boolean isAnotherUser(Optional<User> found, User user) {
+    return found.filter(existing -> existing.getId() != user.getId()).isPresent();
   }
 }

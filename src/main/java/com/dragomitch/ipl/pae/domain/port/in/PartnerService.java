@@ -12,17 +12,17 @@ public interface PartnerService {
   /**
    * Create a partner.
    *
-   * @param partner : the partnerDto coming from the front-end
+   * @param partner : the partner coming from the front-end
    * @param userRole : the role of the user who wants to create a new partner
-   * @return the partnerDto that has just been created
+   * @return the partner that has just been created
    */
   Partner create(Partner partner, Role userRole);
 
   /**
-   * Find a partnerDto existing in the database.
+   * Find a partner existing in the database.
    *
    * @param id : the id of the partner we want to find
-   * @return the partnerDto found in the database
+   * @return the partner found in the database
    */
   Partner showOne(int id);
 
@@ -41,10 +41,10 @@ public interface PartnerService {
   /**
    * Edit a partner.
    *
-   * @param id : the id of the partnerDto we want to edit coming from the front-end.
-   * @param partner : the partnerDto containing the new data.
+   * @param id : the id of the partner we want to edit coming from the front-end.
+   * @param partner : the partner containing the new data.
    * @param userRole : the role of the user who wants to edit a partner.
-   * @return the partnerDto that has just been edited.
+   * @return the partner that has just been edited.
    */
   Partner edit(int id, Partner partner, Role userRole);
 
@@ -70,7 +70,7 @@ public interface PartnerService {
   /**
    * Find all options for a partner.
    *
-   * @param partnerId : the id of the partnerDto for which we want to find options
+   * @param partnerId : the id of the partner for which we want to find options
    * @return a list of options corresponding to a partner
    */
   List<PartnerOption> findAllPartnerOption(int partnerId);

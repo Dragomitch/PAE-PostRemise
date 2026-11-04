@@ -71,7 +71,9 @@ class QueryCountIT extends AbstractRepositoryIT {
         read(
             "MobilityChoiceRepository.findAll",
             it -> it.mobilityChoiceRepository.findAll(MobilityChoiceFilter.ALL)),
-        read("MobilityChoiceRepository.findById", it -> it.mobilityChoiceRepository.findById(5001)),
+        read(
+            "MobilityChoiceRepository.findById",
+            it -> it.mobilityChoiceRepository.findById(5001).orElse(null)),
         read(
             "MobilityChoiceRepository.findByUser",
             it -> it.mobilityChoiceRepository.findByUser(1001)),
@@ -79,7 +81,8 @@ class QueryCountIT extends AbstractRepositoryIT {
             "MobilityChoiceRepository.findByActivePartner",
             it -> it.mobilityChoiceRepository.findByActivePartner(3001)),
         read("MobilityRepository.findAll", it -> it.mobilityRepository.findAll()),
-        read("MobilityRepository.findById", it -> it.mobilityRepository.findById(5006)),
+        read(
+            "MobilityRepository.findById", it -> it.mobilityRepository.findById(5006).orElse(null)),
         read(
             "MobilityDocumentRepository.findAllByMobility",
             it -> it.mobilityDocumentRepository.findAllByMobility(5006)),
@@ -91,7 +94,7 @@ class QueryCountIT extends AbstractRepositoryIT {
         read(
             "PartnerRepository.findAll (student)",
             it -> it.partnerRepository.findAll(PartnerFilter.ALL, "", Role.STUDENT, "BIN")),
-        read("PartnerRepository.findById", it -> it.partnerRepository.findById(3001)),
+        read("PartnerRepository.findById", it -> it.partnerRepository.findById(3001).orElse(null)),
         read(
             "PartnerOptionRepository.findAllOptionsByPartner",
             it -> it.partnerOptionRepository.findAllOptionsByPartner(3001)),

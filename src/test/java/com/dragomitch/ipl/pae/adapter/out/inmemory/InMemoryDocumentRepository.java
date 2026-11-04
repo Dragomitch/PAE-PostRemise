@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryDocumentRepository implements DocumentRepository {
   private List<Document> documents;
@@ -56,11 +57,11 @@ public class InMemoryDocumentRepository implements DocumentRepository {
    * @param documentId the id to look for
    * @return null if no document found.
    */
-  public Document findById(int documentId) {
+  public Optional<Document> findById(int documentId) {
     if (documentId <= documents.size()) {
-      return documents.get(documentId - 1);
+      return Optional.ofNullable(documents.get(documentId - 1));
     }
-    return null;
+    return Optional.empty();
   }
 
   private Document buildDocument(int id, DocumentCategory category, String name) {

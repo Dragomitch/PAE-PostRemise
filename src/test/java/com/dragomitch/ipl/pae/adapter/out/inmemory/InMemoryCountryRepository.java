@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryCountryRepository implements CountryRepository {
 
@@ -31,11 +32,11 @@ public class InMemoryCountryRepository implements CountryRepository {
   }
 
   @Override
-  public Country findById(String countryCode) {
+  public Optional<Country> findById(String countryCode) {
     if (countries.containsKey(countryCode)) {
-      return countries.get(countryCode);
+      return Optional.ofNullable(countries.get(countryCode));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

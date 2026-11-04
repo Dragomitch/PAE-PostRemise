@@ -25,10 +25,8 @@ class CountryServiceImpl implements CountryService {
 
   @Override
   public Country showOne(String countryCode) {
-    Country country = countryRepository.findById(countryCode);
-    if (country == null) {
-      throw new ResourceNotFoundException();
-    }
+    Country country =
+        countryRepository.findById(countryCode).orElseThrow(ResourceNotFoundException::new);
     return country;
   }
 }

@@ -47,7 +47,8 @@ public class TestAddressService {
   public void testCreateTC1() {
     addressService.create(address);
     address.setId(1);
-    assertEquals(address.getId(), (addressRepository.findById(address.getId())).getId());
+    assertEquals(
+        address.getId(), (addressRepository.findById(address.getId()).orElse(null)).getId());
   }
 
   @Test
@@ -84,6 +85,6 @@ public class TestAddressService {
   public void testEditTC5() {
     addressService.create(address);
     addressService.edit(address);
-    assertEquals(2, addressRepository.findById(address.getId()).getVersion());
+    assertEquals(2, addressRepository.findById(address.getId()).orElseThrow().getVersion());
   }
 }

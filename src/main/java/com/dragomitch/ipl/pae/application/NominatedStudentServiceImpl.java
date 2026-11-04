@@ -55,12 +55,12 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
       throw new InsufficientPermissionException();
     }
     checkCountriesExist(nominatedStudent);
-    User user;
-    if ((user = userRepository.findById(nominatedStudent.getId())) == null) {
-      // user doesn't exist
-      throw new BusinessException(ErrorCode.UNKNOWN_USER, nominatedStudent.getId());
-    }
-    if (nominatedStudentRepository.findById(nominatedStudent.getId()) != null) {
+    User user =
+        userRepository
+            .findById(nominatedStudent.getId())
+            .orElseThrow(
+                () -> new BusinessException(ErrorCode.UNKNOWN_USER, nominatedStudent.getId()));
+    if (nominatedStudentRepository.findById(nominatedStudent.getId()).isPresent()) {
       // student already exists
       throw new BusinessException(ErrorCode.ALREADY_NOMINATED);
     }
@@ -76,12 +76,10 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
     if (role != Role.PROFESSOR && id != userId) {
       throw new InsufficientPermissionException();
     }
-    NominatedStudent nominatedStudent;
-    if ((nominatedStudent = nominatedStudentRepository.findById(id)) == null) {
-      throw new ResourceNotFoundException();
-    }
-    Address address = addressRepository.findById(nominatedStudent.getAddress().getId());
-    nominatedStudent.setAddress(address);
+    NominatedStudent nominatedStudent =
+        nominatedStudentRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    nominatedStudent.setAddress(
+        addressRepository.findById(nominatedStudent.getAddress().getId()).orElse(null));
     return nominatedStudent;
   }
 
@@ -97,10 +95,10 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
       throw new InsufficientPermissionException();
     }
     checkCountriesExist(nominatedStudent);
-    NominatedStudent tempStud = nominatedStudentRepository.findById(nominatedStudent.getId());
-    if (tempStud == null) {
-      throw new ResourceNotFoundException();
-    }
+    NominatedStudent tempStud =
+        nominatedStudentRepository
+            .findById(nominatedStudent.getId())
+            .orElseThrow(ResourceNotFoundException::new);
     nominatedStudent.defaultCardHolder();
     nominatedStudent.getAddress().setId(tempStud.getAddress().getId());
     nominatedStudent = nominatedStudentRepository.update(nominatedStudent);
@@ -117,7 +115,7 @@ class NominatedStudentServiceImpl implements NominatedStudentService {
         List.of(
             nominatedStudent.getNationality().getCountryCode(),
             nominatedStudent.getAddress().getCountry().getCountryCode())) {
-      if (countryRepository.findById(countryCode) == null) {
+      if (countryRepository.findById(countryCode).isEmpty()) {
         throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY, countryCode);
       }
     }

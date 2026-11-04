@@ -5,6 +5,7 @@ import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryDenialReasonRepository
     implements DenialReasonRepository, ResettableRepository {
@@ -22,11 +23,11 @@ public class InMemoryDenialReasonRepository
   }
 
   @Override
-  public DenialReason findById(int id) {
+  public Optional<DenialReason> findById(int id) {
     if (id > 0 && id <= denialReasons.size()) {
-      return denialReasons.get(id - 1);
+      return Optional.ofNullable(denialReasons.get(id - 1));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

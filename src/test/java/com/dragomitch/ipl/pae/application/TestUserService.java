@@ -49,7 +49,7 @@ public class TestUserService {
   public void testCreateTC1() {
     userService.signup(prof);
     prof.setId(1);
-    assertEquals(prof.getId(), (userRepository.findById(prof.getId())).getId());
+    assertEquals(prof.getId(), (userRepository.findById(prof.getId()).orElse(null)).getId());
   }
 
   @Test
@@ -132,7 +132,7 @@ public class TestUserService {
 
     userService.promoteToProfessor(student.getId());
 
-    User promoted = userRepository.findById(student.getId());
+    User promoted = userRepository.findById(student.getId()).orElse(null);
     assertEquals(Role.PROFESSOR, promoted.getRole());
     assertEquals(version + 1, promoted.getVersion());
   }
@@ -144,8 +144,8 @@ public class TestUserService {
 
     userService.promoteToProfessor(prof.getId());
 
-    assertEquals(Role.PROFESSOR, userRepository.findById(prof.getId()).getRole());
-    assertEquals(version, userRepository.findById(prof.getId()).getVersion());
+    assertEquals(Role.PROFESSOR, userRepository.findById(prof.getId()).orElseThrow().getRole());
+    assertEquals(version, userRepository.findById(prof.getId()).orElseThrow().getVersion());
   }
 
   @Test
@@ -158,7 +158,7 @@ public class TestUserService {
     assertEquals(student.getId(), promoted.getId());
     assertEquals(Role.PROFESSOR, promoted.getRole());
     assertEquals(version + 1, promoted.getVersion());
-    assertEquals(Role.PROFESSOR, userRepository.findById(student.getId()).getRole());
+    assertEquals(Role.PROFESSOR, userRepository.findById(student.getId()).orElseThrow().getRole());
   }
 
   @Test

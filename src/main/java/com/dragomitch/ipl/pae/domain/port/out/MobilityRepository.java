@@ -2,21 +2,9 @@ package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.model.Mobility;
 import java.util.List;
+import java.util.Optional;
 
 public interface MobilityRepository {
-
-  String TABLE_NAME = "mobilities";
-  String COLUMN_ID = "mobility_choice_id";
-  String COLUMN_SUBMISSION_DATE = "submission_date";
-  String COLUMN_STATE = "state";
-  String COLUMN_STATE_BEFORE_CANCELLATION = "state_before_cancellation";
-  String COLUMN_FIRST_PAYMENT_REQUEST_DATE = "first_payment_request_date";
-  String COLUMN_SECOND_PAYMENT_REQUEST_DATE = "second_payment_request_date";
-  String COLUMN_PRO_ECO_ENCODING = "pro_eco_encoding";
-  String COLUMN_SECOND_SOFTWARE_ENCODING = "second_software_encoding";
-  String COLUMN_STUDENT_CANCELLATION_REASON = "student_cancellation_reason";
-  String COLUMN_PROF_DENIAL_REASON = "prof_denial_reason";
-  String COLUMN_PROFESSOR_IN_CHARGE = "professor_in_charge";
 
   /**
    * Inserts a mobility in db.
@@ -30,9 +18,9 @@ public interface MobilityRepository {
    * Finds a mobility in db.
    *
    * @param id the mobility id to be found
-   * @return the mobility found, null if no mobility has been found
+   * @return the mobility, or empty if there is none
    */
-  Mobility findById(int id);
+  Optional<Mobility> findById(int id);
 
   /**
    * Lists all mobilities stored in db.

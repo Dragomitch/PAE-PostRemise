@@ -24,7 +24,7 @@ public interface MobilityChoiceService {
    * @param userId the id of the user connected.
    * @param userRole the role of the user who's sending the request.
    * @param filter a filter for the mobility choices to display
-   * @return A list with all the mobilityChoices in DataBase as mobilityChoicesDto's.
+   * @return A list with all the mobilityChoices in DataBase as mobilityChoices.
    */
   List<MobilityChoice> showAll(int userId, Role userRole, MobilityChoiceFilter filter);
 

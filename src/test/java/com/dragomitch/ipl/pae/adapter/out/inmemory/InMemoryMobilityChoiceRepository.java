@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryMobilityChoiceRepository
     implements MobilityChoiceRepository, ResettableRepository {
@@ -29,11 +30,11 @@ public class InMemoryMobilityChoiceRepository
   }
 
   @Override
-  public MobilityChoice findById(int mobilityChoiceId) {
+  public Optional<MobilityChoice> findById(int mobilityChoiceId) {
     if (mobilityChoiceId > 0 && mobilityChoiceId <= mobilityChoices.size()) {
-      return mobilityChoices.get((mobilityChoiceId - 1));
+      return Optional.ofNullable(mobilityChoices.get((mobilityChoiceId - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

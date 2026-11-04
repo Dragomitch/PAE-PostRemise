@@ -31,6 +31,7 @@ import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -86,7 +87,7 @@ class PartnerServiceImplTest {
 
   private void givenOptionsExist(String... codes) {
     for (String code : codes) {
-      when(optionRepository.findByCode(code)).thenReturn(new Option());
+      when(optionRepository.findByCode(code)).thenReturn(Optional.of(new Option()));
     }
   }
 
@@ -105,7 +106,7 @@ class PartnerServiceImplTest {
     Programme programme = new Programme();
     programme.setId(1);
     stored.setProgramme(programme);
-    when(partnerRepository.findById(PARTNER_ID)).thenReturn(stored);
+    when(partnerRepository.findById(PARTNER_ID)).thenReturn(Optional.of(stored));
     return stored;
   }
 
@@ -183,9 +184,9 @@ class PartnerServiceImplTest {
     void aPartnerIsArchivableWhenNoActiveChoiceUsesIt(int activeChoices, boolean archivable) {
       givenStoredPartner(true, false);
       Address address = dtos.getAddress();
-      when(addressRepository.findById(ADDRESS_ID)).thenReturn(address);
+      when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
       Programme programme = dtos.getProgramme();
-      when(programmeRepository.findById(1)).thenReturn(programme);
+      when(programmeRepository.findById(1)).thenReturn(Optional.of(programme));
       List<PartnerOption> options = List.of(option("BIN"));
       when(partnerOptionRepository.findAllOptionsByPartner(PARTNER_ID)).thenReturn(options);
       List<MobilityChoice> choices = new ArrayList<>();
@@ -215,7 +216,7 @@ class PartnerServiceImplTest {
     private void givenUserWithOption(String code) {
       User user = dtos.getUser(Role.STUDENT);
       user.getOption().setCode(code);
-      when(userRepository.findById(USER_ID)).thenReturn(user);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
     }
 
     @ParameterizedTest

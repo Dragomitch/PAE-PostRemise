@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryPartnerRepository implements PartnerRepository, ResettableRepository {
   private List<Partner> partners;
@@ -22,11 +23,11 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
   }
 
   @Override
-  public Partner findById(int id) {
+  public Optional<Partner> findById(int id) {
     if (id > 0 && id <= partners.size()) {
-      return partners.get((id - 1));
+      return Optional.ofNullable(partners.get((id - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

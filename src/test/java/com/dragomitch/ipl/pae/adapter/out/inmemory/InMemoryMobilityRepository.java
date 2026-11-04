@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class InMemoryMobilityRepository implements MobilityRepository, ResettableRepository {
@@ -36,17 +37,17 @@ public class InMemoryMobilityRepository implements MobilityRepository, Resettabl
   }
 
   @Override
-  public Mobility findById(int id) {
+  public Optional<Mobility> findById(int id) {
     for (Mobility curMobility : this.mobilities) {
       if (curMobility.getId() == id) {
-        MobilityChoice mobilityChoice = mobilityChoiceRepository.findById(id);
+        MobilityChoice mobilityChoice = mobilityChoiceRepository.findById(id).orElse(null);
         NominatedStudent student = new NominatedStudent();
         student.setId(mobilityChoice.getUser().getId());
         curMobility.setNominatedStudent(student);
-        return curMobility;
+        return Optional.ofNullable(curMobility);
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

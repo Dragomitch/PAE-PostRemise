@@ -6,11 +6,6 @@ import java.util.List;
 
 public interface PartnerOptionRepository {
 
-  String TABLE_NAME = "partner_options";
-  String COLUMN_OPTION_CODE = "option_code";
-  String COLUMN_PARTNER_ID = "partner_id";
-  String COLUMN_DEPARTEMENT = "departement";
-
   /**
    * Inserts a partner option into the database.
    *

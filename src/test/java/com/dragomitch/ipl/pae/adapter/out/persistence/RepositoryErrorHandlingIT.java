@@ -89,19 +89,19 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
   static Stream<Named<Consumer<Repositories>>> daoCalls() {
     return Stream.of(
         call("AddressRepository.create", d -> d.address().create(d.test().address())),
-        call("AddressRepository.findById", d -> d.address().findById(1)),
+        call("AddressRepository.findById", d -> d.address().findById(1).orElse(null)),
         call("AddressRepository.update", d -> d.address().update(d.test().address())),
-        call("CountryRepository.findById", d -> d.country().findById("BE")),
+        call("CountryRepository.findById", d -> d.country().findById("BE").orElse(null)),
         call("CountryRepository.findAll", d -> d.country().findAll()),
         call(
             "DenialReasonRepository.create", d -> d.denialReason().create(d.test().denialReason())),
-        call("DenialReasonRepository.findById", d -> d.denialReason().findById(1)),
+        call("DenialReasonRepository.findById", d -> d.denialReason().findById(1).orElse(null)),
         call("DenialReasonRepository.findAll", d -> d.denialReason().findAll()),
         call(
             "DenialReasonRepository.update", d -> d.denialReason().update(d.test().denialReason())),
         call("DocumentRepository.findAllByProgramme", d -> d.document().findAllByProgramme(1)),
         call("MobilityChoiceRepository.create", d -> d.mobilityChoice().create(d.test().choice())),
-        call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1)),
+        call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1).orElse(null)),
         call(
             "MobilityChoiceRepository.findAll",
             d -> d.mobilityChoice().findAll(MobilityChoiceFilter.ALL)),
@@ -112,7 +112,7 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
             d -> d.mobilityChoice().findByActivePartner(1)),
         call("MobilityChoiceRepository.update", d -> d.mobilityChoice().update(d.test().choice())),
         call("MobilityRepository.create", d -> d.mobility().create(d.test().mobility())),
-        call("MobilityRepository.findById", d -> d.mobility().findById(1)),
+        call("MobilityRepository.findById", d -> d.mobility().findById(1).orElse(null)),
         call("MobilityRepository.findAll", d -> d.mobility().findAll()),
         call("MobilityRepository.findByUser", d -> d.mobility().findByUser(1)),
         call("MobilityRepository.update", d -> d.mobility().update(d.test().mobility())),
@@ -126,15 +126,17 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call(
             "NominatedStudentRepository.create",
             d -> d.nominatedStudent().create(d.test().student())),
-        call("NominatedStudentRepository.findById", d -> d.nominatedStudent().findById(1)),
+        call(
+            "NominatedStudentRepository.findById",
+            d -> d.nominatedStudent().findById(1).orElse(null)),
         call("NominatedStudentRepository.findAll", d -> d.nominatedStudent().findAll()),
         call(
             "NominatedStudentRepository.update",
             d -> d.nominatedStudent().update(d.test().student())),
-        call("OptionRepository.findByCode", d -> d.option().findByCode("BIN")),
+        call("OptionRepository.findByCode", d -> d.option().findByCode("BIN").orElse(null)),
         call("OptionRepository.findAll", d -> d.option().findAll()),
         call("PartnerRepository.create", d -> d.partner().create(d.test().partner())),
-        call("PartnerRepository.findById", d -> d.partner().findById(1)),
+        call("PartnerRepository.findById", d -> d.partner().findById(1).orElse(null)),
         call(
             "PartnerRepository.findAll",
             d -> d.partner().findAll(PartnerFilter.ALL, null, Role.PROFESSOR, "BIN")),
@@ -149,12 +151,13 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
             "PartnerOptionRepository.findAllOptionsByPartner",
             d -> d.partnerOption().findAllOptionsByPartner(1)),
         call("PaymentRepository.findAll", d -> d.payment().findAll()),
-        call("ProgrammeRepository.findById", d -> d.programme().findById(1)),
+        call("ProgrammeRepository.findById", d -> d.programme().findById(1).orElse(null)),
         call("ProgrammeRepository.findAll", d -> d.programme().findAll()),
         call("UserRepository.create", d -> d.user().create(d.test().user())),
-        call("UserRepository.findById", d -> d.user().findById(1)),
+        call("UserRepository.findById", d -> d.user().findById(1).orElse(null)),
         call("UserRepository.findAll", d -> d.user().findAll()),
-        call("UserRepository.findBy", d -> d.user().findBy("username", "alice")),
+        call("UserRepository.findByUsername", d -> d.user().findByUsername("alice")),
+        call("UserRepository.findByEmail", d -> d.user().findByEmail("alice@student.test")),
         call("UserRepository.update", d -> d.user().update(d.test().user())),
         call("UserRepository.promoteToProfessor(id)", d -> d.user().promoteToProfessor(1, 1)),
         call(

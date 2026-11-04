@@ -8,7 +8,7 @@ public interface AddressService {
    * Create an Address Object in DataBase with the address data in parameter.
    *
    * @param address an Address containing the data for the address to be created.
-   * @return the addressDto object fully constructed from DataBase.
+   * @return the address object fully constructed from DataBase.
    */
   Address create(Address address);
 

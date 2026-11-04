@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * In-memory {@link NominatedStudentRepository} following the JDBC contract: a nominated student has
@@ -37,12 +38,12 @@ public class InMemoryNominatedStudentRepository
   }
 
   @Override
-  public NominatedStudent findById(int id) {
+  public Optional<NominatedStudent> findById(int id) {
     NominatedStudent student = nominatedStudents.get(id);
     if (student != null) {
       student.setVersion(versions.get(id));
     }
-    return student;
+    return Optional.ofNullable(student);
   }
 
   @Override

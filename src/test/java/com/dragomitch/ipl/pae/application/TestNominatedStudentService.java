@@ -53,7 +53,7 @@ public class TestNominatedStudentService {
     NominatedStudent created = nominatedStudentService.create(student, user.getId(), Role.STUDENT);
 
     assertEquals(3, created.getVersion(), "the returned version is the stored one");
-    assertEquals(3, nominatedStudentRepository.findById(user.getId()).getVersion());
+    assertEquals(3, nominatedStudentRepository.findById(user.getId()).orElseThrow().getVersion());
     userRepository.empty();
   }
 

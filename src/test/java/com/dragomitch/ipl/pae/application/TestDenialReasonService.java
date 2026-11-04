@@ -100,8 +100,9 @@ public class TestDenialReasonService {
     DenialReason edited = denialReasonService.edit(2, body);
 
     assertEquals(2, edited.getId());
-    assertEquals("no reason whatsoever", denialReasonRepository.findById(1).getReason());
-    assertEquals("Edited", denialReasonRepository.findById(2).getReason());
+    assertEquals(
+        "no reason whatsoever", denialReasonRepository.findById(1).orElseThrow().getReason());
+    assertEquals("Edited", denialReasonRepository.findById(2).orElseThrow().getReason());
   }
 
   @Test

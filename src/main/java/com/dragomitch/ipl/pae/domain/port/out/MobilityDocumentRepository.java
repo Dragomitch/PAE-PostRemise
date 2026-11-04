@@ -5,11 +5,6 @@ import java.util.List;
 
 public interface MobilityDocumentRepository {
 
-  String TABLE_NAME = "mobility_documents";
-  String COLUMN_DOCUMENT_ID = "document_id";
-  String COLUMN_MOBILITY_ID = "mobility_id";
-  String COLUMN_IS_FILLED_IN = "is_filled_in";
-
   /**
    * Inserts a mobility document into the database.
    *

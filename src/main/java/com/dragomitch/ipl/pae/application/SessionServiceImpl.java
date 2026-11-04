@@ -26,11 +26,13 @@ class SessionServiceImpl implements SessionService {
 
   @Override
   public User signin(String username, String password) {
-    User user = (User) userRepository.findBy(UserRepository.COLUMN_USERNAME, username);
-    if (user == null) {
-      logger.info("User not found in database");
-      throw new InvalidCredentialsException();
-    }
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> {
+              logger.info("User not found in database");
+              return new InvalidCredentialsException();
+            });
     if (!passwordEncoder.matches(password, user.getPassword())) {
       logger.info("Wrong password");
       throw new InvalidCredentialsException();
@@ -40,6 +42,6 @@ class SessionServiceImpl implements SessionService {
 
   @Override
   public User showAuthenticatedUser(int id) {
-    return userRepository.findById(id);
+    return userRepository.findById(id).orElse(null);
   }
 }

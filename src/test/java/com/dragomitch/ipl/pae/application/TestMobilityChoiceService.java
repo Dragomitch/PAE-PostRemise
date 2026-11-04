@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryDenialReasonRepository;
@@ -87,7 +88,7 @@ public class TestMobilityChoiceService {
     userRepository.create(userStud);
     denialReason = mockDtoFactory.getDenialReason();
     denialReasonRepository.create(denialReason);
-    country = countryRepository.findById("GB");
+    country = countryRepository.findById("GB").orElse(null);
   }
 
   /** Cleans up the 'database'. */
@@ -505,7 +506,7 @@ public class TestMobilityChoiceService {
 
     mobilityChoiceService.confirm(mobilityChoice.getId(), userProf.getId());
 
-    assertNotNull(mobilityRepository.findById(mobilityChoice.getId()));
+    assertTrue(mobilityRepository.findById(mobilityChoice.getId()).isPresent());
     assertNull(cancelled.getDenialReason(), "the cancelled choice is not rejected on top");
     assertEquals(CANCELLATION_REASON, cancelled.getCancellationReason());
     assertNotNull(open.getDenialReason(), "the other open choice of the term is rejected");
@@ -608,7 +609,7 @@ public class TestMobilityChoiceService {
     mobilityChoiceService.confirmWithNewPartner(
         mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole());
     assertNotNull(
-        mobilityRepository.findById(mobilityChoice.getId()),
+        mobilityRepository.findById(mobilityChoice.getId()).orElse(null),
         "The mobility choice must be confirmed");
     assertEquals(newPartner.getId(), mobilityChoice.getPartner().getId());
   }
@@ -625,7 +626,7 @@ public class TestMobilityChoiceService {
             mobilityChoiceService.confirmWithNewPartner(
                 mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole())));
     assertNull(
-        mobilityRepository.findById(mobilityChoice.getId()),
+        mobilityRepository.findById(mobilityChoice.getId()).orElse(null),
         "The mobility choice must stay unconfirmed");
     assertEquals("IE", mobilityChoice.getCountry().getCountryCode());
   }
@@ -640,6 +641,6 @@ public class TestMobilityChoiceService {
         mobilityChoice.getId(), newPartner, userProf.getId(), userProf.getRole());
 
     assertEquals("GB", mobilityChoice.getCountry().getCountryCode());
-    assertNotNull(mobilityRepository.findById(mobilityChoice.getId()));
+    assertTrue(mobilityRepository.findById(mobilityChoice.getId()).isPresent());
   }
 }

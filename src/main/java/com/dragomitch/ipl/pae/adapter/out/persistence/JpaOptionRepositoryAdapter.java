@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.repository.OptionJpaReposi
 import com.dragomitch.ipl.pae.domain.model.Option;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The study options of the school (reference data). */
@@ -19,8 +20,8 @@ class JpaOptionRepositoryAdapter implements OptionRepository {
   }
 
   @Override
-  public Option findByCode(String code) {
-    return options.findById(code).map(mapper::option).orElse(null);
+  public Optional<Option> findByCode(String code) {
+    return options.findById(code).map(mapper::option);
   }
 
   /** In the order of {@code init.sql}. */

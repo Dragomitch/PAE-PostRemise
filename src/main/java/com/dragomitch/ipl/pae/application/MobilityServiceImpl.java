@@ -90,11 +90,9 @@ class MobilityServiceImpl implements MobilityService {
       throw new InsufficientPermissionException();
     }
     mobility.setDocuments(mobilityDocumentRepository.findAllByMobility(mobility.getId()));
-    NominatedStudent student =
-        nominatedStudentRepository.findById(mobility.getNominatedStudent().getId());
-    if (student != null) {
-      mobility.setNominatedStudent(student);
-    }
+    nominatedStudentRepository
+        .findById(mobility.getNominatedStudent().getId())
+        .ifPresent(mobility::setNominatedStudent);
     // the choice may have had no partner, and the professor in charge may be unknown
     if (mobility.getPartner() != null) {
       mobility.setPartner(partnerService.showOne(mobility.getPartner().getId()));
@@ -103,7 +101,7 @@ class MobilityServiceImpl implements MobilityService {
     // a mobility confirmed with a new partner has no professor in charge
     if (mobility.getProfessorInCharge() != null) {
       mobility.setProfessorInCharge(
-          userRepository.findById(mobility.getProfessorInCharge().getId()));
+          userRepository.findById(mobility.getProfessorInCharge().getId()).orElse(null));
     }
     return mobility;
   }
@@ -171,13 +169,10 @@ class MobilityServiceImpl implements MobilityService {
     if (!firstPayment && !secondPayment) {
       throw new BusinessException(ErrorCode.PAYMENT_NOT_EXPECTED);
     }
-    NominatedStudent nominatedStudent;
-    if ((nominatedStudent =
-            (NominatedStudent)
-                nominatedStudentRepository.findById(mobility.getNominatedStudent().getId()))
-        == null) {
-      throw new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS);
-    }
+    NominatedStudent nominatedStudent =
+        nominatedStudentRepository
+            .findById(mobility.getNominatedStudent().getId())
+            .orElseThrow(() -> new BusinessException(ErrorCode.INCOMPLETE_BANK_DETAILS));
     nominatedStudent.checkBankDetails();
     if (firstPayment) {
       mobility.setFirstPaymentRequestDate(LocalDateTime.now(clock));
@@ -259,10 +254,11 @@ class MobilityServiceImpl implements MobilityService {
       if (denialReasonId <= 0) {
         throw new BusinessException(ErrorCode.DENIAL_REASON_REQUIRED);
       }
-      DenialReason denialReason = (DenialReason) denialReasonRepository.findById(denialReasonId);
-      if (denialReason == null) {
-        throw new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, denialReasonId);
-      }
+      DenialReason denialReason =
+          denialReasonRepository
+              .findById(denialReasonId)
+              .orElseThrow(
+                  () -> new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, denialReasonId));
       mobility.setDenialReason(denialReason);
     } else {
       if (!StringUtils.hasText(cancellationReason)) {
@@ -325,7 +321,7 @@ class MobilityServiceImpl implements MobilityService {
   }
 
   /**
-   * Construct a table of strings to represent the mobilityDto to serialize.
+   * Construct a table of strings to represent the mobility to serialize.
    *
    * @param mobility the mobility to serialize
    * @return a table of strings serializable.
@@ -350,10 +346,8 @@ class MobilityServiceImpl implements MobilityService {
    * @return a Mobility for the id passed in parameter.
    */
   private Mobility getMobility(int mobilityId) {
-    Mobility mobility = null;
-    if ((mobility = (Mobility) mobilityRepository.findById(mobilityId)) == null) {
-      throw new ResourceNotFoundException();
-    }
+    Mobility mobility =
+        mobilityRepository.findById(mobilityId).orElseThrow(ResourceNotFoundException::new);
     return mobility;
   }
 }

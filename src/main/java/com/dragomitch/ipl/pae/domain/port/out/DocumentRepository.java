@@ -5,12 +5,6 @@ import java.util.List;
 
 public interface DocumentRepository {
 
-  String TABLE_NAME = "documents";
-  String COLUMN_ID = "document_id";
-  String COLUMN_NAME = "name";
-  String COLUMN_CATEGORY = "category";
-  String COLUMN_PROGRAMME_ID = "programme_id";
-
   /**
    * Queries the database for all documents corresponding to a programme.
    *

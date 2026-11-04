@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The mobility choices the students submit, in their order of preference. */
@@ -88,10 +89,10 @@ class JpaMobilityChoiceRepositoryAdapter implements MobilityChoiceRepository {
 
   /** The choice, whether it became a mobility or not. */
   @Override
-  public MobilityChoice findById(int mobilityChoiceId) {
+  public Optional<MobilityChoice> findById(int mobilityChoiceId) {
     List<MobilityChoiceEntity> found =
         where("c.id = :id").setParameter("id", mobilityChoiceId).getResultList();
-    return found.isEmpty() ? null : choice(found.get(0));
+    return found.stream().findFirst().map(this::choice);
   }
 
   /** The choices of the student that did not become mobilities. */

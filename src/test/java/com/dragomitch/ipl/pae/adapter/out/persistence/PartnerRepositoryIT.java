@@ -63,7 +63,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryFieldAndJoinsCountryAndProgramme() {
-    Partner partner = inTransaction(() -> partnerRepository.findById(3001));
+    Partner partner = inTransaction(() -> partnerRepository.findById(3001).orElse(null));
 
     assertThat(partner.getId()).isEqualTo(3001);
     assertThat(partner.getLegalName()).isEqualTo("Université Lyon SA");
@@ -91,7 +91,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdFindsAPartnerWithoutAnyOptionWithAnEmptyOptionList() {
-    Partner orphan = inTransaction(() -> partnerRepository.findById(3005));
+    Partner orphan = inTransaction(() -> partnerRepository.findById(3005).orElse(null));
 
     assertThat(orphan.getFullName()).isEqualTo("Orphan Partner");
     assertThat(orphan.getAddress().getCountry().getCountryCode()).isEqualTo("FR");
@@ -101,15 +101,15 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void findByIdMapsArchivedAndUnofficialFlags() {
     runInTransaction(() -> {
-      assertThat(partnerRepository.findById(3002).isArchived()).isTrue();
-      assertThat(partnerRepository.findById(3003).isOfficial()).isFalse();
+      assertThat(partnerRepository.findById(3002).orElseThrow().isArchived()).isTrue();
+      assertThat(partnerRepository.findById(3003).orElseThrow().isOfficial()).isFalse();
     });
   }
 
   @ParameterizedTest
   @ValueSource(ints = {0, -1, 2999, 3006})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> partnerRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> partnerRepository.findById(id))).isEmpty();
   }
 
   @Test
@@ -135,13 +135,13 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("version", 1);
 
       // visible before it has an option
-      assertThat(partnerRepository.findById(created.getId()).getOptions()).isEmpty();
+      assertThat(partnerRepository.findById(created.getId()).orElseThrow().getOptions()).isEmpty();
       PartnerOption option = new PartnerOption();
       option.setCode("BIN");
       option.setDepartement("Informatique");
       partnerOptionRepository.create(option, created.getId());
 
-      Partner found = partnerRepository.findById(created.getId());
+      Partner found = partnerRepository.findById(created.getId()).orElse(null);
       assertThat(found.getFullName()).isEqualTo("Gent Technology Institute");
       assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erabel");
       assertThat(found.getOptions()).extracting(PartnerOption::getCode).containsExactly("BIN");
@@ -151,7 +151,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesEveryFieldIncludingTheArchiveFlagAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      Partner partner = partnerRepository.findById(3001);
+      Partner partner = partnerRepository.findById(3001).orElse(null);
       partner.setLegalName("Lyon 2");
       partner.setBusinessName("L2");
       partner.setFullName("Université Lumière Lyon 2");
@@ -192,7 +192,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
       Partner created = partnerRepository.create(partner);
 
       assertThat(queryForRow(PARTNER_BY_ID, created.getId())).containsEntry("website", "");
-      Partner found = partnerRepository.findById(created.getId());
+      Partner found = partnerRepository.findById(created.getId()).orElse(null);
       assertThat(found.getWebsite()).isEmpty();
       found.setWebsite(null);
       partnerRepository.update(found);
@@ -203,7 +203,7 @@ class PartnerRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      Partner stale = partnerRepository.findById(3001);
+      Partner stale = partnerRepository.findById(3001).orElse(null);
       stale.setVersion(1);
       stale.setArchived(true);
 

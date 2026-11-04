@@ -82,7 +82,7 @@ public class TestMobilityService {
     assertThrows(
         BusinessException.class,
         () -> {
-          Mobility mobility = mobilityRepository.findById(1);
+          Mobility mobility = mobilityRepository.findById(1).orElse(null);
           mobility.setState(MobilityState.CANCELLED);
           mobilityService.confirmProEcoEncoding(1, 1);
         });
@@ -91,7 +91,7 @@ public class TestMobilityService {
   @Test
   public void testConfirmProEcoEncodingTC3() {
     mobilityService.confirmProEcoEncoding(1, 1);
-    Mobility mobility = mobilityRepository.findById(1);
+    Mobility mobility = mobilityRepository.findById(1).orElse(null);
     assertTrue(mobility.isEncodedInProEco());
   }
 
@@ -109,7 +109,7 @@ public class TestMobilityService {
     assertThrows(
         BusinessException.class,
         () -> {
-          Mobility mobility = mobilityRepository.findById(1);
+          Mobility mobility = mobilityRepository.findById(1).orElse(null);
           mobility.setState(MobilityState.CANCELLED);
           mobilityService.confirmSecondSoftwareEncoding(1, 1);
         });
@@ -118,7 +118,7 @@ public class TestMobilityService {
   @Test
   public void testConfirmSecondSoftwareEncodingTC3() {
     mobilityService.confirmSecondSoftwareEncoding(1, 1);
-    Mobility mobility = mobilityRepository.findById(1);
+    Mobility mobility = mobilityRepository.findById(1).orElse(null);
     assertTrue(mobility.isEncodedInSecondSoftware());
   }
 
@@ -175,7 +175,8 @@ public class TestMobilityService {
 
   //  @Test(expected = InsufficientPermissionException.class)
   //  public void testCancelTC9() {
-  //    // System.out.println(mobilityRepository.findById(1).getNominatedStudent().getId());
+  //    //
+  // System.out.println(mobilityRepository.findById(1).orElseThrow().getNominatedStudent().getId());
   //    // // TODO continuer
   //    //Mobility mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 3,
   // Role.STUDENT);

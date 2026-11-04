@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryProgrammeRepository implements ProgrammeRepository {
 
@@ -20,11 +21,11 @@ public class InMemoryProgrammeRepository implements ProgrammeRepository {
   }
 
   @Override
-  public Programme findById(int id) {
+  public Optional<Programme> findById(int id) {
     if (id > 0 && id <= programmes.size()) {
-      return programmes.get((id - 1));
+      return Optional.ofNullable(programmes.get((id - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

@@ -8,6 +8,7 @@ import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ConcurrentModificationException;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The postal addresses of the partners and of the nominated students. */
@@ -37,8 +38,8 @@ class JpaAddressRepositoryAdapter implements AddressRepository {
   }
 
   @Override
-  public Address findById(int id) {
-    return addresses.findWithCountryById(id).map(mapper::address).orElse(null);
+  public Optional<Address> findById(int id) {
+    return addresses.findWithCountryById(id).map(mapper::address);
   }
 
   /**

@@ -2,32 +2,15 @@ package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.model.User;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository {
-
-  String TABLE_NAME = "users";
-  String COLUMN_ID = "user_id";
-  String COLUMN_USERNAME = "username";
-  String COLUMN_LAST_NAME = "last_name";
-  String COLUMN_FIRST_NAME = "first_name";
-  String COLUMN_EMAIL = "email";
-  String COLUMN_PASSWORD = "password";
-  String COLUMN_ROLE = "role";
-  String COLUMN_OPTION = "option";
-  String COLUMN_REGISTRATION_DATE = "registration_date";
-  String COLUMN_VERSION = "version";
-
-  int USERNAME_MAX_LENGTH = 20;
-  int LAST_NAME_MAX_LENGTH = 35;
-  int FIRST_NAME_MAX_LENGTH = 35;
-  int EMAIL_MAX_LENGTH = 255;
-  int PASSWORD_MAX_LENGTH = 255;
 
   /**
    * Inserts a user into the database.
    *
    * @param user the user to be inserted in the database
-   * @return the userDto inserted into the DB.
+   * @return the user inserted into the DB.
    */
   User create(User user);
 
@@ -35,9 +18,10 @@ public interface UserRepository {
    * Retrieve a user with the id passed in parameter.
    *
    * @param id the id of the User we want to retrieve from the Database.
-   * @return the User corresponding to the user row having the param id as id.
+   * @return the User corresponding to the user row having the param id as id, or empty if there is
+   *     none
    */
-  User findById(int id);
+  Optional<User> findById(int id);
 
   /**
    * Queries the database for all users.
@@ -47,13 +31,20 @@ public interface UserRepository {
   List<User> findAll();
 
   /**
-   * Queries the database for a tuple matching a certain condition.
+   * The user having that username, compared exactly (case-sensitively).
    *
-   * @param columnName the column to be used in the SQL query
-   * @param columnValue the comparison value
-   * @return first result found that meets the conditions.
+   * @param username the username
+   * @return the user, or empty if no user has that username
    */
-  User findBy(String columnName, String columnValue);
+  Optional<User> findByUsername(String username);
+
+  /**
+   * The user having that email address, compared exactly (case-sensitively).
+   *
+   * @param email the email address
+   * @return the user, or empty if no user has that address
+   */
+  Optional<User> findByEmail(String email);
 
   /**
    * Changes the role of the user having that id to 'professor' and increments its version, with

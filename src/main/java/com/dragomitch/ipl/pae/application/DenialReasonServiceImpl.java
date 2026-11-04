@@ -32,7 +32,7 @@ class DenialReasonServiceImpl implements DenialReasonService {
 
   @Override
   public DenialReason edit(int id, DenialReason denialReason) {
-    if (denialReasonRepository.findById(id) == null) {
+    if (denialReasonRepository.findById(id).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     denialReason.setId(id);

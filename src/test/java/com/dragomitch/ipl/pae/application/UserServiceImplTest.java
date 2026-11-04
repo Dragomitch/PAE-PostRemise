@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ class UserServiceImplTest {
   }
 
   private void givenOptionExists(String code) {
-    when(optionRepository.findByCode(code)).thenReturn(new Option());
+    when(optionRepository.findByCode(code)).thenReturn(Optional.of(new Option()));
   }
 
   @Nested
@@ -105,8 +106,8 @@ class UserServiceImplTest {
     @Test
     void theUsernameMustBeFree() {
       User user = newUser();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername()))
-          .thenReturn(user(USER_ID, Role.STUDENT));
+      when(userRepository.findByUsername(user.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.signup(user))
           .hasErrorCode(ErrorCode.USERNAME_TAKEN)
@@ -117,10 +118,9 @@ class UserServiceImplTest {
     @Test
     void theEmailMustBeFree() {
       User user = newUser();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername()))
-          .thenReturn(null);
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, user.getEmail()))
-          .thenReturn(user(USER_ID, Role.STUDENT));
+      when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
+      when(userRepository.findByEmail(user.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.signup(user))
           .hasErrorCode(ErrorCode.EMAIL_TAKEN)
@@ -156,7 +156,7 @@ class UserServiceImplTest {
     void aStudentBecomesAProfessorWithTheVersionOfTheRepository() {
       User student = user(USER_ID, Role.STUDENT);
       student.setVersion(4);
-      when(userRepository.findById(USER_ID)).thenReturn(student);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USER_ID, 4)).thenReturn(5);
 
       userService.promoteToProfessor(USER_ID);
@@ -169,7 +169,8 @@ class UserServiceImplTest {
 
     @Test
     void promotingAProfessorWritesNothing() {
-      when(userRepository.findById(PROFESSOR_ID)).thenReturn(user(PROFESSOR_ID, Role.PROFESSOR));
+      when(userRepository.findById(PROFESSOR_ID))
+          .thenReturn(Optional.of(user(PROFESSOR_ID, Role.PROFESSOR)));
 
       userService.promoteToProfessor(PROFESSOR_ID);
 
@@ -187,7 +188,7 @@ class UserServiceImplTest {
     @Test
     void aStaleVersionIsAConcurrentModification() {
       User student = user(USER_ID, Role.STUDENT);
-      when(userRepository.findById(USER_ID)).thenReturn(student);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USER_ID, student.getVersion()))
           .thenThrow(new ConcurrentModificationException());
 
@@ -206,7 +207,7 @@ class UserServiceImplTest {
     void aStudentBecomesAProfessorAndIsReturned() {
       User student = user(USER_ID, Role.STUDENT);
       student.setVersion(2);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USERNAME, 2)).thenReturn(3);
 
       User promoted = userService.promoteToProfessorByUsername(USERNAME);
@@ -219,7 +220,7 @@ class UserServiceImplTest {
     @Test
     void aProfessorIsReturnedUnchanged() {
       User professor = user(PROFESSOR_ID, Role.PROFESSOR);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(professor);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(professor));
 
       assertThat(userService.promoteToProfessorByUsername(USERNAME)).isSameAs(professor);
       verify(userRepository, never()).promoteToProfessor(anyString(), anyInt());
@@ -235,7 +236,7 @@ class UserServiceImplTest {
     @Test
     void aStaleVersionIsAConcurrentModification() {
       User student = user(USER_ID, Role.STUDENT);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USERNAME, student.getVersion()))
           .thenThrow(new ConcurrentModificationException());
 
@@ -252,7 +253,7 @@ class UserServiceImplTest {
       User stored = user(USER_ID, role);
       stored.setPassword("$2a$stored-hash");
       stored.setRegistrationDate(REGISTERED);
-      when(userRepository.findById(USER_ID)).thenReturn(stored);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(stored));
       return stored;
     }
 
@@ -298,10 +299,10 @@ class UserServiceImplTest {
     @Test
     void theOwnUsernameAndEmailMayBeKept() {
       User request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(user(USER_ID, Role.STUDENT));
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
-          .thenReturn(user(USER_ID, Role.STUDENT));
+      when(userRepository.findByUsername(request.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
+      when(userRepository.findByEmail(request.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
       givenOptionExists("BIN");
       givenStoredUser(Role.STUDENT);
 
@@ -317,7 +318,7 @@ class UserServiceImplTest {
       NominatedStudent student = new NominatedStudent();
       student.setId(USER_ID);
       student.setVersion(1);
-      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
+      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(Optional.of(student));
 
       userService.edit(request, USER_ID, Role.STUDENT);
 
@@ -333,7 +334,7 @@ class UserServiceImplTest {
       // already at the version the user row gets
       student.setVersion(request.getVersion() + 1);
       givenUpdateIncrementsTheVersion();
-      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
+      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(Optional.of(student));
 
       userService.edit(request, USER_ID, Role.STUDENT);
 
@@ -350,8 +351,8 @@ class UserServiceImplTest {
     @Test
     void theUsernameOfAnotherAccountIsTaken() {
       User request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(user(USER_ID + 1, Role.STUDENT));
+      when(userRepository.findByUsername(request.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID + 1, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.USERNAME_TAKEN);
@@ -361,10 +362,9 @@ class UserServiceImplTest {
     @Test
     void theEmailOfAnotherAccountIsTaken() {
       User request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(null);
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
-          .thenReturn(user(USER_ID + 1, Role.STUDENT));
+      when(userRepository.findByUsername(request.getUsername())).thenReturn(Optional.empty());
+      when(userRepository.findByEmail(request.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID + 1, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.EMAIL_TAKEN);

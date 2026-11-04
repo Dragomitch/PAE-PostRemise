@@ -34,17 +34,15 @@ class AddressServiceImpl implements AddressService {
   @Override
   public Address edit(Address address) {
     checkCountryExists(address);
-    Address addressDb = addressRepository.findById(address.getId());
-    if (addressDb == null) {
-      throw new ResourceNotFoundException();
-    }
+    Address addressDb =
+        addressRepository.findById(address.getId()).orElseThrow(ResourceNotFoundException::new);
     address.setVersion(addressDb.getVersion());
     return addressRepository.update(address);
   }
 
   private void checkCountryExists(Address address) {
     String countryCode = address.getCountry().getCountryCode();
-    if (countryRepository.findById(countryCode) == null) {
+    if (countryRepository.findById(countryCode).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_COUNTRY, countryCode);
     }
   }

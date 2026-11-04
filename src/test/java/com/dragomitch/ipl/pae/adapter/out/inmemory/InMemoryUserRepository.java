@@ -6,6 +6,7 @@ import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryUserRepository implements UserRepository, ResettableRepository {
 
@@ -23,11 +24,11 @@ public class InMemoryUserRepository implements UserRepository, ResettableReposit
   }
 
   @Override
-  public User findById(int id) {
+  public Optional<User> findById(int id) {
     if (id > 0 && id <= users.size()) {
-      return users.get((id - 1));
+      return Optional.ofNullable(users.get((id - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
@@ -36,30 +37,23 @@ public class InMemoryUserRepository implements UserRepository, ResettableReposit
   }
 
   @Override
-  public User findBy(String columnName, String columnValue) {
-    for (int i = 0; i < users.size(); i++) {
-      if (columnName.equals(COLUMN_USERNAME)) {
-        if (users.get(i).getUsername().equals(columnValue)) {
-          return users.get(i);
-        }
-      }
-      if (columnName.equals(COLUMN_EMAIL)) {
-        if (users.get(i).getEmail().equals(columnValue)) {
-          return users.get(i);
-        }
-      }
-    }
-    return null;
+  public Optional<User> findByUsername(String username) {
+    return users.stream().filter(user -> user.getUsername().equals(username)).findFirst();
+  }
+
+  @Override
+  public Optional<User> findByEmail(String email) {
+    return users.stream().filter(user -> user.getEmail().equals(email)).findFirst();
   }
 
   @Override
   public int promoteToProfessor(int userId, int expectedVersion) {
-    return promote(findById(userId), expectedVersion);
+    return promote(findById(userId).orElse(null), expectedVersion);
   }
 
   @Override
   public int promoteToProfessor(String username, int expectedVersion) {
-    return promote(findBy(COLUMN_USERNAME, username), expectedVersion);
+    return promote(findByUsername(username).orElse(null), expectedVersion);
   }
 
   private int promote(User user, int expectedVersion) {

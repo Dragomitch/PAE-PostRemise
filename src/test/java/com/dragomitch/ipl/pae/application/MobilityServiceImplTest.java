@@ -36,6 +36,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -127,7 +128,7 @@ class MobilityServiceImplTest {
 
   private Mobility givenMobility(MobilityState state) {
     Mobility mobility = storedMobility(state);
-    when(mobilityRepository.findById(MOBILITY_ID)).thenReturn(mobility);
+    when(mobilityRepository.findById(MOBILITY_ID)).thenReturn(Optional.of(mobility));
     return mobility;
   }
 
@@ -224,13 +225,13 @@ class MobilityServiceImplTest {
       List<Document> documents = List.of(document(1, DocumentCategory.DEPARTURE, true));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID)).thenReturn(documents);
       NominatedStudent student = nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB");
-      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(student);
+      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(student));
       Partner partner = new Partner();
       when(partnerService.showOne(PARTNER_ID)).thenReturn(partner);
       Programme programme = new Programme();
       when(programmeService.showOne(PROGRAMME_ID)).thenReturn(programme);
       User professor = new User();
-      when(userRepository.findById(PROFESSOR_ID)).thenReturn(professor);
+      when(userRepository.findById(PROFESSOR_ID)).thenReturn(Optional.of(professor));
 
       Mobility shown = mobilityService.showOne(MOBILITY_ID, role, requester);
 
@@ -391,7 +392,7 @@ class MobilityServiceImplTest {
     void theFirstPaymentPutsTheMobilityInProgress() {
       Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
-          .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
+          .thenReturn(Optional.of(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB")));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID))
           .thenReturn(
               List.of(
@@ -414,7 +415,7 @@ class MobilityServiceImplTest {
       LocalDateTime firstPayment = LocalDateTime.of(2016, 9, 1, 12, 0);
       mobility.setFirstPaymentRequestDate(firstPayment);
       when(nominatedStudentRepository.findById(STUDENT_ID))
-          .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
+          .thenReturn(Optional.of(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB")));
       givenUpdateSucceeds();
 
       Mobility paid = mobilityService.confirmPayment(MOBILITY_ID, VERSION);
@@ -431,7 +432,7 @@ class MobilityServiceImplTest {
       // "En cours" would then be a dead end, no document being left to fill in
       Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
-          .thenReturn(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB"));
+          .thenReturn(Optional.of(nominatedStudent("BE68539007547034", "Belfius", "GKCCBEBB")));
       when(mobilityDocumentRepository.findAllByMobility(MOBILITY_ID))
           .thenReturn(
               List.of(
@@ -519,7 +520,7 @@ class MobilityServiceImplTest {
     void theBankDetailsMustBeComplete(String iban, String bankName, String bic) {
       Mobility mobility = givenMobility(MobilityState.TO_BE_PAID);
       when(nominatedStudentRepository.findById(STUDENT_ID))
-          .thenReturn(nominatedStudent(iban, bankName, bic));
+          .thenReturn(Optional.of(nominatedStudent(iban, bankName, bic)));
 
       assertThat(Violations.errorCodeOf(() -> mobilityService.confirmPayment(MOBILITY_ID, VERSION)))
           .isEqualTo(ErrorCode.INCOMPLETE_BANK_DETAILS);
@@ -673,7 +674,7 @@ class MobilityServiceImplTest {
       DenialReason denialReason = new DenialReason();
       denialReason.setId(id);
       denialReason.setReason("Dossier incomplet");
-      when(denialReasonRepository.findById(id)).thenReturn(denialReason);
+      when(denialReasonRepository.findById(id)).thenReturn(Optional.of(denialReason));
       return denialReason;
     }
 

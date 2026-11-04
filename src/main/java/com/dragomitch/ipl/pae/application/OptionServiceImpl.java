@@ -30,7 +30,7 @@ class OptionServiceImpl implements OptionService {
 
   @Override
   public List<Partner> findAllPartnersByOption(String optionCode) {
-    if (optionRepository.findByCode(optionCode) == null) {
+    if (optionRepository.findByCode(optionCode).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     return partnerOptionRepository.findAllPartnersByOption(optionCode);

@@ -20,10 +20,8 @@ class ProgrammeServiceImpl implements ProgrammeService {
 
   @Override
   public Programme showOne(int id) {
-    Programme programme = programmeRepository.findById(id);
-    if (programme == null) {
-      throw new ResourceNotFoundException();
-    }
+    Programme programme =
+        programmeRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     return programme;
   }
 

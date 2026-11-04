@@ -18,7 +18,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 class UserRepositoryIT extends AbstractRepositoryIT {
 
@@ -67,7 +66,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
               .containsEntry("version", 1)
               .containsEntry(
                   "registration_date", Timestamp.valueOf(LocalDateTime.of(2025, 3, 4, 5, 6, 7)));
-          return userRepository.findById(created.getId());
+          return userRepository.findById(created.getId()).orElse(null);
         });
 
     assertThat(found.getUsername()).isEqualTo("emma");
@@ -84,7 +83,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryField() {
-    User user = inTransaction(() -> userRepository.findById(1002));
+    User user = inTransaction(() -> userRepository.findById(1002).orElse(null));
 
     assertThat(user.getId()).isEqualTo(1002);
     assertThat(user.getUsername()).isEqualTo("bob");
@@ -102,7 +101,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {0, -1, 999, 100000})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> userRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> userRepository.findById(id))).isEmpty();
   }
 
   @Test
@@ -132,41 +131,37 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   }
 
   @ParameterizedTest
-  @CsvSource({
-    "username, alice, 1001",
-    "username, david, 1004",
-    "email, bob@prof.test, 1002",
-    "last_name, Leroy, 1003",
-    "first_name, Chloé, 1003",
-    "role, Professor, 1002",
-    "role, Student, 1001"
-  })
-  void findByLooksUpAUserByAnyColumn(String column, String value, int expectedId) {
-    User user = inTransaction(() -> userRepository.findBy(column, value));
+  @CsvSource({"alice, 1001", "david, 1004"})
+  void findByUsernameReturnsTheUserWithItsOption(String username, int expectedId) {
+    User user = inTransaction(() -> userRepository.findByUsername(username)).orElseThrow();
 
     assertThat(user.getId()).isEqualTo(expectedId);
     assertThat(user.getOption()).isNotNull();
   }
 
-  @ParameterizedTest
-  @CsvSource({"username, Alice", "username, nobody", "email, ALICE@student.test"})
-  void findByIsCaseSensitiveAndReturnsNullWhenAbsent(String column, String value) {
-    assertThat(inTransaction(() -> userRepository.findBy(column, value))).isNull();
+  @Test
+  void findByEmailReturnsTheUserWithItsOption() {
+    User user = inTransaction(() -> userRepository.findByEmail("bob@prof.test")).orElseThrow();
+
+    assertThat(user.getId()).isEqualTo(1002);
+    assertThat(user.getOption()).isNotNull();
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"password", "user_id", "username; DROP TABLE users"})
-  void findByRejectsAColumnThatIsNotALookupColumn(String column) {
-    runInTransaction(() ->
-        assertThatThrownBy(() -> userRepository.findBy(column, "x"))
-            .isInstanceOf(InvalidDataAccessApiUsageException.class)
-            .hasCauseInstanceOf(IllegalArgumentException.class));
+  @ValueSource(strings = {"Alice", "nobody"})
+  void findByUsernameIsCaseSensitiveAndEmptyWhenAbsent(String username) {
+    assertThat(inTransaction(() -> userRepository.findByUsername(username))).isEmpty();
+  }
+
+  @Test
+  void findByEmailIsCaseSensitiveAndEmptyWhenAbsent() {
+    assertThat(inTransaction(() -> userRepository.findByEmail("ALICE@student.test"))).isEmpty();
   }
 
   @Test
   void updateWritesTheFieldsAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      User david = userRepository.findById(1004);
+      User david = userRepository.findById(1004).orElse(null);
       david.setUsername("dpetit");
       david.setLastName("Petit-Jean");
       david.setFirstName("Dave");
@@ -198,7 +193,7 @@ class UserRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      User stale = userRepository.findById(1002);
+      User stale = userRepository.findById(1002).orElse(null);
       stale.setVersion(2);
       stale.setUsername("hacker");
 
@@ -241,10 +236,10 @@ class UserRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       assertThat(userRepository.promoteToProfessor("alice", 1)).isEqualTo(2);
 
-      User alice = userRepository.findById(1001);
+      User alice = userRepository.findById(1001).orElse(null);
       assertThat(alice.getRole()).isEqualTo(Role.PROFESSOR);
       assertThat(alice.getVersion()).isEqualTo(2);
-      assertThat(userRepository.findById(1003).getRole()).isEqualTo(Role.STUDENT);
+      assertThat(userRepository.findById(1003).orElseThrow().getRole()).isEqualTo(Role.STUDENT);
     });
   }
 

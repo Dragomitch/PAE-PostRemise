@@ -22,6 +22,7 @@ import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class NominatedStudentServiceImplTest {
         List.of(
             student.getNationality().getCountryCode(),
             student.getAddress().getCountry().getCountryCode())) {
-      when(countryRepository.findById(code)).thenReturn(new Country());
+      when(countryRepository.findById(code)).thenReturn(Optional.of(new Country()));
     }
   }
 
@@ -91,7 +92,7 @@ class NominatedStudentServiceImplTest {
     User user = dtos.getUser(Role.STUDENT);
     user.setId(STUDENT_ID);
     user.setVersion(version);
-    when(userRepository.findById(STUDENT_ID)).thenReturn(user);
+    when(userRepository.findById(STUDENT_ID)).thenReturn(Optional.of(user));
     return user;
   }
 
@@ -196,7 +197,7 @@ class NominatedStudentServiceImplTest {
       NominatedStudent request = request();
       request.getAddress().getCountry().setCountryCode("ZZ");
       when(countryRepository.findById(request.getNationality().getCountryCode()))
-          .thenReturn(new Country());
+          .thenReturn(Optional.of(new Country()));
 
       assertThatBusinessException(
               () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
@@ -222,7 +223,8 @@ class NominatedStudentServiceImplTest {
       NominatedStudent request = request();
       givenCountriesExist(request);
       givenUser(1);
-      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
+      when(nominatedStudentRepository.findById(STUDENT_ID))
+          .thenReturn(Optional.of(storedStudent(1)));
 
       assertThatBusinessException(
               () -> nominatedStudentService.create(request, STUDENT_ID, Role.STUDENT))
@@ -239,10 +241,10 @@ class NominatedStudentServiceImplTest {
     @CsvSource({"STUDENT, 42", "PROFESSOR, 2"})
     void theStudentOrAProfessorReadsThePersonalDataWithTheFullAddress(Role role, int requester) {
       NominatedStudent stored = storedStudent(1);
-      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(stored);
+      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(stored));
       Address address = dtos.getAddress();
       address.setId(ADDRESS_ID);
-      when(addressRepository.findById(ADDRESS_ID)).thenReturn(address);
+      when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
 
       NominatedStudent shown = nominatedStudentService.showOne(STUDENT_ID, requester, role);
 
@@ -286,7 +288,8 @@ class NominatedStudentServiceImplTest {
       request.setVersion(5);
       request.getAddress().setId(0);
       givenCountriesExist(request);
-      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(5));
+      when(nominatedStudentRepository.findById(STUDENT_ID))
+          .thenReturn(Optional.of(storedStudent(5)));
       when(nominatedStudentRepository.update(request))
           .thenAnswer(invocation -> {
             NominatedStudent student = invocation.getArgument(0);
@@ -312,7 +315,8 @@ class NominatedStudentServiceImplTest {
       NominatedStudent request = request();
       request.setCardHolder("");
       givenCountriesExist(request);
-      when(nominatedStudentRepository.findById(STUDENT_ID)).thenReturn(storedStudent(1));
+      when(nominatedStudentRepository.findById(STUDENT_ID))
+          .thenReturn(Optional.of(storedStudent(1)));
       when(nominatedStudentRepository.update(request)).thenReturn(request);
       when(addressService.edit(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

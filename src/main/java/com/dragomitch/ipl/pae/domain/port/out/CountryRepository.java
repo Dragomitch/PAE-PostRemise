@@ -2,23 +2,17 @@ package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.model.Country;
 import java.util.List;
+import java.util.Optional;
 
 public interface CountryRepository {
-
-  String TABLE_NAME = "countries";
-  String COLUMN_CODE = "country_code";
-  String COLUMN_NAME = "name";
-  String COLUMN_PROGRAMME_ID = "programme_id";
-
-  int CODE_LENGTH = 2;
 
   /**
    * Queries the database for a country identified by a countryCode.
    *
    * @param countryCode the country_code of the country we want to find
-   * @return the countryDto corresponding to the countryCode
+   * @return the country corresponding to the countryCode, or empty if there is none
    */
-  Country findById(String countryCode);
+  Optional<Country> findById(String countryCode);
 
   /**
    * Queries the database for all countries.

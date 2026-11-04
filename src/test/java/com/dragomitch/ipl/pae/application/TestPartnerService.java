@@ -102,7 +102,7 @@ public class TestPartnerService {
     partnerDto.setOfficial(false);
     partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
-        addressRepository.findById(partnerDto.getAddress().getId()),
+        addressRepository.findById(partnerDto.getAddress().getId()).orElse(null),
         partnerDto.getAddress(),
         "The address inserted is not the same one");
   }
@@ -112,7 +112,7 @@ public class TestPartnerService {
     partnerDto.setOfficial(false);
     partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
-        partnerRepository.findById(partnerDto.getId()),
+        partnerRepository.findById(partnerDto.getId()).orElse(null),
         partnerDto,
         "The partner inserted is the one given");
   }
@@ -122,7 +122,7 @@ public class TestPartnerService {
     partnerDto.setOfficial(false);
     partnerService.create(partnerDto, Role.STUDENT);
     assertEquals(
-        partnerRepository.findById(partnerDto.getId()),
+        partnerRepository.findById(partnerDto.getId()).orElse(null),
         partnerDto,
         "The partner inserted is the one given");
   }
@@ -284,7 +284,8 @@ public class TestPartnerService {
             BusinessException.class, () -> partnerService.restore(stored.getId(), Role.PROFESSOR));
     assertEquals(ErrorCode.PARTNER_OPTION_REQUIRED, ex.getErrorCode());
     assertTrue(
-        partnerRepository.findById(stored.getId()).isArchived(), "The partner must stay archived");
+        partnerRepository.findById(stored.getId()).orElseThrow().isArchived(),
+        "The partner must stay archived");
   }
 
   @Test

@@ -50,7 +50,7 @@ class TestSessionService {
     assertThat(signedIn.getUsername()).isEqualTo("alice");
     assertThat(signedIn.getRole()).isEqualTo(Role.PROFESSOR);
     // only the hash is stored
-    assertThat(userRepository.findById(registered.getId()).getPassword())
+    assertThat(userRepository.findById(registered.getId()).orElseThrow().getPassword())
         .isNotEqualTo(PASSWORD)
         .startsWith("$2");
   }

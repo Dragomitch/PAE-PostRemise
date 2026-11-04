@@ -65,7 +65,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryFieldAndJoinsStudentPartnerCountryAndProgramme() {
-    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5006));
+    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5006).orElse(null));
 
     assertThat(mobility.getId()).isEqualTo(5006);
     assertThat(mobility.getMobilityType()).isEqualTo(MobilityType.SMP);
@@ -98,7 +98,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsACancelledAndDeniedMobility() {
-    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5007));
+    Mobility mobility = inTransaction(() -> mobilityRepository.findById(5007).orElse(null));
 
     assertThat(mobility.getState()).isEqualTo(MobilityState.CANCELLED);
     assertThat(mobility.getStateBeforeCancellation()).isEqualTo(MobilityState.CREATED);
@@ -119,7 +119,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {5001, 5005, 0, 99999})
   void findByIdReturnsNullForAChoiceThatIsNotAMobility(int id) {
-    assertThat(inTransaction(() -> mobilityRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> mobilityRepository.findById(id))).isEmpty();
   }
 
   @Test
@@ -163,7 +163,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
           .containsEntry("prof_denial_reason", null)
           .containsEntry("professor_in_charge", 1002)
           .containsEntry("version", 1);
-      Mobility found = mobilityRepository.findById(5001);
+      Mobility found = mobilityRepository.findById(5001).orElse(null);
       assertThat(found.getPartner().getId()).isEqualTo(3001);
       assertThat(found.getNominatedStudent().getId()).isEqualTo(1001);
     });
@@ -199,7 +199,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityRepository.create(newMobility(5002));
 
-      Mobility found = mobilityRepository.findById(5002);
+      Mobility found = mobilityRepository.findById(5002).orElse(null);
       assertThat(found.getPartner()).isNull();
       assertThat(found.getCountry().getCountryCode()).isEqualTo("BE");
       assertThat(found.getCountry().getName()).isEqualTo("Belgique");
@@ -218,7 +218,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
     runInTransaction(() -> {
       mobilityRepository.create(newMobility(5003));
 
-      Mobility found = mobilityRepository.findById(5003);
+      Mobility found = mobilityRepository.findById(5003).orElse(null);
       assertThat(found.getPartner()).isNull();
       assertThat(found.getCountry()).isNull();
       assertThat(found.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
@@ -236,7 +236,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWritesEveryUpdatableColumnAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      Mobility mobility = mobilityRepository.findById(5006);
+      Mobility mobility = mobilityRepository.findById(5006).orElse(null);
       mobility.setSubmissionDate(LocalDateTime.of(2025, 1, 12, 13, 14, 15));
       mobility.setState(MobilityState.CANCELLED);
       mobility.setStateBeforeCancellation(MobilityState.IN_PREPARATION);
@@ -271,7 +271,7 @@ class MobilityRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      Mobility stale = mobilityRepository.findById(5006);
+      Mobility stale = mobilityRepository.findById(5006).orElse(null);
       stale.setVersion(1);
       stale.setState(MobilityState.CLOSED);
 

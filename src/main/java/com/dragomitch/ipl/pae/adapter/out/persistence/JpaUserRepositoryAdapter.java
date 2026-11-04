@@ -41,8 +41,8 @@ class JpaUserRepositoryAdapter implements UserRepository {
   }
 
   @Override
-  public User findById(int id) {
-    return users.findWithOptionById(id).map(mapper::user).orElse(null);
+  public Optional<User> findById(int id) {
+    return users.findWithOptionById(id).map(mapper::user);
   }
 
   @Override
@@ -50,26 +50,14 @@ class JpaUserRepositoryAdapter implements UserRepository {
     return users.findAllWithOptionByOrderById().stream().map(mapper::user).toList();
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * <p>The value is compared exactly (case-sensitively).
-   *
-   * @throws IllegalArgumentException if users cannot be looked up by that column
-   */
   @Override
-  public User findBy(String columnName, String columnValue) {
-    Optional<UserEntity> user =
-        switch (columnName) {
-          case COLUMN_USERNAME -> users.findFirstWithOptionByUsernameOrderById(columnValue);
-          case COLUMN_EMAIL -> users.findFirstWithOptionByEmailOrderById(columnValue);
-          case COLUMN_LAST_NAME -> users.findFirstWithOptionByLastNameOrderById(columnValue);
-          case COLUMN_FIRST_NAME -> users.findFirstWithOptionByFirstNameOrderById(columnValue);
-          case COLUMN_ROLE -> users.findFirstWithOptionByRoleOrderById(columnValue);
-          default ->
-              throw new IllegalArgumentException("Users cannot be looked up by " + columnName);
-        };
-    return user.map(mapper::user).orElse(null);
+  public Optional<User> findByUsername(String username) {
+    return users.findFirstWithOptionByUsernameOrderById(username).map(mapper::user);
+  }
+
+  @Override
+  public Optional<User> findByEmail(String email) {
+    return users.findFirstWithOptionByEmailOrderById(email).map(mapper::user);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
 import com.dragomitch.ipl.pae.domain.model.User;
+import org.jspecify.annotations.Nullable;
 
 public interface SessionService {
 
@@ -19,7 +20,7 @@ public interface SessionService {
    * Return the authenticated user.
    *
    * @param id the authenticated user
-   * @return the authenticated user
+   * @return the authenticated user, null if the account no longer exists
    */
-  User showAuthenticatedUser(int id);
+  @Nullable User showAuthenticatedUser(int id);
 }

@@ -4,6 +4,7 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.repository.CountryJpaRepos
 import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The countries and the programme each one belongs to (reference data). */
@@ -19,8 +20,8 @@ class JpaCountryRepositoryAdapter implements CountryRepository {
   }
 
   @Override
-  public Country findById(String countryCode) {
-    return countries.findWithProgrammeByCode(countryCode).map(mapper::country).orElse(null);
+  public Optional<Country> findById(String countryCode) {
+    return countries.findWithProgrammeByCode(countryCode).map(mapper::country);
   }
 
   /** Sorted by name, as the database collates it. */

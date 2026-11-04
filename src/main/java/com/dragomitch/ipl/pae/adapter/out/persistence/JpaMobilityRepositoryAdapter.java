@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The mobilities: the accepted mobility choices, followed until they are closed. */
@@ -53,8 +54,8 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
   }
 
   @Override
-  public Mobility findById(int id) {
-    return mobilities.findWithChoiceById(id).map(this::mobility).orElse(null);
+  public Optional<Mobility> findById(int id) {
+    return mobilities.findWithChoiceById(id).map(this::mobility);
   }
 
   @Override

@@ -30,7 +30,7 @@ public class InMemoryPartnerOptionRepository
     List<Partner> partners = new ArrayList<Partner>();
     for (StoredOption partnerOption : partnerOptions) {
       if (partnerOption.getOptionCode().equals(optionCode)) {
-        partners.add(partnerRepository.findById(partnerOption.getPartnerId()));
+        partners.add(partnerRepository.findById(partnerOption.getPartnerId()).orElseThrow());
       }
     }
     return partners;

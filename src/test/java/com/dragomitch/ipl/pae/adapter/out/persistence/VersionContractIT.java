@@ -68,7 +68,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "address_id",
             2002,
             it -> {
-              Address address = it.addressRepository.findById(2002);
+              Address address = it.addressRepository.findById(2002).orElse(null);
               return it.addressRepository.update(address).getVersion();
             }),
         update(
@@ -77,7 +77,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "mobility_choice_id",
             5001,
             it -> {
-              MobilityChoice choice = it.mobilityChoiceRepository.findById(5001);
+              MobilityChoice choice = it.mobilityChoiceRepository.findById(5001).orElse(null);
               it.mobilityChoiceRepository.update(choice);
               return choice.getVersion();
             }),
@@ -87,7 +87,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "mobility_choice_id",
             5006,
             it -> {
-              Mobility mobility = it.mobilityRepository.findById(5006);
+              Mobility mobility = it.mobilityRepository.findById(5006).orElse(null);
               return it.mobilityRepository.update(mobility).getVersion();
             }),
         update(
@@ -96,7 +96,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "user_id",
             1004,
             it -> {
-              NominatedStudent student = it.nominatedStudentRepository.findById(1004);
+              NominatedStudent student = it.nominatedStudentRepository.findById(1004).orElse(null);
               return it.nominatedStudentRepository.update(student).getVersion();
             }),
         update(
@@ -105,7 +105,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "partner_id",
             3001,
             it -> {
-              Partner partner = it.partnerRepository.findById(3001);
+              Partner partner = it.partnerRepository.findById(3001).orElse(null);
               return it.partnerRepository.update(partner).getVersion();
             }),
         update(
@@ -114,7 +114,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "user_id",
             1002,
             it -> {
-              User user = it.userRepository.findById(1002);
+              User user = it.userRepository.findById(1002).orElse(null);
               it.userRepository.update(user);
               return user.getVersion();
             }));

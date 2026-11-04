@@ -1,23 +1,9 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
 import com.dragomitch.ipl.pae.domain.model.Address;
+import java.util.Optional;
 
 public interface AddressRepository {
-
-  public static final String TABLE_NAME = "addresses";
-  public static final String COLUMN_ID = "address_id";
-  public static final String COLUMN_STREET = "street";
-  public static final String COLUMN_NUMBER = "number";
-  public static final String COLUMN_POSTAL_CODE = "postal_code";
-  public static final String COLUMN_CITY = "city";
-  public static final String COLUMN_COUNTRY = "country";
-  public static final String COLUMN_REGION = "region";
-
-  int MAX_LENGTH_STREET = 60;
-  int MAX_LENGTH_NUMBER = 10;
-  int MAX_LENGTH_CITY = 60;
-  int MAX_LENGTH_POSTAL_CODE = 10;
-  int MAX_LENGTH_REGION = 60;
 
   /**
    * Inserts an address into the database.
@@ -31,16 +17,17 @@ public interface AddressRepository {
    * Retrieve an address with the id passed in parameter.
    *
    * @param id the id of the Address we want to retrieve from the Database.
-   * @return the Address corresponding to the address row having the param id as id.
+   * @return the Address corresponding to the address row having the param id as id, or empty if
+   *     there is none
    */
-  Address findById(int id);
+  Optional<Address> findById(int id);
 
   /**
    * Update an row in the Database with the data provided by the address Object. The id of the row
    * affected is the one into the address object.
    *
    * @param address the new data we want to set for the id
-   * @return the addressDto containing the updated data
+   * @return the address containing the updated data
    */
   Address update(Address address);
 }

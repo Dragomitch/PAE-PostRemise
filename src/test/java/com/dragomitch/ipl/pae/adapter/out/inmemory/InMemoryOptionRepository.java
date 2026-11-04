@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryOptionRepository implements OptionRepository {
 
@@ -46,7 +47,7 @@ public class InMemoryOptionRepository implements OptionRepository {
   }
 
   @Override
-  public Option findByCode(String code) {
-    return options.get(code);
+  public Optional<Option> findByCode(String code) {
+    return Optional.ofNullable(options.get(code));
   }
 }

@@ -56,7 +56,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
 
     @Test
     void findByCodeReturnsTheOption() {
-      Option option = inTransaction(() -> optionRepository.findByCode("BCH"));
+      Option option = inTransaction(() -> optionRepository.findByCode("BCH").orElse(null));
 
       assertThat(option.getCode()).isEqualTo("BCH");
       assertThat(option.getName()).isEqualTo("Bachelier en chimie");
@@ -65,7 +65,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @ParameterizedTest
     @ValueSource(strings = {"XXX", "bin", "", "BINX"})
     void findByCodeReturnsNullForAnUnknownOrDifferentlyCasedCode(String code) {
-      assertThat(inTransaction(() -> optionRepository.findByCode(code))).isNull();
+      assertThat(inTransaction(() -> optionRepository.findByCode(code))).isEmpty();
     }
   }
 
@@ -87,7 +87,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @ParameterizedTest
     @CsvSource({"1, Erasmus+, Mobility Tool", "2, Erabel, Mobi-ERABEL", "3, FAME, Mobi-FAME"})
     void findByIdReturnsEveryField(int id, String name, String software) {
-      Programme programme = inTransaction(() -> programmeRepository.findById(id));
+      Programme programme = inTransaction(() -> programmeRepository.findById(id).orElse(null));
 
       assertThat(programme.getId()).isEqualTo(id);
       assertThat(programme.getProgrammeName()).isEqualTo(name);
@@ -97,7 +97,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     @ParameterizedTest
     @ValueSource(ints = {0, -1, 4, 99999})
     void findByIdReturnsNullForAnUnknownId(int id) {
-      assertThat(inTransaction(() -> programmeRepository.findById(id))).isNull();
+      assertThat(inTransaction(() -> programmeRepository.findById(id))).isEmpty();
     }
   }
 
@@ -151,7 +151,7 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
     })
     void findByIdJoinsTheProgramme(
         String code, String name, int programmeId, String programmeName, String software) {
-      Country country = inTransaction(() -> countryRepository.findById(code));
+      Country country = inTransaction(() -> countryRepository.findById(code).orElse(null));
 
       assertThat(country.getCountryCode()).isEqualTo(code);
       assertThat(country.getName()).isEqualTo(name);
@@ -173,15 +173,16 @@ class ReferenceDataRepositoryIT extends AbstractRepositoryIT {
         execute(script);
 
         assertThat(queryForRow(count).get("n")).isEqualTo(before);
-        assertThat(countryRepository.findById("RS").getProgramme().getId()).isEqualTo(1);
-        assertThat(countryRepository.findById("JE").getName()).isEqualTo("Jersey");
+        assertThat(countryRepository.findById("RS").orElseThrow().getProgramme().getId())
+            .isEqualTo(1);
+        assertThat(countryRepository.findById("JE").orElseThrow().getName()).isEqualTo("Jersey");
       });
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"ZZ", "be", ""})
     void findByIdReturnsNullForAnUnknownCode(String code) {
-      assertThat(inTransaction(() -> countryRepository.findById(code))).isNull();
+      assertThat(inTransaction(() -> countryRepository.findById(code))).isEmpty();
     }
   }
 
