@@ -1,8 +1,9 @@
 // UI walk on the real app: Angular sign-up and sign-in, then every legacy UI view as a professor
 // and as a student, then the Angular mobility choices screen as the student alice (her list, a
 // creation through the form) and as prof (active list and count, rejection, filter "all"), then
-// alice's personal data (a phone number changed through the form), prof's users table and the
-// mobilities (prof's list and the completed mobility's detail, alice's list).
+// alice's personal data (a phone number changed through the form), prof's users table, prof's
+// denial reasons (a creation and an edition through the screen) and the mobilities (prof's list
+// and the completed mobility's detail, alice's list).
 // Expects the data created by api_e2e.py (users prof and alice, a completed mobility with its two
 // payments, alice's personal data). Prints one PASS/FAIL line per check, exits 1 on a failure.
 //
@@ -249,6 +250,43 @@ function watch(page, name, problems) {
   await prof.waitForTimeout(300);
   ok(promotions.length === 0 && await prof.locator('app-users .promote-panel').count() === 0,
     'angular prof: "Promouvoir" asks for a confirmation, cancelled without any request');
+
+  // --- Angular: prof's denial reasons screen -----------------------------------------------------
+  // The table must hold the reasons of GET /denialReasons; prof creates one through the form (a
+  // label of its own: the API script already created "Dossier incomplet"), then edits its text in
+  // its row, and GET /denialReasons must return it each time.
+  const reasonTexts = page => page.$$eval('app-denial-reasons tbody tr', trs => trs.map(tr => `${tr.dataset.id}:${tr.querySelector('.reason').textContent.trim()}`));
+  await prof.click('nav a[href="/denial-reasons"]');
+  await prof.waitForSelector('app-denial-reasons table');
+  const apiReasons = await apiGet(prof, '/api/1.0/denialReasons');
+  ok(apiReasons.length > 0 && (await reasonTexts(prof)).join() === apiReasons.map(r => `${r.id}:${r.reason}`).join(),
+    `angular prof: /denial-reasons lists the ${apiReasons.length} reason(s) of GET /denialReasons`);
+  const newReason = 'Candidature hors délai (UI)';
+  await prof.click('app-denial-reasons button.new-reason');
+  await prof.fill('#denial-reasons-create-reason', newReason);
+  const [createdReason] = await Promise.all([
+    prof.waitForResponse(r => r.url().endsWith('/api/1.0/denialReasons') && r.request().method() === 'POST'),
+    prof.click('app-denial-reasons .creation-panel button.create'),
+  ]);
+  const reasonCreated = createdReason.status() === 200 ? await createdReason.json() : {};
+  await prof.waitForSelector(`app-denial-reasons tbody tr[data-id="${reasonCreated.id}"]`, { timeout: 5000 }).catch(() => {});
+  const afterCreate = await apiGet(prof, '/api/1.0/denialReasons');
+  ok(createdReason.status() === 200 && afterCreate.some(r => r.id === reasonCreated.id && r.reason === newReason)
+    && (await reasonTexts(prof)).includes(`${reasonCreated.id}:${newReason}`),
+    `angular prof: reason created through the form -> ${createdReason.status()}, in GET /denialReasons and in the table (id ${reasonCreated.id})`);
+  await prof.screenshot({ path: path.join(SHOTS, '80-angular-prof-denial-reasons.png'), fullPage: true });
+  const editedReason = `${newReason} modifiée`;
+  await prof.click(`app-denial-reasons tbody tr[data-id="${reasonCreated.id}"] button.edit`);
+  await prof.fill('#denial-reasons-edit-reason', editedReason);
+  const [updatedReason] = await Promise.all([
+    prof.waitForResponse(r => r.url().endsWith(`/api/1.0/denialReasons/${reasonCreated.id}`) && r.request().method() === 'PUT'),
+    prof.click('app-denial-reasons button.save'),
+  ]);
+  await prof.waitForSelector('#denial-reasons-edit-reason', { state: 'detached', timeout: 5000 }).catch(() => {});
+  const afterEdit = await apiGet(prof, '/api/1.0/denialReasons');
+  ok(updatedReason.status() === 200 && afterEdit.some(r => r.id === reasonCreated.id && r.reason === editedReason)
+    && afterEdit.length === afterCreate.length && (await reasonTexts(prof)).includes(`${reasonCreated.id}:${editedReason}`),
+    `angular prof: reason ${reasonCreated.id} edited in its row -> ${updatedReason.status()}, GET /denialReasons returns the new text`);
 
   // --- Angular: the mobilities, prof's list and the completed mobility's detail, alice's list ---
   // Read only: the API script already drives the whole lifecycle. The list must hold the mobilities
