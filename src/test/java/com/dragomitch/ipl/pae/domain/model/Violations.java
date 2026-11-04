@@ -11,7 +11,6 @@ import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.OnCreat
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -85,22 +84,6 @@ public final class Violations {
   /** Validates a bean as a creation: {@link Default} and {@link OnCreate} groups. */
   public static List<String> onCreate(Object bean) {
     return of(bean, Default.class, OnCreate.class);
-  }
-
-  /**
-   * The broken constraints of a method validation failure, with their full path ({@code
-   * "signup.user.email:Email"}).
-   *
-   * @param call the call expected to fail
-   * @return the broken constraints, sorted
-   */
-  public static List<String> thrownBy(ThrowingCallable call) {
-    ConstraintViolationException ex =
-        catchThrowableOfType(ConstraintViolationException.class, call);
-    if (ex == null) {
-      throw new AssertionError("Expected a ConstraintViolationException");
-    }
-    return describe(ex.getConstraintViolations());
   }
 
   /**

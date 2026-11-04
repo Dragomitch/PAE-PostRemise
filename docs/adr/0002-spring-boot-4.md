@@ -45,9 +45,10 @@ The CSRF object post-processor of `SecurityConfig` stays as it was: only its imp
 
 ### Jackson 3, with the Jackson 2 behaviour for null primitives
 
-`JacksonConfig` uses Jackson 3: the `EntityFactory` abstract-type mappings are a `JacksonModule`
-bean (Spring Boot 4 ignores a Jackson 2 `Module` bean without an error), and `NON_NULL` is set by a
-`JsonMapperBuilderCustomizer` with `changeDefaultPropertyInclusion`.
+`JacksonConfig` uses Jackson 3: the `EntityFactory` abstract-type mappings were a `JacksonModule`
+bean (Spring Boot 4 ignores a Jackson 2 `Module` bean without an error; step 3 of ADR 0001 removed
+the module with the DTO interfaces), and `NON_NULL` is set by a `JsonMapperBuilderCustomizer` with
+`changeDefaultPropertyInclusion`.
 
 `application.properties` sets `spring.jackson.deserialization.fail-on-null-for-primitives=false`,
 so a `null` for a primitive is still read as `0` (`JacksonConfigTest`). The broader

@@ -24,10 +24,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 /**
  * Spring context of the DAO integration tests: the <em>real</em> persistence beans (the JPA
  * persistence adapters with their entities and Spring Data repositories, and the remaining JDBC
- * DAOs), the real {@code EntityFactory}, an {@code EntityManagerFactory} that validates the entity
- * mappings against the schema ({@code ddl-auto=validate}) and a {@code JpaTransactionManager}, on
- * top of a throw-away PostgreSQL server started in-process by zonky's embedded-postgres (no Docker
- * needed). The schema and its reference data come from the application's Flyway migrations ({@code
+ * DAOs), an {@code EntityManagerFactory} that validates the entity mappings against the schema
+ * ({@code ddl-auto=validate}) and a {@code JpaTransactionManager}, on top of a throw-away
+ * PostgreSQL server started in-process by zonky's embedded-postgres (no Docker needed). The schema
+ * and its reference data come from the application's Flyway migrations ({@code
  * src/main/resources/db/migration}), as in production.
  *
  * <p>The Spring TestContext framework caches this context, so the server is started and migrated
@@ -40,10 +40,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @TestConfiguration(proxyBeanMethods = false)
 @ComponentScan(
-    basePackages = {
-      "com.dragomitch.ipl.pae.adapter.out.persistence",
-      "com.dragomitch.ipl.pae.domain.model"
-    },
+    basePackages = "com.dragomitch.ipl.pae.adapter.out.persistence",
     // do not pick up other test configurations living in the same packages
     excludeFilters = @ComponentScan.Filter(TestConfiguration.class))
 public class RepositoryItConfig {
