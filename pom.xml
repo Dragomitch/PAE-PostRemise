@@ -137,6 +137,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- IDE metadata (META-INF/spring-configuration-metadata.json) for the app.* properties -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- OpenAPI 3 document of the controllers and Swagger UI (OpenApiConfig) -->
         <dependency>
             <groupId>org.springdoc</groupId>

@@ -218,13 +218,24 @@ mvn clean package
 
 ### Environment Variables
 
+The application settings are three `@ConfigurationProperties` records of `adapter/in/web/security`, registered with `@EnableConfigurationProperties` by the configuration class that uses them (`SecurityConfig` for the session and the JWT, `CorsConfig` for CORS, so that a test slice importing one of them needs nothing else). `application.properties` maps the environment variables onto them, and the configuration processor writes their metadata (`target/classes/META-INF/spring-configuration-metadata.json`) for the IDE.
+
+| Group (record) | Property | Environment variable | Default |
+|----------------|----------|----------------------|---------|
+| `app.jwt` (`JwtProperties`) | `app.jwt.secret` | `JWT_SECRET` | none: mandatory, not blank, at least 32 characters (`openssl rand -hex 32`); the application refuses to start without it and the message names `JWT_SECRET` |
+| `app.session` (`SessionProperties`) | `app.session.validity` | `APP_SESSION_VALIDITY` | `12h` |
+| | `app.session.cookie-secure` | `APP_SESSION_COOKIE_SECURE` | `false` (set `true` behind HTTPS) |
+| `app.cors` (`CorsProperties`) | `app.cors.allowed-origins` | `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:4200` (comma-separated list) |
+
+The database settings are `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` and `DB_PASSWORD`. The tests get a secret from `src/test/resources/config/application.properties`. To add a setting, add a component to the record of its group (with `@DefaultValue` or a Bean Validation constraint), not a `@Value`.
+
 ```env
 DB_HOST=
 DB_PORT=
 DB_NAME=
 DB_USERNAME=
 DB_PASSWORD=
-JWT_SECRET=                  # 32+ bytes, signs the session JWT
+JWT_SECRET=                  # mandatory, 32+ characters, signs the session JWT
 APP_SESSION_VALIDITY=12h     # session lifetime
 APP_SESSION_COOKIE_SECURE=false  # true behind HTTPS
 APP_CORS_ALLOWED_ORIGINS=http://localhost:4200

@@ -227,12 +227,42 @@ The backend reads the following environment variables:
 | `DB_NAME` | Database name | `testdb` |
 | `DB_USERNAME` | Database user | _(empty)_ |
 | `DB_PASSWORD` | Database password | _(empty)_ |
-| `JWT_SECRET` | Secret signing the session cookie, 32+ bytes | random per start (dev only) |
+| `JWT_SECRET` | Secret signing the session cookie, at least 32 characters (`openssl rand -hex 32`) | none: required, the backend refuses to start without it |
 | `APP_SESSION_VALIDITY` | Lifetime of a session (JWT `exp` and cookie `Max-Age`), e.g. `12h`, `30m` | `12h` |
 | `APP_SESSION_COOKIE_SECURE` | Adds `Secure` to the `session` and `XSRF-TOKEN` cookies (set it behind HTTPS) | `false` |
 | `APP_CORS_ALLOWED_ORIGINS` | Origins allowed to call the API with credentials (comma-separated) | `http://localhost:4200` |
 
-They are resolved in `src/main/resources/application.properties`. Always set `JWT_SECRET` outside local development, otherwise every restart logs everyone out.
+They are resolved in `src/main/resources/application.properties` into the typed properties described in [`backend/AGENTS.md`](backend/AGENTS.md#environment-variables). `JWT_SECRET` is required (also with `docker compose up`, which passes it through): keep the same value across restarts, otherwise every restart logs everyone out.
+
+## Releases
+
+A release is a tag `vX.Y.Z` on `master`:
+
+```bash
+git checkout master && git pull
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The `Release` workflow (`.github/workflows/release.yml`) then builds the two images once and publishes them to the GitHub Container Registry as `ghcr.io/dragomitch/pae-postremise-backend` and `ghcr.io/dragomitch/pae-postremise-frontend`, each tagged `1.2.3`, `1.2` and `latest` (a pre-release tag such as `v1.2.3-rc.1` gets only `1.2.3-rc.1`). It then creates the GitHub Release for the tag with generated notes and the image references and digests. Nothing else is published, and the workflow never runs on a branch push.
+
+Every image is pushed with a provenance attestation (SLSA) and an SBOM (SPDX), stored in the registry next to the image. Inspect them with:
+
+```bash
+docker buildx imagetools inspect ghcr.io/dragomitch/pae-postremise-backend:1.2.3 --format '{{ json .SBOM }}'
+docker buildx imagetools inspect ghcr.io/dragomitch/pae-postremise-backend:1.2.3 --format '{{ json .Provenance }}'
+```
+
+To run the stack from the published images, uncomment the `image:` line of `backend` and `frontend` in `docker-compose.yml`, put the version in place of `<tag>` and run:
+
+```bash
+docker compose pull backend frontend
+docker compose up --no-build
+```
+
+The first pull may need the package to be public (package settings on GitHub) or `docker login ghcr.io`.
+
+Dry run: in the Actions tab, run `Release` with `publish` unchecked (the default), on any branch. Both images are built, nothing is pushed and no release is created.
 
 ## Continuous integration
 `.github/workflows/ci.yml` runs on every pull request and on `master`:
