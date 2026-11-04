@@ -386,6 +386,75 @@ describe('MobilityDetail', () => {
     expect(text('.action-panel [role="alert"] p')).toBe('Le serveur a échoué.');
   });
 
+  it('creates a denial reason in the cancel panel, selects it and cancels with it', async () => {
+    show(mobility());
+    click('button.cancel-mobility');
+    expect(el.querySelector('button.new-reason')).toBeNull();
+    http.expectOne('/api/1.0/denialReasons').flush(REASONS);
+    fixture.detectChanges();
+    expect(text('button.new-reason')).toBe('Nouvelle raison');
+
+    click('button.new-reason');
+    expect(el.querySelector('.action-panel form #mobility-cancel-reason')).toBeNull();
+    expect(text('.action-panel h2')).toBe('Annuler la mobilité');
+    expect(text('.action-panel button.close-form')).toBe('Choisir parmi les raisons existantes');
+    const input = el.querySelector<HTMLInputElement>('#mobility-new-reason-reason')!;
+    input.value = 'Désistement tardif';
+    input.dispatchEvent(new Event('input'));
+    click('.action-panel button.create');
+    const req = http.expectOne('/api/1.0/denialReasons');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ reason: 'Désistement tardif' });
+    req.flush({ id: 3, reason: 'Désistement tardif', version: 0 });
+    fixture.detectChanges();
+
+    expect(el.querySelector('#mobility-new-reason-reason')).toBeNull();
+    const select = el.querySelector<HTMLSelectElement>('#mobility-cancel-reason')!;
+    expect(Array.from(select.options).map((o) => o.text)).toEqual([
+      'Choisissez une raison',
+      'Dossier incomplet',
+      'Désistement',
+      'Désistement tardif',
+    ]);
+    expect(select.value).toBe('3');
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(select);
+
+    submitPanel();
+    put('/api/1.0/mobilities/1/cancel?version=5&denialReason=3').flush(mobility());
+    http.expectOne(URL).flush(mobility({ state: 'Annulée', version: 6 }));
+    fixture.detectChanges();
+    expect(text('.notice')).toBe('La mobilité est annulée.');
+  });
+
+  it('goes back to the cancel form without creating a reason, the problem cleared', () => {
+    show(mobility());
+    click('button.cancel-mobility');
+    http.expectOne('/api/1.0/denialReasons').flush(REASONS);
+    fixture.detectChanges();
+    const select = el.querySelector<HTMLSelectElement>('#mobility-cancel-reason')!;
+    select.value = select.options[1].value;
+    select.dispatchEvent(new Event('change'));
+    submitPanel();
+    put('/api/1.0/mobilities/1/cancel?version=5&denialReason=1').flush(
+      ...problem(409, 'CONCURRENT_MODIFICATION', 'La mobilité a été modifiée entre-temps.'),
+    );
+    fixture.detectChanges();
+    expect(el.querySelector('.action-panel [role="alert"]')).not.toBeNull();
+
+    click('button.new-reason');
+    expect(el.querySelector('.action-panel [role="alert"]')).toBeNull();
+    click('.action-panel button.close-form');
+    expect(el.querySelector('#mobility-new-reason-reason')).toBeNull();
+    expect(el.querySelector<HTMLSelectElement>('#mobility-cancel-reason')!.value).toBe('1');
+
+    // asking again starts with the cancel form
+    click('button.new-reason');
+    click('button.cancel-mobility');
+    expect(el.querySelector('#mobility-new-reason-reason')).toBeNull();
+    expect(el.querySelector('#mobility-cancel-reason')).not.toBeNull();
+  });
+
   it("shows the student's own cancellation reason, or nothing when there is none", () => {
     show(mobility({ state: 'Annulée', cancellationReason: "J'ai changé d'avis" }));
     expect(text('.cancellation-reason')).toBe("J'ai changé d'avis");

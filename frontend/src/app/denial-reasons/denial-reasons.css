@@ -128,6 +128,7 @@ tbody tr:hover {
 }
 
 .reason {
+  font-weight: 400;
   overflow-wrap: anywhere;
 }
 

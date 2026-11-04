@@ -310,6 +310,64 @@ describe('ApiService', () => {
         expect(got).toEqual(reasons);
       });
 
+      it('creates a denial reason with POST /denialReasons', () => {
+        let got: unknown;
+        service.createDenialReason('Désistement').subscribe((r) => (got = r));
+        const req = http.expectOne('/api/1.0/denialReasons');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({ reason: 'Désistement' });
+        req.flush({ id: 5, reason: 'Désistement', version: 0 });
+        expect(got).toEqual({ id: 5, reason: 'Désistement', version: 0 });
+      });
+
+      it('updates a denial reason with PUT /denialReasons/{id} and its version', () => {
+        const reason = { id: 5, reason: 'Désistement tardif', version: 0 };
+        let got: unknown;
+        service.updateDenialReason(reason).subscribe((r) => (got = r));
+        const req = http.expectOne('/api/1.0/denialReasons/5');
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toEqual(reason);
+        req.flush(reason);
+        expect(got).toEqual(reason);
+      });
+
+      it('fails with an ApiProblem when a denial reason is refused', () => {
+        const problems: ApiProblem[] = [];
+        service.createDenialReason('').subscribe({ error: (e) => problems.push(e) });
+        service
+          .updateDenialReason({ id: 5, reason: 'x', version: 0 })
+          .subscribe({ error: (e) => problems.push(e) });
+        http
+          .expectOne((r) => r.method === 'POST')
+          .flush(
+            {
+              code: 'VALIDATION_FAILED',
+              status: 400,
+              errors: [{ field: 'reason', code: 'NotBlank', message: 'Obligatoire.' }],
+            },
+            {
+              status: 400,
+              statusText: 'Bad Request',
+              headers: { 'Content-Type': 'application/problem+json' },
+            },
+          );
+        http
+          .expectOne((r) => r.method === 'PUT')
+          .flush(
+            { code: 'CONCURRENT_MODIFICATION', status: 409 },
+            {
+              status: 409,
+              statusText: 'Conflict',
+              headers: { 'Content-Type': 'application/problem+json' },
+            },
+          );
+        expect(problems.map((p) => p.code)).toEqual([
+          'VALIDATION_FAILED',
+          'CONCURRENT_MODIFICATION',
+        ]);
+        expect(problems[0].fieldError('reason')).toBe('Obligatoire.');
+      });
+
       it('fails with an ApiProblem when the reference data cannot be read', () => {
         const problems: ApiProblem[] = [];
         service.programmes().subscribe({ error: (e) => problems.push(e) });

@@ -736,6 +736,104 @@ describe('MobilityChoices', () => {
         expect(reason().getAttribute('aria-invalid')).toBe('true');
       });
 
+      describe('new reason', () => {
+        const newReason = () =>
+          el.querySelector<HTMLInputElement>('#mobility-choices-new-reason-reason');
+
+        it('offers the creation once the reasons are loaded, in place of the reject form', () => {
+          click('button.reject', row(10));
+          expect(el.querySelector('button.new-reason')).toBeNull();
+          http.expectOne('/api/1.0/denialReasons').flush(reasons);
+          fixture.detectChanges();
+          const link = el.querySelector<HTMLButtonElement>('button.new-reason')!;
+          expect(link.textContent).toContain('Nouvelle raison');
+          expect(link.getAttribute('type')).toBe('button');
+
+          click('button.new-reason');
+          expect(el.querySelector('#mobility-choices-reject-reason')).toBeNull();
+          expect(newReason()).not.toBeNull();
+          expect(panel()?.querySelector('h2')?.textContent).toContain(
+            'Refuser une demande de mobilité',
+          );
+          expect(panel()?.querySelector('button.close-form')?.textContent).toContain(
+            'Choisir parmi les raisons existantes',
+          );
+        });
+
+        it('adds the created reason to the list, selects it and rejects with it', async () => {
+          click('button.reject', row(10));
+          http.expectOne('/api/1.0/denialReasons').flush(reasons);
+          fixture.detectChanges();
+          click('button.new-reason');
+          newReason()!.value = 'Désistement';
+          newReason()!.dispatchEvent(new Event('input'));
+          click('button.create', panel()!);
+          const req = http.expectOne('/api/1.0/denialReasons');
+          expect(req.request.method).toBe('POST');
+          expect(req.request.body).toEqual({ reason: 'Désistement' });
+          req.flush({ id: 9, reason: 'Désistement', version: 0 });
+          fixture.detectChanges();
+
+          expect(newReason()).toBeNull();
+          expect(Array.from(reason().options).map((o) => o.text)).toEqual([
+            'Choisissez une raison',
+            "L'étudiant part en mobilité pour ce semestre.",
+            'Dossier incomplet',
+            'Désistement',
+          ]);
+          expect(reason().value).toBe('9');
+          await fixture.whenStable();
+          expect(document.activeElement).toBe(reason());
+
+          click('button[type=submit]', panel()!);
+          http.expectOne('/api/1.0/mobilityChoices/10/reject?reason=9').flush(null);
+          fixture.detectChanges();
+          expect(notice()).toBe('La demande de mobilité a été refusée.');
+          professorList('active', [NO_PARTNER]);
+
+          // the list keeps the new reason for the next panel
+          click('button.reject', row(12));
+          http.expectNone('/api/1.0/denialReasons');
+          expect(reason().options.length).toBe(4);
+        });
+
+        it('goes back to the reject form without creating anything', async () => {
+          click('button.reject', row(10));
+          http.expectOne('/api/1.0/denialReasons').flush(reasons);
+          fixture.detectChanges();
+          click('button[type=submit]', panel()!);
+          choose('1');
+          click('button[type=submit]', panel()!);
+          http
+            .expectOne('/api/1.0/mobilityChoices/10/reject?reason=1')
+            .flush(
+              { code: 'MOBILITY_CHOICE_CLOSED', status: 409, detail: 'Déjà clôturée.' },
+              { status: 409, statusText: 'Conflict', headers: PROBLEM_HEADERS },
+            );
+          fixture.detectChanges();
+          expect(panel()?.querySelector('[role=alert]')?.textContent).toContain('Déjà clôturée.');
+
+          click('button.new-reason');
+          expect(panel()?.querySelector('[role=alert]')).toBeNull();
+          click('button.close-form', panel()!);
+          expect(newReason()).toBeNull();
+          expect(reason().value).toBe('1');
+          await fixture.whenStable();
+          expect(document.activeElement).toBe(reason());
+          http.expectNone('/api/1.0/denialReasons');
+        });
+
+        it('shows the reject form again when another panel opens', () => {
+          click('button.reject', row(10));
+          http.expectOne('/api/1.0/denialReasons').flush(reasons);
+          fixture.detectChanges();
+          click('button.new-reason');
+          click('button.reject', row(12));
+          expect(newReason()).toBeNull();
+          expect(reason()).not.toBeNull();
+        });
+      });
+
       it('closes the panel and the messages when the filter changes', () => {
         click('button.reject', row(10));
         http.expectOne('/api/1.0/denialReasons').flush(reasons);
