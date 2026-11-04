@@ -19,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Sign-in against the accounts registered by {@link UserService#signup}: the password is checked
- * against its BCrypt hash, and a wrong username or password gives the same error. The mock DAOs are
+ * against its hash, and a wrong username or password gives the same error. The mock DAOs are
  * emptied before each test by {@code InMemoryRepositoryResetListener}.
  */
 @SpringJUnitConfig(UnitTestConfig.class)

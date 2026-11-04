@@ -19,6 +19,7 @@ import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PasswordHasher;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -34,7 +35,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * User accounts: registration (first user is a professor), promotion, edition by the owner or a
@@ -55,7 +55,7 @@ class UserServiceImplTest {
   @Mock private UserRepository userRepository;
   @Mock private OptionRepository optionRepository;
   @Mock private NominatedStudentRepository nominatedStudentRepository;
-  @Mock private PasswordEncoder passwordEncoder;
+  @Mock private PasswordHasher passwordHasher;
 
   private final MockDtoFactory dtos = new MockDtoFactory();
   private UserServiceImpl userService;
@@ -64,7 +64,7 @@ class UserServiceImplTest {
   void setUp() {
     userService =
         new UserServiceImpl(
-            userRepository, optionRepository, nominatedStudentRepository, passwordEncoder, CLOCK);
+            userRepository, optionRepository, nominatedStudentRepository, passwordHasher, CLOCK);
   }
 
   private User user(int id, Role role) {
@@ -93,7 +93,7 @@ class UserServiceImplTest {
       User user = newUser();
       givenOptionExists("BIN");
       when(userRepository.isEmpty()).thenReturn(noUserYet);
-      when(passwordEncoder.encode("plain password")).thenReturn("$2a$hash");
+      when(passwordHasher.hash("plain password")).thenReturn("$2a$hash");
       when(userRepository.create(user)).thenReturn(user);
 
       User created = userService.signup(user);
@@ -137,7 +137,7 @@ class UserServiceImplTest {
           .hasErrorCode(ErrorCode.UNKNOWN_OPTION)
           .hasArguments("XYZ");
       verify(userRepository, never()).create(any());
-      verifyNoInteractions(passwordEncoder);
+      verifyNoInteractions(passwordHasher);
     }
   }
 

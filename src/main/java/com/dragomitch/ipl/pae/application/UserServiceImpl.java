@@ -9,12 +9,12 @@ import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PasswordHasher;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,19 +30,19 @@ class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
   private final OptionRepository optionRepository;
   private final NominatedStudentRepository nominatedStudentRepository;
-  private final PasswordEncoder passwordEncoder;
+  private final PasswordHasher passwordHasher;
   private final Clock clock;
 
   UserServiceImpl(
       UserRepository userRepository,
       OptionRepository optionRepository,
       NominatedStudentRepository nominatedStudentRepository,
-      PasswordEncoder passwordEncoder,
+      PasswordHasher passwordHasher,
       Clock clock) {
     this.userRepository = userRepository;
     this.optionRepository = optionRepository;
     this.nominatedStudentRepository = nominatedStudentRepository;
-    this.passwordEncoder = passwordEncoder;
+    this.passwordHasher = passwordHasher;
     this.clock = clock;
   }
 
@@ -50,8 +50,8 @@ class UserServiceImpl implements UserService {
   public User signup(User user) {
     checkBusinessRules(user);
     user.setRegistrationDate(LocalDateTime.now(clock));
-    // encrypt password
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    // hash the password
+    user.setPassword(passwordHasher.hash(user.getPassword()));
     // first user is automatically considered a professor
     if (userRepository.isEmpty()) {
       user.setRole(Role.PROFESSOR);
