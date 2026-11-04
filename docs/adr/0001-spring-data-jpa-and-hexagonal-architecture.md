@@ -65,7 +65,7 @@ com.dragomitch.ipl.pae
 │   ├── util                     DataValidationUtils
 │   └── port
 │       ├── in                   driving ports: the use cases, XxxService
-│       └── out                  driven ports: XxxRepository
+│       └── out                  driven ports: XxxRepository, PasswordHasher
 ├── application                  use-case services, XxxServiceImpl (@Service, @Transactional)
 │   └── export                   CsvStringBuilder
 ├── adapter
@@ -74,16 +74,19 @@ com.dragomitch.ipl.pae
 │   │   ├── mapping              XxxMapper: web DTO <-> domain model
 │   │   ├── validation           custom constraints (@Iban, @Bic, ...) and groups
 │   │   └── security             session cookie, current user, CSRF
-│   └── out/persistence          JpaXxxRepositoryAdapter, PersistenceMapper
-│       ├── entity               JPA entities (XxxEntity, composite keys)
-│       └── repository           Spring Data interfaces (XxxJpaRepository)
+│   └── out
+│       ├── persistence          JpaXxxRepositoryAdapter, PersistenceMapper
+│       │   ├── entity           JPA entities (XxxEntity, composite keys)
+│       │   └── repository       Spring Data interfaces (XxxJpaRepository)
+│       └── security             BCryptPasswordHasher (the PasswordHasher port)
 └── config                       Spring configuration
 ```
 
 The test tree mirrors it; `adapter/out/inmemory` holds the in-memory repositories of the unit
 tests. `ArchitectureTest` (ArchUnit) checks the layering on every build: dependencies point
 inwards, ports are interfaces, driving ports are implemented in `application` only and driven
-ports in `adapter.out.persistence` only, and the domain depends on the JDK only (plus JSpecify's
+ports in `adapter.out` only (`persistence`, `security`), `application` does not depend on
+`org.springframework.security..`, and the domain depends on the JDK only (plus JSpecify's
 `@Nullable`).
 
 ### Steps
@@ -182,6 +185,9 @@ The submission time of a new mobility choice is still the database's time, read 
 
 - No more hand-written SQL plumbing. Queries are derived queries, entity graphs or JPQL built
   from constant fragments, with no user input concatenated into them.
+- The use cases hash and check passwords through the `PasswordHasher` driven port
+  (`adapter.out.security.BCryptPasswordHasher` on top of the `PasswordEncoder` bean), so
+  `application` imports no Spring Security class and the stored BCrypt hashes are unchanged.
 - Since step 3 the domain no longer depends on the shape of the API nor on any framework, and
   `ArchitectureTest` checks it ("the domain depends on `java..` only"). The price is the mapping
   code of the adapters (web records and JPA entities both map to the domain) and records that

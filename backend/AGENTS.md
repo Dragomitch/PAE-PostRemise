@@ -37,12 +37,13 @@ src/
 │   │   ├── application/       use-case services (XxxServiceImpl)
 │   │   ├── adapter/in/web/    controllers; dto (records), mapping (XxxMapper), validation, security
 │   │   ├── adapter/out/persistence/  JPA adapters, entity, repository
+│   │   ├── adapter/out/security/     BCryptPasswordHasher (the PasswordHasher port)
 │   │   └── config/
 │   ├── resources/
 │   └── webapp/
 └── test/
     ├── java/       # mirrors the main package structure
-    └── java/.../adapter/out/inmemory  # in-memory repositories used by UnitTestConfig
+    └── java/.../adapter/out/inmemory  # in-memory repositories and password hasher used by UnitTestConfig
 pom.xml
 ```
 
@@ -118,9 +119,9 @@ Requests flow through three layers, all Spring beans:
 
 1. **Controllers** (`adapter/in/web`): one `@RestController` per resource under `/api/1.0` (`ApiPaths.BASE`). They only bind and validate the request (JSON `@Valid @RequestBody` read into a record of `adapter/in/web/dto`, constrained `@PathVariable` / `@RequestParam`, the authenticated `CurrentUser`), convert it to the domain (a `XxxMapper` of `adapter/in/web/mapping`, the query strings to the filter enums), call a use case and return its result mapped back to a record (lists read by DataTables are wrapped in `DataResponse`, i.e. `{"data": [...]}`). Roles are checked with `@PreAuthorize(ApiPaths.PROFESSOR)` etc. Errors are rendered by `ApiExceptionHandler` only, as RFC 9457 problems.
 2. **Use cases** (`domain/port/in` interfaces, `application` implementations): `@Service` classes, annotated `@Transactional` at class level (queries `@Transactional(readOnly = true)`), without any web annotation. Their interfaces are plain Java (no Bean Validation: the web adapter validates the input) and exchange the domain model of `domain/model` and its enums (`Role`, `MobilityChoiceFilter`...). Nested use-case calls join the caller's transaction; any runtime exception rolls it back.
-3. **Repositories** (`domain/port/out` interfaces, `adapter/out/persistence` implementations): see below.
+3. **Repositories** (`domain/port/out` interfaces, `adapter/out/persistence` implementations): see below. The `PasswordHasher` port (`hash`, `matches`) is the other driven port: `adapter/out/security/BCryptPasswordHasher` implements it on the `PasswordEncoder` bean of `SecurityConfig`, so the use cases import no Spring Security class (`ArchitectureTest`).
 
-The layering is the hexagonal architecture of [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md); `ArchitectureTest` (ArchUnit) fails the build when a dependency points outwards, a port is not an interface, or a port is implemented outside its adapter.
+The layering is the hexagonal architecture of [ADR 0001](../docs/adr/0001-spring-data-jpa-and-hexagonal-architecture.md); `ArchitectureTest` (ArchUnit) fails the build when a dependency points outwards, a port is not an interface, or a port is implemented outside its adapter (`adapter/out`).
 
 ```java
 @RestController

@@ -7,6 +7,8 @@ on:
   push:
     branches: [ master ]
   workflow_dispatch:
+  # nightly.yml runs the whole suite through this trigger (no inputs)
+  workflow_call:
 
 # A new push to the same PR/branch cancels the run in progress.
 concurrency:
@@ -291,7 +293,9 @@ jobs:
           for r in '${{ needs.backend.result }}' '${{ needs.frontend.result }}' '${{ needs.workflows.result }}' '${{ needs.docker.result }}' '${{ needs.e2e.result }}' '${{ needs.report.result }}'; do
             [ "$r" = success ] || { echo "::error::A required job did not succeed ($r)"; exit 1; }
           done
-          # pr-title only runs on pull requests: skipped is fine on push and workflow_dispatch, never on a pull request
+          # pr-title only runs on pull requests: skipped is fine on push, workflow_dispatch and workflow_call, never on a pull request.
+          # Inside a called workflow github.event_name is the caller's event (schedule, workflow_dispatch), so the
+          # test is "anything but pull_request" and needs no case for each trigger.
           t='${{ needs.pr-title.result }}'
           if [ "$t" != success ] && ! { [ "$t" = skipped ] && [ '${{ github.event_name }}' != pull_request ]; }; then
             echo "::error::The pull request title check did not succeed ($t)"

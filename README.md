@@ -302,6 +302,8 @@ Dry run: in the Actions tab, run `Release` with `publish` unchecked (the default
 
 Reproduce locally with `mvn verify` and `cd frontend && npm run test:ci`.
 
+`.github/workflows/nightly.yml` runs every night at 03:17 UTC on `master` (and on demand from the Actions tab, Nightly, Run workflow). It calls `ci.yml` as a whole, so the nightly suite is the pull request suite, and adds a `dependencies` job: `npm audit --omit=dev --audit-level=high` in `frontend/` and `e2e/`, and the Maven dependency and plugin updates available (`versions-maven-plugin`, report only). The reports are the artifact `nightly-reports` of the run (kept 30 days). When the suite or an audit fails, the workflow opens one issue titled `Nightly build failed`, labelled `needs-triage`, with the run link and the failing jobs, and updates it on the following failing nights; a green night closes it.
+
 Formatting: `mvn spotless:apply` formats the Java sources (google-java-format) and `cd frontend && npm run format` the Angular app (Prettier); `mvn verify`, `npm run lint` and `npm run format:check` fail on what is left, and `.editorconfig` sets the same basics (UTF-8, LF, 2 spaces, final newline) in the editors.
 
 ## End-to-end tests

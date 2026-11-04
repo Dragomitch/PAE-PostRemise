@@ -11,9 +11,11 @@ import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryNominatedStudentRepos
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryOptionRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPartnerOptionRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPartnerRepository;
+import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPasswordHasher;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPaymentRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryProgrammeRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
+import com.dragomitch.ipl.pae.domain.port.out.PasswordHasher;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
@@ -23,8 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Spring context for the unit tests: the real business objects and use-case controllers, wired to
@@ -72,7 +72,7 @@ public class UnitTestConfig {
   }
 
   @Bean
-  PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+  PasswordHasher passwordHasher() {
+    return new InMemoryPasswordHasher();
   }
 }

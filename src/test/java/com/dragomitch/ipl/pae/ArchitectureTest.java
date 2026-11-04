@@ -33,6 +33,7 @@ class ArchitectureTest {
   private static final String APPLICATION = BASE + ".application..";
   private static final String WEB_ADAPTER = BASE + ".adapter.in.web..";
   private static final String PERSISTENCE_ADAPTER = BASE + ".adapter.out.persistence..";
+  private static final String SECURITY_ADAPTER = BASE + ".adapter.out.security..";
   private static final String CONFIGURATION = BASE + ".config..";
 
   /**
@@ -50,6 +51,8 @@ class ArchitectureTest {
           .definedBy(WEB_ADAPTER)
           .layer("Persistence adapter")
           .definedBy(PERSISTENCE_ADAPTER)
+          .layer("Security adapter")
+          .definedBy(SECURITY_ADAPTER)
           .layer("Configuration")
           .definedBy(CONFIGURATION)
           // the use-case implementations are reached through their ports only (Spring wires them)
@@ -59,6 +62,8 @@ class ArchitectureTest {
           .whereLayer("Web adapter")
           .mayOnlyBeAccessedByLayers("Configuration")
           .whereLayer("Persistence adapter")
+          .mayNotBeAccessedByAnyLayer()
+          .whereLayer("Security adapter")
           .mayNotBeAccessedByAnyLayer()
           .whereLayer("Configuration")
           .mayNotBeAccessedByAnyLayer();
@@ -96,6 +101,20 @@ class ArchitectureTest {
               "org.springframework.web.bind..",
               "jakarta.servlet..");
 
+  /**
+   * The use cases know no Spring Security: passwords go through the {@code PasswordHasher} port.
+   * ({@code @PreAuthorize} lives on the controllers of the web adapter, not in {@code application},
+   * so the rule covers the whole package.)
+   */
+  @ArchTest
+  static final ArchRule applicationIsFreeOfSpringSecurity =
+      noClasses()
+          .that()
+          .resideInAPackage(APPLICATION)
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.springframework.security..");
+
   /** Ports are interfaces. */
   @ArchTest
   static final ArchRule portsAreInterfaces =
@@ -114,12 +133,15 @@ class ArchitectureTest {
           .should()
           .implement(resideInAPackage(BASE + ".domain.port.in"));
 
-  /** Only the persistence adapter implements the driven ports (the repositories). */
+  /**
+   * Only the driven adapters implement the driven ports: the persistence adapter (the repositories)
+   * and the security adapter (the password hasher).
+   */
   @ArchTest
-  static final ArchRule drivenPortsAreImplementedByThePersistenceAdapter =
+  static final ArchRule drivenPortsAreImplementedByTheDrivenAdapters =
       noClasses()
           .that()
-          .resideOutsideOfPackage(PERSISTENCE_ADAPTER)
+          .resideOutsideOfPackages(PERSISTENCE_ADAPTER, SECURITY_ADAPTER)
           .should()
           .implement(resideInAPackage(BASE + ".domain.port.out"));
 
