@@ -53,10 +53,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '20'
+          # 22: @hey-api/openapi-ts (npm run api:check) needs Node 22.18 or later
+          node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      # the committed client (src/app/core/api/) must be the one generated from openapi.json
+      - name: Generated API client up to date
+        run: npm run api:check
       # angular-eslint rules (eslint.config.js), then Prettier (.prettierrc): fails on a finding or
       # on a file that `npm run format` would change
       - name: Lint
@@ -182,7 +186,7 @@ jobs:
           JWT_SECRET="$(openssl rand -hex 32)" nohup java -jar target/PAE-Gestionnaire-Erasmus-1.0-SNAPSHOT.jar > e2e/app.log 2>&1 &
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
           cache-dependency-path: |
             frontend/package-lock.json
@@ -190,6 +194,19 @@ jobs:
       - name: Install the frontend
         working-directory: frontend
         run: npm ci
+      # frontend/openapi.json, the input of the generated client, must be the document this jar
+      # serves, normalized the same way (scripts/sync-openapi.mjs: sorted keys, no servers)
+      - name: OpenAPI document of the frontend up to date
+        run: |
+          for _ in $(seq 60); do
+            curl -fsS -o /dev/null --max-time 5 "$APP_URL/v3/api-docs" && break
+            sleep 2
+          done
+          API_DOCS_URL="$APP_URL/v3/api-docs" node frontend/scripts/sync-openapi.mjs --out "$RUNNER_TEMP/openapi.json"
+          if ! diff -u frontend/openapi.json "$RUNNER_TEMP/openapi.json"; then
+            echo "::error file=frontend/openapi.json::frontend/openapi.json differs from the document served by the backend: run npm run api:sync && npm run api:generate in frontend/ (backend running) and commit the result"
+            exit 1
+          fi
       - name: Install Playwright and Chromium
         working-directory: e2e
         run: |

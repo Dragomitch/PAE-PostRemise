@@ -129,6 +129,8 @@ On a local run they are at <http://localhost:8080/v3/api-docs> and
 name is not enough (`@Operation(summary = ...)`, `@Schema(description = ...)` on a DTO getter, see
 `config/OpenApiConfig` and [backend/AGENTS.md](backend/AGENTS.md)).
 
+The Angular client is generated from a committed copy of the document (`frontend/openapi.json`, `npm run api:sync`, `npm run api:generate`, checked by CI): see [frontend/AGENTS.md](frontend/AGENTS.md#generated-api-client).
+
 ## Getting started
 1. Inspect `src/main/resources/application.properties` for the database and JWT settings (see *Configuration* below).
 2. Explore the DTOs and their constraints in the `domain/dto` package.
@@ -238,10 +240,10 @@ They are resolved in `src/main/resources/application.properties`. Always set `JW
 | Job | What it checks |
 |---|---|
 | Backend | `mvn verify`: compile, JUnit 6 tests, JaCoCo coverage, `spotless:check` (google-java-format) |
-| Frontend | `npm ci`, `npm run lint` (angular-eslint), `npm run format:check` (Prettier), production build, Karma tests (headless Chrome) with coverage |
+| Frontend | `npm ci`, `npm run api:check` (generated API client up to date), `npm run lint` (angular-eslint), `npm run format:check` (Prettier), production build, Karma tests (headless Chrome) with coverage |
 | Workflow lint | `actionlint` on the workflows |
 | Docker | `docker compose config`, backend and frontend image builds |
-| End-to-end | the jar on a PostgreSQL 18 service container: `e2e/run-e2e.sh` (API scenario, Playwright walk of the legacy UI and the Angular app), screenshots and logs uploaded |
+| End-to-end | the jar on a PostgreSQL 18 service container: its `/v3/api-docs` diffed against `frontend/openapi.json`, `e2e/run-e2e.sh` (API scenario, Playwright walk of the legacy UI and the Angular app), screenshots and logs uploaded |
 | Test report | publishes a **Test results** check (failures annotated on the diff), a job summary and a sticky PR comment with test counts and coverage |
 | CI passed | single gate job to mark as *required* in branch protection |
 

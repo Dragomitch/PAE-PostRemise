@@ -22,7 +22,7 @@ function mobility(
   lastName: string,
   academicYear: number,
   term: number,
-  state: string,
+  state: Mobility['state'],
 ): Mobility {
   return {
     id,
