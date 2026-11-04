@@ -8,7 +8,7 @@ with the same runner.
 |---|---|
 | `run-e2e.sh` | Runner: waits for the backend, runs the three scripts below in order, starts and stops the Angular dev server, prints a summary and exits 1 if a step failed |
 | `api_e2e.py` | API scenario (Python standard library only): 159 checks |
-| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices, personal data, users and mobilities screens: 43 checks |
+| `ui_e2e.js` | Playwright (Chromium) walk of the Angular sign-up/sign-in, of every legacy UI view and of the Angular mobility choices, personal data, users, denial reasons and mobilities screens: 46 checks |
 | `mobility_detail.js` | Playwright check of the completed mobility's detail page: 4 checks |
 | `package.json` | Pins Playwright (exact version) |
 
@@ -41,7 +41,11 @@ data screen (`/personal-data`) must show her record as `GET /nominatedStudents/{
 a phone number changed through the form must be returned by the API with the next version; as
 `prof`, the users screen (`/users`) must list the accounts of `GET /users` with their role, offer
 "Promouvoir" to the students only, and ask for a confirmation, which the walk cancels: nobody is
-promoted, so the roles stay as the API script left them. Last, read only, the Angular mobilities
+promoted, so the roles stay as the API script left them. Still as `prof`, the denial reasons
+screen (`/denial-reasons`) must list the reasons of `GET /denialReasons`; a reason created through
+its form (`Candidature hors délai (UI)`, a label of its own since the API script already created
+`Dossier incomplet`) must be returned by `GET /denialReasons` and shown in the table, and its text
+edited in its row must be returned by the API too. Last, read only, the Angular mobilities
 screen (`/mobilities`): as `prof`, the rows must be the mobilities of `GET /mobilities` with their
 state, and the detail of the completed mobility (the one `mobility_detail.js` checks on the legacy
 UI) must show its state, no button, and the days of its two payments as the API returns them; as

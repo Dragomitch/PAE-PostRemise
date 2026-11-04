@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard, roleGuard } from './core/auth.guard';
 import { ROLE_PROFESSOR, ROLE_STUDENT } from './core/models';
+import { DenialReasons } from './denial-reasons/denial-reasons';
 import { Mobilities } from './mobilities/mobilities';
 import { MobilityDetail } from './mobilities/mobility-detail';
 import { MobilityChoices } from './mobility-choices/mobility-choices';
@@ -55,6 +56,12 @@ export const routes: Routes = [
         component: Users,
         canActivate: [roleGuard(ROLE_PROFESSOR)],
         title: $localize`:@@route.users.title:Utilisateurs - EMA`,
+      },
+      {
+        path: 'denial-reasons',
+        component: DenialReasons,
+        canActivate: [roleGuard(ROLE_PROFESSOR)],
+        title: $localize`:@@route.denialReasons.title:Raisons de refus - EMA`,
       },
     ],
   },

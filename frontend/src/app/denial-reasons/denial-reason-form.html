@@ -1,0 +1,54 @@
+@if (problem(); as p) {
+  <div class="notification notification-danger" role="alert">
+    <p>{{ p.detail }}</p>
+    @if (otherErrors().length) {
+      <ul>
+        @for (message of otherErrors(); track $index) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    }
+  </div>
+}
+
+<form
+  class="denial-reason-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  novalidate
+  [attr.aria-labelledby]="idPrefix() + '-label'"
+>
+  <div class="form-group">
+    <label
+      [id]="idPrefix() + '-label'"
+      [for]="idPrefix() + '-reason'"
+      i18n="@@denialReasonForm.reason.label"
+      >Nouvelle raison</label
+    >
+    <input
+      #field
+      type="text"
+      class="input"
+      formControlName="reason"
+      [id]="idPrefix() + '-reason'"
+      [attr.maxlength]="maxLength"
+      [attr.aria-invalid]="!!reasonError()"
+      [attr.aria-describedby]="reasonError() ? idPrefix() + '-reason-error' : null"
+    />
+    @if (reasonError(); as message) {
+      <p class="field-error" [id]="idPrefix() + '-reason-error'">{{ message }}</p>
+    }
+  </div>
+  <div class="actions">
+    <button
+      type="submit"
+      class="button primary create"
+      [disabled]="saving()"
+      [attr.aria-busy]="saving()"
+      i18n="@@denialReasonForm.submit"
+    >
+      Créer
+    </button>
+    <button type="button" class="button close-form" (click)="close()">{{ closeLabel() }}</button>
+  </div>
+</form>

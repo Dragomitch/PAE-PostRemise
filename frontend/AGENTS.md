@@ -5,7 +5,7 @@ category: "Frontend Development"
 author: "Dragomitch"
 authorUrl: "https://github.com/Dragomitch"
 tags: ["Angular", "TypeScript", "Node.js"]
-lastUpdated: "2026-11-03"
+lastUpdated: "2026-11-04"
 ---
 
 # EMA Frontend Guide
@@ -47,6 +47,7 @@ frontend/
 │   │   ├── personal-data/         # student: own nominated-student record (create, then update with its version)
 │   │   ├── users/                 # professor: every account, promotion of a student after a confirmation
 │   │   ├── mobilities/            # list and detail; professor: encodings, documents, payments, cancellation, CSV exports
+│   ├── denial-reasons/        # professor: denial reasons table, inline edition; DenialReasonForm (creation, also in the reject and cancel panels)
 │   │   ├── sign-in/  sign-up/
 │   │   └── api.service.ts
 │   └── locale/
@@ -273,6 +274,12 @@ Frontend pieces:
   and `PUT /mobilityChoices/{id}/confirm` (professor), `GET /mobilityChoices/export?filter=` (CSV, opened by
   the browser in a new tab). Reference data as plain arrays: `GET /programmes`, `GET /countries` (each with
   its `programme`), `GET /denialReasons`. `GET /mobilities` tells which choices became mobilities (same id).
+- Denial reasons (professor): `GET /api/1.0/denialReasons` (plain array, by id), `POST /denialReasons` with
+  `{reason}` (300 characters at most) answers the reason with its id, `PUT /denialReasons/{id}` with
+  `{id, reason, version}` (the version read, always 0: the table has none; a reason deleted meanwhile
+  answers 409 `CONCURRENT_MODIFICATION` and the screen offers to reload the list). `DenialReasonForm`
+  creates one; the reject panel of the mobility choices and the cancel panel of a mobility show it in
+  place of their form ("Nouvelle raison", the legacy dialog's behaviour) and select the new reason.
 - Personal data (student): `GET /api/1.0/nominatedStudents/{id}` with the signed-in user's id (404 until the
   first save), `POST /nominatedStudents` for the first save, then `PUT /nominatedStudents/{id}`. The body is
   the whole record (the user's `id`, `username`, `option`, names and e-mail included) with `version`, the
@@ -297,7 +304,7 @@ until the backend exposes an options endpoint in the new API.
 Routing is defined in `app.routes.ts`; route titles are localized with `$localize`.
 `/signin` and `/signup` are public. Every other screen is a child of the `Shell` route, guarded by
 `authGuard` (screens of one role add `roleGuard(ROLE_STUDENT)` for `/personal-data` or
-`roleGuard(ROLE_PROFESSOR)` for `/users`, which sends the other role to `/partners`; the shell only
+`roleGuard(ROLE_PROFESSOR)` for `/users` and `/denial-reasons`, which sends the other role to `/partners`; the shell only
 links the screens of the user's role; `/mobilities` and `/mobilities/:id` serve both roles, the API
 answering a student's own mobilities only): a signed-in user is known from the sign-in of this page load or from
 `GET /api/1.0/session` (`SessionService.restore()`), otherwise the visitor is redirected to

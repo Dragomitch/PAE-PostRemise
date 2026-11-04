@@ -129,8 +129,11 @@ export type Programme = Ref<ProgrammeDto, 'id' | 'programmeName'>;
 /** A country of `GET /api/1.0/countries`, with the programme its mobilities belong to. */
 export type ProgrammeCountry = Country & { programme: Ref<ProgrammeDto, 'id'> };
 
-/** A reason a professor gives when rejecting a mobility choice. */
-export type DenialReason = Ref<DenialReasonDto, 'id' | 'reason'>;
+/**
+ * A reason a professor gives when rejecting a mobility choice or cancelling a mobility. The JSON
+ * always carries the version (always 0: the table has none), which an update sends back.
+ */
+export type DenialReason = Ref<DenialReasonDto, 'id' | 'reason' | 'version'>;
 
 /** Studies abroad (`SMS`) or internship abroad (`SMP`); the document only has a pattern. */
 export type MobilityType = 'SMS' | 'SMP';

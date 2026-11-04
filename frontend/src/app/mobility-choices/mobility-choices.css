@@ -222,3 +222,20 @@ th[scope='row'] {
   background: #fdecea;
   color: #8a1c14;
 }
+
+.link-button {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1f3a5f;
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:focus-visible {
+  outline: 2px solid #1f3a5f;
+  outline-offset: 2px;
+}
