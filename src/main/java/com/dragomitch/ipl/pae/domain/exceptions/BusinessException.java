@@ -3,32 +3,28 @@ package com.dragomitch.ipl.pae.domain.exceptions;
 import java.util.Arrays;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
-import org.springframework.http.ProblemDetail;
-import org.springframework.web.ErrorResponseException;
 
 /**
  * A business rule was broken: the use case refuses the operation with one of the {@linkplain
  * ErrorCode error codes}.
  *
- * <p>It is a Spring {@link org.springframework.web.ErrorResponse}: it carries its HTTP status and
- * an RFC 9457 {@link ProblemDetail} whose {@code type} and {@code code} come from the error code.
- * The localized {@code title} and {@code detail} are resolved from the {@code MessageSource} by
- * {@link #updateAndGetBody} (called by {@code ResponseEntityExceptionHandler}) with the message
+ * <p>The web adapter ({@code ApiExceptionHandler}) answers it with the HTTP status of its code and
+ * an RFC 9457 problem whose {@code type} and {@code code} come from the error code. The localized
+ * {@code title} and {@code detail} are resolved from the {@code MessageSource} with the message
  * codes {@code problem.<CODE>.title} and {@code problem.<CODE>.detail}; the detail may use the
  * {@linkplain #getDetailMessageArguments() arguments} given to the constructor ({@code {0}}, {@code
  * {1}}...).
  *
  * <p>Validation constraints are not business exceptions: they are Bean Validation constraints on
- * the DTOs and on the use-case methods, reported as {@link ErrorCode#VALIDATION_FAILED}.
+ * the web DTOs and on the request parameters, reported as {@link ErrorCode#VALIDATION_FAILED}.
  */
-public class BusinessException extends ErrorResponseException {
+public class BusinessException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
-  /** Name of the problem property holding the error code. */
-  public static final String CODE_PROPERTY = "code";
-
   private final ErrorCode errorCode;
+
+  private final Object[] detailArguments;
 
   /**
    * Creates the exception of an error code.
@@ -49,20 +45,9 @@ public class BusinessException extends ErrorResponseException {
    */
   public BusinessException(
       ErrorCode errorCode, @Nullable Throwable cause, Object... detailArguments) {
-    super(
-        Objects.requireNonNull(errorCode, "errorCode").status(),
-        problemOf(errorCode),
-        cause,
-        errorCode.detailMessageCode(),
-        detailArguments);
-    this.errorCode = errorCode;
-  }
-
-  private static ProblemDetail problemOf(ErrorCode errorCode) {
-    ProblemDetail problem = ProblemDetail.forStatus(errorCode.status());
-    problem.setType(errorCode.type());
-    problem.setProperty(CODE_PROPERTY, errorCode.name());
-    return problem;
+    super(null, cause);
+    this.errorCode = Objects.requireNonNull(errorCode, "errorCode");
+    this.detailArguments = detailArguments.clone();
   }
 
   /** The error of this exception. */
@@ -70,21 +55,15 @@ public class BusinessException extends ErrorResponseException {
     return errorCode;
   }
 
-  @Override
-  public String getTitleMessageCode() {
-    return errorCode.titleMessageCode();
-  }
-
-  @Override
-  public String getDetailMessageCode() {
-    return errorCode.detailMessageCode();
+  /** The arguments of the localized detail message, possibly none. */
+  public Object[] getDetailMessageArguments() {
+    return detailArguments.clone();
   }
 
   /** For the logs only: the code and its arguments, never shown to the client. */
   @Override
   public String getMessage() {
-    Object[] arguments = getDetailMessageArguments();
     return errorCode.name()
-        + (arguments == null || arguments.length == 0 ? "" : " " + Arrays.toString(arguments));
+        + (detailArguments.length == 0 ? "" : " " + Arrays.toString(detailArguments));
   }
 }

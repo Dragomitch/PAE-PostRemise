@@ -5,13 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPartnerOptionRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPartnerRepository;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
@@ -29,7 +28,6 @@ public class TestOptionService {
 
   @Autowired private ApplicationContext context;
 
-  private EntityFactory entityFactory;
   private OptionService optionService;
   private PartnerRepository partnerRepository;
   private PartnerOptionRepository partnerOptionRepository;
@@ -37,7 +35,6 @@ public class TestOptionService {
   /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
-    this.entityFactory = context.getBean(EntityFactory.class);
     this.optionService = context.getBean(OptionService.class);
     this.partnerRepository = context.getBean(PartnerRepository.class);
     this.partnerOptionRepository = context.getBean(PartnerOptionRepository.class);
@@ -57,36 +54,36 @@ public class TestOptionService {
   @Test
   public void testShowAllTC2() {
     // the mock keeps the options in a HashMap: no order to rely on
-    List<String> codes = optionService.showAll().stream().map(OptionDto::getCode).sorted().toList();
+    List<String> codes = optionService.showAll().stream().map(Option::getCode).sorted().toList();
     assertEquals(List.of("BBM", "BCH", "BDI", "BIM", "BIN"), codes);
   }
 
   @Test
   public void testFindAllPartnersByOptionTC1() {
-    PartnerDto partner = setUpCorrectPartner(entityFactory);
+    Partner partner = setUpCorrectPartner();
     partnerRepository.create(partner);
-    List<PartnerDto> partners = optionService.findAllPartnersByOption("BIN");
+    List<Partner> partners = optionService.findAllPartnersByOption("BIN");
     assertEquals(1, partners.size());
   }
 
   @Test
   public void testFindAllPartnersByOptionTC2() {
-    PartnerDto partner = setUpCorrectPartner(entityFactory);
+    Partner partner = setUpCorrectPartner();
     partner = partnerRepository.create(partner);
-    List<PartnerDto> partners = optionService.findAllPartnersByOption("BIN");
+    List<Partner> partners = optionService.findAllPartnersByOption("BIN");
     assertEquals(partner.getId(), partners.get(0).getId());
   }
 
   @Test
   public void testFindAllPartnersByOptionTC3() {
-    PartnerDto partner1 = setUpCorrectPartner(entityFactory);
+    Partner partner1 = setUpCorrectPartner();
     partnerRepository.create(partner1);
-    PartnerOptionDto option = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+    PartnerOption option = new PartnerOption();
     option.setCode("BIM");
     option.setDepartement("BinDep");
     partnerOptionRepository.create(option, 1);
 
-    PartnerDto partner2 = setUpCorrectPartner(entityFactory);
+    Partner partner2 = setUpCorrectPartner();
     partner2.setId(2);
     partnerRepository.create(partner2);
     assertEquals(2, optionService.findAllPartnersByOption("BIN").size());
@@ -95,12 +92,12 @@ public class TestOptionService {
   }
 
   /**
-   * Creates an instance of PartnerDto with correct data.
+   * Creates an instance of Partner with correct data.
    *
    * @return a partner ready to be inserted.
    */
-  private PartnerDto setUpCorrectPartner(EntityFactory entityFactory) {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+  private Partner setUpCorrectPartner() {
+    Partner partner = new Partner();
     partner.setId(1);
     partner.setBusinessName("Business partner");
     partner.setEmail("email@email.org");
@@ -110,19 +107,19 @@ public class TestOptionService {
     partner.setOrganisationType("Partner organization type");
     partner.setPhoneNumber("+32493184140");
     partner.setWebsite("www.partnerwebsite.com");
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     programme.setId(1);
     partner.setProgramme(programme);
-    PartnerOptionDto option = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+    PartnerOption option = new PartnerOption();
     option.setCode("BIN");
     option.setDepartement("BinDep");
     partnerOptionRepository.create(option, 1);
-    List<PartnerOptionDto> options = new ArrayList<PartnerOptionDto>();
+    List<PartnerOption> options = new ArrayList<PartnerOption>();
     options.add(option);
     partner.setOptions(options);
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    Address address = new Address();
     address.setCity("Dublin");
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("IR");
     address.setCountry(country);
     address.setNumber("25");

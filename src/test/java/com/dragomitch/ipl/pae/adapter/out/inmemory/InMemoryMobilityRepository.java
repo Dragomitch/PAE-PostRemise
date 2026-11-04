@@ -1,62 +1,59 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
 import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class InMemoryMobilityRepository implements MobilityRepository, ResettableRepository {
 
   private MobilityChoiceRepository mobilityChoiceRepository;
-  private EntityFactory entityFactory;
-  private Set<MobilityDto> mobilities = new HashSet<MobilityDto>();
+  private Set<Mobility> mobilities = new HashSet<Mobility>();
 
-  public InMemoryMobilityRepository(
-      EntityFactory entityFactory, MobilityChoiceRepository mobilityChoiceRepository) {
-    this.entityFactory = entityFactory;
+  public InMemoryMobilityRepository(MobilityChoiceRepository mobilityChoiceRepository) {
     this.mobilityChoiceRepository = mobilityChoiceRepository;
   }
 
   @Override
-  public MobilityDto create(MobilityDto mobility) {
+  public Mobility create(Mobility mobility) {
     mobilities.add(mobility);
     mobility.setVersion(1);
     return mobility;
   }
 
   @Override
-  public List<MobilityDto> findAll() {
-    List<MobilityDto> mobilities = new ArrayList<MobilityDto>();
-    for (MobilityDto curMobility : this.mobilities) {
+  public List<Mobility> findAll() {
+    List<Mobility> mobilities = new ArrayList<Mobility>();
+    for (Mobility curMobility : this.mobilities) {
       mobilities.add(curMobility);
     }
     return mobilities;
   }
 
   @Override
-  public MobilityDto findById(int id) {
-    for (MobilityDto curMobility : this.mobilities) {
+  public Optional<Mobility> findById(int id) {
+    for (Mobility curMobility : this.mobilities) {
       if (curMobility.getId() == id) {
-        MobilityChoiceDto mobilityChoice = mobilityChoiceRepository.findById(id);
-        NominatedStudent student = (NominatedStudent) entityFactory.build(NominatedStudent.class);
+        MobilityChoice mobilityChoice = mobilityChoiceRepository.findById(id).orElse(null);
+        NominatedStudent student = new NominatedStudent();
         student.setId(mobilityChoice.getUser().getId());
         curMobility.setNominatedStudent(student);
-        return curMobility;
+        return Optional.ofNullable(curMobility);
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
-  public List<MobilityDto> findByUser(int user) {
-    List<MobilityDto> mobilities = new ArrayList<MobilityDto>();
-    for (MobilityDto curMobility : this.mobilities) {
+  public List<Mobility> findByUser(int user) {
+    List<Mobility> mobilities = new ArrayList<Mobility>();
+    for (Mobility curMobility : this.mobilities) {
       if (curMobility.getUser().getId() == user) {
         mobilities.add(curMobility);
       }
@@ -65,13 +62,13 @@ public class InMemoryMobilityRepository implements MobilityRepository, Resettabl
   }
 
   @Override
-  public MobilityDto update(MobilityDto mobility) {
+  public Mobility update(Mobility mobility) {
     mobility.setVersion(mobility.getVersion() + 1);
     return mobility;
   }
 
   @Override
   public void empty() {
-    mobilities = new HashSet<MobilityDto>();
+    mobilities = new HashSet<Mobility>();
   }
 }

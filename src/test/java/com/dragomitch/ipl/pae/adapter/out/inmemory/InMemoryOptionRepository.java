@@ -1,37 +1,33 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Option;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryOptionRepository implements OptionRepository {
 
-  private Map<String, OptionDto> options;
+  private Map<String, Option> options;
 
-  /**
-   * Sole constructor.
-   *
-   * @param entityFactory builds objects
-   */
-  public InMemoryOptionRepository(EntityFactory entityFactory) {
-    options = new HashMap<String, OptionDto>();
-    OptionDto optionBin = (OptionDto) entityFactory.build(OptionDto.class);
+  /** Sole constructor. */
+  public InMemoryOptionRepository() {
+    options = new HashMap<String, Option>();
+    Option optionBin = new Option();
     optionBin.setCode("BIN");
     optionBin.setName("Bachelier en informatique de gestion");
-    OptionDto optionBbm = (OptionDto) entityFactory.build(OptionDto.class);
+    Option optionBbm = new Option();
     optionBbm.setCode("BBM");
     optionBbm.setName("Bachelier en biologie médicale");
-    OptionDto optionBch = (OptionDto) entityFactory.build(OptionDto.class);
+    Option optionBch = new Option();
     optionBch.setCode("BCH");
     optionBch.setName("Bachelier en chimie");
-    OptionDto optionBdi = (OptionDto) entityFactory.build(OptionDto.class);
+    Option optionBdi = new Option();
     optionBdi.setCode("BDI");
     optionBdi.setName("Bachelier en diététique");
-    OptionDto optionBim = (OptionDto) entityFactory.build(OptionDto.class);
+    Option optionBim = new Option();
     optionBim.setCode("BIM");
     optionBim.setName("Bachelier en imagerie médicale");
     options.put("BIN", optionBin);
@@ -42,16 +38,16 @@ public class InMemoryOptionRepository implements OptionRepository {
   }
 
   @Override
-  public List<OptionDto> findAll() {
-    List<OptionDto> optionsList = new ArrayList<OptionDto>();
-    for (OptionDto option : options.values()) {
+  public List<Option> findAll() {
+    List<Option> optionsList = new ArrayList<Option>();
+    for (Option option : options.values()) {
       optionsList.add(option);
     }
     return optionsList;
   }
 
   @Override
-  public OptionDto findByCode(String code) {
-    return options.get(code);
+  public Optional<Option> findByCode(String code) {
+    return Optional.ofNullable(options.get(code));
   }
 }

@@ -6,9 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import java.time.LocalDate;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -25,29 +22,28 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class NominatedStudentImplTest {
 
-  private final EntityFactoryImpl factory = new EntityFactoryImpl();
   private NominatedStudent student;
 
-  private CountryDto country(String code) {
-    CountryDto country = (CountryDto) factory.build(CountryDto.class);
+  private Country country(String code) {
+    Country country = new com.dragomitch.ipl.pae.domain.model.Country();
     country.setCountryCode(code);
     return country;
   }
 
   @BeforeEach
   void validStudent() {
-    student = (NominatedStudent) factory.build(NominatedStudent.class);
+    student = new com.dragomitch.ipl.pae.domain.model.NominatedStudent();
     student.setFirstName("Alice");
     student.setLastName("Martin");
     student.setUsername("alice");
     student.setEmail("alice@student.test");
-    OptionDto option = (OptionDto) factory.build(OptionDto.class);
+    Option option = new com.dragomitch.ipl.pae.domain.model.Option();
     option.setCode("BIN");
     student.setOption(option);
     student.setTitle("Ms");
     student.setBirthdate(LocalDate.of(2001, 4, 12));
     student.setNationality(country("BE"));
-    AddressDto address = (AddressDto) factory.build(AddressDto.class);
+    Address address = new com.dragomitch.ipl.pae.domain.model.Address();
     address.setStreet("Rue de la Loi");
     address.setNumber("16");
     address.setCity("Bruxelles");
@@ -138,7 +134,7 @@ class NominatedStudentImplTest {
 
   @Test
   void everyViolationIsReportedAtOnce() {
-    NominatedStudent empty = (NominatedStudent) factory.build(NominatedStudent.class);
+    NominatedStudent empty = new com.dragomitch.ipl.pae.domain.model.NominatedStudent();
 
     assertThat(Violations.of(empty))
         .containsExactly(

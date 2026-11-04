@@ -1,8 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.MobilityMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
+import com.dragomitch.ipl.pae.domain.model.DocumentFilter;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,26 +32,41 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ApiPaths.BASE + "/mobilities")
 public class MobilityController {
 
+  /**
+   * Values of the {@code filter} parameter of the document export ({@link DocumentFilter}):
+   * departure documents (D), filled-in departure documents (DF), return documents (R), filled-in
+   * return documents (RF); every document without a filter. An unknown value is refused with a 400
+   * {@code VALIDATION_FAILED} problem on the {@code filter} field.
+   */
+  static final String DOCUMENT_FILTER_REGEXP = "D|DF|R|RF";
+
+  /** Message of an unknown document filter. */
+  static final String DOCUMENT_FILTER_MESSAGE =
+      "{pae.validation.MobilityService.documentFilter.message}";
+
   /** Value of a missing numeric parameter, as with the former router. */
   private static final String MISSING = "-1";
 
   private final MobilityService mobilityService;
+  private final MobilityMapper mapper;
 
-  public MobilityController(MobilityService mobilityService) {
+  public MobilityController(MobilityService mobilityService, MobilityMapper mapper) {
     this.mobilityService = mobilityService;
+    this.mapper = mapper;
   }
 
   /** Every mobility for a professor, the own ones for a student. */
   @GetMapping
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public DataResponse<MobilityDto> showAll(CurrentUser currentUser) {
-    return new DataResponse<>(mobilityService.showAll(currentUser.id(), currentUser.role()));
+    return new DataResponse<>(
+        mapper.toMobilityDtos(mobilityService.showAll(currentUser.id(), currentUser.role())));
   }
 
   @GetMapping("/{id}")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public MobilityDto showOne(@PathVariable @Positive int id, CurrentUser currentUser) {
-    return mobilityService.showOne(id, currentUser.role(), currentUser.id());
+    return mapper.toDto(mobilityService.showOne(id, currentUser.role(), currentUser.id()));
   }
 
   @Operation(summary = "Records that the mobility is encoded in ProEco")
@@ -80,7 +97,7 @@ public class MobilityController {
   public MobilityDto confirmPayment(
       @PathVariable @Positive int id,
       @RequestParam(required = false, defaultValue = MISSING) int version) {
-    return mobilityService.confirmPayment(id, version);
+    return mapper.toDto(mobilityService.confirmPayment(id, version));
   }
 
   @Operation(
@@ -93,7 +110,7 @@ public class MobilityController {
       @PathVariable @Positive int id,
       @RequestParam(required = false, defaultValue = MISSING) @Positive int document,
       @RequestParam(required = false, defaultValue = MISSING) int version) {
-    return mobilityService.confirmDocument(id, document, version);
+    return mapper.toDto(mobilityService.confirmDocument(id, document, version));
   }
 
   /**
@@ -113,8 +130,9 @@ public class MobilityController {
           String cancellationReason,
       @RequestParam(required = false, defaultValue = MISSING) int denialReason,
       CurrentUser currentUser) {
-    return mobilityService.cancel(
-        id, version, cancellationReason, denialReason, currentUser.id(), currentUser.role());
+    return mapper.toDto(
+        mobilityService.cancel(
+            id, version, cancellationReason, denialReason, currentUser.id(), currentUser.role()));
   }
 
   /** CSV export of the documents of a mobility. */
@@ -124,10 +142,9 @@ public class MobilityController {
   public String exportDocuments(
       @PathVariable @Positive int id,
       @RequestParam(required = false)
-          @Pattern(
-              regexp = MobilityService.DOCUMENT_FILTER_REGEXP,
-              message = MobilityService.DOCUMENT_FILTER_MESSAGE)
+          @Pattern(regexp = DOCUMENT_FILTER_REGEXP, message = DOCUMENT_FILTER_MESSAGE)
           String filter) {
-    return mobilityService.exportDocuments(id, filter);
+    return mobilityService.exportDocuments(
+        id, filter == null ? null : DocumentFilter.valueOf(filter));
   }
 }

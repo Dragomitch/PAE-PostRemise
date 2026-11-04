@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
@@ -31,15 +31,13 @@ class SecureSessionCookieTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private SessionService sessionService;
 
   @Test
   void theCookiesAreSecureAndTheSessionLastsTheConfiguredValidity() throws Exception {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     user.setId(3);
-    user.setRole(UserDto.ROLE_STUDENT);
+    user.setRole(Role.STUDENT);
     when(sessionService.signin(any(), any())).thenReturn(user);
 
     Cookie xsrf =

@@ -18,9 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
 import com.dragomitch.ipl.pae.adapter.in.web.security.SessionCookieService;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InvalidCredentialsException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import jakarta.servlet.http.Cookie;
@@ -67,19 +67,17 @@ class SessionSecurityTest {
 
   @Autowired private JwtEncoder jwtEncoder;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private SessionService sessionService;
 
-  private UserDto professor;
+  private User professor;
 
   @BeforeEach
   void setUp() {
-    professor = (UserDto) entityFactory.build(UserDto.class);
+    professor = new User();
     professor.setId(7);
     professor.setUsername("prof1");
     professor.setPassword("$2a$10$hashedPasswordNeverSentBack");
-    professor.setRole(UserDto.ROLE_PROFESSOR);
+    professor.setRole(Role.PROFESSOR);
     when(sessionService.signin("prof1", "secret")).thenReturn(professor);
     when(sessionService.showAuthenticatedUser(7)).thenReturn(professor);
   }

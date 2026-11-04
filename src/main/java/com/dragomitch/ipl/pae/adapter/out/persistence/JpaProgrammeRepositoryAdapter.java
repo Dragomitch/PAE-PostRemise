@@ -1,9 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.ProgrammeJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -20,12 +21,12 @@ class JpaProgrammeRepositoryAdapter implements ProgrammeRepository {
   }
 
   @Override
-  public ProgrammeDto findById(int id) {
-    return programmes.findById(id).map(mapper::programme).orElse(null);
+  public Optional<Programme> findById(int id) {
+    return programmes.findById(id).map(mapper::programme);
   }
 
   @Override
-  public List<ProgrammeDto> findAll() {
+  public List<Programme> findAll() {
     return programmes.findAll(Sort.by("id")).stream().map(mapper::programme).toList();
   }
 }

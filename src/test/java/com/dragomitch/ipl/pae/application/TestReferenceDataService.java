@@ -4,10 +4,10 @@ import static com.dragomitch.ipl.pae.domain.exceptions.BusinessExceptionAssert.a
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Programme;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import com.dragomitch.ipl.pae.domain.port.in.ProgrammeService;
@@ -29,13 +29,13 @@ class TestReferenceDataService {
   @Test
   void everyCountryIsListed() {
     assertThat(countryService.showAll())
-        .extracting(CountryDto::getCountryCode)
+        .extracting(Country::getCountryCode)
         .containsExactlyInAnyOrder("GB", "IE");
   }
 
   @Test
   void aCountryIsFoundByItsCodeWithItsProgramme() {
-    CountryDto ireland = countryService.showOne("IE");
+    Country ireland = countryService.showOne("IE");
 
     assertThat(ireland.getName()).isEqualTo("Ireland");
     assertThat(ireland.getProgramme().getProgrammeName()).isEqualTo("Erasmus+");
@@ -56,13 +56,13 @@ class TestReferenceDataService {
   @Test
   void everyProgrammeIsListed() {
     assertThat(programmeService.showAll())
-        .extracting(ProgrammeDto::getProgrammeName)
+        .extracting(Programme::getProgrammeName)
         .containsExactly("Erasmus+");
   }
 
   @Test
   void aProgrammeIsFoundByItsId() {
-    ProgrammeDto programme = programmeService.showOne(1);
+    Programme programme = programmeService.showOne(1);
 
     assertThat(programme.getProgrammeName()).isEqualTo("Erasmus+");
     assertThat(programme.getExternalSoftName()).isEqualTo("Mobility Tool");
@@ -71,7 +71,7 @@ class TestReferenceDataService {
   @Test
   void everyOptionIsListed() {
     assertThat(optionService.showAll())
-        .extracting(OptionDto::getCode)
+        .extracting(Option::getCode)
         .containsExactlyInAnyOrder("BIN", "BBM", "BCH", "BDI", "BIM");
   }
 

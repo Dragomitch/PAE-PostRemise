@@ -1,16 +1,17 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
@@ -22,11 +23,12 @@ import com.dragomitch.ipl.pae.domain.port.out.ProgrammeRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.util.LinkedList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Partners. Their format is checked by the constraints of {@link PartnerDto} (at creation, at least
+ * Partners. Their format is checked by the constraints of {@link Partner} (at creation, at least
  * one option); this class checks the rules that need the database or the requester.
  */
 @Service
@@ -62,14 +64,14 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   @Override
-  public PartnerDto create(PartnerDto partner, String userRole) {
-    if ((userRole.equals(UserDto.ROLE_STUDENT)) && (partner.isOfficial() == true)) {
+  public Partner create(Partner partner, Role userRole) {
+    if ((userRole == Role.STUDENT) && (partner.isOfficial() == true)) {
       throw new InsufficientPermissionException();
     }
     partner.setAddress(addressRepository.create(partner.getAddress()));
     partner = partnerRepository.create(partner);
-    List<PartnerOptionDto> options = partner.getOptions();
-    for (PartnerOptionDto partnerOption : options) {
+    List<PartnerOption> options = partner.getOptions();
+    for (PartnerOption partnerOption : options) {
       createOption(partner.getId(), partnerOption);
     }
     partner.setProgramme(partner.getAddress().getCountry().getProgramme());
@@ -78,41 +80,30 @@ class PartnerServiceImpl implements PartnerService {
 
   @Override
   @Transactional(readOnly = true)
-  public PartnerDto showOne(int id) {
-    PartnerDto partner = partnerRepository.findById(id);
-    if (partner == null) {
-      throw new ResourceNotFoundException();
-    }
-    partner.setAddress(addressRepository.findById(partner.getAddress().getId()));
-    partner.setProgramme(programmeRepository.findById(partner.getProgramme().getId()));
+  public Partner showOne(int id) {
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    partner.setAddress(addressRepository.findById(partner.getAddress().getId()).orElse(null));
+    partner.setProgramme(programmeRepository.findById(partner.getProgramme().getId()).orElse(null));
     partner.setOptions(partnerOptionRepository.findAllOptionsByPartner(id));
-    List<MobilityChoiceDto> mobilityChoices = mobilityChoiceRepository.findByActivePartner(id);
+    List<MobilityChoice> mobilityChoices = mobilityChoiceRepository.findByActivePartner(id);
     partner.setArchivable(mobilityChoices.isEmpty());
     return partner;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<PartnerDto> showAll(PartnerSearch search, String userRole, int userId) {
-    // the value of a filter is required by the constraints of PartnerSearch
-    String filterToUse =
-        search.filter() == null ? PartnerRepository.FILTER_ALL_PARTNERS : search.filter();
-    String option;
-    UserDto user;
-    if ((user = userRepository.findById(userId)) == null) {
-      throw new ResourceNotFoundException();
-    } else {
-      option = user.getOption().getCode();
-    }
-    return partnerRepository.findAll(filterToUse, search.value(), userRole, option);
+  public List<Partner> showAll(
+      PartnerFilter filter, @Nullable String value, Role userRole, int userId) {
+    User user = userRepository.findById(userId).orElseThrow(ResourceNotFoundException::new);
+    return partnerRepository.findAll(filter, value, userRole, user.getOption().getCode());
   }
 
   @Override
-  public PartnerDto edit(int id, PartnerDto partner, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT)) {
+  public Partner edit(int id, Partner partner, Role userRole) {
+    if (userRole == Role.STUDENT) {
       throw new InsufficientPermissionException();
     }
-    if (partnerRepository.findById(id) == null) {
+    if (partnerRepository.findById(id).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     partner.setId(id);
@@ -121,13 +112,13 @@ class PartnerServiceImpl implements PartnerService {
         throw new BusinessException(ErrorCode.PARTNER_HAS_MOBILITY_CHOICES);
       }
     }
-    PartnerDto partnerDb = partnerRepository.findById(partner.getId());
-    List<PartnerOptionDto> optionsDb =
+    Partner partnerDb = partnerRepository.findById(partner.getId()).orElseThrow();
+    List<PartnerOption> optionsDb =
         partnerOptionRepository.findAllOptionsByPartner(partnerDb.getId());
-    List<PartnerOptionDto> optionsToAdd = new LinkedList<PartnerOptionDto>();
+    List<PartnerOption> optionsToAdd = new LinkedList<PartnerOption>();
     if (partner.getOptions() != null) {
-      for (PartnerOptionDto option : partner.getOptions()) {
-        // the options are never null here (List<@NotNull @Valid PartnerOptionDto>)
+      for (PartnerOption option : partner.getOptions()) {
+        // the options are never null here (List<@NotNull @Valid PartnerOption>)
         if (!containsOption(optionsDb, option.getCode())
             && !containsOption(optionsToAdd, option.getCode())) {
           optionsToAdd.add(option);
@@ -139,11 +130,11 @@ class PartnerServiceImpl implements PartnerService {
     if (optionsDb.isEmpty() && optionsToAdd.isEmpty()) {
       throw new BusinessException(ErrorCode.PARTNER_OPTION_REQUIRED);
     }
-    AddressDto addressDb = partnerDb.getAddress();
+    Address addressDb = partnerDb.getAddress();
     partner.getAddress().setId(addressDb.getId());
     partner.setAddress(addressRepository.update(partner.getAddress()));
     partner.setVersion((partnerDb.getVersion()));
-    for (PartnerOptionDto option : optionsToAdd) {
+    for (PartnerOption option : optionsToAdd) {
       createOption(partner.getId(), option);
     }
     partner = partnerRepository.update(partner);
@@ -151,21 +142,17 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   @Override
-  public void addOption(int id, PartnerOptionDto partnerOption, int userId, String userRole) {
-    PartnerDto partner = partnerRepository.findById(id);
-    if (partner == null) {
-      throw new ResourceNotFoundException();
-    }
-    if (!userRole.equals(UserDto.ROLE_PROFESSOR)
-        && (partner.isOfficial() || !usesPartner(userId, id))) {
+  public void addOption(int id, PartnerOption partnerOption, int userId, Role userRole) {
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    if (userRole != Role.PROFESSOR && (partner.isOfficial() || !usesPartner(userId, id))) {
       throw new InsufficientPermissionException();
     }
     createOption(id, partnerOption);
   }
 
   /** Stores an option of a partner, after checking that the option exists. */
-  private void createOption(int partnerId, PartnerOptionDto partnerOption) {
-    if (optionRepository.findByCode(partnerOption.getCode()) == null) {
+  private void createOption(int partnerId, PartnerOption partnerOption) {
+    if (optionRepository.findByCode(partnerOption.getCode()).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_OPTION, partnerOption.getCode());
     }
     partnerOptionRepository.create(partnerOption, partnerId);
@@ -177,12 +164,12 @@ class PartnerServiceImpl implements PartnerService {
    * his own choices only).
    */
   private boolean usesPartner(int userId, int partnerId) {
-    for (MobilityChoiceDto choice : mobilityChoiceRepository.findByUser(userId)) {
+    for (MobilityChoice choice : mobilityChoiceRepository.findByUser(userId)) {
       if (choice.getPartner() != null && choice.getPartner().getId() == partnerId) {
         return true;
       }
     }
-    for (MobilityDto mobility : mobilityRepository.findByUser(userId)) {
+    for (Mobility mobility : mobilityRepository.findByUser(userId)) {
       if (mobility.getPartner() != null && mobility.getPartner().getId() == partnerId) {
         return true;
       }
@@ -192,23 +179,20 @@ class PartnerServiceImpl implements PartnerService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<PartnerOptionDto> findAllPartnerOption(int partnerId) {
-    if (partnerRepository.findById(partnerId) == null) {
+  public List<PartnerOption> findAllPartnerOption(int partnerId) {
+    if (partnerRepository.findById(partnerId).isEmpty()) {
       throw new ResourceNotFoundException();
     }
     return partnerOptionRepository.findAllOptionsByPartner(partnerId);
   }
 
   @Override
-  public PartnerDto restore(int id, String role) {
-    PartnerDto partner = null;
-    if ((partner = partnerRepository.findById(id)) == null) {
-      throw new ResourceNotFoundException();
-    }
+  public Partner restore(int id, Role role) {
+    Partner partner = partnerRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (!partner.isArchived()) {
       throw new BusinessException(ErrorCode.PARTNER_NOT_ARCHIVED);
     }
-    if (role.equals(UserDto.ROLE_STUDENT) && !partner.isOfficial()) {
+    if (role == Role.STUDENT && !partner.isOfficial()) {
       throw new InsufficientPermissionException();
     }
     if (partnerOptionRepository.findAllOptionsByPartner(id).isEmpty()) {
@@ -220,11 +204,11 @@ class PartnerServiceImpl implements PartnerService {
   }
 
   /** Tells whether a list of partner options already contains an option with the given code. */
-  private static boolean containsOption(List<PartnerOptionDto> options, String code) {
+  private static boolean containsOption(List<PartnerOption> options, String code) {
     if (code == null) {
       return false;
     }
-    for (PartnerOptionDto option : options) {
+    for (PartnerOption option : options) {
       if (code.equals(option.getCode())) {
         return true;
       }

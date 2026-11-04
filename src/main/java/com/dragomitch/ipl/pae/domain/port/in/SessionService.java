@@ -1,11 +1,8 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import org.springframework.validation.annotation.Validated;
+import com.dragomitch.ipl.pae.domain.model.User;
+import org.jspecify.annotations.Nullable;
 
-@Validated
 public interface SessionService {
 
   /**
@@ -17,13 +14,13 @@ public interface SessionService {
    * @throws com.dragomitch.ipl.pae.domain.exceptions.InvalidCredentialsException if the credentials
    *     are wrong
    */
-  UserDto signin(@NotBlank String username, @NotBlank String password);
+  User signin(String username, String password);
 
   /**
    * Return the authenticated user.
    *
    * @param id the authenticated user
-   * @return the authenticated user
+   * @return the authenticated user, null if the account no longer exists
    */
-  UserDto showAuthenticatedUser(@Positive int id);
+  @Nullable User showAuthenticatedUser(int id);
 }

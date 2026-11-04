@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
 import java.time.LocalDateTime;
@@ -25,30 +23,28 @@ public class TestMobility {
   @Autowired private ApplicationContext context;
 
   private static final LocalDateTime SUBMISSION_DATE = LocalDateTime.now();
-  private static final String STATE = Mobility.STATE_CREATED;
+  private static final MobilityState STATE = MobilityState.CREATED;
   private static final LocalDateTime FIRST_PAYMENT_REQUEST_DATE = LocalDateTime.now();
   private static final LocalDateTime SECOND_PAYMENT_REQUEST_DATE = LocalDateTime.now();
 
-  private EntityFactory entityFactory;
   private Mobility mobility;
 
   /** Creates a new Mobility instance and populates its "documents" attribute. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = (EntityFactory) context.getBean(EntityFactory.class);
-    mobility = (Mobility) entityFactory.build(Mobility.class);
+    mobility = new Mobility();
     // Populates documents
-    List<DocumentDto> documents = new ArrayList<DocumentDto>();
-    DocumentDto document1 = (DocumentDto) entityFactory.build(DocumentDto.class);
+    List<Document> documents = new ArrayList<Document>();
+    Document document1 = new Document();
     documents.add(document1);
     document1.setId(1);
     document1.setFilledIn(false);
-    document1.setCategory(DocumentDto.DEPARTURE_DOCUMENT);
-    DocumentDto document2 = (DocumentDto) entityFactory.build(DocumentDto.class);
+    document1.setCategory(DocumentCategory.DEPARTURE);
+    Document document2 = new Document();
     documents.add(document2);
     document2.setId(2);
     document2.setFilledIn(false);
-    document2.setCategory(DocumentDto.RETURN_DOCUMENT);
+    document2.setCategory(DocumentCategory.RETURN);
     mobility.setDocuments(documents);
   }
 
@@ -72,7 +68,7 @@ public class TestMobility {
 
   @Test
   public void testSetAndGetDocumentsTC1() {
-    List<DocumentDto> documents = new ArrayList<DocumentDto>();
+    List<Document> documents = new ArrayList<Document>();
     mobility.setDocuments(documents);
     assertEquals(documents, mobility.getDocuments());
   }
@@ -103,14 +99,14 @@ public class TestMobility {
 
   @Test
   public void testSetAndGetProfessorInChargeTC1() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     mobility.setProfessorInCharge(user);
     assertEquals(user, mobility.getProfessorInCharge());
   }
 
   @Test
   public void testGetAndSetNominatedStudentTC1() {
-    NominatedStudent student = (NominatedStudent) entityFactory.build(NominatedStudent.class);
+    NominatedStudent student = new NominatedStudent();
     mobility.setNominatedStudent(student);
     assertEquals(student, mobility.getNominatedStudent());
   }
@@ -236,7 +232,7 @@ public class TestMobility {
 
   @Test
   public void testCheckCancelledOrClosedTC1() {
-    mobility.setState(Mobility.STATE_IN_PROGRESS);
+    mobility.setState(MobilityState.IN_PROGRESS);
     mobility.checkNotCancelledAndNotClosed();
   }
 
@@ -245,7 +241,7 @@ public class TestMobility {
     assertThrows(
         BusinessException.class,
         () -> {
-          mobility.setState(Mobility.STATE_CANCELLED);
+          mobility.setState(MobilityState.CANCELLED);
           mobility.checkNotCancelledAndNotClosed();
         });
   }
@@ -255,7 +251,7 @@ public class TestMobility {
     assertThrows(
         BusinessException.class,
         () -> {
-          mobility.setState(Mobility.STATE_CLOSED);
+          mobility.setState(MobilityState.CLOSED);
           mobility.checkNotCancelledAndNotClosed();
         });
   }

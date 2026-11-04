@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,15 +44,13 @@ class CsrfCookieFlowTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private SessionService sessionService;
 
   @BeforeEach
   void setUp() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     user.setId(2);
-    user.setRole(UserDto.ROLE_STUDENT);
+    user.setRole(Role.STUDENT);
     when(sessionService.signin(any(), any())).thenReturn(user);
     when(sessionService.showAuthenticatedUser(2)).thenReturn(user);
   }

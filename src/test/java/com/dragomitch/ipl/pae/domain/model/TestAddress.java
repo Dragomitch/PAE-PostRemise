@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,17 +24,15 @@ public class TestAddress {
   private static final String REGION = "Bruxelles capitale";
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
   private Address address;
-  private CountryDto countryDto;
+  private Country countryDto;
   private static final String COUNTRY_CODE = "BE";
 
   /** Creates a new Address instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.address = (Address) entityFactory.build(Address.class);
-    this.countryDto = (CountryDto) entityFactory.build(CountryDto.class);
+    this.address = new Address();
+    this.countryDto = new Country();
   }
 
   @Test

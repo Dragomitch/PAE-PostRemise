@@ -1,42 +1,44 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryPartnerRepository implements PartnerRepository, ResettableRepository {
-  private List<PartnerDto> partners;
+  private List<Partner> partners;
 
   public InMemoryPartnerRepository() {
-    partners = new ArrayList<PartnerDto>();
+    partners = new ArrayList<Partner>();
   }
 
   @Override
-  public PartnerDto create(PartnerDto partner) {
+  public Partner create(Partner partner) {
     partners.add(partner);
     partner.setId(partners.size());
     return partner;
   }
 
   @Override
-  public PartnerDto findById(int id) {
+  public Optional<Partner> findById(int id) {
     if (id > 0 && id <= partners.size()) {
-      return partners.get((id - 1));
+      return Optional.ofNullable(partners.get((id - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
-  public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
-    List<PartnerDto> list = new ArrayList<PartnerDto>();
+  public List<Partner> findAll(PartnerFilter filter, String value, Role userRole, String option) {
+    List<Partner> list = new ArrayList<Partner>();
     boolean[] optOk = new boolean[1];
-    if (filter.equals("all")) {
-      if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+    if (filter == PartnerFilter.ALL) {
+      if (userRole == Role.PROFESSOR) {
         return partners;
       } else {
-        for (PartnerDto partnerDto : partners) {
+        for (Partner partnerDto : partners) {
           partnerDto
               .getOptions()
               .forEach(opt -> {
@@ -50,9 +52,9 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         }
         return list;
       }
-    } else if (filter.equals("country")) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        for (PartnerDto partnerDto : list) {
+    } else if (filter == PartnerFilter.COUNTRY) {
+      if (userRole == Role.STUDENT) {
+        for (Partner partnerDto : list) {
           partnerDto
               .getOptions()
               .forEach(opt -> {
@@ -68,16 +70,16 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         }
         return list;
       } else {
-        for (PartnerDto partnerDto : list) {
+        for (Partner partnerDto : list) {
           if (partnerDto.getAddress().getCountry().getCountryCode().equals(value)) {
             list.add(partnerDto);
           }
         }
         return list;
       }
-    } else if (filter.equals("archived")) {
-      if (userRole.equals(UserDto.ROLE_STUDENT)) {
-        for (PartnerDto partnerDto : partners) {
+    } else if (filter == PartnerFilter.ARCHIVED) {
+      if (userRole == Role.STUDENT) {
+        for (Partner partnerDto : partners) {
           partnerDto
               .getOptions()
               .forEach(opt -> {
@@ -91,7 +93,7 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
         }
         return list;
       } else {
-        for (PartnerDto partnerDto : partners) {
+        for (Partner partnerDto : partners) {
           if (partnerDto.isArchived()) {
             list.add(partnerDto);
           }
@@ -104,7 +106,7 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
   }
 
   @Override
-  public PartnerDto update(PartnerDto partner) {
+  public Partner update(Partner partner) {
     partner.setVersion(partners.get(partner.getId() - 1).getVersion() + 1);
     partners.set(partner.getId() - 1, partner);
     return partner;
@@ -112,6 +114,6 @@ public class InMemoryPartnerRepository implements PartnerRepository, ResettableR
 
   @Override
   public void empty() {
-    partners = new ArrayList<PartnerDto>();
+    partners = new ArrayList<Partner>();
   }
 }

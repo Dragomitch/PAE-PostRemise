@@ -3,8 +3,8 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -28,11 +28,11 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
     return List.of("db/fixtures/partners.sql");
   }
 
-  private AddressDto newAddress(String countryCode, String region) {
-    AddressDto address = build(AddressDto.class);
+  private Address newAddress(String countryCode, String region) {
+    Address address = new Address();
     address.setStreet("Avenue Louise");
     address.setNumber("54a");
-    CountryDto country = build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode(countryCode);
     address.setCountry(country);
     address.setCity("Bruxelles");
@@ -45,9 +45,9 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @NullSource
   @ValueSource(strings = {"Bruxelles-Capitale"})
   void createInsertsEveryColumnAndReturnsTheGeneratedIdWithVersionOne(String region) {
-    AddressDto found =
+    Address found =
         inTransaction(() -> {
-          AddressDto created = addressRepository.create(newAddress("BE", region));
+          Address created = addressRepository.create(newAddress("BE", region));
 
           assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
           assertThat(created.getVersion()).isEqualTo(1);
@@ -60,7 +60,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
               .containsEntry("postal_code", "1050")
               .containsEntry("region", region)
               .containsEntry("version", 1);
-          return addressRepository.findById(created.getId());
+          return addressRepository.findById(created.getId()).orElse(null);
         });
 
     assertThat(found.getRegion()).isEqualTo(region);
@@ -76,7 +76,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdMapsEveryFieldAndJoinsTheCountryName() {
-    AddressDto address = inTransaction(() -> addressRepository.findById(2001));
+    Address address = inTransaction(() -> addressRepository.findById(2001).orElse(null));
 
     assertThat(address.getId()).isEqualTo(2001);
     assertThat(address.getStreet()).isEqualTo("Rue de la République");
@@ -91,7 +91,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findByIdKeepsAMissingRegionNull() {
-    AddressDto address = inTransaction(() -> addressRepository.findById(2002));
+    Address address = inTransaction(() -> addressRepository.findById(2002).orElse(null));
 
     assertThat(address.getRegion()).isNull();
     assertThat(address.getVersion()).isEqualTo(4);
@@ -100,13 +100,13 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {0, -5, 1999, 99999})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> addressRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> addressRepository.findById(id))).isEmpty();
   }
 
   @Test
   void updateWritesTheFieldsAndIncrementsTheVersion() {
     runInTransaction(() -> {
-      AddressDto address = addressRepository.findById(2002);
+      Address address = addressRepository.findById(2002).orElse(null);
       address.setStreet("Place Flagey");
       address.setNumber("7");
       address.getCountry().setCountryCode("FR");
@@ -114,7 +114,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
       address.setPostalCode("59000");
       address.setRegion("Hauts-de-France");
 
-      AddressDto updated = addressRepository.update(address);
+      Address updated = addressRepository.update(address);
 
       assertThat(updated).isSameAs(address);
       assertThat(updated.getVersion()).isEqualTo(5);
@@ -132,7 +132,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateCanClearTheRegion() {
     runInTransaction(() -> {
-      AddressDto address = addressRepository.findById(2001);
+      Address address = addressRepository.findById(2001).orElse(null);
       address.setRegion(null);
       addressRepository.update(address);
 
@@ -145,7 +145,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateWithAStaleVersionFailsAndLeavesTheRowUntouched() {
     runInTransaction(() -> {
-      AddressDto stale = addressRepository.findById(2002);
+      Address stale = addressRepository.findById(2002).orElse(null);
       stale.setVersion(3);
       stale.setCity("Namur");
 
@@ -160,7 +160,7 @@ class AddressRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateOfAnUnknownAddressFails() {
     runInTransaction(() -> {
-      AddressDto ghost = newAddress("BE", null);
+      Address ghost = newAddress("BE", null);
       ghost.setId(777);
       ghost.setVersion(1);
       assertThatThrownBy(() -> addressRepository.update(ghost))

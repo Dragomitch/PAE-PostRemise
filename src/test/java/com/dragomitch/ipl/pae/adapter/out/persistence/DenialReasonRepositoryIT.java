@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -24,24 +24,24 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
 
   @Autowired private DenialReasonRepository denialReasonRepository;
 
-  private DenialReasonDto reason(String text) {
-    DenialReasonDto reason = build(DenialReasonDto.class);
+  private DenialReason reason(String text) {
+    DenialReason reason = new DenialReason();
     reason.setReason(text);
     return reason;
   }
 
   @Test
   void findAllReturnsTheReasonsOfInitSql() {
-    List<DenialReasonDto> reasons = inTransaction(() -> denialReasonRepository.findAll());
+    List<DenialReason> reasons = inTransaction(() -> denialReasonRepository.findAll());
 
     assertThat(reasons)
-        .extracting(DenialReasonDto::getId, DenialReasonDto::getReason)
+        .extracting(DenialReason::getId, DenialReason::getReason)
         .containsExactly(tuple(1, INITIAL_REASON));
   }
 
   @Test
   void findByIdMapsIdAndReason() {
-    DenialReasonDto reason = inTransaction(() -> denialReasonRepository.findById(1));
+    DenialReason reason = inTransaction(() -> denialReasonRepository.findById(1).orElse(null));
 
     assertThat(reason.getId()).isEqualTo(1);
     assertThat(reason.getReason()).isEqualTo(INITIAL_REASON);
@@ -50,19 +50,19 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @ValueSource(ints = {0, 2, -1})
   void findByIdReturnsNullWhenAbsent(int id) {
-    assertThat(inTransaction(() -> denialReasonRepository.findById(id))).isNull();
+    assertThat(inTransaction(() -> denialReasonRepository.findById(id))).isEmpty();
   }
 
   @Test
   void createReturnsTheGeneratedIdAndTheReasonIsListed() {
     runInTransaction(() -> {
-      DenialReasonDto created = denialReasonRepository.create(reason("Places insuffisantes"));
+      DenialReason created = denialReasonRepository.create(reason("Places insuffisantes"));
 
       assertThat(created.getId()).isGreaterThanOrEqualTo(100000);
-      assertThat(denialReasonRepository.findById(created.getId()).getReason())
+      assertThat(denialReasonRepository.findById(created.getId()).orElseThrow().getReason())
           .isEqualTo("Places insuffisantes");
       assertThat(denialReasonRepository.findAll())
-          .extracting(DenialReasonDto::getId)
+          .extracting(DenialReason::getId)
           .containsExactlyInAnyOrder(1, created.getId());
     });
   }
@@ -77,25 +77,26 @@ class DenialReasonRepositoryIT extends AbstractRepositoryIT {
   @Test
   void updateReplacesTheReasonText() {
     runInTransaction(() -> {
-      DenialReasonDto reason = denialReasonRepository.findById(1);
+      DenialReason reason = denialReasonRepository.findById(1).orElse(null);
       reason.setReason("Nouveau motif");
 
       assertThat(denialReasonRepository.update(reason)).isSameAs(reason);
-      assertThat(denialReasonRepository.findById(1).getReason()).isEqualTo("Nouveau motif");
+      assertThat(denialReasonRepository.findById(1).orElseThrow().getReason())
+          .isEqualTo("Nouveau motif");
     });
   }
 
   @Test
   void updateOfAnUnknownIdFailsAndWritesNothing() {
     runInTransaction(() -> {
-      DenialReasonDto ghost = reason("ghost");
+      DenialReason ghost = reason("ghost");
       ghost.setId(31337);
 
       assertThatThrownBy(() -> denialReasonRepository.update(ghost))
           .isInstanceOf(ConcurrentModificationException.class)
           .hasMessageContaining("31337");
       assertThat(denialReasonRepository.findAll())
-          .extracting(DenialReasonDto::getReason)
+          .extracting(DenialReason::getReason)
           .doesNotContain("ghost")
           .hasSize(1);
     });

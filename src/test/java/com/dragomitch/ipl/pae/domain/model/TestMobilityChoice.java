@@ -4,11 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public class TestMobilityChoice {
 
   @Autowired private ApplicationContext context;
-  private EntityFactory entityFactory;
   private MobilityChoice correctMobilityChoice;
 
   /**
@@ -31,20 +26,19 @@ public class TestMobilityChoice {
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    correctMobilityChoice = (MobilityChoice) entityFactory.build(MobilityChoice.class);
+    correctMobilityChoice = new MobilityChoice();
     correctMobilityChoice.setId(2);
     correctMobilityChoice.setPreferenceOrder(2);
-    correctMobilityChoice.setMobilityType(MobilityChoice.MOBILITY_TYPE_SMS);
+    correctMobilityChoice.setMobilityType(MobilityType.SMS);
     correctMobilityChoice.setAcademicYear(2);
-    correctMobilityChoice.setTerm(MobilityChoice.MAX_TERM_CHOICE);
+    correctMobilityChoice.setTerm(MobilityChoiceDto.MAX_TERM_CHOICE);
     correctMobilityChoice.setVersion(2);
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     correctMobilityChoice.setUser(user);
     correctMobilityChoice.getUser().setId(1);
-    correctMobilityChoice.setProgramme((ProgrammeDto) entityFactory.build(ProgrammeDto.class));
+    correctMobilityChoice.setProgramme(new Programme());
     correctMobilityChoice.getProgramme().setId(1);
-    correctMobilityChoice.setCountry((CountryDto) entityFactory.build(CountryDto.class));
+    correctMobilityChoice.setCountry(new Country());
     correctMobilityChoice.getCountry().setCountryCode("BE");
   }
 
@@ -71,15 +65,15 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetUserTC1() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     correctMobilityChoice.setUser(user);
     assertEquals(user, correctMobilityChoice.getUser(), "The User is not the one expected");
   }
 
   @Test
   public void testSetAndGetUserTC2() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
-    UserDto user2 = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
+    User user2 = new User();
     correctMobilityChoice.setUser(user);
     assertEquals(user, correctMobilityChoice.getUser(), "The User is not the one expected");
     correctMobilityChoice.setUser(user2);
@@ -114,7 +108,7 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetMobilityTypeTC1() {
-    String value = "test";
+    MobilityType value = MobilityType.SMS;
     correctMobilityChoice.setMobilityType(value);
     assertEquals(
         value, correctMobilityChoice.getMobilityType(), "The MobilityType is not the one expected");
@@ -122,8 +116,8 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetMobilityTypeTC2() {
-    String value = "test";
-    String value2 = "test2";
+    MobilityType value = MobilityType.SMS;
+    MobilityType value2 = MobilityType.SMP;
     correctMobilityChoice.setMobilityType(value);
     assertEquals(
         value, correctMobilityChoice.getMobilityType(), "The mobilityType is not the one expected");
@@ -180,7 +174,7 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetProgrammeTC1() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     correctMobilityChoice.setProgramme(programme);
     assertEquals(
         programme, correctMobilityChoice.getProgramme(), "The programme is not the one expected");
@@ -188,8 +182,8 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetProgrammeTC2() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
-    ProgrammeDto programme2 = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
+    Programme programme2 = new Programme();
     correctMobilityChoice.setProgramme(programme);
     assertEquals(
         programme, correctMobilityChoice.getProgramme(), "The programme is not the one expected");
@@ -202,7 +196,7 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetCountryTC1() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     correctMobilityChoice.setCountry(country);
     assertEquals(
         country, correctMobilityChoice.getCountry(), "The country is not the one expected");
@@ -210,8 +204,8 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetCountryTC2() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
-    CountryDto country2 = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
+    Country country2 = new Country();
     correctMobilityChoice.setCountry(country);
     assertEquals(
         country, correctMobilityChoice.getCountry(), "The country is not the one expected");
@@ -248,7 +242,7 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetDenialReasonTC1() {
-    DenialReasonDto dr = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    DenialReason dr = new DenialReason();
     correctMobilityChoice.setDenialReason(dr);
     assertEquals(
         dr, correctMobilityChoice.getDenialReason(), "The denialReason is not the one expected");
@@ -256,8 +250,8 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetAndGetDenialReasonTC2() {
-    DenialReasonDto dr = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
-    DenialReasonDto dr2 = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    DenialReason dr = new DenialReason();
+    DenialReason dr2 = new DenialReason();
     correctMobilityChoice.setDenialReason(dr);
     assertEquals(
         dr, correctMobilityChoice.getDenialReason(), "The denialReason is not the one expected");
@@ -296,7 +290,7 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetANdGetPartnerTC1() {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     correctMobilityChoice.setPartner(partner);
     assertEquals(
         partner, correctMobilityChoice.getPartner(), "The partner value is not the one expected");
@@ -304,8 +298,8 @@ public class TestMobilityChoice {
 
   @Test
   public void testSetANdGetPartnerTC2() {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
-    PartnerDto partner2 = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
+    Partner partner2 = new Partner();
     correctMobilityChoice.setPartner(partner);
     assertEquals(
         partner, correctMobilityChoice.getPartner(), "The partner value is not the one expected");
@@ -359,28 +353,21 @@ public class TestMobilityChoice {
 
   @Test
   public void testCheckDataIntegrityTC4() {
-    String mobilityType = "";
-    correctMobilityChoice.setMobilityType(mobilityType);
-    assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
-  }
-
-  @Test
-  public void testCheckDataIntegrityTC5() {
-    String mobilityType = "Test";
+    MobilityType mobilityType = null;
     correctMobilityChoice.setMobilityType(mobilityType);
     assertNotEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC6() {
-    String mobilityType = "SMS";
+    MobilityType mobilityType = MobilityType.SMS;
     correctMobilityChoice.setMobilityType(mobilityType);
     assertEquals(List.of(), Violations.of(correctMobilityChoice));
   }
 
   @Test
   public void testCheckDataIntegrityTC7() {
-    String mobilityType = "SMP";
+    MobilityType mobilityType = MobilityType.SMP;
     correctMobilityChoice.setMobilityType(mobilityType);
     assertEquals(List.of(), Violations.of(correctMobilityChoice));
   }

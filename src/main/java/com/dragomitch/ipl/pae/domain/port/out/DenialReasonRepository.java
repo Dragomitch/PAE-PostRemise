@@ -1,36 +1,34 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import java.util.List;
+import java.util.Optional;
 
 public interface DenialReasonRepository {
-
-  String TABLE_NAME = "denial_reasons";
-  String COLUMN_ID = "reason_id";
-  String COLUMN_REASON = "reason";
 
   /**
    * Inserts a denialReason into the database.
    *
    * @param denialReason the denialReason to be inserted in the database
-   * @return the denialReasonDto inserted into the DB.
+   * @return the denialReason inserted into the DB.
    */
-  DenialReasonDto create(DenialReasonDto denialReason);
+  DenialReason create(DenialReason denialReason);
 
   /**
    * Retrieve a denialReason with the id passed in parameter.
    *
    * @param id the id of the DenialReason we want to retrieve from the Database.
-   * @return the DenialReasonDto corresponding to the denialReason row having the param id as id.
+   * @return the DenialReason corresponding to the denialReason row having the param id as id, or
+   *     empty if there is none
    */
-  DenialReasonDto findById(int id);
+  Optional<DenialReason> findById(int id);
 
   /**
    * Queries the database for all denialReasons.
    *
    * @return all denialReasons
    */
-  List<DenialReasonDto> findAll();
+  List<DenialReason> findAll();
 
   /**
    * Update an row in the Database with the data provided by the denialReason Object. The id of the
@@ -40,9 +38,9 @@ public interface DenialReasonRepository {
    * write wins. Like the other repositories, an update that matches no row is reported as a {@link
    * java.util.ConcurrentModificationException}.
    *
-   * @param denialReasonDto the new data we want to set for the id
-   * @return the denialReasonDto containing the updated data
+   * @param denialReason the new data we want to set for the id
+   * @return the denialReason containing the updated data
    * @throws java.util.ConcurrentModificationException if no denial reason has that id
    */
-  DenialReasonDto update(DenialReasonDto denialReasonDto);
+  DenialReason update(DenialReason denialReason);
 }

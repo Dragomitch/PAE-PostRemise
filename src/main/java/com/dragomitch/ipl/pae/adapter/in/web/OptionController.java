@@ -1,7 +1,9 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.OptionDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.ReferenceDataMapper;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,15 +24,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class OptionController {
 
   private final OptionService optionService;
+  private final ReferenceDataMapper mapper;
+  private final PartnerMapper partnerMapper;
 
-  public OptionController(OptionService optionService) {
+  public OptionController(
+      OptionService optionService, ReferenceDataMapper mapper, PartnerMapper partnerMapper) {
     this.optionService = optionService;
+    this.mapper = mapper;
+    this.partnerMapper = partnerMapper;
   }
 
   /** Public: the sign-up form lists the options. */
   @GetMapping
   public List<OptionDto> showAll() {
-    return optionService.showAll();
+    return mapper.toOptionDtos(optionService.showAll());
   }
 
   /** The partners offering an option. */
@@ -40,6 +47,6 @@ public class OptionController {
   public List<PartnerDto> findAllPartnersByOption(
       @PathVariable @Size(min = OptionDto.CODE_LENGTH, max = OptionDto.CODE_LENGTH)
           String optionCode) {
-    return optionService.findAllPartnersByOption(optionCode);
+    return partnerMapper.toPartnerDtos(optionService.findAllPartnersByOption(optionCode));
   }
 }

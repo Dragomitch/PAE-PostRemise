@@ -3,12 +3,12 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
@@ -68,7 +68,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "address_id",
             2002,
             it -> {
-              AddressDto address = it.addressRepository.findById(2002);
+              Address address = it.addressRepository.findById(2002).orElse(null);
               return it.addressRepository.update(address).getVersion();
             }),
         update(
@@ -77,7 +77,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "mobility_choice_id",
             5001,
             it -> {
-              MobilityChoiceDto choice = it.mobilityChoiceRepository.findById(5001);
+              MobilityChoice choice = it.mobilityChoiceRepository.findById(5001).orElse(null);
               it.mobilityChoiceRepository.update(choice);
               return choice.getVersion();
             }),
@@ -87,7 +87,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "mobility_choice_id",
             5006,
             it -> {
-              MobilityDto mobility = it.mobilityRepository.findById(5006);
+              Mobility mobility = it.mobilityRepository.findById(5006).orElse(null);
               return it.mobilityRepository.update(mobility).getVersion();
             }),
         update(
@@ -96,7 +96,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "user_id",
             1004,
             it -> {
-              NominatedStudentDto student = it.nominatedStudentRepository.findById(1004);
+              NominatedStudent student = it.nominatedStudentRepository.findById(1004).orElse(null);
               return it.nominatedStudentRepository.update(student).getVersion();
             }),
         update(
@@ -105,7 +105,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "partner_id",
             3001,
             it -> {
-              PartnerDto partner = it.partnerRepository.findById(3001);
+              Partner partner = it.partnerRepository.findById(3001).orElse(null);
               return it.partnerRepository.update(partner).getVersion();
             }),
         update(
@@ -114,7 +114,7 @@ class VersionContractIT extends AbstractRepositoryIT {
             "user_id",
             1002,
             it -> {
-              UserDto user = it.userRepository.findById(1002);
+              User user = it.userRepository.findById(1002).orElse(null);
               it.userRepository.update(user);
               return user.getVersion();
             }));

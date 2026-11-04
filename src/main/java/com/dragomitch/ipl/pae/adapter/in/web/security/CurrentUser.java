@@ -1,5 +1,7 @@
 package com.dragomitch.ipl.pae.adapter.in.web.security;
 
+import com.dragomitch.ipl.pae.domain.model.Role;
+
 /**
  * The authenticated user of the current request, taken from the session JWT.
  *
@@ -7,9 +9,9 @@ package com.dragomitch.ipl.pae.adapter.in.web.security;
  * CurrentUserArgumentResolver}); the endpoint must require authentication.
  *
  * @param id the user id (JWT subject)
- * @param role the user role, {@code Professor} or {@code Student} (JWT {@value #ROLE_CLAIM} claim)
+ * @param role the user role (JWT {@value #ROLE_CLAIM} claim, {@code Professor} or {@code Student})
  */
-public record CurrentUser(int id, String role) {
+public record CurrentUser(int id, Role role) {
 
   /** Name of the JWT claim holding the user role. */
   public static final String ROLE_CLAIM = "role";

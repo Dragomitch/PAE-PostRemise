@@ -8,14 +8,15 @@ import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryMobilityChoiceRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryMobilityRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
@@ -24,7 +25,6 @@ import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,6 @@ public class TestMobilityService {
 
   @Autowired private ApplicationContext context;
 
-  private EntityFactory entityFactory;
   private MockDtoFactory mockDtoFactory;
   private MobilityService mobilityService;
   private MobilityRepository mobilityRepository;
@@ -48,23 +47,22 @@ public class TestMobilityService {
   /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
     mobilityService = context.getBean(MobilityService.class);
     mobilityRepository = context.getBean(MobilityRepository.class);
     mobilityChoiceService = context.getBean(MobilityChoiceService.class);
     userService = context.getBean(UserService.class);
     denialReasonService = context.getBean(DenialReasonService.class);
-    mockDtoFactory = new MockDtoFactory(entityFactory);
+    mockDtoFactory = new MockDtoFactory();
     // Creates User
 
-    UserDto user = mockDtoFactory.getUser(UserDto.ROLE_STUDENT);
+    User user = mockDtoFactory.getUser(Role.STUDENT);
     user.setEmail("Cyka@blyat.ru");
     user.setUsername("CykaBlyat");
     userService.signup(user);
     // Creates mobility
-    MobilityChoiceDto mobilityChoice = mockDtoFactory.getMobilityChoice();
+    MobilityChoice mobilityChoice = mockDtoFactory.getMobilityChoice();
     mobilityChoice.setUser(user);
-    mobilityChoice = mobilityChoiceService.create(mobilityChoice, 1, UserDto.ROLE_STUDENT);
+    mobilityChoice = mobilityChoiceService.create(mobilityChoice, 1, Role.STUDENT);
     mobilityChoiceService.confirm(mobilityChoice.getId(), 1);
   }
 
@@ -80,21 +78,12 @@ public class TestMobilityService {
   }
 
   @Test
-  public void testConfirmProEcoEncodingTC1() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          mobilityService.confirmProEcoEncoding(-1, 1);
-        });
-  }
-
-  @Test
   public void testConfirmProEcoEncodingTC2() {
     assertThrows(
         BusinessException.class,
         () -> {
-          MobilityDto mobility = mobilityRepository.findById(1);
-          mobility.setState(MobilityDto.STATE_CANCELLED);
+          Mobility mobility = mobilityRepository.findById(1).orElse(null);
+          mobility.setState(MobilityState.CANCELLED);
           mobilityService.confirmProEcoEncoding(1, 1);
         });
   }
@@ -102,7 +91,7 @@ public class TestMobilityService {
   @Test
   public void testConfirmProEcoEncodingTC3() {
     mobilityService.confirmProEcoEncoding(1, 1);
-    MobilityDto mobility = mobilityRepository.findById(1);
+    Mobility mobility = mobilityRepository.findById(1).orElse(null);
     assertTrue(mobility.isEncodedInProEco());
   }
 
@@ -116,21 +105,12 @@ public class TestMobilityService {
   }
 
   @Test
-  public void testConfirmSecondSoftwareEncodingTC1() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          mobilityService.confirmSecondSoftwareEncoding(0, 1);
-        });
-  }
-
-  @Test
   public void testConfirmSecondSoftwareEncodingTC2() {
     assertThrows(
         BusinessException.class,
         () -> {
-          MobilityDto mobility = mobilityRepository.findById(1);
-          mobility.setState(MobilityDto.STATE_CANCELLED);
+          Mobility mobility = mobilityRepository.findById(1).orElse(null);
+          mobility.setState(MobilityState.CANCELLED);
           mobilityService.confirmSecondSoftwareEncoding(1, 1);
         });
   }
@@ -138,7 +118,7 @@ public class TestMobilityService {
   @Test
   public void testConfirmSecondSoftwareEncodingTC3() {
     mobilityService.confirmSecondSoftwareEncoding(1, 1);
-    MobilityDto mobility = mobilityRepository.findById(1);
+    Mobility mobility = mobilityRepository.findById(1).orElse(null);
     assertTrue(mobility.isEncodedInSecondSoftware());
   }
 
@@ -152,20 +132,11 @@ public class TestMobilityService {
   }
 
   @Test
-  public void testCancelTC1() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          mobilityService.cancel(-1, 1, null, 1, 1, UserDto.ROLE_PROFESSOR);
-        });
-  }
-
-  @Test
   public void testCancelTC2() {
     assertEquals(
         ErrorCode.DENIAL_REASON_REQUIRED,
         Violations.errorCodeOf(() -> {
-          mobilityService.cancel(1, 1, null, -1, 1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(1, 1, null, -1, 1, Role.PROFESSOR);
         }));
   }
 
@@ -174,26 +145,8 @@ public class TestMobilityService {
     assertEquals(
         ErrorCode.CANCELLATION_REASON_REQUIRED,
         Violations.errorCodeOf(() -> {
-          mobilityService.cancel(1, 1, null, 1, 1, UserDto.ROLE_STUDENT);
+          mobilityService.cancel(1, 1, null, 1, 1, Role.STUDENT);
         }));
-  }
-
-  @Test
-  public void testCancelTC4() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          mobilityService.cancel(1, 1, null, 1, -1, UserDto.ROLE_PROFESSOR);
-        });
-  }
-
-  @Test
-  public void testCancelTC5() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          mobilityService.cancel(1, 1, null, 1, 1, null);
-        });
   }
 
   @Test
@@ -201,32 +154,32 @@ public class TestMobilityService {
     assertThrows(
         BusinessException.class,
         () -> {
-          mobilityService.cancel(1, 1, null, 99, 1, UserDto.ROLE_PROFESSOR);
+          mobilityService.cancel(1, 1, null, 99, 1, Role.PROFESSOR);
         });
   }
 
   @Test
   public void testCancelTC7() {
-    DenialReasonDto denialReason = denialReasonService.create(mockDtoFactory.getDenialReason());
-    MobilityDto mobility =
-        mobilityService.cancel(1, 1, null, denialReason.getId(), 1, UserDto.ROLE_PROFESSOR);
-    assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());
+    DenialReason denialReason = denialReasonService.create(mockDtoFactory.getDenialReason());
+    Mobility mobility = mobilityService.cancel(1, 1, null, denialReason.getId(), 1, Role.PROFESSOR);
+    assertEquals(MobilityState.CANCELLED, mobility.getState());
     assertEquals(denialReason.getId(), mobility.getDenialReason().getId());
   }
 
   @Test
   public void testCancelTC8() {
-    MobilityDto mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 1, UserDto.ROLE_STUDENT);
-    assertEquals(MobilityDto.STATE_CANCELLED, mobility.getState());
+    Mobility mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 1, Role.STUDENT);
+    assertEquals(MobilityState.CANCELLED, mobility.getState());
     assertEquals("Toto 456", mobility.getCancellationReason());
   }
 
   //  @Test(expected = InsufficientPermissionException.class)
   //  public void testCancelTC9() {
-  //    // System.out.println(mobilityRepository.findById(1).getNominatedStudent().getId());
+  //    //
+  // System.out.println(mobilityRepository.findById(1).orElseThrow().getNominatedStudent().getId());
   //    // // TODO continuer
-  //    //MobilityDto mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 3,
-  // UserDto.ROLE_STUDENT);
+  //    //Mobility mobility = mobilityService.cancel(1, 1, "Toto 456", 0, 3,
+  // Role.STUDENT);
   //  }
 
 }

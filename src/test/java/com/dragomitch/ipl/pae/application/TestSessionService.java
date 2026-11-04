@@ -4,9 +4,9 @@ import static com.dragomitch.ipl.pae.domain.exceptions.BusinessExceptionAssert.a
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.SessionService;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
@@ -27,16 +27,15 @@ class TestSessionService {
 
   private static final String PASSWORD = "S3cret-passw0rd";
 
-  @Autowired private EntityFactory entityFactory;
   @Autowired private SessionService sessionService;
   @Autowired private UserService userService;
   @Autowired private UserRepository userRepository;
 
-  private UserDto registered;
+  private User registered;
 
   @BeforeEach
   void registerAUser() {
-    UserDto user = new MockDtoFactory(entityFactory).getUser(UserDto.ROLE_STUDENT);
+    User user = new MockDtoFactory().getUser(Role.STUDENT);
     user.setUsername("alice");
     user.setEmail("alice@student.test");
     user.setPassword(PASSWORD);
@@ -45,13 +44,13 @@ class TestSessionService {
 
   @Test
   void theRightCredentialsGiveTheUser() {
-    UserDto signedIn = sessionService.signin("alice", PASSWORD);
+    User signedIn = sessionService.signin("alice", PASSWORD);
 
     assertThat(signedIn.getId()).isEqualTo(registered.getId());
     assertThat(signedIn.getUsername()).isEqualTo("alice");
-    assertThat(signedIn.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+    assertThat(signedIn.getRole()).isEqualTo(Role.PROFESSOR);
     // only the hash is stored
-    assertThat(userRepository.findById(registered.getId()).getPassword())
+    assertThat(userRepository.findById(registered.getId()).orElseThrow().getPassword())
         .isNotEqualTo(PASSWORD)
         .startsWith("$2");
   }

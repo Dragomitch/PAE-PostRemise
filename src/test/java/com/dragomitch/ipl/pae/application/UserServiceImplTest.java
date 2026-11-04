@@ -12,12 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
-import com.dragomitch.ipl.pae.domain.model.EntityFactories;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.OptionRepository;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
@@ -26,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -57,8 +57,7 @@ class UserServiceImplTest {
   @Mock private NominatedStudentRepository nominatedStudentRepository;
   @Mock private PasswordEncoder passwordEncoder;
 
-  private final EntityFactory entityFactory = EntityFactories.create();
-  private final MockDtoFactory dtos = new MockDtoFactory(entityFactory);
+  private final MockDtoFactory dtos = new MockDtoFactory();
   private UserServiceImpl userService;
 
   @BeforeEach
@@ -68,22 +67,21 @@ class UserServiceImplTest {
             userRepository, optionRepository, nominatedStudentRepository, passwordEncoder, CLOCK);
   }
 
-  private UserDto user(int id, String role) {
-    UserDto user = dtos.getUser(role);
+  private User user(int id, Role role) {
+    User user = dtos.getUser(role);
     user.setId(id);
     return user;
   }
 
   private void givenOptionExists(String code) {
-    when(optionRepository.findByCode(code))
-        .thenReturn((OptionDto) entityFactory.build(OptionDto.class));
+    when(optionRepository.findByCode(code)).thenReturn(Optional.of(new Option()));
   }
 
   @Nested
   class Signup {
 
-    private UserDto newUser() {
-      UserDto user = user(0, null);
+    private User newUser() {
+      User user = user(0, null);
       user.setPassword("plain password");
       user.setRegistrationDate(null);
       return user;
@@ -92,25 +90,24 @@ class UserServiceImplTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void theFirstUserIsAProfessorTheOthersAreStudents(boolean noUserYet) {
-      UserDto user = newUser();
+      User user = newUser();
       givenOptionExists("BIN");
       when(userRepository.isEmpty()).thenReturn(noUserYet);
       when(passwordEncoder.encode("plain password")).thenReturn("$2a$hash");
       when(userRepository.create(user)).thenReturn(user);
 
-      UserDto created = userService.signup(user);
+      User created = userService.signup(user);
 
-      assertThat(created.getRole())
-          .isEqualTo(noUserYet ? UserDto.ROLE_PROFESSOR : UserDto.ROLE_STUDENT);
+      assertThat(created.getRole()).isEqualTo(noUserYet ? Role.PROFESSOR : Role.STUDENT);
       assertThat(created.getPassword()).isEqualTo("$2a$hash");
       assertThat(created.getRegistrationDate()).isEqualTo(NOW);
     }
 
     @Test
     void theUsernameMustBeFree() {
-      UserDto user = newUser();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername()))
-          .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
+      User user = newUser();
+      when(userRepository.findByUsername(user.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.signup(user))
           .hasErrorCode(ErrorCode.USERNAME_TAKEN)
@@ -120,11 +117,10 @@ class UserServiceImplTest {
 
     @Test
     void theEmailMustBeFree() {
-      UserDto user = newUser();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, user.getUsername()))
-          .thenReturn(null);
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, user.getEmail()))
-          .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
+      User user = newUser();
+      when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
+      when(userRepository.findByEmail(user.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
 
       assertThatBusinessException(() -> userService.signup(user))
           .hasErrorCode(ErrorCode.EMAIL_TAKEN)
@@ -134,7 +130,7 @@ class UserServiceImplTest {
 
     @Test
     void theOptionMustExist() {
-      UserDto user = newUser();
+      User user = newUser();
       user.getOption().setCode("XYZ");
 
       assertThatBusinessException(() -> userService.signup(user))
@@ -147,7 +143,7 @@ class UserServiceImplTest {
 
   @Test
   void showAllListsEveryUser() {
-    List<UserDto> all = List.of(user(USER_ID, UserDto.ROLE_STUDENT));
+    List<User> all = List.of(user(USER_ID, Role.STUDENT));
     when(userRepository.findAll()).thenReturn(all);
 
     assertThat(userService.showAll()).isSameAs(all);
@@ -158,14 +154,14 @@ class UserServiceImplTest {
 
     @Test
     void aStudentBecomesAProfessorWithTheVersionOfTheRepository() {
-      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      User student = user(USER_ID, Role.STUDENT);
       student.setVersion(4);
-      when(userRepository.findById(USER_ID)).thenReturn(student);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USER_ID, 4)).thenReturn(5);
 
       userService.promoteToProfessor(USER_ID);
 
-      assertThat(student.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      assertThat(student.getRole()).isEqualTo(Role.PROFESSOR);
       assertThat(student.getVersion()).isEqualTo(5);
       verify(userRepository).promoteToProfessor(USER_ID, 4);
       verify(userRepository, never()).update(any());
@@ -174,7 +170,7 @@ class UserServiceImplTest {
     @Test
     void promotingAProfessorWritesNothing() {
       when(userRepository.findById(PROFESSOR_ID))
-          .thenReturn(user(PROFESSOR_ID, UserDto.ROLE_PROFESSOR));
+          .thenReturn(Optional.of(user(PROFESSOR_ID, Role.PROFESSOR)));
 
       userService.promoteToProfessor(PROFESSOR_ID);
 
@@ -191,14 +187,14 @@ class UserServiceImplTest {
 
     @Test
     void aStaleVersionIsAConcurrentModification() {
-      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
-      when(userRepository.findById(USER_ID)).thenReturn(student);
+      User student = user(USER_ID, Role.STUDENT);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USER_ID, student.getVersion()))
           .thenThrow(new ConcurrentModificationException());
 
       assertThatThrownBy(() -> userService.promoteToProfessor(USER_ID))
           .isInstanceOf(ConcurrentModificationException.class);
-      assertThat(student.getRole()).isEqualTo(UserDto.ROLE_STUDENT);
+      assertThat(student.getRole()).isEqualTo(Role.STUDENT);
     }
   }
 
@@ -209,22 +205,22 @@ class UserServiceImplTest {
 
     @Test
     void aStudentBecomesAProfessorAndIsReturned() {
-      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
+      User student = user(USER_ID, Role.STUDENT);
       student.setVersion(2);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USERNAME, 2)).thenReturn(3);
 
-      UserDto promoted = userService.promoteToProfessorByUsername(USERNAME);
+      User promoted = userService.promoteToProfessorByUsername(USERNAME);
 
       assertThat(promoted).isSameAs(student);
-      assertThat(promoted.getRole()).isEqualTo(UserDto.ROLE_PROFESSOR);
+      assertThat(promoted.getRole()).isEqualTo(Role.PROFESSOR);
       assertThat(promoted.getVersion()).isEqualTo(3);
     }
 
     @Test
     void aProfessorIsReturnedUnchanged() {
-      UserDto professor = user(PROFESSOR_ID, UserDto.ROLE_PROFESSOR);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(professor);
+      User professor = user(PROFESSOR_ID, Role.PROFESSOR);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(professor));
 
       assertThat(userService.promoteToProfessorByUsername(USERNAME)).isSameAs(professor);
       verify(userRepository, never()).promoteToProfessor(anyString(), anyInt());
@@ -239,8 +235,8 @@ class UserServiceImplTest {
 
     @Test
     void aStaleVersionIsAConcurrentModification() {
-      UserDto student = user(USER_ID, UserDto.ROLE_STUDENT);
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, USERNAME)).thenReturn(student);
+      User student = user(USER_ID, Role.STUDENT);
+      when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(student));
       when(userRepository.promoteToProfessor(USERNAME, student.getVersion()))
           .thenThrow(new ConcurrentModificationException());
 
@@ -253,11 +249,11 @@ class UserServiceImplTest {
   class Edit {
 
     /** The account as stored: its password hash, registration date and role. */
-    private UserDto givenStoredUser(String role) {
-      UserDto stored = user(USER_ID, role);
+    private User givenStoredUser(Role role) {
+      User stored = user(USER_ID, role);
       stored.setPassword("$2a$stored-hash");
       stored.setRegistrationDate(REGISTERED);
-      when(userRepository.findById(USER_ID)).thenReturn(stored);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(stored));
       return stored;
     }
 
@@ -265,7 +261,7 @@ class UserServiceImplTest {
     private void givenUpdateIncrementsTheVersion() {
       doAnswer(
               invocation -> {
-                UserDto user = invocation.getArgument(0);
+                User user = invocation.getArgument(0);
                 user.setVersion(user.getVersion() + 1);
                 return null;
               })
@@ -274,8 +270,8 @@ class UserServiceImplTest {
     }
 
     /** The data sent by the client, trying to change what it may not. */
-    private UserDto request() {
-      UserDto request = user(USER_ID, UserDto.ROLE_PROFESSOR);
+    private User request() {
+      User request = user(USER_ID, Role.PROFESSOR);
       request.setLastName("Martin-Dupont");
       request.setPassword("new password");
       request.setRegistrationDate(LocalDateTime.now());
@@ -286,95 +282,91 @@ class UserServiceImplTest {
     @ParameterizedTest
     @ValueSource(ints = {USER_ID, PROFESSOR_ID})
     void theOwnerOrAProfessorEditsTheAccountButNotItsPasswordDateOrRole(int requester) {
-      String role = requester == USER_ID ? UserDto.ROLE_STUDENT : UserDto.ROLE_PROFESSOR;
-      UserDto request = request();
+      Role role = requester == USER_ID ? Role.STUDENT : Role.PROFESSOR;
+      User request = request();
       givenOptionExists("BIN");
-      givenStoredUser(UserDto.ROLE_STUDENT);
+      givenStoredUser(Role.STUDENT);
 
-      UserDto edited = userService.edit(request, requester, role);
+      User edited = userService.edit(request, requester, role);
 
       assertThat(edited.getLastName()).isEqualTo("Martin-Dupont");
       assertThat(edited.getPassword()).isEqualTo("$2a$stored-hash");
       assertThat(edited.getRegistrationDate()).isEqualTo(REGISTERED);
-      assertThat(edited.getRole()).isEqualTo(UserDto.ROLE_STUDENT);
+      assertThat(edited.getRole()).isEqualTo(Role.STUDENT);
       verify(userRepository).update(request);
     }
 
     @Test
     void theOwnUsernameAndEmailMayBeKept() {
-      UserDto request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
-          .thenReturn(user(USER_ID, UserDto.ROLE_STUDENT));
+      User request = request();
+      when(userRepository.findByUsername(request.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
+      when(userRepository.findByEmail(request.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID, Role.STUDENT)));
       givenOptionExists("BIN");
-      givenStoredUser(UserDto.ROLE_STUDENT);
+      givenStoredUser(Role.STUDENT);
 
-      assertThat(userService.edit(request, USER_ID, UserDto.ROLE_STUDENT)).isSameAs(request);
+      assertThat(userService.edit(request, USER_ID, Role.STUDENT)).isSameAs(request);
     }
 
     @Test
     void aStaleNominatedStudentRowIsBroughtToTheVersionOfTheUser() {
-      UserDto request = request();
+      User request = request();
       givenOptionExists("BIN");
-      givenStoredUser(UserDto.ROLE_STUDENT);
+      givenStoredUser(Role.STUDENT);
       givenUpdateIncrementsTheVersion();
-      NominatedStudentDto student =
-          (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+      NominatedStudent student = new NominatedStudent();
       student.setId(USER_ID);
       student.setVersion(1);
-      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
+      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(Optional.of(student));
 
-      userService.edit(request, USER_ID, UserDto.ROLE_STUDENT);
+      userService.edit(request, USER_ID, Role.STUDENT);
 
       verify(nominatedStudentRepository).update(student);
     }
 
     @Test
     void aNominatedStudentRowAtTheVersionOfTheUserIsLeftAlone() {
-      UserDto request = request();
+      User request = request();
       givenOptionExists("BIN");
-      givenStoredUser(UserDto.ROLE_STUDENT);
-      NominatedStudentDto student =
-          (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+      givenStoredUser(Role.STUDENT);
+      NominatedStudent student = new NominatedStudent();
       // already at the version the user row gets
       student.setVersion(request.getVersion() + 1);
       givenUpdateIncrementsTheVersion();
-      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(student);
+      when(nominatedStudentRepository.findById(USER_ID)).thenReturn(Optional.of(student));
 
-      userService.edit(request, USER_ID, UserDto.ROLE_STUDENT);
+      userService.edit(request, USER_ID, Role.STUDENT);
 
       verify(nominatedStudentRepository, never()).update(any());
     }
 
     @Test
     void aStudentCannotEditAnotherAccount() {
-      assertThatBusinessException(
-              () -> userService.edit(request(), USER_ID + 1, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request(), USER_ID + 1, Role.STUDENT))
           .hasErrorCode(ErrorCode.ACCESS_DENIED);
       verifyNoInteractions(userRepository, optionRepository, nominatedStudentRepository);
     }
 
     @Test
     void theUsernameOfAnotherAccountIsTaken() {
-      UserDto request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(user(USER_ID + 1, UserDto.ROLE_STUDENT));
+      User request = request();
+      when(userRepository.findByUsername(request.getUsername()))
+          .thenReturn(Optional.of(user(USER_ID + 1, Role.STUDENT)));
 
-      assertThatBusinessException(() -> userService.edit(request, USER_ID, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.USERNAME_TAKEN);
       verify(userRepository, never()).update(any());
     }
 
     @Test
     void theEmailOfAnotherAccountIsTaken() {
-      UserDto request = request();
-      when(userRepository.findBy(UserRepository.COLUMN_USERNAME, request.getUsername()))
-          .thenReturn(null);
-      when(userRepository.findBy(UserRepository.COLUMN_EMAIL, request.getEmail()))
-          .thenReturn(user(USER_ID + 1, UserDto.ROLE_STUDENT));
+      User request = request();
+      when(userRepository.findByUsername(request.getUsername())).thenReturn(Optional.empty());
+      when(userRepository.findByEmail(request.getEmail()))
+          .thenReturn(Optional.of(user(USER_ID + 1, Role.STUDENT)));
 
-      assertThatBusinessException(() -> userService.edit(request, USER_ID, UserDto.ROLE_STUDENT))
+      assertThatBusinessException(() -> userService.edit(request, USER_ID, Role.STUDENT))
           .hasErrorCode(ErrorCode.EMAIL_TAKEN);
       verify(userRepository, never()).update(any());
     }
@@ -383,8 +375,7 @@ class UserServiceImplTest {
     void anUnknownAccountIsNotFound() {
       givenOptionExists("BIN");
 
-      assertThatBusinessException(
-              () -> userService.edit(request(), PROFESSOR_ID, UserDto.ROLE_PROFESSOR))
+      assertThatBusinessException(() -> userService.edit(request(), PROFESSOR_ID, Role.PROFESSOR))
           .hasErrorCode(ErrorCode.RESOURCE_NOT_FOUND);
       verify(userRepository, never()).update(any());
     }

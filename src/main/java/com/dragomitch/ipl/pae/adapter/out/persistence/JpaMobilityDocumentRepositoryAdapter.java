@@ -1,7 +1,8 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.MobilityDocumentJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -28,13 +29,14 @@ class JpaMobilityDocumentRepositoryAdapter implements MobilityDocumentRepository
 
   /** The documents of the mobility, by id: id, name, category and filled-in flag. */
   @Override
-  public List<DocumentDto> findAllByMobility(int mobilityId) {
+  public List<Document> findAllByMobility(int mobilityId) {
     return mobilityDocuments.findByIdMobilityIdOrderByIdDocumentId(mobilityId).stream()
         .map(entity -> {
-          DocumentDto document = mapper.build(DocumentDto.class);
+          Document document = new Document();
           document.setId(entity.getDocument().getId());
           document.setName(entity.getDocument().getName());
-          document.setCategory(entity.getDocument().getCategory().charAt(0));
+          document.setCategory(
+              DocumentCategory.fromCode(entity.getDocument().getCategory().charAt(0)));
           document.setFilledIn(entity.isFilledIn());
           return document;
         })

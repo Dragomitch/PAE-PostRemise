@@ -4,11 +4,12 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.AddressEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.PartnerJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -19,6 +20,7 @@ import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The partners hosting the mobilities, with the options they welcome. */
@@ -56,7 +58,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * DTO.
    */
   @Override
-  public PartnerDto create(PartnerDto partner) {
+  public Partner create(Partner partner) {
     PartnerEntity entity = new PartnerEntity();
     copy(partner, entity);
     entity.setArchived(false);
@@ -68,41 +70,40 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
   }
 
   @Override
-  public PartnerDto findById(int id) {
+  public Optional<Partner> findById(int id) {
     List<PartnerEntity> found =
         entityManager
             .createQuery(SELECT + " WHERE p.id = :id", PartnerEntity.class)
             .setParameter("id", id)
             .getResultList();
-    return found.isEmpty() ? null : partner(found.get(0));
+    return found.stream().findFirst().map(this::partner);
   }
 
   /**
    * {@inheritDoc}
    *
    * <p>Professors see every partner matching the filter. Students only see official, non-archived
-   * partners offering their option ({@code "all"} and {@code "country"} filters).
-   *
-   * @throws IllegalArgumentException if the filter is not one of the {@code FILTER_*} constants (a
-   *     programming error: the API rejects an unknown filter before, with a 400 {@code
-   *     VALIDATION_FAILED} problem)
+   * partners offering their option ({@link PartnerFilter#ALL} and {@link PartnerFilter#COUNTRY}).
    */
   @Override
-  public List<PartnerDto> findAll(String filter, String value, String userRole, String option) {
-    boolean student = UserDto.ROLE_STUDENT.equals(userRole);
+  public List<Partner> findAll(PartnerFilter filter, String value, Role userRole, String option) {
     List<String> conditions = new ArrayList<>();
     Map<String, Object> parameters = new LinkedHashMap<>();
-    if (FILTER_COUNTRY.equals(filter)) {
-      conditions.add("c.code = :country");
-      parameters.put("country", value);
-    } else if (FILTER_ARCHIVED_PARTNERS.equals(filter)) {
-      conditions.add("p.archived = TRUE");
-      conditions.add("LOWER(p.fullName) LIKE :name");
-      parameters.put("name", "%" + value.toLowerCase() + "%");
-    } else if (!FILTER_ALL_PARTNERS.equals(filter)) {
-      throw new IllegalArgumentException("Unknown partner filter: " + filter);
+    switch (filter) {
+      case COUNTRY -> {
+        conditions.add("c.code = :country");
+        parameters.put("country", value);
+      }
+      case ARCHIVED -> {
+        conditions.add("p.archived = TRUE");
+        conditions.add("LOWER(p.fullName) LIKE :name");
+        parameters.put("name", "%" + value.toLowerCase() + "%");
+      }
+      case ALL -> {
+        // no condition
+      }
     }
-    if (student && !FILTER_ARCHIVED_PARTNERS.equals(filter)) {
+    if (userRole == Role.STUDENT && filter != PartnerFilter.ARCHIVED) {
       conditions.add("p.archived = FALSE");
       conditions.add("p.official = TRUE");
       conditions.add(OFFERS_OPTION);
@@ -122,7 +123,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    *     DTO's (it was changed since it was read)
    */
   @Override
-  public PartnerDto update(PartnerDto partner) {
+  public Partner update(Partner partner) {
     PartnerEntity entity =
         partners
             .findById(partner.getId())
@@ -141,7 +142,7 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * its column is {@code NOT NULL}: a missing website is stored as an empty one, as the UI sends an
    * empty field.
    */
-  private void copy(PartnerDto partner, PartnerEntity entity) {
+  private void copy(Partner partner, PartnerEntity entity) {
     entity.setLegalName(partner.getLegalName());
     entity.setBusinessName(partner.getBusinessName());
     entity.setFullName(partner.getFullName());
@@ -159,15 +160,15 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
    * A partner of {@link #SELECT}: its address carries its id and country (code and name), its
    * programme is its country's (id and name), and its options are sorted by code.
    */
-  private PartnerDto partner(PartnerEntity entity) {
-    PartnerDto partner = mapper.build(PartnerDto.class);
+  private Partner partner(PartnerEntity entity) {
+    Partner partner = new Partner();
     partner.setId(entity.getId());
     partner.setLegalName(entity.getLegalName());
     partner.setBusinessName(entity.getBusinessName());
     partner.setFullName(entity.getFullName());
     partner.setOrganisationType(entity.getOrganisationType());
     partner.setEmployeeCount(entity.getEmployeeCount());
-    AddressDto address = mapper.build(AddressDto.class);
+    Address address = new Address();
     address.setId(entity.getAddress().getId());
     address.setCountry(mapper.countryNamed(entity.getAddress().getCountry()));
     partner.setAddress(address);
@@ -178,15 +179,15 @@ class JpaPartnerRepositoryAdapter implements PartnerRepository {
     partner.setArchived(entity.isArchived());
     partner.setVersion(entity.getVersion());
     ProgrammeEntity programme = entity.getAddress().getCountry().getProgramme();
-    ProgrammeDto programmeDto = mapper.programmeReference(programme.getId());
-    programmeDto.setProgrammeName(programme.getName());
-    partner.setProgramme(programmeDto);
+    Programme partnerProgramme = mapper.programmeReference(programme.getId());
+    partnerProgramme.setProgrammeName(programme.getName());
+    partner.setProgramme(partnerProgramme);
     partner.setOptions(
         new ArrayList<>(
             entity.getOptions().stream()
                 .sorted(Comparator.comparing(option -> option.getId().getOptionCode()))
                 .map(option -> {
-                  PartnerOptionDto dto = mapper.build(PartnerOptionDto.class);
+                  PartnerOption dto = new PartnerOption();
                   dto.setCode(option.getId().getOptionCode());
                   dto.setDepartement(option.getDepartment());
                   dto.setName(option.getOption().getName());

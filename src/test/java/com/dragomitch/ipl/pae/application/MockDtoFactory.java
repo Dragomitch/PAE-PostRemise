@@ -1,20 +1,22 @@
 package com.dragomitch.ipl.pae.application;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
 import com.dragomitch.ipl.pae.domain.model.DenialReason;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Document;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Payment;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,28 +24,23 @@ import java.util.List;
 
 public class MockDtoFactory {
 
-  private EntityFactory entityFactory;
-
-  public MockDtoFactory(EntityFactory entityFactory) {
-    this.entityFactory = entityFactory;
-  }
+  public MockDtoFactory() {}
 
   /**
    * Return a MobilityChoice mock object.
    *
    * @return a mobilityChoice
    */
-  public MobilityChoiceDto getMobilityChoice() {
-    MobilityChoiceDto mobilityChoice =
-        (MobilityChoiceDto) entityFactory.build(MobilityChoiceDto.class);
+  public MobilityChoice getMobilityChoice() {
+    MobilityChoice mobilityChoice = new MobilityChoice();
     mobilityChoice.setId(1);
     mobilityChoice.setProgramme(getProgramme());
     mobilityChoice.setPartner(getPartner());
     mobilityChoice.setCountry(getCountry());
-    mobilityChoice.setUser(getUser(UserDto.ROLE_PROFESSOR));
+    mobilityChoice.setUser(getUser(Role.PROFESSOR));
     mobilityChoice.getUser().setId(1);
     mobilityChoice.setPreferenceOrder(2);
-    mobilityChoice.setMobilityType("SMS");
+    mobilityChoice.setMobilityType(MobilityType.SMS);
     mobilityChoice.setTerm(1);
     mobilityChoice.setVersion(1);
     mobilityChoice.setAcademicYear(2016);
@@ -55,25 +52,25 @@ public class MockDtoFactory {
    *
    * @return a mobility
    */
-  public MobilityDto getMobility() {
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+  public Mobility getMobility() {
+    Mobility mobility = new Mobility();
     mobility.setId(1);
     mobility.setProgramme(getProgramme());
     mobility.setPartner(getPartner());
     mobility.setCountry(getCountry());
-    mobility.setUser(getUser(UserDto.ROLE_STUDENT));
+    mobility.setUser(getUser(Role.STUDENT));
     mobility.getUser().setId(1);
     mobility.setPreferenceOrder(2);
-    mobility.setMobilityType("SMS");
+    mobility.setMobilityType(MobilityType.SMS);
     mobility.setTerm(1);
     mobility.setAcademicYear(2016);
-    mobility.setState(MobilityDto.STATE_CREATED);
-    mobility.setProfessorInCharge(getUser(UserDto.ROLE_PROFESSOR));
+    mobility.setState(MobilityState.CREATED);
+    mobility.setProfessorInCharge(getUser(Role.PROFESSOR));
     mobility.setNominatedStudent(getNominatedStudent());
-    List<DocumentDto> documents = new ArrayList<DocumentDto>();
+    List<Document> documents = new ArrayList<Document>();
     documents.add(getDocument());
-    DocumentDto doc = getDocument();
-    doc.setCategory(DocumentDto.RETURN_DOCUMENT);
+    Document doc = getDocument();
+    doc.setCategory(DocumentCategory.RETURN);
     documents.add(doc);
     mobility.setDocuments(documents);
     return mobility;
@@ -84,10 +81,10 @@ public class MockDtoFactory {
    *
    * @return a document
    */
-  public DocumentDto getDocument() {
-    DocumentDto document = (DocumentDto) entityFactory.build(DocumentDto.class);
+  public Document getDocument() {
+    Document document = new Document();
     document.setId(1);
-    document.setCategory(DocumentDto.DEPARTURE_DOCUMENT);
+    document.setCategory(DocumentCategory.DEPARTURE);
     return document;
   }
 
@@ -96,8 +93,8 @@ public class MockDtoFactory {
    *
    * @return a country
    */
-  public CountryDto getCountry() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+  public Country getCountry() {
+    Country country = new Country();
     country.setCountryCode("IE");
     country.setName("Irlande");
     country.setProgramme(getProgramme());
@@ -109,8 +106,8 @@ public class MockDtoFactory {
    *
    * @return a programme
    */
-  public ProgrammeDto getProgramme() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+  public Programme getProgramme() {
+    Programme programme = new Programme();
     programme.setId(1);
     programme.setProgrammeName("Erasmus+");
     programme.setExternalSoftName("Mobility Tool");
@@ -122,8 +119,8 @@ public class MockDtoFactory {
    *
    * @return a partner
    */
-  public PartnerDto getPartner() {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+  public Partner getPartner() {
+    Partner partner = new Partner();
     partner.setBusinessName("Business partner");
     partner.setEmail("email@email.org");
     partner.setEmployeeCount(3);
@@ -133,7 +130,7 @@ public class MockDtoFactory {
     partner.setPhoneNumber("+32493184140");
     partner.setWebsite("www.partnerwebsite.com");
     partner.setProgramme(getProgramme());
-    List<PartnerOptionDto> options = new ArrayList<PartnerOptionDto>();
+    List<PartnerOption> options = new ArrayList<PartnerOption>();
     options.add(getPartnerOption());
     partner.setOptions(options);
     partner.setAddress(getAddress());
@@ -145,8 +142,8 @@ public class MockDtoFactory {
    *
    * @return a partner
    */
-  public DenialReasonDto getDenialReason() {
-    DenialReasonDto denialReason = (DenialReasonDto) entityFactory.build(DenialReason.class);
+  public DenialReason getDenialReason() {
+    DenialReason denialReason = new DenialReason();
     denialReason.setReason("no reason whatsoever");
     return denialReason;
   }
@@ -156,15 +153,15 @@ public class MockDtoFactory {
    *
    * @return an address
    */
-  public AddressDto getAddress() {
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+  public Address getAddress() {
+    Address address = new Address();
     address.setVersion(1);
     address.setNumber("69/4B");
     address.setPostalCode("Bee");
     address.setRegion("Beetle's region");
     address.setStreet("Penny Lane");
     address.setCity("LiverPool");
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("GB");
     country.setName("Angleterre");
     country.setProgramme(getProgramme());
@@ -177,8 +174,8 @@ public class MockDtoFactory {
    *
    * @return a partnerOption
    */
-  public PartnerOptionDto getPartnerOption() {
-    PartnerOptionDto option = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+  public PartnerOption getPartnerOption() {
+    PartnerOption option = new PartnerOption();
     option.setDepartement("DIT");
     option.setCode("BIN");
     option.setName("Bachelier en informatique de gestion");
@@ -190,8 +187,8 @@ public class MockDtoFactory {
    *
    * @return a user
    */
-  public UserDto getUser(String role) {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+  public User getUser(Role role) {
+    User user = new User();
     user.setLastName("TheReaper");
     user.setFirstName("Jack");
     user.setUsername("JackKikoo");
@@ -209,8 +206,8 @@ public class MockDtoFactory {
    *
    * @return an option
    */
-  public OptionDto getOption() {
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+  public Option getOption() {
+    Option option = new Option();
     option.setCode("BIN");
     option.setName("Bachelier en informatique de gestion");
     return option;
@@ -221,19 +218,19 @@ public class MockDtoFactory {
    *
    * @return a payment
    */
-  public PaymentDto getPayment() {
-    PaymentDto payment = (PaymentDto) entityFactory.build(PaymentDto.class);
+  public Payment getPayment() {
+    Payment payment = new Payment();
     payment.setMobilityChoiceId(1);
-    payment.setUser(getUser(UserDto.ROLE_STUDENT));
-    payment.setMobilityType("SMS");
+    payment.setUser(getUser(Role.STUDENT));
+    payment.setMobilityType(MobilityType.SMS);
     payment.setAcademicYear("2015-2016");
     payment.setTerm(1);
     payment.setProgramme(getProgramme());
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("IE");
     country.setName("Irlande");
     payment.setCountry(country);
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     partner.setId(1);
     partner.setFullName("fullName");
     payment.setPartner(partner);
@@ -247,16 +244,15 @@ public class MockDtoFactory {
    *
    * @return a nominatedStudent
    */
-  public NominatedStudentDto getNominatedStudent() {
-    NominatedStudentDto nominatedStudent =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+  public NominatedStudent getNominatedStudent() {
+    NominatedStudent nominatedStudent = new NominatedStudent();
     nominatedStudent.setLastName("TheReaper");
     nominatedStudent.setFirstName("Jack");
     nominatedStudent.setUsername("JackKikoo");
     nominatedStudent.setPassword("cyka");
     nominatedStudent.setEmail("Jack@Reaper.uk");
     nominatedStudent.setRegistrationDate(LocalDateTime.now());
-    nominatedStudent.setRole(UserDto.ROLE_STUDENT);
+    nominatedStudent.setRole(Role.STUDENT);
     nominatedStudent.setOption(getOption());
     nominatedStudent.setTitle("Mr");
     nominatedStudent.setBirthdate(LocalDate.now());

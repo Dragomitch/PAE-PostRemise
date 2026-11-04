@@ -3,12 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,21 +16,19 @@ public class TestPayment {
   @Autowired private ApplicationContext context;
 
   private static final int MOBILITYCHOICEID = 1;
-  private static final String MOBILITYTYPE = "";
+  private static final MobilityType MOBILITYTYPE = MobilityType.SMP;
   private static final String ACADEMICYEAR = "";
   private static final int TERM = 1;
   private static final LocalDateTime PAYMENTDATE = LocalDateTime.of(2016, 12, 26, 5, 55);
   private static final String PAYMENTTYPE = "";
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
-  private PaymentDto payment;
+  private Payment payment;
 
   /** Creates a new Payment instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.payment = (PaymentDto) entityFactory.build(PaymentDto.class);
+    this.payment = new Payment();
   }
 
   @Test
@@ -47,15 +39,14 @@ public class TestPayment {
 
   @Test
   public void testSetAndGetUserTC1() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     payment.setUser(user);
     assertEquals(user, payment.getUser());
   }
 
   @Test
   public void testSetAndGetNominatedStudentTC1() {
-    NominatedStudentDto nominatedStudent =
-        (NominatedStudentDto) entityFactory.build(NominatedStudentDto.class);
+    NominatedStudent nominatedStudent = new NominatedStudent();
     payment.setNominatedStudent(nominatedStudent);
     assertEquals(nominatedStudent, payment.getNominatedStudent());
   }
@@ -80,14 +71,14 @@ public class TestPayment {
 
   @Test
   public void testSetAndGetProgrammeTC1() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     payment.setProgramme(programme);
     assertEquals(programme, payment.getProgramme());
   }
 
   @Test
   public void testSetAndGetCountryTC1() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     payment.setCountry(country);
     assertEquals(country, payment.getCountry());
   }
@@ -106,14 +97,8 @@ public class TestPayment {
 
   @Test
   public void testSetAndGetPartnerTC1() {
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     payment.setPartner(partner);
     assertEquals(partner, payment.getPartner());
-  }
-
-  @Test
-  public void testSetAndGetVersionTC1() {
-    payment.setVersion(VERSION);
-    assertEquals(VERSION, payment.getVersion());
   }
 }
