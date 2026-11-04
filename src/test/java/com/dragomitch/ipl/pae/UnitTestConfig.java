@@ -41,8 +41,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * application ignores it.
  */
 @TestConfiguration(proxyBeanMethods = false)
-@ComponentScan(
-    basePackages = {"com.dragomitch.ipl.pae.domain.model", "com.dragomitch.ipl.pae.application"})
+@ComponentScan(basePackages = "com.dragomitch.ipl.pae.application")
 @Import({
   InMemoryAddressRepository.class,
   InMemoryCountryRepository.class,

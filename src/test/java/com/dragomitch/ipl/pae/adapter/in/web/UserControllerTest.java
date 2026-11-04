@@ -14,11 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -38,8 +38,6 @@ class UserControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private UserService userService;
 
   private static final String VALID_SIGNUP =
@@ -47,12 +45,12 @@ class UserControllerTest {
           + "\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"jdoe@example.test\","
           + "\"option\":{\"code\":\"BIN\"}}";
 
-  private UserDto user(int id, String username) {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+  private User user(int id, String username) {
+    User user = new User();
     user.setId(id);
     user.setUsername(username);
     user.setPassword("$2a$10$hash");
-    user.setRole(UserDto.ROLE_STUDENT);
+    user.setRole(Role.STUDENT);
     user.setRegistrationDate(LocalDateTime.of(2024, 2, 1, 10, 15, 30));
     return user;
   }
@@ -76,12 +74,12 @@ class UserControllerTest {
         .andExpect(jsonPath("$.registrationDate").value("2024-02-01T10:15:30"))
         .andExpect(jsonPath("$.password").doesNotExist());
 
-    ArgumentCaptor<UserDto> captor = ArgumentCaptor.forClass(UserDto.class);
+    ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userService).signup(captor.capture());
     assertEquals("jdoe", captor.getValue().getUsername());
     assertEquals("secret123", captor.getValue().getPassword());
     assertEquals("John", captor.getValue().getFirstName());
-    // interface-typed property instantiated through the EntityFactory bindings
+    // the nested option record is mapped to the domain
     assertEquals("BIN", captor.getValue().getOption().getCode());
   }
 
@@ -209,8 +207,8 @@ class UserControllerTest {
 
   @Test
   void promoteByUsernameTakesTheUsernameFromThePathAndReturnsTheUser() throws Exception {
-    UserDto promoted = user(4, "Bob.Dupont");
-    promoted.setRole(UserDto.ROLE_PROFESSOR);
+    User promoted = user(4, "Bob.Dupont");
+    promoted.setRole(Role.PROFESSOR);
     promoted.setVersion(2);
     when(userService.promoteToProfessorByUsername("Bob.Dupont")).thenReturn(promoted);
 
@@ -221,7 +219,7 @@ class UserControllerTest {
                 .with(TestUsers.professor()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(4))
-        .andExpect(jsonPath("$.role").value(UserDto.ROLE_PROFESSOR))
+        .andExpect(jsonPath("$.role").value("Professor"))
         .andExpect(jsonPath("$.version").value(2))
         .andExpect(jsonPath("$.password").doesNotExist());
     verify(userService).promoteToProfessorByUsername("Bob.Dupont");
@@ -236,7 +234,7 @@ class UserControllerTest {
 
   @Test
   void editPassesTheBodyAndTheAuthenticatedUser() throws Exception {
-    when(userService.edit(any(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT)))
+    when(userService.edit(any(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT)))
         .thenReturn(user(2, "stud"));
 
     mockMvc
@@ -252,8 +250,8 @@ class UserControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("stud"));
 
-    ArgumentCaptor<UserDto> captor = ArgumentCaptor.forClass(UserDto.class);
-    verify(userService).edit(captor.capture(), eq(TestUsers.STUDENT_ID), eq(UserDto.ROLE_STUDENT));
+    ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+    verify(userService).edit(captor.capture(), eq(TestUsers.STUDENT_ID), eq(Role.STUDENT));
     assertEquals(2, captor.getValue().getId());
   }
 }

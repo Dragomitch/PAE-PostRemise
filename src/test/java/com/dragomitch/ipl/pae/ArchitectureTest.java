@@ -64,9 +64,19 @@ class ArchitectureTest {
           .mayNotBeAccessedByAnyLayer();
 
   /**
-   * The domain knows no persistence, web or security technology. (It still carries Bean Validation,
-   * Jackson and a few Spring annotations: step 3 of ADR 0001 removes them.)
+   * The domain depends on the JDK only (and on JSpecify's {@code @Nullable}): no framework, no Bean
+   * Validation, no Jackson, no Spring (step 3 of ADR 0001).
    */
+  @ArchTest
+  static final ArchRule domainDependsOnTheJdkOnly =
+      classes()
+          .that()
+          .resideInAPackage(DOMAIN)
+          .should()
+          .onlyDependOnClassesThat()
+          .resideInAnyPackage(DOMAIN, "java..", "org.jspecify.annotations..");
+
+  /** The domain knows no persistence, web or security technology. */
   @ArchTest
   static final ArchRule domainIsFreeOfInfrastructure =
       noClasses()

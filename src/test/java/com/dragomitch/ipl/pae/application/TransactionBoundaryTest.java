@@ -13,15 +13,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
 import com.dragomitch.ipl.pae.domain.port.out.UserRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,25 +78,23 @@ class TransactionBoundaryTest {
 
   @Autowired private UserService userService;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private UserRepository userRepository;
 
-  private UserDto student;
+  private User student;
 
   @BeforeEach
   void setUp() throws SQLException {
     clearInvocations(connection, dataSource);
     reset(userRepository);
-    student = (UserDto) entityFactory.build(UserDto.class);
+    student = new User();
     student.setId(5);
     student.setVersion(3);
-    student.setRole(UserDto.ROLE_STUDENT);
+    student.setRole(Role.STUDENT);
   }
 
   @Test
   void aSuccessfulUseCaseCommitsItsTransactionAndReleasesTheConnection() throws SQLException {
-    when(userRepository.findById(5)).thenReturn(student);
+    when(userRepository.findById(5)).thenReturn(Optional.of(student));
 
     userService.promoteToProfessor(5);
 
@@ -110,7 +109,7 @@ class TransactionBoundaryTest {
 
   @Test
   void aUseCaseThatThrowsRollsBack() throws SQLException {
-    when(userRepository.findById(5)).thenReturn(null);
+    when(userRepository.findById(5)).thenReturn(Optional.empty());
 
     assertThrows(ResourceNotFoundException.class, () -> userService.promoteToProfessor(5));
 
@@ -122,7 +121,7 @@ class TransactionBoundaryTest {
   @Test
   void aStaleVersionReachesTheCallerAndRollsBack() throws SQLException {
     // the JDBC DAO updates "WHERE user_id = ? AND version = ?" and throws when no row matched
-    when(userRepository.findById(5)).thenReturn(student);
+    when(userRepository.findById(5)).thenReturn(Optional.of(student));
     doThrow(new ConcurrentModificationException()).when(userRepository).promoteToProfessor(5, 3);
 
     assertThrows(ConcurrentModificationException.class, () -> userService.promoteToProfessor(5));

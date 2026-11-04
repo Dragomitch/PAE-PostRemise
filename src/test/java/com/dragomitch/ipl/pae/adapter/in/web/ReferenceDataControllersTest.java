@@ -12,14 +12,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.Payment;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.OptionService;
@@ -49,8 +48,6 @@ class ReferenceDataControllersTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private EntityFactory entityFactory;
-
   @MockitoBean private CountryService countryService;
   @MockitoBean private ProgrammeService programmeService;
   @MockitoBean private OptionService optionService;
@@ -59,7 +56,7 @@ class ReferenceDataControllersTest {
 
   @Test
   void countries() throws Exception {
-    CountryDto belgium = (CountryDto) entityFactory.build(CountryDto.class);
+    Country belgium = new Country();
     belgium.setCountryCode("BE");
     belgium.setName("Belgique");
     when(countryService.showAll()).thenReturn(List.of(belgium));
@@ -77,7 +74,7 @@ class ReferenceDataControllersTest {
 
   @Test
   void programmes() throws Exception {
-    ProgrammeDto erasmus = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme erasmus = new Programme();
     erasmus.setId(1);
     erasmus.setProgrammeName("Erasmus+");
     when(programmeService.showAll()).thenReturn(List.of(erasmus));
@@ -95,11 +92,11 @@ class ReferenceDataControllersTest {
 
   @Test
   void optionsArePublicAndTheirPartnersAreNot() throws Exception {
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    Option option = new Option();
     option.setCode("BIN");
     option.setName("Informatique");
     when(optionService.showAll()).thenReturn(List.of(option));
-    PartnerDto partner = (PartnerDto) entityFactory.build(PartnerDto.class);
+    Partner partner = new Partner();
     partner.setId(3);
     when(optionService.findAllPartnersByOption("BIN")).thenReturn(List.of(partner));
 
@@ -116,7 +113,7 @@ class ReferenceDataControllersTest {
 
   @Test
   void denialReasons() throws Exception {
-    DenialReasonDto reason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    DenialReason reason = new DenialReason();
     reason.setId(4);
     reason.setReason("Dossier incomplet");
     when(denialReasonService.create(any())).thenReturn(reason);
@@ -132,7 +129,7 @@ class ReferenceDataControllersTest {
                 .content("{\"reason\":\"Dossier incomplet\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(4));
-    ArgumentCaptor<DenialReasonDto> captor = ArgumentCaptor.forClass(DenialReasonDto.class);
+    ArgumentCaptor<DenialReason> captor = ArgumentCaptor.forClass(DenialReason.class);
     verify(denialReasonService).create(captor.capture());
     assertEquals("Dossier incomplet", captor.getValue().getReason());
 
@@ -154,9 +151,9 @@ class ReferenceDataControllersTest {
 
   @Test
   void paymentsAreWrappedInData() throws Exception {
-    PaymentDto payment = (PaymentDto) entityFactory.build(PaymentDto.class);
+    Payment payment = new Payment();
     payment.setPaymentDate(LocalDateTime.of(2024, 5, 6, 7, 8, 9));
-    when(paymentService.showAll(UserDto.ROLE_PROFESSOR)).thenReturn(List.of(payment));
+    when(paymentService.showAll(Role.PROFESSOR)).thenReturn(List.of(payment));
 
     mockMvc
         .perform(get(ApiPaths.BASE + "/payments").with(TestUsers.professor()))

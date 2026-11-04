@@ -1,8 +1,11 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.adapter.in.web.dto.PartnerDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.MobilityMapper;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.PartnerMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +14,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,44 +43,58 @@ public class MobilityChoiceController {
    */
   public record CountResponse(int count) {}
 
-  private final MobilityChoiceService mobilityChoiceService;
+  /**
+   * Values of the {@code filter} parameter of the lists ({@link MobilityChoiceFilter}): all, active
+   * (the default), canceled, rejected, passed. An unknown value is refused with a 400 {@code
+   * VALIDATION_FAILED} problem on the {@code filter} field.
+   */
+  static final String FILTER_REGEXP = "all|active|canceled|rejected|passed";
 
-  public MobilityChoiceController(MobilityChoiceService mobilityChoiceService) {
+  /** Message of an unknown filter. */
+  static final String FILTER_MESSAGE = "{pae.validation.MobilityChoiceService.filter.message}";
+
+  private final MobilityChoiceService mobilityChoiceService;
+  private final PartnerMapper partnerMapper;
+  private final MobilityMapper mapper;
+
+  public MobilityChoiceController(
+      MobilityChoiceService mobilityChoiceService,
+      PartnerMapper partnerMapper,
+      MobilityMapper mapper) {
     this.mobilityChoiceService = mobilityChoiceService;
+    this.partnerMapper = partnerMapper;
+    this.mapper = mapper;
   }
 
   @PostMapping("/mobilityChoice")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public MobilityChoiceDto create(
       @RequestBody @Valid MobilityChoiceDto mobilityChoice, CurrentUser currentUser) {
-    return mobilityChoiceService.create(mobilityChoice, currentUser.id(), currentUser.role());
+    return mapper.toDto(
+        mobilityChoiceService.create(
+            mapper.toDomain(mobilityChoice), currentUser.id(), currentUser.role()));
   }
 
   /** Every mobility choice matching the filter for a professor, the own ones for a student. */
   @GetMapping("/mobilityChoices")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public DataResponse<MobilityChoiceDto> showAll(
-      @RequestParam(required = false)
-          @Pattern(
-              regexp = MobilityChoiceService.FILTER_REGEXP,
-              message = MobilityChoiceService.FILTER_MESSAGE)
+      @RequestParam(required = false) @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE)
           String filter,
       CurrentUser currentUser) {
     return new DataResponse<>(
-        mobilityChoiceService.showAll(currentUser.id(), currentUser.role(), filter));
+        mapper.toMobilityChoiceDtos(
+            mobilityChoiceService.showAll(currentUser.id(), currentUser.role(), filterOf(filter))));
   }
 
   @GetMapping("/mobilityChoices/count")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public CountResponse countAll(
-      @RequestParam(required = false)
-          @Pattern(
-              regexp = MobilityChoiceService.FILTER_REGEXP,
-              message = MobilityChoiceService.FILTER_MESSAGE)
+      @RequestParam(required = false) @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE)
           String filter,
       CurrentUser currentUser) {
     return new CountResponse(
-        mobilityChoiceService.countAll(currentUser.id(), currentUser.role(), filter));
+        mobilityChoiceService.countAll(currentUser.id(), currentUser.role(), filterOf(filter)));
   }
 
   @Operation(summary = "Cancels an own mobility choice, with a free-text reason (students)")
@@ -118,7 +136,8 @@ public class MobilityChoiceController {
       @PathVariable @Positive int id,
       @RequestBody @Valid PartnerDto partner,
       CurrentUser currentUser) {
-    mobilityChoiceService.confirmWithNewPartner(id, partner, currentUser.id(), currentUser.role());
+    mobilityChoiceService.confirmWithNewPartner(
+        id, partnerMapper.toDomain(partner), currentUser.id(), currentUser.role());
   }
 
   /** CSV export of the mobility choices matching the filter. */
@@ -126,12 +145,14 @@ public class MobilityChoiceController {
   @GetMapping(value = "/mobilityChoices/export", produces = ApiPaths.TEXT_CSV_UTF8)
   @PreAuthorize(ApiPaths.PROFESSOR)
   public String exportAll(
-      @RequestParam(required = false)
-          @Pattern(
-              regexp = MobilityChoiceService.FILTER_REGEXP,
-              message = MobilityChoiceService.FILTER_MESSAGE)
+      @RequestParam(required = false) @Pattern(regexp = FILTER_REGEXP, message = FILTER_MESSAGE)
           String filter,
       CurrentUser currentUser) {
-    return mobilityChoiceService.exportAll(currentUser.id(), currentUser.role(), filter);
+    return mobilityChoiceService.exportAll(currentUser.id(), currentUser.role(), filterOf(filter));
+  }
+
+  /** The filter of a validated {@code filter} parameter: the active choices when it is absent. */
+  private static MobilityChoiceFilter filterOf(@Nullable String filter) {
+    return filter == null ? MobilityChoiceFilter.ACTIVE : MobilityChoiceFilter.fromValue(filter);
   }
 }

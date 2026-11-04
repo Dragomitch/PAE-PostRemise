@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.CountryService;
 import com.dragomitch.ipl.pae.domain.port.in.DenialReasonService;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
@@ -54,18 +54,16 @@ class EndpointAuthorizationTest {
     STUDENT,
     PROFESSOR_OR_STUDENT;
 
-    boolean allows(String role) {
+    boolean allows(Role role) {
       return switch (this) {
         case PUBLIC, PROFESSOR_OR_STUDENT -> true;
-        case PROFESSOR -> UserDto.ROLE_PROFESSOR.equals(role);
-        case STUDENT -> UserDto.ROLE_STUDENT.equals(role);
+        case PROFESSOR -> role == Role.PROFESSOR;
+        case STUDENT -> role == Role.STUDENT;
       };
     }
   }
 
   @Autowired private MockMvc mockMvc;
-
-  @Autowired private EntityFactory entityFactory;
 
   @MockitoBean private CountryService countryService;
   @MockitoBean private DenialReasonService denialReasonService;
@@ -81,9 +79,9 @@ class EndpointAuthorizationTest {
 
   @BeforeEach
   void signinSucceeds() {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+    User user = new User();
     user.setId(1);
-    user.setRole(UserDto.ROLE_PROFESSOR);
+    user.setRole(Role.PROFESSOR);
     when(sessionService.signin(any(), any())).thenReturn(user);
   }
 
@@ -197,22 +195,17 @@ class EndpointAuthorizationTest {
   @ParameterizedTest(name = "{0} {1} as professor")
   @MethodSource("endpoints")
   void professor(String method, String path, String body, Access access) throws Exception {
-    expectAccess(method, path, body, access, UserDto.ROLE_PROFESSOR, TestUsers.professor());
+    expectAccess(method, path, body, access, Role.PROFESSOR, TestUsers.professor());
   }
 
   @ParameterizedTest(name = "{0} {1} as student")
   @MethodSource("endpoints")
   void student(String method, String path, String body, Access access) throws Exception {
-    expectAccess(method, path, body, access, UserDto.ROLE_STUDENT, TestUsers.student());
+    expectAccess(method, path, body, access, Role.STUDENT, TestUsers.student());
   }
 
   private void expectAccess(
-      String method,
-      String path,
-      String body,
-      Access access,
-      String role,
-      RequestPostProcessor user)
+      String method, String path, String body, Access access, Role role, RequestPostProcessor user)
       throws Exception {
     if (access.allows(role)) {
       mockMvc.perform(call(method, path, body).with(user)).andExpect(status().is2xxSuccessful());

@@ -3,17 +3,20 @@ package com.dragomitch.ipl.pae.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.AddressRepository;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
 import com.dragomitch.ipl.pae.domain.port.out.DenialReasonRepository;
@@ -86,20 +89,22 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
   static Stream<Named<Consumer<Repositories>>> daoCalls() {
     return Stream.of(
         call("AddressRepository.create", d -> d.address().create(d.test().address())),
-        call("AddressRepository.findById", d -> d.address().findById(1)),
+        call("AddressRepository.findById", d -> d.address().findById(1).orElse(null)),
         call("AddressRepository.update", d -> d.address().update(d.test().address())),
-        call("CountryRepository.findById", d -> d.country().findById("BE")),
+        call("CountryRepository.findById", d -> d.country().findById("BE").orElse(null)),
         call("CountryRepository.findAll", d -> d.country().findAll()),
         call(
             "DenialReasonRepository.create", d -> d.denialReason().create(d.test().denialReason())),
-        call("DenialReasonRepository.findById", d -> d.denialReason().findById(1)),
+        call("DenialReasonRepository.findById", d -> d.denialReason().findById(1).orElse(null)),
         call("DenialReasonRepository.findAll", d -> d.denialReason().findAll()),
         call(
             "DenialReasonRepository.update", d -> d.denialReason().update(d.test().denialReason())),
         call("DocumentRepository.findAllByProgramme", d -> d.document().findAllByProgramme(1)),
         call("MobilityChoiceRepository.create", d -> d.mobilityChoice().create(d.test().choice())),
-        call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1)),
-        call("MobilityChoiceRepository.findAll", d -> d.mobilityChoice().findAll("all")),
+        call("MobilityChoiceRepository.findById", d -> d.mobilityChoice().findById(1).orElse(null)),
+        call(
+            "MobilityChoiceRepository.findAll",
+            d -> d.mobilityChoice().findAll(MobilityChoiceFilter.ALL)),
         call("MobilityChoiceRepository.findByUser", d -> d.mobilityChoice().findByUser(1)),
         call("MobilityChoiceRepository.findByPartner", d -> d.mobilityChoice().findByPartner(1)),
         call(
@@ -107,7 +112,7 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
             d -> d.mobilityChoice().findByActivePartner(1)),
         call("MobilityChoiceRepository.update", d -> d.mobilityChoice().update(d.test().choice())),
         call("MobilityRepository.create", d -> d.mobility().create(d.test().mobility())),
-        call("MobilityRepository.findById", d -> d.mobility().findById(1)),
+        call("MobilityRepository.findById", d -> d.mobility().findById(1).orElse(null)),
         call("MobilityRepository.findAll", d -> d.mobility().findAll()),
         call("MobilityRepository.findByUser", d -> d.mobility().findByUser(1)),
         call("MobilityRepository.update", d -> d.mobility().update(d.test().mobility())),
@@ -121,17 +126,20 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
         call(
             "NominatedStudentRepository.create",
             d -> d.nominatedStudent().create(d.test().student())),
-        call("NominatedStudentRepository.findById", d -> d.nominatedStudent().findById(1)),
+        call(
+            "NominatedStudentRepository.findById",
+            d -> d.nominatedStudent().findById(1).orElse(null)),
         call("NominatedStudentRepository.findAll", d -> d.nominatedStudent().findAll()),
         call(
             "NominatedStudentRepository.update",
             d -> d.nominatedStudent().update(d.test().student())),
-        call("OptionRepository.findByCode", d -> d.option().findByCode("BIN")),
+        call("OptionRepository.findByCode", d -> d.option().findByCode("BIN").orElse(null)),
         call("OptionRepository.findAll", d -> d.option().findAll()),
         call("PartnerRepository.create", d -> d.partner().create(d.test().partner())),
-        call("PartnerRepository.findById", d -> d.partner().findById(1)),
+        call("PartnerRepository.findById", d -> d.partner().findById(1).orElse(null)),
         call(
-            "PartnerRepository.findAll", d -> d.partner().findAll("all", null, "Professor", "BIN")),
+            "PartnerRepository.findAll",
+            d -> d.partner().findAll(PartnerFilter.ALL, null, Role.PROFESSOR, "BIN")),
         call("PartnerRepository.update", d -> d.partner().update(d.test().partner())),
         call(
             "PartnerOptionRepository.create",
@@ -143,12 +151,13 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
             "PartnerOptionRepository.findAllOptionsByPartner",
             d -> d.partnerOption().findAllOptionsByPartner(1)),
         call("PaymentRepository.findAll", d -> d.payment().findAll()),
-        call("ProgrammeRepository.findById", d -> d.programme().findById(1)),
+        call("ProgrammeRepository.findById", d -> d.programme().findById(1).orElse(null)),
         call("ProgrammeRepository.findAll", d -> d.programme().findAll()),
         call("UserRepository.create", d -> d.user().create(d.test().user())),
-        call("UserRepository.findById", d -> d.user().findById(1)),
+        call("UserRepository.findById", d -> d.user().findById(1).orElse(null)),
         call("UserRepository.findAll", d -> d.user().findAll()),
-        call("UserRepository.findBy", d -> d.user().findBy("username", "alice")),
+        call("UserRepository.findByUsername", d -> d.user().findByUsername("alice")),
+        call("UserRepository.findByEmail", d -> d.user().findByEmail("alice@student.test")),
         call("UserRepository.update", d -> d.user().update(d.test().user())),
         call("UserRepository.promoteToProfessor(id)", d -> d.user().promoteToProfessor(1, 1)),
         call(
@@ -202,60 +211,60 @@ class RepositoryErrorHandlingIT extends AbstractRepositoryIT {
   // NullPointerException while binding the parameters, or from JPA refusing a reference to an
   // entity without id.
 
-  AddressDto address() {
-    AddressDto address = build(AddressDto.class);
-    CountryDto country = build(CountryDto.class);
+  Address address() {
+    Address address = new Address();
+    Country country = new Country();
     country.setCountryCode("BE");
     address.setCountry(country);
     return address;
   }
 
-  DenialReasonDto denialReason() {
-    return build(DenialReasonDto.class);
+  DenialReason denialReason() {
+    return new DenialReason();
   }
 
-  MobilityChoiceDto choice() {
-    MobilityChoiceDto choice = build(MobilityChoiceDto.class);
-    choice.setUser(build(UserDto.class));
-    choice.setProgramme(build(ProgrammeDto.class));
-    CountryDto country = build(CountryDto.class);
+  MobilityChoice choice() {
+    MobilityChoice choice = new MobilityChoice();
+    choice.setUser(new User());
+    choice.setProgramme(new Programme());
+    Country country = new Country();
     country.setCountryCode("BE");
     choice.setCountry(country);
     choice.setSubmissionDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return choice;
   }
 
-  MobilityDto mobility() {
-    MobilityDto mobility = build(MobilityDto.class);
+  Mobility mobility() {
+    Mobility mobility = new Mobility();
     mobility.setSubmissionDate(LocalDateTime.of(2025, 1, 1, 0, 0));
     return mobility;
   }
 
-  NominatedStudentDto student() {
-    NominatedStudentDto student = build(NominatedStudentDto.class);
+  NominatedStudent student() {
+    NominatedStudent student = new NominatedStudent();
     student.setBirthdate(LocalDate.of(2000, 1, 1));
-    CountryDto nationality = build(CountryDto.class);
+    Country nationality = new Country();
     nationality.setCountryCode("BE");
     student.setNationality(nationality);
-    student.setAddress(build(AddressDto.class));
+    student.setAddress(new Address());
     return student;
   }
 
-  PartnerDto partner() {
-    PartnerDto partner = build(PartnerDto.class);
-    partner.setAddress(build(AddressDto.class));
+  Partner partner() {
+    Partner partner = new Partner();
+    partner.setAddress(new Address());
     return partner;
   }
 
-  PartnerOptionDto partnerOption() {
-    PartnerOptionDto option = build(PartnerOptionDto.class);
+  PartnerOption partnerOption() {
+    PartnerOption option = new PartnerOption();
     option.setCode("BIN");
     return option;
   }
 
-  UserDto user() {
-    UserDto user = build(UserDto.class);
-    OptionDto option = build(OptionDto.class);
+  User user() {
+    User user = new User();
+    Option option = new Option();
     option.setCode("BIN");
     user.setOption(option);
     user.setRegistrationDate(LocalDateTime.of(2025, 1, 1, 0, 0));

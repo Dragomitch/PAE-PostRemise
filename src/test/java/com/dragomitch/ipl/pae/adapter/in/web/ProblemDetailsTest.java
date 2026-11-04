@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -19,12 +18,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.FatalException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import com.dragomitch.ipl.pae.domain.model.Violations;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
@@ -62,8 +59,6 @@ class ProblemDetailsTest {
   private static final String USERS = ApiPaths.BASE + "/users";
 
   @Autowired private MockMvc mockMvc;
-
-  @Autowired private EntityFactory entityFactory;
 
   @MockitoBean private UserService userService;
   @MockitoBean private PartnerService partnerService;
@@ -216,11 +211,15 @@ class ProblemDetailsTest {
   }
 
   @Test
-  void theMethodValidationOfAUseCaseIsAValidationProblem() throws Exception {
-    UserDto user = (UserDto) entityFactory.build(UserDto.class);
+  void aConstraintViolationIsAValidationProblem() throws Exception {
+    // e.g. a method validation of Spring outside the request binding
     ConstraintViolationException violation =
-        new ConstraintViolationException(Violations.validator().validate(user));
-    when(userService.edit(any(), anyInt(), anyString())).thenThrow(violation);
+        new ConstraintViolationException(
+            Violations.validator()
+                .validate(
+                    new com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto(
+                        0, null, null, null, null, null, null, null, null, 0)));
+    when(userService.edit(any(), anyInt(), any())).thenThrow(violation);
 
     perform(
             put(USERS + "/edit")

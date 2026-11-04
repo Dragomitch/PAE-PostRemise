@@ -1,6 +1,6 @@
 # ADR 0001: Spring Data JPA persistence, organised as ports and adapters
 
-- **Status:** accepted. Steps 1 and 2 are implemented; step 3 is planned.
+- **Status:** accepted. Steps 1, 2 and 3 are implemented (step 3: PR #181, issue #139).
 - **Discussion:** issue #102 (the questions Q1–Q6 and the owner's answers), PR #91.
 
 ## Context
@@ -50,16 +50,18 @@ Naming, taken from the guide's examples:
 | JPA entity (adapter) | `XxxEntity` | `PartnerEntity` |
 | Driving port (domain) | `XxxService` | `PartnerService` (was `PartnerUcc`) |
 | Application service | `XxxServiceImpl` | `PartnerServiceImpl` (was `PartnerUccImpl`) |
+| Domain model (domain) | `Xxx` (plain class) | `Partner` (was `PartnerDto` + `Partner` + `PartnerImpl`) |
+| Domain enum (domain) | a noun, its values in English | `MobilityState.IN_PREPARATION` (label `En préparation`) |
+| Web DTO (adapter) | `XxxDto` (record) | `adapter.in.web.dto.PartnerDto` |
+| Web mapper (adapter) | `XxxMapper` | `adapter.in.web.mapping.PartnerMapper` |
 
-Layout (since step 2):
+Layout (since step 3):
 
 ```
 com.dragomitch.ipl.pae
 ├── domain
-│   ├── model                    business objects and rules (XxxImpl behind Xxx, EntityFactory)
-│   ├── dto                      the DTO interfaces the ports exchange (step 3 replaces them)
+│   ├── model                    plain classes and enums: User, Mobility, Role, MobilityState...
 │   ├── exceptions               BusinessException, ErrorCode, FatalException
-│   ├── validation               custom constraints (@Iban, @Bic, ...)
 │   ├── util                     DataValidationUtils
 │   └── port
 │       ├── in                   driving ports: the use cases, XxxService
@@ -67,7 +69,10 @@ com.dragomitch.ipl.pae
 ├── application                  use-case services, XxxServiceImpl (@Service, @Transactional)
 │   └── export                   CsvStringBuilder
 ├── adapter
-│   ├── in/web                   controllers, ApiExceptionHandler, web DTOs (step 3)
+│   ├── in/web                   controllers, ApiExceptionHandler
+│   │   ├── dto                  web DTOs: records with the constraints, XxxDto
+│   │   ├── mapping              XxxMapper: web DTO <-> domain model
+│   │   ├── validation           custom constraints (@Iban, @Bic, ...) and groups
 │   │   └── security             session cookie, current user, CSRF
 │   └── out/persistence          JpaXxxRepositoryAdapter, PersistenceMapper
 │       ├── entity               JPA entities (XxxEntity, composite keys)
@@ -78,8 +83,8 @@ com.dragomitch.ipl.pae
 The test tree mirrors it; `adapter/out/inmemory` holds the in-memory repositories of the unit
 tests. `ArchitectureTest` (ArchUnit) checks the layering on every build: dependencies point
 inwards, ports are interfaces, driving ports are implemented in `application` only and driven
-ports in `adapter.out.persistence` only, and the domain reaches no persistence, web or security
-package.
+ports in `adapter.out.persistence` only, and the domain depends on the JDK only (plus JSpecify's
+`@Nullable`).
 
 ### Steps
 
@@ -91,9 +96,35 @@ package.
    `XxxRepository`, `XxxUcc` became `XxxService` (the guide's name for a driving port),
    `XxxUccImpl` became `XxxServiceImpl`, the adapters became `JpaXxxRepositoryAdapter`, and the
    in-memory test doubles `InMemoryXxxRepository`. `ArchitectureTest` enforces the layering.
-3. **Pure domain model and web DTOs.** Separate the domain model from the DTO interfaces and
-   `EntityFactory`: records for the web DTOs, mapped in `adapter.in.web`. Use typed filters (enums
-   instead of strings) and `Optional` results in the driven ports.
+3. **Pure domain model and web DTOs** (done, #181).
+   - The 13 DTO interfaces of `domain.dto`, the business interfaces of `domain.model`, their
+     `XxxImpl` classes and `EntityFactory` became one plain class each in `domain.model`, with no
+     annotation. Their getters and setters kept their names, so the use cases changed little.
+   - Enums replace the string constants: `Role`, `MobilityState` (the French labels are the stored
+     and sent values; `nextStates()` lists the allowed transitions and `Mobility.moveTo` checks
+     them), `MobilityType`, `DocumentCategory`, and the list filters `MobilityChoiceFilter`,
+     `DocumentFilter` and `PartnerFilter`. The use cases take the role and the filters as enums.
+   - The JSON is a set of records in `adapter.in.web.dto`, under the names of the former
+     interfaces, with the Bean Validation constraints, the Jackson annotations (write-only
+     password, the `yyyy-MM-dd HH:mm:ss` submission date of a mobility) and the OpenAPI
+     descriptions. A record cannot extend another, so a nominated student repeats the components
+     of a user and a mobility those of its choice. Hand-written mappers in `adapter.in.web.mapping`
+     convert them (MapStruct, roadmap S11, was not worth a generated layer for this). The custom
+     constraints and the groups moved to `adapter.in.web.validation`.
+   - Validation is the driving adapter's job: the ports lost `@Validated` and their parameter
+     constraints. The controllers already validated every body and parameter, so the API answers
+     the same problems; an unknown filter is still refused by the `@Pattern` of the query string
+     before the controller converts it to the enum.
+   - The driven ports return `Optional` for a single result, and `UserRepository.findBy(column,
+     value)` became `findByUsername` and `findByEmail`. The SQL constants of the JDBC era left the
+     ports.
+   - `BusinessException` is a plain `RuntimeException` and `ErrorCode` carries its status as an
+     `int`; `ApiExceptionHandler` builds the problem. `JacksonConfig` lost the abstract-type module.
+   - The JSON of every endpoint is unchanged (the 159 checks of `e2e/api_e2e.py`, and the recorded
+     responses of that run compared with master's). The OpenAPI document lost properties that were
+     never in the JSON: the `version` of an option, a programme, a partner option and a payment,
+     and the write-only setter aliases `status` (partner), `proEcoEncoding` and
+     `secondSoftwareEncoding` (mobility).
 
 Spring Boot 4 came in its own PR (issue #140), before step 3: see [ADR 0002](0002-spring-boot-4.md).
 
@@ -139,11 +170,10 @@ These are visible to the callers. The `*IT` tests and the port javadoc assert th
 1. **SQL failures are `DataAccessException`s instead of `FatalException`s.** A constraint
    violation (duplicate key, unknown foreign key) is a `DataIntegrityViolationException`, which
    `ApiExceptionHandler` answers with a 409 `DATA_CONFLICT` instead of a 500.
-2. **An unknown filter or lookup column is an `InvalidDataAccessApiUsageException`** wrapping the
-   `IllegalArgumentException`: Spring translates an `IllegalArgumentException` thrown by a
-   `@Repository`. This concerns `PartnerRepository.findAll`, `MobilityChoiceRepository.findAll` and
-   `UserRepository.findBy`. It is still a programming error, because the API rejects an unknown filter
-   first.
+2. **An unknown filter or lookup column was an `InvalidDataAccessApiUsageException`** wrapping
+   the `IllegalArgumentException` (Spring translates an `IllegalArgumentException` thrown by a
+   `@Repository`). Since step 3 the filters are enums and the lookups have one method each, so the
+   case no longer exists.
 3. **Lists are ordered by id.** Some JDBC queries had no `ORDER BY`.
 
 The submission time of a new mobility choice is still the database's time, read in the create.
@@ -152,9 +182,10 @@ The submission time of a new mobility choice is still the database's time, read 
 
 - No more hand-written SQL plumbing. Queries are derived queries, entity graphs or JPQL built
   from constant fragments, with no user input concatenated into them.
-- The ports still use the DTO interfaces, so the domain still depends on the shape of the API,
-  and the domain still carries Bean Validation, Jackson and a few Spring annotations. Step 3
-  removes that, and tightens `ArchitectureTest` to "no framework in the domain".
+- Since step 3 the domain no longer depends on the shape of the API nor on any framework, and
+  `ArchitectureTest` checks it ("the domain depends on `java..` only"). The price is the mapping
+  code of the adapters (web records and JPA entities both map to the domain) and records that
+  repeat the components of their "parent" (a nominated student, a mobility).
 - The tests are unchanged in shape:
   - the use-case unit tests run against the in-memory repositories (`adapter.out.inmemory`);
   - the `*IT` tests (embedded PostgreSQL) are the contract of the driven adapters;

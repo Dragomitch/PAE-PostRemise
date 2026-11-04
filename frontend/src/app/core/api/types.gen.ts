@@ -173,7 +173,6 @@ export type NominatedStudentDto = {
 export type OptionDto = {
     code?: string;
     name?: string;
-    version?: number;
 };
 
 export type PartnerDto = {
@@ -202,7 +201,6 @@ export type PartnerOptionDto = {
     code?: string;
     departement: string;
     name?: string;
-    version?: number;
 };
 
 export type PaymentDto = {
@@ -217,7 +215,6 @@ export type PaymentDto = {
     programme?: ProgrammeDto;
     term?: number;
     user?: UserDto;
-    version?: number;
 };
 
 /**
@@ -279,10 +276,6 @@ export type ProgrammeDto = {
     externalSoftName: string;
     id?: number;
     programmeName: string;
-    /**
-     * Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.
-     */
-    version?: number;
 };
 
 export type SignInRequest = {
@@ -313,10 +306,6 @@ export type DataResponseMobilityDtoWritable = {
     data?: Array<MobilityDtoWritable>;
 };
 
-export type DataResponsePartnerDtoWritable = {
-    data?: Array<PartnerDtoWritable>;
-};
-
 export type DataResponsePaymentDtoWritable = {
     data?: Array<PaymentDtoWritable>;
 };
@@ -335,7 +324,7 @@ export type MobilityChoiceDtoWritable = {
      * SMS (studies abroad) or SMP (internship abroad).
      */
     mobilityType: string;
-    partner?: PartnerDtoWritable;
+    partner?: PartnerDto;
     /**
      * Rank of this choice among the applications of the student (1 = first choice).
      */
@@ -368,16 +357,14 @@ export type MobilityDtoWritable = {
      */
     mobilityType: string;
     nominatedStudent?: NominatedStudentDtoWritable;
-    partner?: PartnerDtoWritable;
+    partner?: PartnerDto;
     /**
      * Rank of this choice among the applications of the student (1 = first choice).
      */
     preferenceOrder?: number;
-    proEcoEncoding?: boolean;
     professorInCharge?: UserDtoWritable;
     programme: ProgrammeDto;
     secondPaymentRequestDate?: string;
-    secondSoftwareEncoding?: boolean;
     /**
      * Créée, En préparation (a document is filled in), A payer (every departure document is filled in), En cours (first payment), Solde à payer (every document is filled in), Terminée (second payment) or Annulée.
      */
@@ -425,42 +412,18 @@ export type NominatedStudentDtoWritable = {
     version?: number;
 };
 
-export type PartnerDtoWritable = {
-    address: AddressDto;
-    archivable?: boolean;
-    archived?: boolean;
-    businessName: string;
-    email: string;
-    employeeCount?: number;
-    fullName: string;
-    id?: number;
-    legalName: string;
-    official?: boolean;
-    options?: Array<PartnerOptionDto>;
-    organisationType: string;
-    phoneNumber: string;
-    programme?: ProgrammeDto;
-    status?: boolean;
-    /**
-     * Optimistic locking: send back the version that was read; a stale one is refused with a 409 CONCURRENT_MODIFICATION. Every update increments it.
-     */
-    version?: number;
-    website?: string;
-};
-
 export type PaymentDtoWritable = {
     academicYear?: string;
     country?: CountryDto;
     mobilityChoiceId?: number;
     mobilityType?: string;
     nominatedStudent?: NominatedStudentDtoWritable;
-    partner?: PartnerDtoWritable;
+    partner?: PartnerDto;
     paymentDate?: string;
     paymentType?: string;
     programme?: ProgrammeDto;
     term?: number;
     user?: UserDtoWritable;
-    version?: number;
 };
 
 export type UserDtoWritable = {
@@ -1256,7 +1219,7 @@ export type PutMobilityChoicesByIdConfirmResponses = {
 };
 
 export type PutMobilityChoicesByIdConfirmWithNewPartnerData = {
-    body: PartnerDtoWritable;
+    body: PartnerDto;
     path: {
         id: number;
     };
@@ -1595,7 +1558,7 @@ export type GetPartnersResponses = {
 export type GetPartnersResponse = GetPartnersResponses[keyof GetPartnersResponses];
 
 export type PostPartnersData = {
-    body: PartnerDtoWritable;
+    body: PartnerDto;
     path?: never;
     query?: never;
     url: '/api/1.0/partners';
@@ -1759,7 +1722,7 @@ export type PostPartnersByIdResponses = {
 };
 
 export type PutPartnersByIdData = {
-    body: PartnerDtoWritable;
+    body: PartnerDto;
     path: {
         id: number;
     };

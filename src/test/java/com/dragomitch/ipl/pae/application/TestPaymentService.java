@@ -5,10 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryPaymentRepository;
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.Payment;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.in.PaymentService;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import java.util.List;
@@ -24,20 +23,18 @@ public class TestPaymentService {
 
   @Autowired private ApplicationContext context;
 
-  private EntityFactory entityFactory;
   private PaymentRepository paymentRepository;
   private PaymentService paymentService;
   private MockDtoFactory mockDtoFactory;
-  private PaymentDto payment1;
-  private PaymentDto payment2;
+  private Payment payment1;
+  private Payment payment2;
 
   /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
-    entityFactory = context.getBean(EntityFactory.class);
     paymentRepository = context.getBean(PaymentRepository.class);
     paymentService = context.getBean(PaymentService.class);
-    mockDtoFactory = new MockDtoFactory(entityFactory);
+    mockDtoFactory = new MockDtoFactory();
     payment1 = mockDtoFactory.getPayment();
     payment2 = mockDtoFactory.getPayment();
     ((InMemoryPaymentRepository) paymentRepository).addPayment(payment1);
@@ -52,7 +49,7 @@ public class TestPaymentService {
 
   @Test
   public void testShowAllTC1() {
-    List<PaymentDto> payments = paymentService.showAll(UserDto.ROLE_PROFESSOR);
+    List<Payment> payments = paymentService.showAll(Role.PROFESSOR);
     assertEquals(2, payments.size());
   }
 
@@ -61,7 +58,7 @@ public class TestPaymentService {
     assertThrows(
         InsufficientPermissionException.class,
         () -> {
-          paymentService.showAll(UserDto.ROLE_STUDENT);
+          paymentService.showAll(Role.STUDENT);
         });
   }
 }

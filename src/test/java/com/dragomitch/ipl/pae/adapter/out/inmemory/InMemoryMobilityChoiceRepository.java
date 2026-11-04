@@ -1,64 +1,57 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityChoiceRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryMobilityChoiceRepository
     implements MobilityChoiceRepository, ResettableRepository {
 
-  private List<MobilityChoiceDto> mobilityChoices;
+  private List<MobilityChoice> mobilityChoices;
 
   public InMemoryMobilityChoiceRepository() {
-    mobilityChoices = new ArrayList<MobilityChoiceDto>();
+    mobilityChoices = new ArrayList<MobilityChoice>();
   }
 
   @Override
-  public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice) {
+  public MobilityChoice create(MobilityChoice mobilityChoice) {
     mobilityChoice.setId(mobilityChoices.size() + 1);
     mobilityChoices.add(mobilityChoice);
     return mobilityChoice;
   }
 
   @Override
-  public List<MobilityChoiceDto> findAll(String filter) {
-    if (!List.of(
-            FILTER_ALL_MOBILITIES_CHOICES,
-            FILTER_ACTIVE_MOBILITIES_CHOICES,
-            FILTER_CANCELED_MOBILITIES_CHOICES,
-            FILTER_REJECTED_MOBILITIES_CHOICES,
-            FILTER_PASSED_MOBILITIES_CHOICES)
-        .contains(filter)) {
-      throw new IllegalArgumentException("Unknown mobility choice filter: " + filter);
-    }
+  public List<MobilityChoice> findAll(MobilityChoiceFilter filter) {
     return mobilityChoices;
   }
 
   @Override
-  public MobilityChoiceDto findById(int mobilityChoiceId) {
+  public Optional<MobilityChoice> findById(int mobilityChoiceId) {
     if (mobilityChoiceId > 0 && mobilityChoiceId <= mobilityChoices.size()) {
-      return mobilityChoices.get((mobilityChoiceId - 1));
+      return Optional.ofNullable(mobilityChoices.get((mobilityChoiceId - 1)));
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
-  public void update(MobilityChoiceDto mobilityChoice) {
+  public void update(MobilityChoice mobilityChoice) {
     mobilityChoices.set(mobilityChoice.getId() - 1, mobilityChoice);
     mobilityChoice.setVersion(mobilityChoice.getVersion() + 1);
   }
 
   @Override
   public void empty() {
-    mobilityChoices = new ArrayList<MobilityChoiceDto>();
+    mobilityChoices = new ArrayList<MobilityChoice>();
   }
 
   @Override
-  public List<MobilityChoiceDto> findByUser(int userId) {
-    List<MobilityChoiceDto> mobilityChoicesForUser = new ArrayList<MobilityChoiceDto>();
-    for (MobilityChoiceDto mobilityChoices : this.mobilityChoices) {
+  public List<MobilityChoice> findByUser(int userId) {
+    List<MobilityChoice> mobilityChoicesForUser = new ArrayList<MobilityChoice>();
+    for (MobilityChoice mobilityChoices : this.mobilityChoices) {
       if (mobilityChoices.getUser().getId() == userId) {
         mobilityChoicesForUser.add(mobilityChoices);
       }
@@ -67,9 +60,9 @@ public class InMemoryMobilityChoiceRepository
   }
 
   @Override
-  public List<MobilityChoiceDto> findByPartner(int partnerId) {
-    List<MobilityChoiceDto> mobilityChoicesForPartner = new ArrayList<MobilityChoiceDto>();
-    for (MobilityChoiceDto mobilityChoices : this.mobilityChoices) {
+  public List<MobilityChoice> findByPartner(int partnerId) {
+    List<MobilityChoice> mobilityChoicesForPartner = new ArrayList<MobilityChoice>();
+    for (MobilityChoice mobilityChoices : this.mobilityChoices) {
       if (mobilityChoices.getPartner() != null
           && mobilityChoices.getPartner().getId() == partnerId) {
         mobilityChoicesForPartner.add(mobilityChoices);
@@ -79,9 +72,9 @@ public class InMemoryMobilityChoiceRepository
   }
 
   @Override
-  public List<MobilityChoiceDto> findByActivePartner(int partnerId) {
-    List<MobilityChoiceDto> mobilityChoicesForPartner = new ArrayList<MobilityChoiceDto>();
-    for (MobilityChoiceDto mobilityChoices : this.mobilityChoices) {
+  public List<MobilityChoice> findByActivePartner(int partnerId) {
+    List<MobilityChoice> mobilityChoicesForPartner = new ArrayList<MobilityChoice>();
+    for (MobilityChoice mobilityChoices : this.mobilityChoices) {
       if (mobilityChoices.getPartner() != null
           && mobilityChoices.getPartner().getId() == partnerId
           && mobilityChoices.getCancellationReason() == null

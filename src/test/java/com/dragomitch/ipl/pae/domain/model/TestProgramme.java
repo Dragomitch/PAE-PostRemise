@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +19,12 @@ public class TestProgramme {
   private static final String EXTERNALSOFTNAME = "Mobility Tool";
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
-  private ProgrammeDto programme;
+  private Programme programme;
 
   /** Creates a new Programme instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    this.programme = new Programme();
   }
 
   @Test

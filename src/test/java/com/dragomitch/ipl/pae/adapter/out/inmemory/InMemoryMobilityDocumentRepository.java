@@ -1,6 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
 import com.dragomitch.ipl.pae.domain.port.out.DocumentRepository;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityDocumentRepository;
 import java.util.ArrayList;
@@ -30,13 +30,14 @@ public class InMemoryMobilityDocumentRepository
   }
 
   @Override
-  public List<DocumentDto> findAllByMobility(int mobilityId) {
-    List<DocumentDto> docs = new ArrayList<DocumentDto>();
+  public List<Document> findAllByMobility(int mobilityId) {
+    List<Document> docs = new ArrayList<Document>();
     for (MobilityDocument mobilityDocument : mobilityDocuments) {
       if (mobilityDocument.getMobilityId() == mobilityId) {
         docs.add(
             ((InMemoryDocumentRepository) documentRepository)
-                .findById(mobilityDocument.getDocumentId()));
+                .findById(mobilityDocument.getDocumentId())
+                .orElseThrow());
       }
     }
     return docs;

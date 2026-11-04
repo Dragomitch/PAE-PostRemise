@@ -1,5 +1,6 @@
 package com.dragomitch.ipl.pae.adapter.in.web.security;
 
+import com.dragomitch.ipl.pae.domain.model.Role;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -44,12 +45,17 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
       throw new AuthenticationCredentialsNotFoundException("No authenticated user");
     }
+    int id;
     try {
-      return new CurrentUser(
-          Integer.parseInt(jwt.getSubject()), jwt.getClaimAsString(CurrentUser.ROLE_CLAIM));
+      id = Integer.parseInt(jwt.getSubject());
     } catch (NumberFormatException ex) {
       throw new AuthenticationCredentialsNotFoundException(
           "Invalid subject in the session JWT", ex);
+    }
+    try {
+      return new CurrentUser(id, Role.fromLabel(jwt.getClaimAsString(CurrentUser.ROLE_CLAIM)));
+    } catch (IllegalArgumentException ex) {
+      throw new AuthenticationCredentialsNotFoundException("Invalid role in the session JWT", ex);
     }
   }
 }

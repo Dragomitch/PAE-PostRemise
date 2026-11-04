@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +18,12 @@ public class TestOption {
   private static final String NAME = "Bachelier en informatique de gestion";
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
-  private OptionDto option;
+  private Option option;
 
   /** Creates a new Option instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.option = (OptionDto) entityFactory.build(OptionDto.class);
+    this.option = new Option();
   }
 
   @Test

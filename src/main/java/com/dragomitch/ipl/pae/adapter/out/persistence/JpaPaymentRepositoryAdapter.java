@@ -6,10 +6,11 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.MobilityJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.Payment;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,8 +40,8 @@ class JpaPaymentRepositoryAdapter implements PaymentRepository {
    * the second one, by mobility.
    */
   @Override
-  public List<PaymentDto> findAll() {
-    List<PaymentDto> payments = new ArrayList<>();
+  public List<Payment> findAll() {
+    List<Payment> payments = new ArrayList<>();
     for (MobilityEntity mobility : mobilities.findWithPaymentRequests()) {
       if (mobility.getFirstPaymentRequestDate() != null) {
         payments.add(payment(mobility, mobility.getFirstPaymentRequestDate(), FIRST_PAYMENT));
@@ -57,21 +58,21 @@ class JpaPaymentRepositoryAdapter implements PaymentRepository {
    * (id and name), and its partner (id and full name) and country (code and name) when the choice
    * has them.
    */
-  private PaymentDto payment(MobilityEntity mobility, LocalDateTime date, String type) {
+  private Payment payment(MobilityEntity mobility, LocalDateTime date, String type) {
     MobilityChoiceEntity choice = mobility.getChoice();
-    PaymentDto payment = mapper.build(PaymentDto.class);
+    Payment payment = new Payment();
     payment.setMobilityChoiceId(mobility.getId());
     UserEntity userEntity = choice.getUser();
-    UserDto user = mapper.build(UserDto.class);
+    User user = new User();
     user.setId(userEntity.getId());
     user.setFirstName(userEntity.getFirstName());
     user.setLastName(userEntity.getLastName());
     payment.setUser(user);
-    payment.setMobilityType(choice.getMobilityType());
+    payment.setMobilityType(MobilityType.valueOf(choice.getMobilityType()));
     payment.setAcademicYear(String.valueOf(choice.getAcademicYear()));
     payment.setTerm(choice.getTerm());
     ProgrammeEntity programmeEntity = choice.getProgramme();
-    ProgrammeDto programme = mapper.programmeReference(programmeEntity.getId());
+    Programme programme = mapper.programmeReference(programmeEntity.getId());
     programme.setProgrammeName(programmeEntity.getName());
     payment.setProgramme(programme);
     if (choice.getCountry() != null) {
@@ -79,7 +80,7 @@ class JpaPaymentRepositoryAdapter implements PaymentRepository {
     }
     PartnerEntity partnerEntity = choice.getPartner();
     if (partnerEntity != null) {
-      PartnerDto partner = mapper.build(PartnerDto.class);
+      Partner partner = new Partner();
       partner.setId(partnerEntity.getId());
       partner.setFullName(partnerEntity.getFullName());
       payment.setPartner(partner);

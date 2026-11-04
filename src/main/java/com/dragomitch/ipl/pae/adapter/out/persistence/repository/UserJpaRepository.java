@@ -23,15 +23,6 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Integer> {
   @EntityGraph(attributePaths = "option")
   Optional<UserEntity> findFirstWithOptionByEmailOrderById(String email);
 
-  @EntityGraph(attributePaths = "option")
-  Optional<UserEntity> findFirstWithOptionByLastNameOrderById(String lastName);
-
-  @EntityGraph(attributePaths = "option")
-  Optional<UserEntity> findFirstWithOptionByFirstNameOrderById(String firstName);
-
-  @EntityGraph(attributePaths = "option")
-  Optional<UserEntity> findFirstWithOptionByRoleOrderById(String role);
-
   /**
    * Gives the user the role if its version is still {@code expectedVersion}, and increments the
    * version.

@@ -1,13 +1,9 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 public interface OptionService {
 
   /**
@@ -15,7 +11,7 @@ public interface OptionService {
    *
    * @return a list of options
    */
-  List<OptionDto> showAll();
+  List<Option> showAll();
 
   /**
    * Returns a list containing all of the partners in the database having a specific option code.
@@ -23,6 +19,5 @@ public interface OptionService {
    * @param optionCode the optionCode of the partners we want to find
    * @return the list
    */
-  List<PartnerDto> findAllPartnersByOption(
-      @NotBlank @Size(min = OptionDto.CODE_LENGTH, max = OptionDto.CODE_LENGTH) String optionCode);
+  List<Partner> findAllPartnersByOption(String optionCode);
 }

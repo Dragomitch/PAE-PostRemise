@@ -1,21 +1,21 @@
 package com.dragomitch.ipl.pae.application;
 
 import com.dragomitch.ipl.pae.application.export.CsvStringBuilder;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityChoiceDto;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
 import com.dragomitch.ipl.pae.domain.exceptions.BusinessException;
 import com.dragomitch.ipl.pae.domain.exceptions.ErrorCode;
 import com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException;
 import com.dragomitch.ipl.pae.domain.exceptions.ResourceNotFoundException;
+import com.dragomitch.ipl.pae.domain.model.Country;
+import com.dragomitch.ipl.pae.domain.model.DenialReason;
 import com.dragomitch.ipl.pae.domain.model.Document;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
+import com.dragomitch.ipl.pae.domain.model.DocumentCategory;
 import com.dragomitch.ipl.pae.domain.model.Mobility;
 import com.dragomitch.ipl.pae.domain.model.MobilityChoice;
+import com.dragomitch.ipl.pae.domain.model.MobilityChoiceFilter;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.MobilityChoiceService;
 import com.dragomitch.ipl.pae.domain.port.in.PartnerService;
 import com.dragomitch.ipl.pae.domain.port.out.CountryRepository;
@@ -42,7 +42,6 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   private final DenialReasonRepository denialReasonRepository;
   private final DocumentRepository documentRepository;
   private final MobilityDocumentRepository mobilityDocumentRepository;
-  private final EntityFactory entityFactory;
   private final CountryRepository countryRepository;
   private final ProgrammeRepository programmeRepository;
   private final PartnerService partnerService;
@@ -55,7 +54,6 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
       DenialReasonRepository denialReasonRepository,
       DocumentRepository documentRepository,
       MobilityDocumentRepository mobilityDocumentRepository,
-      EntityFactory entityFactory,
       CountryRepository countryRepository,
       ProgrammeRepository programmeRepository,
       PartnerService partnerService,
@@ -66,7 +64,6 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
     this.denialReasonRepository = denialReasonRepository;
     this.documentRepository = documentRepository;
     this.mobilityDocumentRepository = mobilityDocumentRepository;
-    this.entityFactory = entityFactory;
     this.countryRepository = countryRepository;
     this.programmeRepository = programmeRepository;
     this.partnerService = partnerService;
@@ -74,31 +71,30 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   }
 
   @Override
-  public MobilityChoiceDto create(MobilityChoiceDto mobilityChoice, int userId, String userRole) {
+  public MobilityChoice create(MobilityChoice mobilityChoice, int userId, Role userRole) {
     checkReferencesExist(mobilityChoice);
-    if (userRole.equals(UserDto.ROLE_STUDENT) && mobilityChoice.getUser().getId() != userId) {
+    if (userRole == Role.STUDENT && mobilityChoice.getUser().getId() != userId) {
       throw new InsufficientPermissionException();
     }
-    if (userRole.equals(UserDto.ROLE_PROFESSOR) && mobilityChoice.getUser().getId() == userId) {
+    if (userRole == Role.PROFESSOR && mobilityChoice.getUser().getId() == userId) {
       throw new BusinessException(ErrorCode.PROFESSOR_CANNOT_APPLY);
     }
-    UserDto userDto;
-    if ((userDto = userRepository.findById(mobilityChoice.getUser().getId())) == null) {
-      throw new BusinessException(ErrorCode.UNKNOWN_USER, mobilityChoice.getUser().getId());
-    }
-    mobilityChoice.setUser(userDto);
+    int applicant = mobilityChoice.getUser().getId();
+    User user =
+        userRepository
+            .findById(applicant)
+            .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_USER, applicant));
+    mobilityChoice.setUser(user);
     return mobilityChoiceRepository.create(mobilityChoice);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<MobilityChoiceDto> showAll(int userId, String userRole, String filter) {
-    String filterToUse =
-        filter == null ? MobilityChoiceRepository.FILTER_ACTIVE_MOBILITIES_CHOICES : filter;
-    List<MobilityChoiceDto> mobilityChoices;
-    if (userRole.equals(UserDto.ROLE_PROFESSOR)) {
+  public List<MobilityChoice> showAll(int userId, Role userRole, MobilityChoiceFilter filter) {
+    List<MobilityChoice> mobilityChoices;
+    if (userRole == Role.PROFESSOR) {
       // Lists all mobility choices in function of filter
-      mobilityChoices = mobilityChoiceRepository.findAll(filterToUse);
+      mobilityChoices = mobilityChoiceRepository.findAll(filter);
     } else {
       // Lists mobility choices owned by the requester
       mobilityChoices = getMobilityChoiceForUser(userId, userId, userRole);
@@ -108,17 +104,16 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public int countAll(int userId, String userRole, String filter) {
+  public int countAll(int userId, Role userRole, MobilityChoiceFilter filter) {
     return showAll(userId, userRole, filter).size();
   }
 
   @Override
   public void cancel(int mobilityChoiceId, int userId, String reason) {
     MobilityChoice mobilityChoice =
-        (MobilityChoice) mobilityChoiceRepository.findById(mobilityChoiceId);
-    if (mobilityChoice == null) {
-      throw new ResourceNotFoundException();
-    }
+        mobilityChoiceRepository
+            .findById(mobilityChoiceId)
+            .orElseThrow(ResourceNotFoundException::new);
     if (userId != mobilityChoice.getUser().getId()) {
       throw new InsufficientPermissionException();
     }
@@ -126,8 +121,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
         || mobilityChoice.getDenialReason() != null) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
-    MobilityDto mobility = mobilityRepository.findById(mobilityChoiceId);
-    if (mobility != null) {
+    if (mobilityRepository.findById(mobilityChoiceId).isPresent()) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     mobilityChoice.setCancellationReason(reason);
@@ -136,19 +130,16 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   public void reject(int id, int reason) {
-    MobilityChoice mobilityChoice = (MobilityChoice) mobilityChoiceRepository.findById(id);
-    if (mobilityChoice == null) {
-      throw new ResourceNotFoundException();
-    }
+    MobilityChoice mobilityChoice =
+        mobilityChoiceRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (isClosed(mobilityChoice)) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
-    DenialReasonDto denialReason = denialReasonRepository.findById(reason);
-    if (denialReason == null) {
-      throw new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, reason);
-    }
-    MobilityDto mobility = mobilityRepository.findById(id);
-    if (mobility != null) {
+    DenialReason denialReason =
+        denialReasonRepository
+            .findById(reason)
+            .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_DENIAL_REASON, reason));
+    if (mobilityRepository.findById(id).isPresent()) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     mobilityChoice.setDenialReason(denialReason);
@@ -160,26 +151,24 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   public void confirm(int id, int userId) {
-    MobilityChoiceDto mobilityChoice = mobilityChoiceRepository.findById(id);
-    if (mobilityChoice == null) {
-      throw new ResourceNotFoundException();
-    }
+    MobilityChoice mobilityChoice =
+        mobilityChoiceRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (mobilityChoice.getCancellationReason() != null
         || mobilityChoice.getDenialReason() != null) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
-    if (mobilityRepository.findById(id) != null) {
+    if (mobilityRepository.findById(id).isPresent()) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     if (mobilityChoice.getPartner() == null) {
       throw new BusinessException(ErrorCode.PARTNER_REQUIRED_TO_CONFIRM);
     }
-    MobilityDto mobility = newMobility(id);
-    mobility.setProfessorInCharge(userRepository.findById(userId));
+    Mobility mobility = newMobility(id);
+    mobility.setProfessorInCharge(userRepository.findById(userId).orElse(null));
     createMobility(mobility, mobilityChoice);
-    List<MobilityChoiceDto> mobilityChoices =
-        getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, UserDto.ROLE_PROFESSOR);
-    for (MobilityChoiceDto choice : mobilityChoices) {
+    List<MobilityChoice> mobilityChoices =
+        getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, Role.PROFESSOR);
+    for (MobilityChoice choice : mobilityChoices) {
       // the other open choices of the same term are rejected; closed ones are left as they are
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
@@ -191,22 +180,20 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   }
 
   @Override
-  public void confirmWithNewPartner(int id, PartnerDto partner, int userId, String userRole) {
-    MobilityChoiceDto mobilityChoice = mobilityChoiceRepository.findById(id);
-    if (mobilityChoice == null) {
-      throw new ResourceNotFoundException();
-    }
+  public void confirmWithNewPartner(int id, Partner partner, int userId, Role userRole) {
+    MobilityChoice mobilityChoice =
+        mobilityChoiceRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (mobilityChoice.getCancellationReason() != null
         || mobilityChoice.getDenialReason() != null) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_CLOSED);
     }
-    if (userRole.equals(UserDto.ROLE_STUDENT) && userId != mobilityChoice.getUser().getId()) {
+    if (userRole == Role.STUDENT && userId != mobilityChoice.getUser().getId()) {
       throw new InsufficientPermissionException();
     }
-    if (userRole.equals(UserDto.ROLE_STUDENT) && (partner.isOfficial())) {
+    if (userRole == Role.STUDENT && (partner.isOfficial())) {
       throw new InsufficientPermissionException();
     }
-    if (mobilityRepository.findById(id) != null) {
+    if (mobilityRepository.findById(id).isPresent()) {
       throw new BusinessException(ErrorCode.MOBILITY_CHOICE_ALREADY_CONFIRMED);
     }
     // the partner must be in the country of the choice, if the student chose one
@@ -223,9 +210,9 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
     mobilityChoice.setPartner(partner);
     mobilityChoiceRepository.update(mobilityChoice);
     createMobility(newMobility(id), mobilityChoice);
-    List<MobilityChoiceDto> mobilityChoices =
+    List<MobilityChoice> mobilityChoices =
         getMobilityChoiceForUser(mobilityChoice.getUser().getId(), userId, userRole);
-    for (MobilityChoiceDto choice : mobilityChoices) {
+    for (MobilityChoice choice : mobilityChoices) {
       if (choice.getId() != mobilityChoice.getId()
           && choice.getAcademicYear() == mobilityChoice.getAcademicYear()
           && choice.getTerm() == mobilityChoice.getTerm()
@@ -237,8 +224,8 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public String exportAll(int userId, String userRole, String filter) {
-    List<MobilityChoiceDto> mobilityChoices = showAll(userId, userRole, filter);
+  public String exportAll(int userId, Role userRole, MobilityChoiceFilter filter) {
+    List<MobilityChoice> mobilityChoices = showAll(userId, userRole, filter);
     CsvStringBuilder csvStringBuilder = new CsvStringBuilder(';');
     String[] headerCsv = {
       "N° ordre candidature",
@@ -252,7 +239,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
       "Partenaire"
     };
     csvStringBuilder.writeLine(headerCsv);
-    for (MobilityChoiceDto mobiChoice : mobilityChoices) {
+    for (MobilityChoice mobiChoice : mobilityChoices) {
       csvStringBuilder.writeLine(transformToStringTable(mobiChoice));
     }
     return csvStringBuilder.close();
@@ -262,7 +249,7 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
    * Tells whether a choice was cancelled by the student or rejected by a professor. The repository
    * reads the denial reason of a rejected choice with its id only, without its text.
    */
-  private static boolean isClosed(MobilityChoiceDto mobilityChoice) {
+  private static boolean isClosed(MobilityChoice mobilityChoice) {
     return mobilityChoice.getCancellationReason() != null
         || mobilityChoice.getDenialReason() != null;
   }
@@ -275,13 +262,12 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
    * @param userRole the UserRole of the requester
    * @return the list of mobility choices for the userId specified.
    */
-  private List<MobilityChoiceDto> getMobilityChoiceForUser(
-      int userId, int onUserId, String userRole) {
-    if (userRole.equals(UserDto.ROLE_STUDENT) && onUserId != userId) {
+  private List<MobilityChoice> getMobilityChoiceForUser(int userId, int onUserId, Role userRole) {
+    if (userRole == Role.STUDENT && onUserId != userId) {
       throw new InsufficientPermissionException();
     }
-    List<MobilityChoiceDto> mobilityChoices = null;
-    if ((userRepository.findById(onUserId)) == null) {
+    List<MobilityChoice> mobilityChoices = null;
+    if (userRepository.findById(onUserId).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_USER, onUserId);
     }
     mobilityChoices = mobilityChoiceRepository.findByUser(userId);
@@ -289,23 +275,23 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   }
 
   /**
-   * Construct a table of strings to represent the mobilityChoiceDto to serialize.
+   * Construct a table of strings to represent the mobilityChoice to serialize.
    *
    * @param mobilityChoice the mobility choice to serialize
    * @return a table of strings serializable.
    */
-  private String[] transformToStringTable(MobilityChoiceDto mobilityChoice) {
+  private String[] transformToStringTable(MobilityChoice mobilityChoice) {
     String[] entries = new String[9];
-    UserDto user = mobilityChoice.getUser();
+    User user = mobilityChoice.getUser();
     entries[0] = mobilityChoice.getId() + "";
     entries[1] = user.getLastName();
     entries[2] = user.getFirstName();
     entries[3] = user.getOption().getName();
     entries[4] = mobilityChoice.getPreferenceOrder() + "";
     entries[5] = mobilityChoice.getProgramme().getProgrammeName();
-    entries[6] = mobilityChoice.getMobilityType();
+    entries[6] = mobilityChoice.getMobilityType().name();
     entries[7] = mobilityChoice.getTerm() + "";
-    PartnerDto partner = mobilityChoice.getPartner();
+    Partner partner = mobilityChoice.getPartner();
     entries[8] = partner == null ? "" : partner.getFullName();
     return entries;
   }
@@ -313,33 +299,33 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
   @Override
   @Transactional(readOnly = true)
   public boolean findByPartner(int partnerId) {
-    List<MobilityChoiceDto> mobilityChoices = mobilityChoiceRepository.findByPartner(partnerId);
+    List<MobilityChoice> mobilityChoices = mobilityChoiceRepository.findByPartner(partnerId);
     return mobilityChoices.isEmpty();
   }
 
   /**
    * Checks that the entities referenced by a new mobility choice exist (their format is checked by
-   * the constraints of {@link MobilityChoiceDto}).
+   * the constraints of {@link MobilityChoice}).
    *
    * @param mobilityChoice the new mobility choice
    */
-  private void checkReferencesExist(MobilityChoiceDto mobilityChoice) {
+  private void checkReferencesExist(MobilityChoice mobilityChoice) {
     if (mobilityChoice.getCountry() != null
-        && countryRepository.findById(mobilityChoice.getCountry().getCountryCode()) == null) {
+        && countryRepository.findById(mobilityChoice.getCountry().getCountryCode()).isEmpty()) {
       throw new BusinessException(
           ErrorCode.UNKNOWN_COUNTRY, mobilityChoice.getCountry().getCountryCode());
     }
-    if (programmeRepository.findById(mobilityChoice.getProgramme().getId()) == null) {
+    if (programmeRepository.findById(mobilityChoice.getProgramme().getId()).isEmpty()) {
       throw new BusinessException(
           ErrorCode.UNKNOWN_PROGRAMME, mobilityChoice.getProgramme().getId());
     }
-    if (userRepository.findById(mobilityChoice.getUser().getId()) == null) {
+    if (userRepository.findById(mobilityChoice.getUser().getId()).isEmpty()) {
       throw new BusinessException(ErrorCode.UNKNOWN_USER, mobilityChoice.getUser().getId());
     }
   }
 
-  private MobilityDto newMobility(int id) {
-    MobilityDto mobility = (MobilityDto) entityFactory.build(MobilityDto.class);
+  private Mobility newMobility(int id) {
+    Mobility mobility = new Mobility();
     mobility.setId(id);
     mobility.setSubmissionDate(LocalDateTime.now(clock));
     return mobility;
@@ -347,25 +333,25 @@ class MobilityChoiceServiceImpl implements MobilityChoiceService {
 
   /**
    * Creates the mobility of a confirmed choice with the documents of its programme. It starts
-   * {@value MobilityDto#STATE_CREATED}, or directly {@value MobilityDto#STATE_TO_BE_PAID} when the
-   * programme has no departure document to fill in (nothing would ever move it forward).
+   * {@link MobilityState#CREATED}, or directly {@link MobilityState#TO_BE_PAID} when the programme
+   * has no departure document to fill in (nothing would ever move it forward).
    */
-  private void createMobility(MobilityDto mobility, MobilityChoiceDto mobilityChoice) {
-    List<DocumentDto> documents =
+  private void createMobility(Mobility mobility, MobilityChoice mobilityChoice) {
+    List<Document> documents =
         documentRepository.findAllByProgramme(mobilityChoice.getProgramme().getId());
     boolean departureDocuments =
         documents.stream()
-            .anyMatch(document -> document.getCategory() == Document.DEPARTURE_DOCUMENT);
-    mobility.setState(departureDocuments ? Mobility.STATE_CREATED : Mobility.STATE_TO_BE_PAID);
+            .anyMatch(document -> document.getCategory() == DocumentCategory.DEPARTURE);
+    mobility.setState(departureDocuments ? MobilityState.CREATED : MobilityState.TO_BE_PAID);
     mobilityRepository.create(mobility);
-    for (DocumentDto document : documents) {
+    for (Document document : documents) {
       mobilityDocumentRepository.create(document.getId(), mobility.getId());
     }
   }
 
   /** Refuses a partner outside the country the student chose for the mobility choice, if any. */
-  private static void checkPartnerCountry(MobilityChoiceDto mobilityChoice, PartnerDto partner) {
-    CountryDto choiceCountry = mobilityChoice.getCountry();
+  private static void checkPartnerCountry(MobilityChoice mobilityChoice, Partner partner) {
+    Country choiceCountry = mobilityChoice.getCountry();
     if (choiceCountry != null
         && choiceCountry.getCountryCode() != null
         && !choiceCountry

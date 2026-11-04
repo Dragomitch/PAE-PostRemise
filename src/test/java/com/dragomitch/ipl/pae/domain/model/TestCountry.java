@@ -3,8 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +18,12 @@ public class TestCountry {
   private static final String NAME = "Kazakhstan";
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
-  private CountryDto country;
+  private Country country;
 
   /** Creates a new Country instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.country = (CountryDto) entityFactory.build(CountryDto.class);
+    this.country = new Country();
   }
 
   @Test
@@ -50,7 +46,7 @@ public class TestCountry {
 
   @Test
   public void testSetAndGetProgrammeTC1() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     country.setProgramme(programme);
     assertEquals(programme, country.getProgramme());
   }

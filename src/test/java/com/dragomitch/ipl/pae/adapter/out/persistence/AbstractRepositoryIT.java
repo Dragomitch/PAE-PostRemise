@@ -1,6 +1,5 @@
 package com.dragomitch.ipl.pae.adapter.out.persistence;
 
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
@@ -65,8 +64,6 @@ public abstract class AbstractRepositoryIT {
 
   /** The transaction-bound persistence context of the JPA adapters. */
   @PersistenceContext private EntityManager entityManager;
-
-  @Autowired protected EntityFactory entityFactory;
 
   /**
    * Classpath locations of the SQL scripts loaded at the start of every transaction, in order.
@@ -171,17 +168,6 @@ public abstract class AbstractRepositoryIT {
       throw new AssertionError("Expected exactly one row but got " + rows.size() + ": " + sql);
     }
     return rows.get(0);
-  }
-
-  /**
-   * Builds an entity with the real factory, typed.
-   *
-   * @param type the DTO or business interface
-   * @param <T> the interface type
-   * @return a new instance
-   */
-  protected <T> T build(Class<T> type) {
-    return type.cast(entityFactory.build(type));
   }
 
   @FunctionalInterface

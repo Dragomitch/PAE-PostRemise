@@ -74,7 +74,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
   /** Problem property: the {@link ErrorCode} name. */
-  public static final String CODE = BusinessException.CODE_PROPERTY;
+  public static final String CODE = "code";
 
   /** Problem property: the {@link FieldViolation}s of a validation failure. */
   public static final String ERRORS = "errors";
@@ -113,7 +113,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return validationFailed(ex, FieldViolation.of(ex), headers, request);
   }
 
-  /** Constraints of a use case ({@code @Validated} service called with invalid arguments). */
+  /**
+   * Constraints checked outside the request binding (Spring's method validation of a bean): the use
+   * cases themselves carry none.
+   */
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<Object> handleConstraintViolation(
       ConstraintViolationException ex, WebRequest request) {
@@ -126,7 +129,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail body = problem(ex, ErrorCode.VALIDATION_FAILED);
     body.setProperty(ERRORS, errors);
     return handleExceptionInternal(
-        ex, body, headers, ErrorCode.VALIDATION_FAILED.status(), request);
+        ex, body, headers, statusOf(ErrorCode.VALIDATION_FAILED), request);
+  }
+
+  // ----- business errors -----
+
+  /**
+   * A business rule refused the operation: the status, the type and the code of its {@link
+   * ErrorCode}, its localized title and detail (with the arguments of the exception).
+   */
+  @ExceptionHandler(BusinessException.class)
+  public ResponseEntity<Object> handleBusiness(BusinessException ex, WebRequest request) {
+    return respond(ex, ex.getErrorCode(), request, ex.getDetailMessageArguments());
   }
 
   // ----- security -----
@@ -186,9 +200,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return respond(ex, ErrorCode.INTERNAL_ERROR, request);
   }
 
-  private ResponseEntity<Object> respond(Exception ex, ErrorCode code, WebRequest request) {
+  private ResponseEntity<Object> respond(
+      Exception ex, ErrorCode code, WebRequest request, Object... detailArguments) {
     return handleExceptionInternal(
-        ex, problem(ex, code), new HttpHeaders(), code.status(), request);
+        ex, problem(ex, code, detailArguments), new HttpHeaders(), statusOf(code), request);
+  }
+
+  private static HttpStatus statusOf(ErrorCode code) {
+    return HttpStatus.valueOf(code.status());
   }
 
   /**
@@ -197,7 +216,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
    */
   private ProblemDetail problem(Exception ex, ErrorCode code, Object... detailArguments) {
     ProblemDetail problem =
-        ErrorResponse.builder(ex, code.status(), code.name())
+        ErrorResponse.builder(ex, statusOf(code), code.name())
             .type(code.type())
             .titleMessageCode(code.titleMessageCode())
             .detailMessageCode(code.detailMessageCode())

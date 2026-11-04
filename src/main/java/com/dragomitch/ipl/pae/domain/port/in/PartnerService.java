@@ -1,61 +1,54 @@
 package com.dragomitch.ipl.pae.domain.port.in;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerSearch;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.groups.Default;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerFilter;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
+import org.jspecify.annotations.Nullable;
 
-@Validated
 public interface PartnerService {
 
   /**
    * Create a partner.
    *
-   * @param partner : the partnerDto coming from the front-end
+   * @param partner : the partner coming from the front-end
    * @param userRole : the role of the user who wants to create a new partner
-   * @return the partnerDto that has just been created
+   * @return the partner that has just been created
    */
-  @Validated({Default.class, OnCreate.class})
-  PartnerDto create(@NotNull @Valid PartnerDto partner, @NotBlank String userRole);
+  Partner create(Partner partner, Role userRole);
 
   /**
-   * Find a partnerDto existing in the database.
+   * Find a partner existing in the database.
    *
    * @param id : the id of the partner we want to find
-   * @return the partnerDto found in the database
+   * @return the partner found in the database
    */
-  PartnerDto showOne(@Positive int id);
+  Partner showOne(int id);
 
   /**
-   * Find all PartnerRepository.
+   * The partners visible to the user, filtered.
    *
-   * @param filter : the filter to apply
-   * @param value : the value of the filter
-   * @param userId : the id of the user who wants to edit a partner.
-   * @param userRole : the role of the user who wants to edit a partner.
-   * @return a list of all the partnerDto found in the database
+   * @param filter the filter to apply
+   * @param value the value of the filter: part of the name for {@link PartnerFilter#ARCHIVED}, a
+   *     country code for {@link PartnerFilter#COUNTRY}, ignored for {@link PartnerFilter#ALL}
+   * @param userRole the role of the requester
+   * @param userId the id of the requester
+   * @return the partners, ordered by id
    */
-  List<PartnerDto> showAll(
-      @NotNull @Valid PartnerSearch search, @NotBlank String userRole, @Positive int userId);
+  List<Partner> showAll(PartnerFilter filter, @Nullable String value, Role userRole, int userId);
 
   /**
    * Edit a partner.
    *
-   * @param id : the id of the partnerDto we want to edit coming from the front-end.
-   * @param partner : the partnerDto containing the new data.
+   * @param id : the id of the partner we want to edit coming from the front-end.
+   * @param partner : the partner containing the new data.
    * @param userRole : the role of the user who wants to edit a partner.
-   * @return the partnerDto that has just been edited.
+   * @return the partner that has just been edited.
    */
-  PartnerDto edit(@Positive int id, @NotNull @Valid PartnerDto partner, @NotBlank String userRole);
+  Partner edit(int id, Partner partner, Role userRole);
 
-  PartnerDto restore(@Positive int id, @NotBlank String role);
+  Partner restore(int id, Role role);
 
   /**
    * Adds an option to a partner. A professor may add an option to any partner. A student may only
@@ -72,17 +65,13 @@ public interface PartnerService {
    * @throws com.dragomitch.ipl.pae.domain.exceptions.InsufficientPermissionException if a student
    *     may not change that partner (403 {@code ACCESS_DENIED})
    */
-  void addOption(
-      @Positive int id,
-      @NotNull @Valid PartnerOptionDto partnerOption,
-      @Positive int userId,
-      @NotBlank String userRole);
+  void addOption(int id, PartnerOption partnerOption, int userId, Role userRole);
 
   /**
    * Find all options for a partner.
    *
-   * @param partnerId : the id of the partnerDto for which we want to find options
+   * @param partnerId : the id of the partner for which we want to find options
    * @return a list of options corresponding to a partner
    */
-  List<PartnerOptionDto> findAllPartnerOption(@Positive int partnerId);
+  List<PartnerOption> findAllPartnerOption(int partnerId);
 }

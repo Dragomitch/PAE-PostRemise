@@ -1,9 +1,10 @@
 package com.dragomitch.ipl.pae.adapter.in.web;
 
+import com.dragomitch.ipl.pae.adapter.in.web.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.mapping.UserMapper;
 import com.dragomitch.ipl.pae.adapter.in.web.security.CurrentUser;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.adapter.in.web.validation.ValidationGroups.OnCreate;
 import com.dragomitch.ipl.pae.domain.port.in.UserService;
-import com.dragomitch.ipl.pae.domain.validation.ValidationGroups.OnCreate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,22 +31,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
   private final UserService userService;
+  private final UserMapper mapper;
 
-  public UserController(UserService userService) {
+  public UserController(UserService userService, UserMapper mapper) {
     this.userService = userService;
+    this.mapper = mapper;
   }
 
   /** Public: sign-up. The first user becomes a professor, the next ones students. */
   @PostMapping
   public UserDto signup(@RequestBody @Validated({Default.class, OnCreate.class}) UserDto user) {
-    return userService.signup(user);
+    return mapper.toDto(userService.signup(mapper.toDomain(user)));
   }
 
   /** Every user, wrapped in {@code {"data": [...]}} (DataTables format). */
   @GetMapping
   @PreAuthorize(ApiPaths.PROFESSOR)
   public DataResponse<UserDto> showAll() {
-    return new DataResponse<>(userService.showAll());
+    return new DataResponse<>(mapper.toUserDtos(userService.showAll()));
   }
 
   /** Promotes the user having that id (the users list of the UI); a professor is unchanged. */
@@ -63,13 +66,14 @@ public class UserController {
   @PreAuthorize(ApiPaths.PROFESSOR)
   public UserDto promoteToProfessorByUsername(
       @PathVariable @NotBlank @Size(max = UserDto.USERNAME_MAX_LENGTH) String username) {
-    return userService.promoteToProfessorByUsername(username);
+    return mapper.toDto(userService.promoteToProfessorByUsername(username));
   }
 
   @Operation(summary = "Updates the data of the signed-in user")
   @PutMapping("/edit")
   @PreAuthorize(ApiPaths.PROFESSOR_OR_STUDENT)
   public UserDto edit(@RequestBody @Valid UserDto user, CurrentUser currentUser) {
-    return userService.edit(user, currentUser.id(), currentUser.role());
+    return mapper.toDto(
+        userService.edit(mapper.toDomain(user), currentUser.id(), currentUser.role()));
   }
 }

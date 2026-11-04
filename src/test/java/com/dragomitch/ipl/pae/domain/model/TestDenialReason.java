@@ -3,7 +3,6 @@ package com.dragomitch.ipl.pae.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.DenialReasonDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +17,12 @@ public class TestDenialReason {
   private static final int ID = 1;
   private static final String REASON = "Mon ours en peluche est mort";
 
-  private EntityFactory entityFactory;
-  private DenialReasonDto denialReason;
+  private DenialReason denialReason;
 
   /** Creates a new DenialReason instance. */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    this.denialReason = (DenialReasonDto) entityFactory.build(DenialReasonDto.class);
+    this.denialReason = new DenialReason();
   }
 
   @Test

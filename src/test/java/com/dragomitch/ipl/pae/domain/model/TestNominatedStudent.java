@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.CountryDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,12 +34,10 @@ public class TestNominatedStudent {
   private static final String LONG_STRING_61 =
       "asdasdasdasdasdasdasdasdasdasdasasdasdasdasdasdasdasdasdasdas";
 
-  private EntityFactory entityFactory;
   private NominatedStudent nominatedStudent;
 
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
     nominatedStudent = setUpCorrectNominatedStudent();
   }
 
@@ -162,14 +157,14 @@ public class TestNominatedStudent {
 
   @Test
   public void testCheckDataIntegrityTC8() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     nominatedStudent.setNationality(country);
     assertNotEquals(List.of(), Violations.of(nominatedStudent));
   }
 
   @Test
   public void testCheckDataIntegrityTC9() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("1");
     nominatedStudent.setNationality(country);
     assertNotEquals(List.of(), Violations.of(nominatedStudent));
@@ -177,7 +172,7 @@ public class TestNominatedStudent {
 
   @Test
   public void testCheckDataIntegrityTC10() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("123");
     nominatedStudent.setNationality(country);
     assertNotEquals(List.of(), Violations.of(nominatedStudent));
@@ -185,7 +180,7 @@ public class TestNominatedStudent {
 
   @Test
   public void testCheckDataIntegrityTC11() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("1");
     nominatedStudent.setNationality(country);
     assertNotEquals(List.of(), Violations.of(nominatedStudent));
@@ -193,7 +188,7 @@ public class TestNominatedStudent {
 
   @Test
   public void testCheckDataIntegrityTC12() {
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode("123");
     nominatedStudent.setNationality(country);
     assertNotEquals(List.of(), Violations.of(nominatedStudent));
@@ -350,27 +345,26 @@ public class TestNominatedStudent {
   }
 
   private NominatedStudent setUpCorrectNominatedStudent() {
-    NominatedStudent nominatedStudent =
-        (NominatedStudent) entityFactory.build(NominatedStudent.class);
+    NominatedStudent nominatedStudent = new NominatedStudent();
     nominatedStudent.setLastName(TestUser.LAST_NAME);
     nominatedStudent.setFirstName("First Name");
     nominatedStudent.setUsername("username");
     nominatedStudent.setEmail("email@do.com");
-    OptionDto option = (OptionDto) entityFactory.build(OptionDto.class);
+    Option option = new Option();
     option.setCode("BIN");
     nominatedStudent.setOption(option);
     nominatedStudent.setTitle(TITLE);
     nominatedStudent.setBirthdate(BIRTHDATE);
-    CountryDto country = (CountryDto) entityFactory.build(CountryDto.class);
+    Country country = new Country();
     country.setCountryCode(COUNTRY_CODE);
     nominatedStudent.setNationality(country);
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    Address address = new Address();
     address.setStreet("Rue de la Loi");
     address.setNumber("16");
     address.setCity("Bruxelles");
     address.setPostalCode("1000");
     address.setRegion("");
-    CountryDto addressCountry = (CountryDto) entityFactory.build(CountryDto.class);
+    Country addressCountry = new Country();
     addressCountry.setCountryCode("BE");
     address.setCountry(addressCountry);
     nominatedStudent.setAddress(address);

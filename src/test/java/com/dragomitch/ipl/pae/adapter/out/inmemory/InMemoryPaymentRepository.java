@@ -1,29 +1,29 @@
 package com.dragomitch.ipl.pae.adapter.out.inmemory;
 
-import com.dragomitch.ipl.pae.domain.dto.PaymentDto;
+import com.dragomitch.ipl.pae.domain.model.Payment;
 import com.dragomitch.ipl.pae.domain.port.out.PaymentRepository;
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryPaymentRepository implements PaymentRepository, ResettableRepository {
 
-  private List<PaymentDto> payments;
+  private List<Payment> payments;
 
   public InMemoryPaymentRepository() {
-    payments = new ArrayList<PaymentDto>();
+    payments = new ArrayList<Payment>();
   }
 
   @Override
-  public List<PaymentDto> findAll() {
+  public List<Payment> findAll() {
     return payments;
   }
 
-  public void addPayment(PaymentDto payment) {
+  public void addPayment(Payment payment) {
     payments.add(payment);
   }
 
   @Override
   public void empty() {
-    payments = new ArrayList<PaymentDto>();
+    payments = new ArrayList<Payment>();
   }
 }

@@ -78,10 +78,10 @@ public record FieldViolation(String field, String code, String message) {
   }
 
   /**
-   * The violations of a Bean Validation {@code ConstraintViolationException}, typically raised by
-   * the method validation of a use case: the method and parameter nodes are left out of the path,
-   * so that {@code signup.user.email} becomes {@code email} and {@code promoteToProfessor.userId}
-   * becomes {@code userId}.
+   * The violations of a Bean Validation {@code ConstraintViolationException}, raised by a method
+   * validation outside the request binding: the method and parameter nodes are left out of the
+   * path, so that {@code signup.user.email} becomes {@code email} and {@code
+   * promoteToProfessor.userId} becomes {@code userId}.
    *
    * @param violations the constraint violations
    * @return one violation per constraint violation, sorted by field

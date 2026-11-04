@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Import;
 /**
  * What a {@code @WebMvcTest} slice needs on top of the controllers, the
  * {@code @RestControllerAdvice} and the {@code WebMvcConfigurer}s it picks up by itself: the real
- * security chain, the JSON mapping of the DTO interfaces (built from the real {@code
- * EntityFactory}) and the session cookie issuer. The use cases are mocked by each test.
+ * security chain, the JSON mapping ({@code NON_NULL}), the mappers between the web records and the
+ * domain, and the session cookie issuer. The use cases are mocked by each test.
  */
 @TestConfiguration(proxyBeanMethods = false)
 @Import({SecurityConfig.class, JacksonConfig.class, SessionCookieService.class})
-@ComponentScan("com.dragomitch.ipl.pae.domain.model")
+@ComponentScan("com.dragomitch.ipl.pae.adapter.in.web.mapping")
 public class WebTestConfig {}

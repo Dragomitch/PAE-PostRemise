@@ -1,19 +1,15 @@
 package com.dragomitch.ipl.pae.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryNominatedStudentRepository;
 import com.dragomitch.ipl.pae.adapter.out.inmemory.InMemoryUserRepository;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
-import com.dragomitch.ipl.pae.domain.model.EntityFactory;
-import com.dragomitch.ipl.pae.domain.model.Violations;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Role;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.in.NominatedStudentService;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
-import jakarta.validation.ConstraintViolationException;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,19 +22,17 @@ public class TestNominatedStudentService {
 
   @Autowired private ApplicationContext context;
 
-  private EntityFactory entityFactory;
   private NominatedStudentRepository nominatedStudentRepository;
   private NominatedStudentService nominatedStudentService;
   private MockDtoFactory mockDtoFactory;
-  private NominatedStudentDto nominatedStud;
+  private NominatedStudent nominatedStud;
 
   /** Sets up the environment before every test. */
   @BeforeEach
   public void setUp() {
-    entityFactory = context.getBean(EntityFactory.class);
     nominatedStudentRepository = context.getBean(NominatedStudentRepository.class);
     nominatedStudentService = context.getBean(NominatedStudentService.class);
-    mockDtoFactory = new MockDtoFactory(entityFactory);
+    mockDtoFactory = new MockDtoFactory();
     nominatedStud = mockDtoFactory.getNominatedStudent();
   }
 
@@ -49,46 +43,22 @@ public class TestNominatedStudentService {
   }
 
   @Test
-  public void testCreateTC1() {
-    assertThrows(
-        ConstraintViolationException.class,
-        () -> {
-          nominatedStudentService.create(null, 1, UserDto.ROLE_PROFESSOR);
-        });
-  }
-
-  @Test
-  public void testCreateTC2() {
-    assertEquals(
-        List.of(
-            "create.nominatedStudent.bic:Bic",
-            "create.nominatedStudent.birthdate:Past",
-            "create.nominatedStudent.iban:Iban"),
-        Violations.thrownBy(() -> {
-          nominatedStudentRepository.create(nominatedStud);
-          nominatedStudentService.create(nominatedStud, 1, UserDto.ROLE_PROFESSOR);
-          assertEquals(1, nominatedStudentRepository.findAll().size());
-        }));
-  }
-
-  @Test
   public void createKeepsTheVersionOfTheUserAndReturnsIt() {
     InMemoryUserRepository userRepository = context.getBean(InMemoryUserRepository.class);
     userRepository.empty();
-    UserDto user = userRepository.create(mockDtoFactory.getUser(UserDto.ROLE_STUDENT));
+    User user = userRepository.create(mockDtoFactory.getUser(Role.STUDENT));
     user.setVersion(3);
-    NominatedStudentDto student = validStudent(user.getId());
+    NominatedStudent student = validStudent(user.getId());
 
-    NominatedStudentDto created =
-        nominatedStudentService.create(student, user.getId(), UserDto.ROLE_STUDENT);
+    NominatedStudent created = nominatedStudentService.create(student, user.getId(), Role.STUDENT);
 
     assertEquals(3, created.getVersion(), "the returned version is the stored one");
-    assertEquals(3, nominatedStudentRepository.findById(user.getId()).getVersion());
+    assertEquals(3, nominatedStudentRepository.findById(user.getId()).orElseThrow().getVersion());
     userRepository.empty();
   }
 
-  private NominatedStudentDto validStudent(int userId) {
-    NominatedStudentDto student = mockDtoFactory.getNominatedStudent();
+  private NominatedStudent validStudent(int userId) {
+    NominatedStudent student = mockDtoFactory.getNominatedStudent();
     student.setId(userId);
     student.setIban("BE68539007547034");
     student.setBic("GKCCBEBB");

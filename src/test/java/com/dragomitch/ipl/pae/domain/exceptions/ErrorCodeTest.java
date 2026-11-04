@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 
 /** The catalogue of error codes and the business exceptions built from it. */
 class ErrorCodeTest {
@@ -21,7 +19,7 @@ class ErrorCodeTest {
     assertThat(code.type().toString()).matches("urn:pae:problem:[a-z]+(-[a-z]+)*");
     assertThat(code.titleMessageCode()).isEqualTo("problem." + code.name() + ".title");
     assertThat(code.detailMessageCode()).isEqualTo("problem." + code.name() + ".detail");
-    assertThat(code.status().isError()).isTrue();
+    assertThat(code.status()).isBetween(400, 599);
   }
 
   @Test
@@ -61,7 +59,7 @@ class ErrorCodeTest {
     "INTERNAL_ERROR, 500"
   })
   void statusPolicy(ErrorCode code, int status) {
-    assertThat(code.status().value()).isEqualTo(status);
+    assertThat(code.status()).isEqualTo(status);
   }
 
   @ParameterizedTest
@@ -85,18 +83,15 @@ class ErrorCodeTest {
   }
 
   @Test
-  void aBusinessExceptionIsAnErrorResponseOfItsCode() {
-    BusinessException ex = new BusinessException(ErrorCode.USERNAME_TAKEN, "jdoe");
+  void aBusinessExceptionCarriesItsCodeAndTheArgumentsOfItsDetail() {
+    Throwable cause = new IllegalStateException();
+    BusinessException ex = new BusinessException(ErrorCode.USERNAME_TAKEN, cause, "jdoe");
 
     assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.USERNAME_TAKEN);
-    assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    ProblemDetail body = ex.getBody();
-    assertThat(body.getType()).isEqualTo(URI.create("urn:pae:problem:username-taken"));
-    assertThat(body.getProperties()).containsEntry("code", "USERNAME_TAKEN");
-    assertThat(ex.getTitleMessageCode()).isEqualTo("problem.USERNAME_TAKEN.title");
-    assertThat(ex.getDetailMessageCode()).isEqualTo("problem.USERNAME_TAKEN.detail");
+    assertThat(ex.getErrorCode().type()).isEqualTo(URI.create("urn:pae:problem:username-taken"));
     assertThat(ex.getDetailMessageArguments()).containsExactly("jdoe");
     assertThat(ex.getMessage()).isEqualTo("USERNAME_TAKEN [jdoe]");
+    assertThat(ex.getCause()).isSameAs(cause);
   }
 
   @Test

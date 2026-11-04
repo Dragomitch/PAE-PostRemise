@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dragomitch.ipl.pae.UnitTestConfig;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +29,6 @@ public class TestPartner {
   private static final boolean STATUS = true;
   private static final int VERSION = 1;
 
-  private EntityFactory entityFactory;
   private Partner partner;
 
   /**
@@ -41,8 +37,7 @@ public class TestPartner {
    */
   @BeforeEach
   public void setUp() throws Exception {
-    entityFactory = context.getBean(EntityFactory.class);
-    partner = (Partner) entityFactory.build(Partner.class);
+    partner = new Partner();
   }
 
   @Test
@@ -101,7 +96,7 @@ public class TestPartner {
 
   @Test
   public void testSetAndGetStatusTC1() {
-    partner.setStatus(STATUS);
+    partner.setOfficial(STATUS);
     assertTrue(partner.isOfficial());
   }
 
@@ -113,23 +108,23 @@ public class TestPartner {
 
   @Test
   public void testSetAndGetAddressTC1() {
-    AddressDto address = (AddressDto) entityFactory.build(AddressDto.class);
+    Address address = new Address();
     partner.setAddress(address);
     assertEquals(address, partner.getAddress());
   }
 
   @Test
   public void testSetAndGetProgrammeTC1() {
-    ProgrammeDto programme = (ProgrammeDto) entityFactory.build(ProgrammeDto.class);
+    Programme programme = new Programme();
     partner.setProgramme(programme);
     assertEquals(programme, partner.getProgramme());
   }
 
   @Test
   public void testSetAndGetOptionsTC1() {
-    List<PartnerOptionDto> options = new ArrayList<PartnerOptionDto>();
-    PartnerOptionDto option1 = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
-    PartnerOptionDto option2 = (PartnerOptionDto) entityFactory.build(PartnerOptionDto.class);
+    List<PartnerOption> options = new ArrayList<PartnerOption>();
+    PartnerOption option1 = new PartnerOption();
+    PartnerOption option2 = new PartnerOption();
     options.add(option1);
     options.add(option2);
     partner.setOptions(options);

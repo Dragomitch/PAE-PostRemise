@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerOptionDto;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.PartnerOption;
 import com.dragomitch.ipl.pae.domain.port.out.PartnerOptionRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -23,8 +23,8 @@ class PartnerOptionRepositoryIT extends AbstractRepositoryIT {
     return List.of("db/fixtures/partners.sql");
   }
 
-  private PartnerOptionDto option(String code, String departement) {
-    PartnerOptionDto option = build(PartnerOptionDto.class);
+  private PartnerOption option(String code, String departement) {
+    PartnerOption option = new PartnerOption();
     option.setCode(code);
     option.setDepartement(departement);
     return option;
@@ -32,12 +32,11 @@ class PartnerOptionRepositoryIT extends AbstractRepositoryIT {
 
   @Test
   void findAllOptionsByPartnerReturnsCodeNameAndDepartement() {
-    List<PartnerOptionDto> options =
+    List<PartnerOption> options =
         inTransaction(() -> partnerOptionRepository.findAllOptionsByPartner(3001));
 
     assertThat(options)
-        .extracting(
-            PartnerOptionDto::getCode, PartnerOptionDto::getName, PartnerOptionDto::getDepartement)
+        .extracting(PartnerOption::getCode, PartnerOption::getName, PartnerOption::getDepartement)
         .containsExactlyInAnyOrder(
             tuple("BIN", "Bachelier en informatique de gestion", "Informatique"),
             tuple("BCH", "Bachelier en chimie", "Chimie"));
@@ -53,7 +52,7 @@ class PartnerOptionRepositoryIT extends AbstractRepositoryIT {
   @ParameterizedTest
   @CsvSource({"BIN, 3001;3002;3003", "BCH, 3001;3004", "BDI, ''", "XXX, ''"})
   void findAllPartnersByOptionReturnsPartnerIdsOnly(String code, String expected) {
-    List<PartnerDto> partners =
+    List<Partner> partners =
         inTransaction(() -> partnerOptionRepository.findAllPartnersByOption(code));
 
     List<Integer> expectedIds =
@@ -61,7 +60,7 @@ class PartnerOptionRepositoryIT extends AbstractRepositoryIT {
             ? List.of()
             : java.util.Arrays.stream(expected.split(";")).map(Integer::valueOf).toList();
     assertThat(partners)
-        .extracting(PartnerDto::getId)
+        .extracting(Partner::getId)
         .containsExactlyInAnyOrderElementsOf(expectedIds);
     assertThat(partners).allSatisfy(partner -> assertThat(partner.getFullName()).isNull());
   }
@@ -69,11 +68,11 @@ class PartnerOptionRepositoryIT extends AbstractRepositoryIT {
   @Test
   void createLinksAnOptionToAPartner() {
     runInTransaction(() -> {
-      PartnerOptionDto option = option("BDI", "Nutrition");
+      PartnerOption option = option("BDI", "Nutrition");
 
       assertThat(partnerOptionRepository.create(option, 3005)).isSameAs(option);
       assertThat(partnerOptionRepository.findAllOptionsByPartner(3005))
-          .extracting(PartnerOptionDto::getCode, PartnerOptionDto::getDepartement)
+          .extracting(PartnerOption::getCode, PartnerOption::getDepartement)
           .containsExactly(tuple("BDI", "Nutrition"));
     });
   }

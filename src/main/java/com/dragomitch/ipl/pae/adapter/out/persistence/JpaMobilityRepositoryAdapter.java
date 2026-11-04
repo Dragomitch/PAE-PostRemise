@@ -7,17 +7,20 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.PartnerEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.ProgrammeEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.MobilityJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.MobilityDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
-import com.dragomitch.ipl.pae.domain.dto.OptionDto;
-import com.dragomitch.ipl.pae.domain.dto.PartnerDto;
-import com.dragomitch.ipl.pae.domain.dto.ProgrammeDto;
-import com.dragomitch.ipl.pae.domain.dto.UserDto;
+import com.dragomitch.ipl.pae.domain.model.Mobility;
+import com.dragomitch.ipl.pae.domain.model.MobilityState;
+import com.dragomitch.ipl.pae.domain.model.MobilityType;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Option;
+import com.dragomitch.ipl.pae.domain.model.Partner;
+import com.dragomitch.ipl.pae.domain.model.Programme;
+import com.dragomitch.ipl.pae.domain.model.User;
 import com.dragomitch.ipl.pae.domain.port.out.MobilityRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The mobilities: the accepted mobility choices, followed until they are closed. */
@@ -39,7 +42,7 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
    * is not generated).
    */
   @Override
-  public MobilityDto create(MobilityDto mobility) {
+  public Mobility create(Mobility mobility) {
     MobilityEntity entity = new MobilityEntity();
     entity.setChoice(entityManager.getReference(MobilityChoiceEntity.class, mobility.getId()));
     copy(mobility, entity);
@@ -51,17 +54,17 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
   }
 
   @Override
-  public MobilityDto findById(int id) {
-    return mobilities.findWithChoiceById(id).map(this::mobility).orElse(null);
+  public Optional<Mobility> findById(int id) {
+    return mobilities.findWithChoiceById(id).map(this::mobility);
   }
 
   @Override
-  public List<MobilityDto> findAll() {
+  public List<Mobility> findAll() {
     return mobilities.findAllWithChoiceByOrderById().stream().map(this::mobility).toList();
   }
 
   @Override
-  public List<MobilityDto> findByUser(int user) {
+  public List<Mobility> findByUser(int user) {
     return mobilities.findWithChoiceByChoiceUserIdOrderById(user).stream()
         .map(this::mobility)
         .toList();
@@ -74,7 +77,7 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
    *     the DTO's (it was changed since it was read)
    */
   @Override
-  public MobilityDto update(MobilityDto mobility) {
+  public Mobility update(Mobility mobility) {
     MobilityEntity entity =
         mobilities
             .findById(mobility.getId())
@@ -88,10 +91,13 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
   }
 
   /** The columns a create and an update write. */
-  private void copy(MobilityDto mobility, MobilityEntity entity) {
+  private void copy(Mobility mobility, MobilityEntity entity) {
     entity.setSubmissionDate(mobility.getSubmissionDate());
-    entity.setState(mobility.getState());
-    entity.setStateBeforeCancellation(mobility.getStateBeforeCancellation());
+    entity.setState(mobility.getState() == null ? null : mobility.getState().label());
+    entity.setStateBeforeCancellation(
+        mobility.getStateBeforeCancellation() == null
+            ? null
+            : mobility.getStateBeforeCancellation().label());
     entity.setFirstPaymentRequestDate(mobility.getFirstPaymentRequestDate());
     entity.setSecondPaymentRequestDate(mobility.getSecondPaymentRequestDate());
     entity.setProEcoEncoding(mobility.isEncodedInProEco());
@@ -114,16 +120,19 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
    * partner (id and full name) and country (code and name), when the choice has them; its programme
    * (id and name); its denial reason; and its professor in charge (id only).
    */
-  private MobilityDto mobility(MobilityEntity entity) {
+  private Mobility mobility(MobilityEntity entity) {
     MobilityChoiceEntity choice = entity.getChoice();
-    MobilityDto mobility = mapper.build(MobilityDto.class);
+    Mobility mobility = new Mobility();
     mobility.setId(entity.getId());
-    mobility.setMobilityType(choice.getMobilityType());
+    mobility.setMobilityType(MobilityType.valueOf(choice.getMobilityType()));
     mobility.setAcademicYear(choice.getAcademicYear());
     mobility.setTerm(choice.getTerm());
     mobility.setSubmissionDate(entity.getSubmissionDate());
-    mobility.setState(entity.getState());
-    mobility.setStateBeforeCancellation(entity.getStateBeforeCancellation());
+    mobility.setState(MobilityState.fromLabel(entity.getState()));
+    mobility.setStateBeforeCancellation(
+        entity.getStateBeforeCancellation() == null
+            ? null
+            : MobilityState.fromLabel(entity.getStateBeforeCancellation()));
     mobility.setFirstPaymentRequestDate(entity.getFirstPaymentRequestDate());
     mobility.setSecondPaymentRequestDate(entity.getSecondPaymentRequestDate());
     mobility.setProEcoEncoding(Boolean.TRUE.equals(entity.getProEcoEncoding()));
@@ -133,23 +142,23 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
       mobility.setDenialReason(mapper.denialReason(entity.getDenialReason()));
     }
     if (entity.getProfessorInCharge() != null) {
-      UserDto professor = mapper.build(UserDto.class);
+      User professor = new User();
       professor.setId(entity.getProfessorInCharge().getId());
       mobility.setProfessorInCharge(professor);
     }
     mobility.setVersion(entity.getVersion());
     UserEntity user = choice.getUser();
-    NominatedStudentDto student = mapper.build(NominatedStudentDto.class);
+    NominatedStudent student = new NominatedStudent();
     student.setId(user.getId());
     student.setFirstName(user.getFirstName());
     student.setLastName(user.getLastName());
-    OptionDto option = mapper.build(OptionDto.class);
+    Option option = new Option();
     option.setCode(user.getOption().getCode());
     student.setOption(option);
     mobility.setNominatedStudent(student);
     PartnerEntity partnerEntity = choice.getPartner();
     if (partnerEntity != null) {
-      PartnerDto partner = mapper.build(PartnerDto.class);
+      Partner partner = new Partner();
       partner.setId(partnerEntity.getId());
       partner.setFullName(partnerEntity.getFullName());
       mobility.setPartner(partner);
@@ -158,7 +167,7 @@ class JpaMobilityRepositoryAdapter implements MobilityRepository {
       mobility.setCountry(mapper.countryNamed(choice.getCountry()));
     }
     ProgrammeEntity programmeEntity = choice.getProgramme();
-    ProgrammeDto programme = mapper.programmeReference(programmeEntity.getId());
+    Programme programme = mapper.programmeReference(programmeEntity.getId());
     programme.setProgrammeName(programmeEntity.getName());
     mobility.setProgramme(programme);
     return mobility;

@@ -1,14 +1,9 @@
 package com.dragomitch.ipl.pae.domain.port.out;
 
-import com.dragomitch.ipl.pae.domain.dto.DocumentDto;
+import com.dragomitch.ipl.pae.domain.model.Document;
 import java.util.List;
 
 public interface MobilityDocumentRepository {
-
-  String TABLE_NAME = "mobility_documents";
-  String COLUMN_DOCUMENT_ID = "document_id";
-  String COLUMN_MOBILITY_ID = "mobility_id";
-  String COLUMN_IS_FILLED_IN = "is_filled_in";
 
   /**
    * Inserts a mobility document into the database.
@@ -25,7 +20,7 @@ public interface MobilityDocumentRepository {
    *     Database.
    * @return All documents concerned by the mobility.
    */
-  List<DocumentDto> findAllByMobility(int mobilityId);
+  List<Document> findAllByMobility(int mobilityId);
 
   /**
    * Marks a document of a mobility as filled in (and increments the version of the link).

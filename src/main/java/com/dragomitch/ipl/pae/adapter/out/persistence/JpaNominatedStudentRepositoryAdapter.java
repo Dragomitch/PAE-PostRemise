@@ -5,13 +5,15 @@ import com.dragomitch.ipl.pae.adapter.out.persistence.entity.CountryEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.NominatedStudentEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.entity.UserEntity;
 import com.dragomitch.ipl.pae.adapter.out.persistence.repository.NominatedStudentJpaRepository;
-import com.dragomitch.ipl.pae.domain.dto.AddressDto;
-import com.dragomitch.ipl.pae.domain.dto.NominatedStudentDto;
+import com.dragomitch.ipl.pae.domain.model.Address;
+import com.dragomitch.ipl.pae.domain.model.NominatedStudent;
+import com.dragomitch.ipl.pae.domain.model.Role;
 import com.dragomitch.ipl.pae.domain.port.out.NominatedStudentRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /** The personal data of the students nominated for a mobility. */
@@ -34,7 +36,7 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
    * once (their key is not generated).
    */
   @Override
-  public NominatedStudentDto create(NominatedStudentDto nominatedStudent) {
+  public NominatedStudent create(NominatedStudent nominatedStudent) {
     NominatedStudentEntity entity = new NominatedStudentEntity();
     entity.setUser(entityManager.getReference(UserEntity.class, nominatedStudent.getId()));
     entity.setAddress(
@@ -47,12 +49,12 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
   }
 
   @Override
-  public NominatedStudentDto findById(int id) {
-    return students.findWithUserById(id).map(this::student).orElse(null);
+  public Optional<NominatedStudent> findById(int id) {
+    return students.findWithUserById(id).map(this::student);
   }
 
   @Override
-  public List<NominatedStudentDto> findAll() {
+  public List<NominatedStudent> findAll() {
     return students.findAllWithUserByOrderById().stream().map(this::student).toList();
   }
 
@@ -65,7 +67,7 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
    *     the DTO's (they were changed since they were read)
    */
   @Override
-  public NominatedStudentDto update(NominatedStudentDto nominatedStudent) {
+  public NominatedStudent update(NominatedStudent nominatedStudent) {
     NominatedStudentEntity entity =
         students
             .findById(nominatedStudent.getId())
@@ -80,7 +82,7 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
   }
 
   /** The columns a create and an update write. */
-  private void copy(NominatedStudentDto student, NominatedStudentEntity entity) {
+  private void copy(NominatedStudent student, NominatedStudentEntity entity) {
     entity.setTitle(student.getTitle());
     entity.setBirthdate(student.getBirthdate().atStartOfDay());
     entity.setNationality(
@@ -98,9 +100,9 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
    * A student: their user columns and option, their personal data, their nationality (code and
    * name) and their address (id only). The version is the personal data's.
    */
-  private NominatedStudentDto student(NominatedStudentEntity entity) {
+  private NominatedStudent student(NominatedStudentEntity entity) {
     UserEntity user = entity.getUser();
-    NominatedStudentDto student = mapper.build(NominatedStudentDto.class);
+    NominatedStudent student = new NominatedStudent();
     student.setId(user.getId());
     student.setLastName(user.getLastName());
     student.setFirstName(user.getFirstName());
@@ -108,7 +110,7 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
     student.setPassword(user.getPassword());
     student.setEmail(user.getEmail());
     student.setRegistrationDate(user.getRegistrationDate());
-    student.setRole(user.getRole());
+    student.setRole(Role.fromLabel(user.getRole()));
     student.setOption(mapper.option(user.getOption()));
     student.setTitle(entity.getTitle());
     student.setBirthdate(entity.getBirthdate().toLocalDate());
@@ -120,7 +122,7 @@ class JpaNominatedStudentRepositoryAdapter implements NominatedStudentRepository
     student.setCardHolder(entity.getCardHolder());
     student.setBankName(entity.getBankName());
     student.setBic(entity.getBic());
-    AddressDto address = mapper.build(AddressDto.class);
+    Address address = new Address();
     address.setId(entity.getAddress().getId());
     student.setAddress(address);
     student.setVersion(entity.getVersion() == null ? 0 : entity.getVersion());
