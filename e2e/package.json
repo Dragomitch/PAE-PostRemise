@@ -9,6 +9,6 @@
     "detail": "node mobility_detail.js"
   },
   "devDependencies": {
-    "playwright": "1.64.1"
+    "playwright": "1.65.0"
   }
 }
